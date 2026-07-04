@@ -31,6 +31,7 @@ import {
 import { generateBrushGeometry } from "../openbrush/brush-geometry.js";
 import { createBrushMaterialSpec } from "../openbrush/brush-materials.js";
 import { shouldSampleControlPoint } from "../openbrush/stroke-authoring.js";
+import { resolveOpenBrushTool } from "../openbrush/tools.js";
 import {
   createEmptyStrokeData,
   type ControlPoint,
@@ -123,6 +124,9 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private isPaintStartBlocked(commandSource: string): boolean {
+    if (!this.isActiveToolPaintTool()) {
+      return true;
+    }
     if (!this.isActiveLayerPaintable()) {
       return true;
     }
@@ -133,6 +137,16 @@ export class StrokeAuthoringSystem extends createSystem({
       return false;
     }
     return this.isPointerRayIntersectingPanel();
+  }
+
+  private isActiveToolPaintTool(): boolean {
+    const appStateEntity = this.getFirstEntity("appState");
+    const activeTool = resolveOpenBrushTool(
+      appStateEntity
+        ? String(appStateEntity.getValue(OpenBrushAppState, "activeTool"))
+        : "free-paint",
+    );
+    return activeTool.paints;
   }
 
   private isActiveLayerPaintable(): boolean {

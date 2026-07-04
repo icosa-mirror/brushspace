@@ -35,6 +35,10 @@ import {
   type RuntimeStrokeSelectionState,
 } from "./openbrush/selection.js";
 import {
+  resolveOpenBrushTool,
+  type OpenBrushToolId,
+} from "./openbrush/tools.js";
+import {
   UiCommandHistory,
   type UiCommand,
 } from "./openbrush/ui-command-history.js";
@@ -82,6 +86,7 @@ export class PanelSystem extends createSystem({
         continue;
       }
       this.updateBrushLabels(document);
+      this.updateToolLabels(document);
       this.updateLayerLabels(document);
       this.updateSelectionLabels(document);
       this.updateHistoryLabels(document);
@@ -103,6 +108,9 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "xr-button");
     this.nameElement(document, "history-undo-button");
     this.nameElement(document, "history-redo-button");
+    this.nameElement(document, "tool-draw-button");
+    this.nameElement(document, "tool-eraser-button");
+    this.nameElement(document, "tool-erase-button");
     this.nameElement(document, "brush-previous-button");
     this.nameElement(document, "brush-next-button");
     this.nameElement(document, "layer-new-button");
@@ -145,6 +153,27 @@ export class PanelSystem extends createSystem({
     ) as TextElement;
     redoButton?.addEventListener("click", () => {
       this.redoUiCommand();
+    });
+
+    const drawToolButton = document.getElementById(
+      "tool-draw-button",
+    ) as TextElement;
+    drawToolButton?.addEventListener("click", () => {
+      this.selectTool("free-paint");
+    });
+
+    const eraserToolButton = document.getElementById(
+      "tool-eraser-button",
+    ) as TextElement;
+    eraserToolButton?.addEventListener("click", () => {
+      this.selectTool("eraser");
+    });
+
+    const eraseButton = document.getElementById(
+      "tool-erase-button",
+    ) as TextElement;
+    eraseButton?.addEventListener("click", () => {
+      this.eraseWithActiveTool();
     });
 
     const previousBrushButton = document.getElementById(
@@ -224,9 +253,80 @@ export class PanelSystem extends createSystem({
       this.clearSelection();
     });
     this.updateBrushLabels(document);
+    this.updateToolLabels(document);
     this.updateLayerLabels(document);
     this.updateSelectionLabels(document);
     this.updateHistoryLabels(document);
+  }
+
+  private selectTool(toolId: OpenBrushToolId): void {
+    const appState = this.getAppStateEntity();
+    if (!appState) {
+      return;
+    }
+    const currentTool = resolveOpenBrushTool(
+      String(appState.getValue(OpenBrushAppState, "activeTool")),
+    );
+    const nextTool = resolveOpenBrushTool(toolId);
+    if (currentTool.id === nextTool.id) {
+      this.setToolStatus(appState, nextTool.status);
+      return;
+    }
+
+    appState.setValue(OpenBrushAppState, "previousTool", currentTool.id);
+    appState.setValue(OpenBrushAppState, "activeTool", nextTool.id);
+    appState.setValue(OpenBrushAppState, "toolStatus", nextTool.status);
+    this.touchToolState(appState);
+  }
+
+  private eraseWithActiveTool(): void {
+    const appState = this.getAppStateEntity();
+    if (!appState) {
+      return;
+    }
+    const activeTool = resolveOpenBrushTool(
+      String(appState.getValue(OpenBrushAppState, "activeTool")),
+    );
+    if (!activeTool.erases) {
+      this.selectTool("eraser");
+    }
+
+    const targets = this.getEraserTargetSnapshots(
+      this.getActiveLayerIndex(appState),
+    );
+    if (targets.length === 0) {
+      this.setToolStatus(appState, "nothing-to-erase");
+      return;
+    }
+
+    const erasedLabel =
+      targets.length === 1
+        ? "erased 1 stroke"
+        : `erased ${targets.length} strokes`;
+    this.executeUiCommand({
+      name: "erase-strokes",
+      redo: () => {
+        for (const stroke of targets) {
+          this.applyStrokeSnapshot({
+            ...stroke,
+            visible: false,
+            renderVisible: false,
+            selected: false,
+          });
+        }
+        this.setToolStatus(appState, erasedLabel);
+        this.touchSelectionState();
+        this.touchAppState(appState);
+      },
+      undo: () => {
+        for (const stroke of targets) {
+          this.applyStrokeSnapshot(stroke);
+        }
+        this.setToolStatus(appState, "erase-undone");
+        this.touchSelectionState();
+        this.touchAppState(appState);
+      },
+    });
   }
 
   private selectBrushOffset(offset: number): void {
@@ -267,6 +367,29 @@ export class PanelSystem extends createSystem({
       document,
       "brush-warning",
       activeBrush?.unsupportedReason ?? "Ready",
+    );
+  }
+
+  private updateToolLabels(document: UIKitDocument): void {
+    const appState = this.getAppStateEntity();
+    const activeTool = resolveOpenBrushTool(
+      appState ? String(appState.getValue(OpenBrushAppState, "activeTool")) : "",
+    );
+    const toolStatus = appState
+      ? String(appState.getValue(OpenBrushAppState, "toolStatus"))
+      : activeTool.status;
+
+    this.setText(document, "active-tool-name", activeTool.label);
+    this.setText(document, "active-tool-state", toolStatus);
+    this.setText(
+      document,
+      "tool-draw-button",
+      activeTool.id === "free-paint" ? "Draw *" : "Draw",
+    );
+    this.setText(
+      document,
+      "tool-eraser-button",
+      activeTool.id === "eraser" ? "Eraser *" : "Eraser",
     );
   }
 
@@ -723,6 +846,65 @@ export class PanelSystem extends createSystem({
     return strokes;
   }
 
+  private getEraserTargetSnapshots(layerIndex: number): StrokePanelSnapshot[] {
+    const selectedStrokes = this.getVisibleSelectedStrokeSnapshots();
+    if (selectedStrokes.length > 0) {
+      return selectedStrokes;
+    }
+    const newestStroke = this.getNewestVisibleStrokeSnapshot(layerIndex);
+    return newestStroke ? [newestStroke] : [];
+  }
+
+  private getVisibleSelectedStrokeSnapshots(): StrokePanelSnapshot[] {
+    const strokes: StrokePanelSnapshot[] = [];
+    for (const stroke of this.queries.strokes.entities) {
+      if (
+        !stroke.getValue(BrushStroke, "selected") ||
+        !stroke.getValue(BrushStroke, "visible") ||
+        !stroke.getValue(BrushStroke, "renderVisible")
+      ) {
+        continue;
+      }
+      strokes.push({
+        entity: stroke,
+        visible: true,
+        renderVisible: true,
+        selected: true,
+      });
+    }
+    return strokes;
+  }
+
+  private getNewestVisibleStrokeSnapshot(
+    layerIndex: number,
+  ): StrokePanelSnapshot | undefined {
+    let newestStroke: Entity | undefined;
+    let newestCommandIndex = -1;
+    for (const stroke of this.queries.strokes.entities) {
+      if (
+        Number(stroke.getValue(BrushStroke, "layerIndex")) !== layerIndex ||
+        !stroke.getValue(BrushStroke, "finalized") ||
+        !stroke.getValue(BrushStroke, "visible") ||
+        !stroke.getValue(BrushStroke, "renderVisible")
+      ) {
+        continue;
+      }
+      const commandIndex = Number(stroke.getValue(BrushStroke, "commandIndex"));
+      if (commandIndex > newestCommandIndex) {
+        newestCommandIndex = commandIndex;
+        newestStroke = stroke;
+      }
+    }
+    return newestStroke
+      ? {
+          entity: newestStroke,
+          visible: true,
+          renderVisible: true,
+          selected: Boolean(newestStroke.getValue(BrushStroke, "selected")),
+        }
+      : undefined;
+  }
+
   private applyStrokeSnapshot(snapshot: StrokePanelSnapshot): void {
     snapshot.entity.setValue(BrushStroke, "visible", snapshot.visible);
     snapshot.entity.setValue(
@@ -782,6 +964,27 @@ export class PanelSystem extends createSystem({
     }
     layer.setValue(CanvasLayer, field, value);
     this.touchAppState();
+  }
+
+  private setToolStatus(appState: Entity, status: string): void {
+    if (String(appState.getValue(OpenBrushAppState, "toolStatus")) === status) {
+      return;
+    }
+    appState.setValue(OpenBrushAppState, "toolStatus", status);
+    this.touchToolState(appState);
+  }
+
+  private touchToolState(appState: Entity): void {
+    appState.setValue(
+      OpenBrushAppState,
+      "toolRevision",
+      Number(appState.getValue(OpenBrushAppState, "toolRevision")) + 1,
+    );
+    appState.setValue(
+      OpenBrushAppState,
+      "commandRevision",
+      Number(appState.getValue(OpenBrushAppState, "commandRevision")) + 1,
+    );
   }
 
   private getActiveLayerIndex(appState = this.getAppStateEntity()): number {

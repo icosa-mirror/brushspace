@@ -7,9 +7,9 @@ import {
 } from "./port-phase.js";
 
 describe("Open Brush port phase metadata", () => {
-  it("identifies the active Phase 6 selection widget", () => {
+  it("identifies the active Phase 7 eraser tool", () => {
     expect(OPEN_BRUSH_PLAN_FILE).toBe("OPEN_BRUSH_IWSDK_PORT_PLAN.md");
-    expect(OPEN_BRUSH_PORT_PHASE).toBe("phase-6");
-    expect(OPEN_BRUSH_PORT_STATUS).toBe("selection-widget");
+    expect(OPEN_BRUSH_PORT_PHASE).toBe("phase-7");
+    expect(OPEN_BRUSH_PORT_STATUS).toBe("eraser-tool");
   });
 });

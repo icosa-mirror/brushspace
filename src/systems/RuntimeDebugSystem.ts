@@ -77,6 +77,21 @@ export class RuntimeDebugSystem extends createSystem({
     );
     entity.setValue(
       OpenBrushDebug,
+      "previousTool",
+      this.getAppString("previousTool", "free-paint"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "toolStatus",
+      this.getAppString("toolStatus", "draw-ready"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "toolRevision",
+      this.getAppNumber("toolRevision", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
       "activeBrushGuid",
       this.getBrushString("brushGuid", phase1Summary.activeBrushGuid),
     );
@@ -300,12 +315,18 @@ export class RuntimeDebugSystem extends createSystem({
     );
   }
 
-  private getAppString(field: "mode" | "activeTool", fallback: string): string {
+  private getAppString(
+    field: "mode" | "activeTool" | "previousTool" | "toolStatus",
+    fallback: string,
+  ): string {
     const entity = this.getFirstEntity("appState");
     return entity ? String(entity.getValue(OpenBrushAppState, field)) : fallback;
   }
 
-  private getAppNumber(field: "activeLayerIndex", fallback: number): number {
+  private getAppNumber(
+    field: "activeLayerIndex" | "toolRevision",
+    fallback: number,
+  ): number {
     const entity = this.getFirstEntity("appState");
     return entity ? Number(entity.getValue(OpenBrushAppState, field)) : fallback;
   }

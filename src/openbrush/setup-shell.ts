@@ -35,6 +35,9 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
     .addComponent(OpenBrushAppState, {
       mode: "ready",
       activeTool: "free-paint",
+      previousTool: "free-paint",
+      toolStatus: "draw-ready",
+      toolRevision: 0,
       activeLayerIndex: 0,
       isDirty: false,
       commandRevision: 0,

@@ -3,6 +3,9 @@ import { createComponent, Types } from "@iwsdk/core";
 export const OpenBrushAppState = createComponent("OpenBrushAppState", {
   mode: { type: Types.String, default: "ready" },
   activeTool: { type: Types.String, default: "free-paint" },
+  previousTool: { type: Types.String, default: "free-paint" },
+  toolStatus: { type: Types.String, default: "draw-ready" },
+  toolRevision: { type: Types.Int32, default: 0 },
   activeLayerIndex: { type: Types.Int32, default: 0 },
   isDirty: { type: Types.Boolean, default: false },
   commandRevision: { type: Types.Int32, default: 0 },
