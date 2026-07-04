@@ -1,8 +1,8 @@
 import { createComponent, Types } from "@iwsdk/core";
 
 export const OpenBrushDebug = createComponent("OpenBrushDebug", {
-  phase: { type: Types.String, default: "phase-7" },
-  status: { type: Types.String, default: "transform-tools" },
+  phase: { type: Types.String, default: "phase-8" },
+  status: { type: Types.String, default: "tilt-container" },
   planFile: { type: Types.String, default: "OPEN_BRUSH_IWSDK_PORT_PLAN.md" },
   visibilityState: { type: Types.String, default: "unknown" },
   appMode: { type: Types.String, default: "ready" },
