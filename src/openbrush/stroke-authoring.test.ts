@@ -2,12 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import {
   advanceStrokeAuthoringState,
+  createMirroredStrokeDataX,
   createStrokeAuthoringState,
   shouldSampleControlPoint,
   upsertStraightedgeEndpoint,
   type StrokePointerFrame,
 } from "./stroke-authoring.js";
-import type { ControlPoint } from "./types.js";
+import { StrokeFlags, createEmptyStrokeData, type ControlPoint } from "./types.js";
 
 function frame(paintPressed: boolean, x: number): StrokePointerFrame {
   return {
@@ -79,5 +80,45 @@ describe("stroke authoring state", () => {
     expect(controlPoints).toHaveLength(2);
     expect(controlPoints[1]).toBe(endpoint);
     expect(controlPoints[1].position).toEqual([0.3, 0, 0]);
+  });
+
+  it("mirrors stroke data across the X axis with group continuation metadata", () => {
+    const source = createEmptyStrokeData({
+      guid: "source",
+      seed: 12,
+      groupId: 7,
+      color: [0.2, 0.4, 0.6, 1],
+      controlPoints: [
+        {
+          position: [0.25, 1, -0.5],
+          orientation: [0, 0, 0, 1],
+          pressure: 0.5,
+          timestampMs: 100,
+        },
+        {
+          position: [-0.75, 2, -0.25],
+          orientation: [0, 0.5, 0, 0.5],
+          pressure: 1,
+          timestampMs: 200,
+        },
+      ],
+    });
+
+    const mirrored = createMirroredStrokeDataX(source, {
+      guid: "mirror",
+      seed: 13,
+    });
+
+    expect(mirrored.guid).toBe("mirror");
+    expect(mirrored.seed).toBe(13);
+    expect(mirrored.groupId).toBe(7);
+    expect(mirrored.flags & StrokeFlags.IsGroupContinue).toBe(
+      StrokeFlags.IsGroupContinue,
+    );
+    expect(mirrored.color).toEqual(source.color);
+    expect(mirrored.color).not.toBe(source.color);
+    expect(mirrored.controlPoints).toHaveLength(2);
+    expect(mirrored.controlPoints[0].position).toEqual([-0.25, 1, -0.5]);
+    expect(mirrored.controlPoints[1].position).toEqual([0.75, 2, -0.25]);
   });
 });

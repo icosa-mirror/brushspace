@@ -1,5 +1,10 @@
-import type { Quat, Vec3 } from "./types.js";
-import type { ControlPoint } from "./types.js";
+import {
+  StrokeFlags,
+  type ControlPoint,
+  type Quat,
+  type StrokeData,
+  type Vec3,
+} from "./types.js";
 
 export type StrokeAuthoringPhase = "idle" | "drawing";
 export type StrokeAuthoringEvent = "none" | "start" | "sample" | "finalize";
@@ -121,4 +126,37 @@ export function writeControlPointFromFrame(
   controlPoint.orientation[3] = frame.orientation[3];
   controlPoint.pressure = frame.pressure;
   controlPoint.timestampMs = frame.timestampMs;
+}
+
+export function mirrorControlPointX(controlPoint: ControlPoint): ControlPoint {
+  return {
+    position: [
+      -controlPoint.position[0],
+      controlPoint.position[1],
+      controlPoint.position[2],
+    ],
+    orientation: [
+      controlPoint.orientation[0],
+      controlPoint.orientation[1],
+      controlPoint.orientation[2],
+      controlPoint.orientation[3],
+    ],
+    pressure: controlPoint.pressure,
+    timestampMs: controlPoint.timestampMs,
+  };
+}
+
+export function createMirroredStrokeDataX(
+  source: StrokeData,
+  overrides: { guid: string; seed: number; groupId?: number },
+): StrokeData {
+  return {
+    ...source,
+    guid: overrides.guid,
+    seed: overrides.seed,
+    groupId: overrides.groupId ?? source.groupId,
+    flags: source.flags | StrokeFlags.IsGroupContinue,
+    color: [source.color[0], source.color[1], source.color[2], source.color[3]],
+    controlPoints: source.controlPoints.map(mirrorControlPointX),
+  };
 }

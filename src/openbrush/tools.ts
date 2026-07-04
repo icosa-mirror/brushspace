@@ -2,10 +2,12 @@ export type OpenBrushToolId =
   | "free-paint"
   | "eraser"
   | "straightedge"
+  | "mirror"
   | "color-picker"
   | "brush-picker";
 
 export type OpenBrushToolSamplingMode = "none" | "freehand" | "straightedge";
+export type OpenBrushToolMirrorMode = "none" | "x";
 
 export interface OpenBrushToolDescriptor {
   id: OpenBrushToolId;
@@ -14,6 +16,7 @@ export interface OpenBrushToolDescriptor {
   paints: boolean;
   erases: boolean;
   samplingMode: OpenBrushToolSamplingMode;
+  mirrorMode: OpenBrushToolMirrorMode;
 }
 
 export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
@@ -24,6 +27,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     paints: true,
     erases: false,
     samplingMode: "freehand",
+    mirrorMode: "none",
   },
   {
     id: "eraser",
@@ -32,6 +36,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     paints: false,
     erases: true,
     samplingMode: "none",
+    mirrorMode: "none",
   },
   {
     id: "straightedge",
@@ -40,6 +45,16 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     paints: true,
     erases: false,
     samplingMode: "straightedge",
+    mirrorMode: "none",
+  },
+  {
+    id: "mirror",
+    label: "Mirror",
+    status: "mirror-ready",
+    paints: true,
+    erases: false,
+    samplingMode: "freehand",
+    mirrorMode: "x",
   },
   {
     id: "color-picker",
@@ -48,6 +63,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     paints: false,
     erases: false,
     samplingMode: "none",
+    mirrorMode: "none",
   },
   {
     id: "brush-picker",
@@ -56,6 +72,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     paints: false,
     erases: false,
     samplingMode: "none",
+    mirrorMode: "none",
   },
 ];
 

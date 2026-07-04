@@ -31,6 +31,7 @@ import {
 import { generateBrushGeometry } from "../openbrush/brush-geometry.js";
 import { createBrushMaterialSpec } from "../openbrush/brush-materials.js";
 import {
+  createMirroredStrokeDataX,
   shouldSampleControlPoint,
   upsertStraightedgeEndpoint,
   type StrokePointerFrame,
@@ -39,6 +40,7 @@ import {
   resolveOpenBrushTool,
   type OpenBrushToolDescriptor,
   type OpenBrushToolId,
+  type OpenBrushToolMirrorMode,
   type OpenBrushToolSamplingMode,
 } from "../openbrush/tools.js";
 import {
@@ -59,6 +61,7 @@ interface RuntimeStroke {
   toolId: OpenBrushToolId;
   groupId: number;
   samplingMode: OpenBrushToolSamplingMode;
+  mirrorMode: OpenBrushToolMirrorMode;
   strokeData: StrokeData;
   controlPoints: ControlPoint[];
   lastPosition: Vec3;
@@ -98,8 +101,8 @@ export class StrokeAuthoringSystem extends createSystem({
   };
   private activeStroke: RuntimeStroke | undefined;
   private strokeCounter = 0;
-  private readonly undoStack: Entity[] = [];
-  private readonly redoStack: Entity[] = [];
+  private readonly undoStack: Entity[][] = [];
+  private readonly redoStack: Entity[][] = [];
 
   update(_delta: number, time: number) {
     const commandEntity = this.getFirstEntity("commands");
@@ -313,6 +316,7 @@ export class StrokeAuthoringSystem extends createSystem({
       toolId: activeTool.id,
       groupId,
       samplingMode: activeTool.samplingMode,
+      mirrorMode: activeTool.mirrorMode,
       strokeData,
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
@@ -521,35 +525,112 @@ export class StrokeAuthoringSystem extends createSystem({
     stroke.entity.setValue(BrushStroke, "finalized", true);
     stroke.entity.setValue(BrushStroke, "visible", true);
     stroke.entity.setValue(BrushStroke, "renderVisible", true);
-    this.undoStack.push(stroke.entity);
+    const strokeGroup = [stroke.entity];
+    if (stroke.mirrorMode === "x" && stroke.controlPoints.length >= 2) {
+      strokeGroup.push(this.createMirroredStroke(stroke));
+    }
+    this.undoStack.push(strokeGroup);
     this.activeStroke = undefined;
   }
 
+  private createMirroredStroke(source: RuntimeStroke): Entity {
+    this.strokeCounter += 1;
+    const guid = `runtime-stroke-${this.strokeCounter}`;
+    const strokeData = createMirroredStrokeDataX(source.strokeData, {
+      guid,
+      seed: this.strokeCounter,
+      groupId: source.groupId,
+    });
+    const brushEntry = findBrushByGuid(openBrushInventory, strokeData.brushGuid);
+    const materialSpec = createBrushMaterialSpec(brushEntry, strokeData.color);
+    const geometry = new BufferGeometry();
+    const material = new MeshBasicMaterial({
+      vertexColors: materialSpec.vertexColors,
+      side: materialSpec.doubleSided ? DoubleSide : undefined,
+      opacity: strokeData.color[3],
+      transparent: materialSpec.transparent,
+      depthWrite: materialSpec.depthWrite,
+      alphaTest: materialSpec.alphaCutoff,
+      blending:
+        materialSpec.blending === "additive" ? AdditiveBlending : NormalBlending,
+    });
+    const mesh = new Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    mesh.name = `OpenBrushStrokeMesh_${this.strokeCounter}`;
+
+    const entity = this.world.createTransformEntity(mesh);
+    entity.object3D!.name = `OpenBrushStroke_${this.strokeCounter}`;
+    entity.addComponent(BrushStroke, {
+      guid,
+      brushGuid: strokeData.brushGuid,
+      toolId: source.toolId,
+      groupId: source.groupId,
+      groupContinuation: true,
+      geometryFamily: source.geometryFamily,
+      materialFamily: materialSpec.materialFamily,
+      renderWarning: materialSpec.warning ?? "",
+      layerIndex: strokeData.layerIndex,
+      brushSize: strokeData.brushSize,
+      color: strokeData.color,
+      finalized: true,
+      visible: true,
+      renderVisible: true,
+      selected: false,
+      controlPointCount: strokeData.controlPoints.length,
+      vertexCount: 0,
+      indexCount: 0,
+      commandIndex: this.strokeCounter,
+    });
+
+    const mirroredStroke: RuntimeStroke = {
+      entity,
+      mesh,
+      geometry,
+      geometryFamily: source.geometryFamily,
+      toolId: source.toolId,
+      groupId: source.groupId,
+      samplingMode: source.samplingMode,
+      mirrorMode: "none",
+      strokeData,
+      controlPoints: strokeData.controlPoints,
+      lastPosition: [0, 0, 0],
+      minBounds: entity.getVectorView(BrushStroke, "minBounds") as Float32Array,
+      maxBounds: entity.getVectorView(BrushStroke, "maxBounds") as Float32Array,
+    };
+    this.recalculateBounds(mirroredStroke);
+    this.rebuildStrokeMesh(mirroredStroke);
+    return entity;
+  }
+
   private undoLastStroke(): void {
-    const entity = this.undoStack.pop();
-    if (!entity) {
+    const group = this.undoStack.pop();
+    if (!group) {
       return;
     }
-    entity.setValue(BrushStroke, "visible", false);
-    entity.setValue(BrushStroke, "renderVisible", false);
-    entity.setValue(BrushStroke, "selected", false);
-    if (entity.object3D) {
-      entity.object3D.visible = false;
+    for (const entity of group) {
+      entity.setValue(BrushStroke, "visible", false);
+      entity.setValue(BrushStroke, "renderVisible", false);
+      entity.setValue(BrushStroke, "selected", false);
+      if (entity.object3D) {
+        entity.object3D.visible = false;
+      }
     }
-    this.redoStack.push(entity);
+    this.redoStack.push(group);
   }
 
   private redoLastStroke(): void {
-    const entity = this.redoStack.pop();
-    if (!entity) {
+    const group = this.redoStack.pop();
+    if (!group) {
       return;
     }
-    entity.setValue(BrushStroke, "visible", true);
-    entity.setValue(BrushStroke, "renderVisible", true);
-    if (entity.object3D) {
-      entity.object3D.visible = true;
+    for (const entity of group) {
+      entity.setValue(BrushStroke, "visible", true);
+      entity.setValue(BrushStroke, "renderVisible", true);
+      if (entity.object3D) {
+        entity.object3D.visible = true;
+      }
     }
-    this.undoStack.push(entity);
+    this.undoStack.push(group);
   }
 
   private samplePointerPose(commandEntity: Entity): void {

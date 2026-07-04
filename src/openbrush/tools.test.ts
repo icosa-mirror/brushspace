@@ -36,6 +36,15 @@ describe("Open Brush tools", () => {
     expect(straightedge.paints).toBe(true);
     expect(straightedge.erases).toBe(false);
     expect(straightedge.samplingMode).toBe("straightedge");
+    expect(straightedge.mirrorMode).toBe("none");
+  });
+
+  it("marks mirror as a painting mirrored freehand tool", () => {
+    const mirror = resolveOpenBrushTool("mirror");
+    expect(mirror.paints).toBe(true);
+    expect(mirror.erases).toBe(false);
+    expect(mirror.samplingMode).toBe("freehand");
+    expect(mirror.mirrorMode).toBe("x");
   });
 
   it("marks pickers as state-only tools", () => {
@@ -45,6 +54,7 @@ describe("Open Brush tools", () => {
       expect(picker.paints).toBe(false);
       expect(picker.erases).toBe(false);
       expect(picker.samplingMode).toBe("none");
+      expect(picker.mirrorMode).toBe("none");
     }
   });
 });
