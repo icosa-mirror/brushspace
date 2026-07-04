@@ -7,9 +7,9 @@ import {
 } from "./port-phase.js";
 
 describe("Open Brush port phase metadata", () => {
-  it("identifies the active Phase 3 paint MVP", () => {
+  it("identifies the active Phase 4 geometry core", () => {
     expect(OPEN_BRUSH_PLAN_FILE).toBe("OPEN_BRUSH_IWSDK_PORT_PLAN.md");
-    expect(OPEN_BRUSH_PORT_PHASE).toBe("phase-3");
-    expect(OPEN_BRUSH_PORT_STATUS).toBe("paint-mvp");
+    expect(OPEN_BRUSH_PORT_PHASE).toBe("phase-4");
+    expect(OPEN_BRUSH_PORT_STATUS).toBe("geometry-core");
   });
 });
