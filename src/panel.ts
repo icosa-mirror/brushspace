@@ -110,6 +110,9 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "history-redo-button");
     this.nameElement(document, "tool-draw-button");
     this.nameElement(document, "tool-eraser-button");
+    this.nameElement(document, "tool-color-picker-button");
+    this.nameElement(document, "tool-brush-picker-button");
+    this.nameElement(document, "tool-pick-button");
     this.nameElement(document, "tool-erase-button");
     this.nameElement(document, "brush-previous-button");
     this.nameElement(document, "brush-next-button");
@@ -167,6 +170,25 @@ export class PanelSystem extends createSystem({
     ) as TextElement;
     eraserToolButton?.addEventListener("click", () => {
       this.selectTool("eraser");
+    });
+
+    const colorPickerToolButton = document.getElementById(
+      "tool-color-picker-button",
+    ) as TextElement;
+    colorPickerToolButton?.addEventListener("click", () => {
+      this.selectTool("color-picker");
+    });
+
+    const brushPickerToolButton = document.getElementById(
+      "tool-brush-picker-button",
+    ) as TextElement;
+    brushPickerToolButton?.addEventListener("click", () => {
+      this.selectTool("brush-picker");
+    });
+
+    const pickButton = document.getElementById("tool-pick-button") as TextElement;
+    pickButton?.addEventListener("click", () => {
+      this.pickFromActiveTool();
     });
 
     const eraseButton = document.getElementById(
@@ -329,6 +351,53 @@ export class PanelSystem extends createSystem({
     });
   }
 
+  private pickFromActiveTool(): void {
+    const appState = this.getAppStateEntity();
+    const settingsEntity = this.getBrushSettingsEntity();
+    if (!appState || !settingsEntity) {
+      return;
+    }
+
+    const activeTool = resolveOpenBrushTool(
+      String(appState.getValue(OpenBrushAppState, "activeTool")),
+    );
+    if (activeTool.id !== "color-picker" && activeTool.id !== "brush-picker") {
+      this.setToolStatus(appState, "choose-picker");
+      return;
+    }
+
+    const target = this.getPickerTargetStroke(this.getActiveLayerIndex(appState));
+    if (!target) {
+      this.setToolStatus(appState, "nothing-to-pick");
+      return;
+    }
+
+    const commandIndex = Number(target.getValue(BrushStroke, "commandIndex"));
+    if (activeTool.id === "color-picker") {
+      const sourceColor = target.getVectorView(
+        BrushStroke,
+        "color",
+      ) as Float32Array;
+      const settingsColor = settingsEntity.getVectorView(
+        BrushSettings,
+        "color",
+      ) as Float32Array;
+      settingsColor[0] = sourceColor[0];
+      settingsColor[1] = sourceColor[1];
+      settingsColor[2] = sourceColor[2];
+      settingsColor[3] = sourceColor[3];
+      this.setToolStatus(appState, `picked color #${commandIndex}`, true);
+      return;
+    }
+
+    settingsEntity.setValue(
+      BrushSettings,
+      "brushGuid",
+      String(target.getValue(BrushStroke, "brushGuid")),
+    );
+    this.setToolStatus(appState, `picked brush #${commandIndex}`, true);
+  }
+
   private selectBrushOffset(offset: number): void {
     const settingsEntity = this.getBrushSettingsEntity();
     if (!settingsEntity) {
@@ -390,6 +459,25 @@ export class PanelSystem extends createSystem({
       document,
       "tool-eraser-button",
       activeTool.id === "eraser" ? "Eraser *" : "Eraser",
+    );
+    this.setText(
+      document,
+      "tool-color-picker-button",
+      activeTool.id === "color-picker" ? "Color *" : "Color",
+    );
+    this.setText(
+      document,
+      "tool-brush-picker-button",
+      activeTool.id === "brush-picker" ? "Brush *" : "Brush",
+    );
+    this.setText(
+      document,
+      "tool-pick-button",
+      activeTool.id === "color-picker"
+        ? "Pick Color"
+        : activeTool.id === "brush-picker"
+          ? "Pick Brush"
+          : "Pick Target",
     );
   }
 
@@ -875,6 +963,23 @@ export class PanelSystem extends createSystem({
     return strokes;
   }
 
+  private getPickerTargetStroke(layerIndex: number): Entity | undefined {
+    let newestSelectedStroke: Entity | undefined;
+    let newestSelectedCommandIndex = -1;
+    for (const stroke of this.getVisibleSelectedStrokeSnapshots()) {
+      const commandIndex = Number(
+        stroke.entity.getValue(BrushStroke, "commandIndex"),
+      );
+      if (commandIndex > newestSelectedCommandIndex) {
+        newestSelectedCommandIndex = commandIndex;
+        newestSelectedStroke = stroke.entity;
+      }
+    }
+    return (
+      newestSelectedStroke ?? this.getNewestVisibleStrokeSnapshot(layerIndex)?.entity
+    );
+  }
+
   private getNewestVisibleStrokeSnapshot(
     layerIndex: number,
   ): StrokePanelSnapshot | undefined {
@@ -966,8 +1071,15 @@ export class PanelSystem extends createSystem({
     this.touchAppState();
   }
 
-  private setToolStatus(appState: Entity, status: string): void {
+  private setToolStatus(
+    appState: Entity,
+    status: string,
+    forceRevision = false,
+  ): void {
     if (String(appState.getValue(OpenBrushAppState, "toolStatus")) === status) {
+      if (forceRevision) {
+        this.touchToolState(appState);
+      }
       return;
     }
     appState.setValue(OpenBrushAppState, "toolStatus", status);

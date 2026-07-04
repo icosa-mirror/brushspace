@@ -29,4 +29,13 @@ describe("Open Brush tools", () => {
     expect(eraser.paints).toBe(false);
     expect(eraser.erases).toBe(true);
   });
+
+  it("marks pickers as state-only tools", () => {
+    for (const toolId of ["color-picker", "brush-picker"]) {
+      const picker = resolveOpenBrushTool(toolId);
+      expect(picker.status).toBe("picker-pending");
+      expect(picker.paints).toBe(false);
+      expect(picker.erases).toBe(false);
+    }
+  });
 });

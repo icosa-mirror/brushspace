@@ -51,7 +51,7 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .createTransformEntity()
     .addComponent(PanelUI, {
       config: "./ui/welcome.json",
-      maxHeight: 4.25,
+      maxHeight: 4.75,
       maxWidth: 1.6,
     })
     .addComponent(Interactable)

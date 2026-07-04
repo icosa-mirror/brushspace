@@ -86,6 +86,7 @@
   #brush-next-button,
   #history-redo-button,
   #tool-eraser-button,
+  #tool-brush-picker-button,
   #layer-next-button,
   #layer-toggle-lock-button,
   #layer-move-down-button,
@@ -123,6 +124,11 @@
     <button id="tool-draw-button" class="brush-button">Draw *</button>
     <button id="tool-eraser-button" class="brush-button">Eraser</button>
   </div>
+  <div class="button-row">
+    <button id="tool-color-picker-button" class="brush-button">Color</button>
+    <button id="tool-brush-picker-button" class="brush-button">Brush</button>
+  </div>
+  <button id="tool-pick-button" class="wide-button">Pick Target</button>
   <button id="tool-erase-button" class="wide-button">Erase Target</button>
   <span class="section-label">Brush</span>
   <span id="active-brush-name" class="brush-name">Marker</span>
