@@ -10,6 +10,7 @@ import {
   CanvasLayer,
   InputCommandState,
   OpenBrushAppState,
+  PlaybackState,
   PersistenceState,
   SelectionState,
   SelectionWidget,
@@ -39,6 +40,7 @@ export class RuntimeDebugSystem extends createSystem({
   history: { required: [StrokeHistoryState] },
   uiHistory: { required: [UiCommandHistoryState] },
   persistence: { required: [PersistenceState] },
+  playback: { required: [PlaybackState] },
 }) {
   init() {
     this.queries.debug.subscribe("qualify", (entity) => {
@@ -370,6 +372,61 @@ export class RuntimeDebugSystem extends createSystem({
     );
     entity.setValue(
       OpenBrushDebug,
+      "playbackMode",
+      this.getPlaybackString("mode", "quickload"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "playbackStatus",
+      this.getPlaybackString("status", "idle"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "playbackCursor",
+      this.getPlaybackNumber("cursor", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "playbackDuration",
+      this.getPlaybackNumber("duration", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "playbackUnit",
+      this.getPlaybackString("unit", "none"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "playbackVisibleStrokeCount",
+      this.getPlaybackNumber("visibleStrokeCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "playbackNewlyVisibleStrokeCount",
+      this.getPlaybackNumber("newlyVisibleStrokeCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "playbackHiddenStrokeCount",
+      this.getPlaybackNumber("hiddenStrokeCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "playbackTotalStrokeCount",
+      this.getPlaybackNumber("totalStrokeCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "playbackMissingBrushCount",
+      this.getPlaybackNumber("missingBrushCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "playbackRevision",
+      this.getPlaybackNumber("revision", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
       "brushInventoryTotal",
       phase1Summary.inventory.total,
     );
@@ -517,6 +574,30 @@ export class RuntimeDebugSystem extends createSystem({
     return entity ? Boolean(entity.getValue(PersistenceState, field)) : fallback;
   }
 
+  private getPlaybackString(
+    field: "mode" | "status" | "unit",
+    fallback: string,
+  ): string {
+    const entity = this.getFirstEntity("playback");
+    return entity ? String(entity.getValue(PlaybackState, field)) : fallback;
+  }
+
+  private getPlaybackNumber(
+    field:
+      | "cursor"
+      | "duration"
+      | "visibleStrokeCount"
+      | "newlyVisibleStrokeCount"
+      | "hiddenStrokeCount"
+      | "totalStrokeCount"
+      | "missingBrushCount"
+      | "revision",
+    fallback: number,
+  ): number {
+    const entity = this.getFirstEntity("playback");
+    return entity ? Number(entity.getValue(PlaybackState, field)) : fallback;
+  }
+
   private getSelectionNumber(
     field:
       | "selectedStrokeCount"
@@ -625,7 +706,8 @@ export class RuntimeDebugSystem extends createSystem({
       | "selectionWidgets"
       | "history"
       | "uiHistory"
-      | "persistence",
+      | "persistence"
+      | "playback",
   ): Entity | undefined {
     const next = this.queries[queryName].entities.values().next();
     return next.done ? undefined : next.value;

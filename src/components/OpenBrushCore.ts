@@ -82,6 +82,20 @@ export const PersistenceState = createComponent("PersistenceState", {
   isDirty: { type: Types.Boolean, default: false },
 });
 
+export const PlaybackState = createComponent("PlaybackState", {
+  mode: { type: Types.String, default: "quickload" },
+  status: { type: Types.String, default: "idle" },
+  cursor: { type: Types.Float32, default: 0 },
+  duration: { type: Types.Float32, default: 0 },
+  unit: { type: Types.String, default: "none" },
+  visibleStrokeCount: { type: Types.Int32, default: 0 },
+  newlyVisibleStrokeCount: { type: Types.Int32, default: 0 },
+  hiddenStrokeCount: { type: Types.Int32, default: 0 },
+  totalStrokeCount: { type: Types.Int32, default: 0 },
+  missingBrushCount: { type: Types.Int32, default: 0 },
+  revision: { type: Types.Int32, default: 0 },
+});
+
 export const SelectionState = createComponent("SelectionState", {
   selectedStrokeCount: { type: Types.Int32, default: 0 },
   activeSelectionLayerIndex: { type: Types.Int32, default: -1 },

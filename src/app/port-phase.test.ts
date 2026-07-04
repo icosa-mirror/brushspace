@@ -7,9 +7,9 @@ import {
 } from "./port-phase.js";
 
 describe("Open Brush port phase metadata", () => {
-  it("identifies the active Phase 8 persistence workflow", () => {
+  it("identifies the active Phase 8 playback workflow", () => {
     expect(OPEN_BRUSH_PLAN_FILE).toBe("OPEN_BRUSH_IWSDK_PORT_PLAN.md");
     expect(OPEN_BRUSH_PORT_PHASE).toBe("phase-8");
-    expect(OPEN_BRUSH_PORT_STATUS).toBe("persistence-workflow");
+    expect(OPEN_BRUSH_PORT_STATUS).toBe("playback-workflow");
   });
 });
