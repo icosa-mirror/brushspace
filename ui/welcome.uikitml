@@ -1,7 +1,7 @@
 <style>
   .panel-container {
     align-items: flex-start;
-    padding: 1.4;
+    padding: 1.1;
     width: 42;
     display: flex;
     flex-direction: column;
@@ -12,7 +12,7 @@
   }
 
   .heading {
-    font-size: 2.7;
+    font-size: 2.5;
     font-weight: medium;
     color: #fafafa;
     text-align: left;
@@ -22,11 +22,11 @@
     font-size: 1.4;
     color: #a1a1aa;
     text-align: left;
-    margin-top: 1.2;
+    margin-top: 0.8;
   }
 
   .brush-name {
-    font-size: 3;
+    font-size: 2.7;
     font-weight: medium;
     color: #fafafa;
     text-align: left;
@@ -51,7 +51,7 @@
     display: flex;
     flex-direction: row;
     width: 100%;
-    margin-top: 0.9;
+    margin-top: 0.65;
   }
 
   .brush-button {
@@ -80,18 +80,20 @@
     font-weight: medium;
     text-align: center;
     cursor: pointer;
-    margin-top: 0.9;
+    margin-top: 0.65;
   }
 
   #brush-next-button,
-  #layer-toggle-lock-button {
+  #layer-next-button,
+  #layer-toggle-lock-button,
+  #layer-move-down-button {
     margin-left: 1;
   }
 
   .xr-button {
     width: 100%;
     padding: 1.1;
-    margin-top: 1.2;
+    margin-top: 0.8;
     background-color: #fafafa;
     color: #09090b;
     border-radius: 0.8;
@@ -105,6 +107,7 @@
 </style>
 <div class="panel-container">
   <span class="heading">Open Brush</span>
+  <button id="xr-button" class="xr-button">Enter XR</button>
   <span class="section-label">Brush</span>
   <span id="active-brush-name" class="brush-name">Marker</span>
   <span id="active-brush-meta" class="brush-meta">ribbon / standard / 3/5</span>
@@ -118,11 +121,17 @@
   <span id="active-layer-name" class="brush-name">Sketch</span>
   <span id="active-layer-meta" class="brush-meta">Layer 0 | 1 paint / 1 selection</span>
   <span id="layer-state" class="brush-meta">Visible | Unlocked</span>
-  <button id="layer-new-button" class="wide-button">New Layer</button>
+  <div class="button-row">
+    <button id="layer-new-button" class="brush-button">New</button>
+    <button id="layer-next-button" class="brush-button">Next</button>
+  </div>
   <div class="button-row">
     <button id="layer-toggle-visible-button" class="brush-button">Hide</button>
     <button id="layer-toggle-lock-button" class="brush-button">Lock</button>
   </div>
-  <button id="layer-next-button" class="wide-button">Next Layer</button>
-  <button id="xr-button" class="xr-button">Enter XR</button>
+  <div class="button-row">
+    <button id="layer-move-up-button" class="brush-button">Move Up</button>
+    <button id="layer-move-down-button" class="brush-button">Move Down</button>
+  </div>
+  <button id="layer-clear-button" class="wide-button">Clear Layer</button>
 </div>

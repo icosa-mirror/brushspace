@@ -132,16 +132,16 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .createTransformEntity()
     .addComponent(PanelUI, {
       config: "./ui/welcome.json",
-      maxHeight: 1.25,
+      maxHeight: 3,
       maxWidth: 1.6,
     })
     .addComponent(Interactable)
     .addComponent(ScreenSpace, {
       top: "20px",
       left: "20px",
-      height: "55%",
+      height: "95%",
     });
-  panelEntity.object3D!.position.set(0, 1.29, -1.9);
+  panelEntity.object3D!.position.set(0, 1.95, -1.9);
 
   const webxrLogoTexture = AssetManager.getTexture("webxr")!;
   webxrLogoTexture.colorSpace = SRGBColorSpace;

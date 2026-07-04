@@ -57,13 +57,16 @@ export class LayerCanvasSystem extends createSystem({
 
   private resolveActiveLayerIndex(requestedLayerIndex: number): number {
     let firstPaintLayerIndex: number | undefined;
+    let firstPaintLayerOrder = Number.MAX_SAFE_INTEGER;
     for (const layer of this.queries.layers.entities) {
       if (layer.getValue(CanvasLayer, "selectionCanvas")) {
         continue;
       }
       const layerIndex = Number(layer.getValue(CanvasLayer, "layerIndex"));
-      if (firstPaintLayerIndex === undefined) {
+      const layerOrder = Number(layer.getValue(CanvasLayer, "order"));
+      if (layerOrder < firstPaintLayerOrder) {
         firstPaintLayerIndex = layerIndex;
+        firstPaintLayerOrder = layerOrder;
       }
       if (layerIndex === requestedLayerIndex) {
         return requestedLayerIndex;

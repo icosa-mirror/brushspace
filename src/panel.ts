@@ -11,6 +11,7 @@ import type { Entity } from "@iwsdk/core";
 
 import {
   BrushSettings,
+  BrushStroke,
   CanvasLayer,
   OpenBrushAppState,
 } from "./components/OpenBrushCore.js";
@@ -23,6 +24,7 @@ import {
 import {
   createNextLayerState,
   cycleLayerIndex,
+  reorderLayerStates,
   summarizeRuntimeLayers,
   type RuntimeLayerState,
 } from "./openbrush/layers.js";
@@ -37,6 +39,7 @@ export class PanelSystem extends createSystem({
   brushSettings: { required: [BrushSettings] },
   appState: { required: [OpenBrushAppState] },
   layers: { required: [CanvasLayer] },
+  strokes: { required: [BrushStroke] },
 }) {
   private readonly initializedPanels = new Set<number>();
 
@@ -81,6 +84,9 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "layer-next-button");
     this.nameElement(document, "layer-toggle-visible-button");
     this.nameElement(document, "layer-toggle-lock-button");
+    this.nameElement(document, "layer-move-up-button");
+    this.nameElement(document, "layer-move-down-button");
+    this.nameElement(document, "layer-clear-button");
 
     const xrButton = document.getElementById("xr-button") as TextElement;
     xrButton?.addEventListener("click", () => {
@@ -141,6 +147,27 @@ export class PanelSystem extends createSystem({
     lockButton?.addEventListener("click", () => {
       this.toggleActiveLayerLock();
     });
+
+    const moveUpButton = document.getElementById(
+      "layer-move-up-button",
+    ) as TextElement;
+    moveUpButton?.addEventListener("click", () => {
+      this.moveActiveLayer(-1);
+    });
+
+    const moveDownButton = document.getElementById(
+      "layer-move-down-button",
+    ) as TextElement;
+    moveDownButton?.addEventListener("click", () => {
+      this.moveActiveLayer(1);
+    });
+
+    const clearLayerButton = document.getElementById(
+      "layer-clear-button",
+    ) as TextElement;
+    clearLayerButton?.addEventListener("click", () => {
+      this.clearActiveLayer();
+    });
     this.updateBrushLabels(document);
     this.updateLayerLabels(document);
   }
@@ -195,6 +222,7 @@ export class PanelSystem extends createSystem({
     const nextLayer = createNextLayerState(this.getLayerStates());
     const layerEntity = this.world.createTransformEntity().addComponent(CanvasLayer, {
       layerIndex: nextLayer.layerIndex,
+      order: nextLayer.order,
       layerName: nextLayer.layerName,
       visible: true,
       locked: false,
@@ -216,6 +244,55 @@ export class PanelSystem extends createSystem({
     this.setActiveLayerIndex(
       cycleLayerIndex(this.getLayerStates(), activeLayerIndex, offset),
     );
+  }
+
+  private moveActiveLayer(offset: number): void {
+    const appState = this.getAppStateEntity();
+    if (!appState) {
+      return;
+    }
+    const activeLayerIndex = this.getActiveLayerIndex(appState);
+    const reorderedLayers = reorderLayerStates(
+      this.getLayerStates(),
+      activeLayerIndex,
+      offset,
+    );
+
+    for (const layerState of reorderedLayers) {
+      const layerEntity = this.getLayerEntity(layerState.layerIndex);
+      if (
+        layerEntity &&
+        Number(layerEntity.getValue(CanvasLayer, "order")) !== layerState.order
+      ) {
+        layerEntity.setValue(CanvasLayer, "order", layerState.order);
+      }
+    }
+    this.touchAppState(appState);
+  }
+
+  private clearActiveLayer(): void {
+    const appState = this.getAppStateEntity();
+    if (!appState) {
+      return;
+    }
+    const activeLayerIndex = this.getActiveLayerIndex(appState);
+    let clearedStrokeCount = 0;
+    for (const stroke of this.queries.strokes.entities) {
+      if (Number(stroke.getValue(BrushStroke, "layerIndex")) !== activeLayerIndex) {
+        continue;
+      }
+      if (stroke.getValue(BrushStroke, "visible")) {
+        clearedStrokeCount += 1;
+      }
+      stroke.setValue(BrushStroke, "visible", false);
+      stroke.setValue(BrushStroke, "renderVisible", false);
+      if (stroke.object3D) {
+        stroke.object3D.visible = false;
+      }
+    }
+    if (clearedStrokeCount > 0) {
+      this.touchAppState(appState);
+    }
   }
 
   private toggleActiveLayerVisibility(): void {
@@ -271,7 +348,9 @@ export class PanelSystem extends createSystem({
     this.setText(
       document,
       "active-layer-meta",
-      `Layer ${summary.activeLayerIndex} | ${summary.paintLayerCount} paint / ${summary.selectionLayerCount} selection`,
+      `Layer ${summary.activeLayerIndex} | order ${
+        summary.activeLayerOrder + 1
+      }/${summary.paintLayerCount} | ${summary.selectionLayerCount} selection`,
     );
     this.setText(
       document,
@@ -315,14 +394,15 @@ export class PanelSystem extends createSystem({
   }
 
   private getActiveLayerEntity(): Entity | undefined {
-    const appState = this.getAppStateEntity();
-    const activeLayerIndex = appState
-      ? Number(appState.getValue(OpenBrushAppState, "activeLayerIndex"))
-      : 0;
+    const activeLayerIndex = this.getActiveLayerIndex();
+    return this.getLayerEntity(activeLayerIndex);
+  }
+
+  private getLayerEntity(layerIndex: number): Entity | undefined {
     for (const layer of this.queries.layers.entities) {
       if (
         !layer.getValue(CanvasLayer, "selectionCanvas") &&
-        Number(layer.getValue(CanvasLayer, "layerIndex")) === activeLayerIndex
+        Number(layer.getValue(CanvasLayer, "layerIndex")) === layerIndex
       ) {
         return layer;
       }
@@ -335,6 +415,7 @@ export class PanelSystem extends createSystem({
     for (const layer of this.queries.layers.entities) {
       layers.push({
         layerIndex: Number(layer.getValue(CanvasLayer, "layerIndex")),
+        order: Number(layer.getValue(CanvasLayer, "order")),
         layerName: String(layer.getValue(CanvasLayer, "layerName")),
         visible: Boolean(layer.getValue(CanvasLayer, "visible")),
         locked: Boolean(layer.getValue(CanvasLayer, "locked")),
@@ -343,6 +424,12 @@ export class PanelSystem extends createSystem({
       });
     }
     return layers;
+  }
+
+  private getActiveLayerIndex(appState = this.getAppStateEntity()): number {
+    return appState
+      ? Number(appState.getValue(OpenBrushAppState, "activeLayerIndex"))
+      : 0;
   }
 
   private touchAppState(appState = this.getAppStateEntity()): void {

@@ -4,6 +4,7 @@ import {
   createNextLayerState,
   cycleLayerIndex,
   getNextLayerIndex,
+  reorderLayerStates,
   summarizeRuntimeLayers,
   type RuntimeLayerState,
 } from "./layers.js";
@@ -11,6 +12,7 @@ import {
 const baseLayers: RuntimeLayerState[] = [
   {
     layerIndex: 0,
+    order: 0,
     layerName: "Sketch",
     visible: true,
     locked: false,
@@ -19,6 +21,7 @@ const baseLayers: RuntimeLayerState[] = [
   },
   {
     layerIndex: 1,
+    order: 0,
     layerName: "Selection",
     visible: true,
     locked: false,
@@ -32,6 +35,7 @@ describe("Open Brush runtime layers", () => {
     expect(getNextLayerIndex(baseLayers)).toBe(2);
     expect(createNextLayerState(baseLayers)).toEqual({
       layerIndex: 2,
+      order: 1,
       layerName: "Layer 2",
       visible: true,
       locked: false,
@@ -46,6 +50,7 @@ describe("Open Brush runtime layers", () => {
       createNextLayerState(baseLayers),
       {
         layerIndex: 3,
+        order: 2,
         layerName: "Layer 3",
         visible: true,
         locked: false,
@@ -65,6 +70,7 @@ describe("Open Brush runtime layers", () => {
       ...baseLayers,
       {
         layerIndex: 2,
+        order: 1,
         layerName: "Ink",
         visible: false,
         locked: true,
@@ -77,10 +83,38 @@ describe("Open Brush runtime layers", () => {
       paintLayerCount: 2,
       selectionLayerCount: 1,
       activeLayerIndex: 2,
+      activeLayerOrder: 1,
       activeLayerName: "Ink",
       activeLayerVisible: false,
       activeLayerLocked: true,
     });
   });
-});
 
+  it("reorders paint layers without changing durable layer ids", () => {
+    const layers: RuntimeLayerState[] = [
+      ...baseLayers,
+      createNextLayerState(baseLayers),
+      {
+        layerIndex: 3,
+        order: 2,
+        layerName: "Layer 3",
+        visible: true,
+        locked: false,
+        selectionCanvas: false,
+        active: false,
+      },
+    ];
+
+    const reordered = reorderLayerStates(layers, 3, -1);
+
+    expect(reordered.map((layer) => [layer.layerIndex, layer.order])).toEqual([
+      [0, 0],
+      [1, 0],
+      [2, 2],
+      [3, 1],
+    ]);
+    expect(reordered.find((layer) => layer.layerIndex === 3)?.layerName).toBe(
+      "Layer 3",
+    );
+  });
+});

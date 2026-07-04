@@ -56,6 +56,7 @@ export const BrushCatalogState = createComponent("BrushCatalogState", {
 
 export const CanvasLayer = createComponent("CanvasLayer", {
   layerIndex: { type: Types.Int32, default: 0 },
+  order: { type: Types.Int32, default: 0 },
   layerName: { type: Types.String, default: "Sketch" },
   visible: { type: Types.Boolean, default: true },
   locked: { type: Types.Boolean, default: false },

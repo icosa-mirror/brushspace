@@ -22,6 +22,7 @@ export const OpenBrushDebug = createComponent("OpenBrushDebug", {
   layerCount: { type: Types.Int32, default: 1 },
   runtimeLayerCount: { type: Types.Int32, default: 1 },
   activeLayerName: { type: Types.String, default: "Sketch" },
+  activeLayerOrder: { type: Types.Int32, default: 0 },
   activeLayerVisible: { type: Types.Boolean, default: true },
   activeLayerLocked: { type: Types.Boolean, default: false },
   strokeCount: { type: Types.Int32, default: 0 },

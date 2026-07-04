@@ -40,6 +40,7 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
 
   const mainCanvas = world.createTransformEntity().addComponent(CanvasLayer, {
     layerIndex: 0,
+    order: 0,
     layerName: "Sketch",
     visible: true,
     locked: false,
@@ -50,6 +51,7 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
 
   const selectionCanvas = world.createTransformEntity().addComponent(CanvasLayer, {
     layerIndex: 1,
+    order: 0,
     layerName: "Selection",
     visible: true,
     locked: false,

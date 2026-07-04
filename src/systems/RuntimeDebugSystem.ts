@@ -146,6 +146,11 @@ export class RuntimeDebugSystem extends createSystem({
     );
     entity.setValue(
       OpenBrushDebug,
+      "activeLayerOrder",
+      this.getActiveLayerNumber("order", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
       "activeLayerVisible",
       this.getActiveLayerBoolean("visible", true),
     );
@@ -319,6 +324,11 @@ export class RuntimeDebugSystem extends createSystem({
   private getActiveLayerString(field: "layerName", fallback: string): string {
     const layer = this.getActiveLayerEntity();
     return layer ? String(layer.getValue(CanvasLayer, field)) : fallback;
+  }
+
+  private getActiveLayerNumber(field: "order", fallback: number): number {
+    const layer = this.getActiveLayerEntity();
+    return layer ? Number(layer.getValue(CanvasLayer, field)) : fallback;
   }
 
   private getActiveLayerBoolean(
