@@ -1,4 +1,5 @@
 import type { Quat, Vec3 } from "./types.js";
+import type { ControlPoint } from "./types.js";
 
 export type StrokeAuthoringPhase = "idle" | "drawing";
 export type StrokeAuthoringEvent = "none" | "start" | "sample" | "finalize";
@@ -57,4 +58,67 @@ export function shouldSampleControlPoint(
   const dy = nextPosition[1] - previousPosition[1];
   const dz = nextPosition[2] - previousPosition[2];
   return dx * dx + dy * dy + dz * dz >= minDistance * minDistance;
+}
+
+export type StraightedgeSampleResult = "ignored" | "created" | "updated";
+
+export function upsertStraightedgeEndpoint(
+  controlPoints: ControlPoint[],
+  frame: StrokePointerFrame,
+  minDistance: number,
+): StraightedgeSampleResult {
+  if (controlPoints.length === 0) {
+    controlPoints.push(createControlPointFromFrame(frame));
+    return "created";
+  }
+
+  if (
+    !shouldSampleControlPoint(
+      controlPoints[0].position,
+      frame.position,
+      minDistance,
+    )
+  ) {
+    return "ignored";
+  }
+
+  if (controlPoints.length === 1) {
+    controlPoints.push(createControlPointFromFrame(frame));
+    return "created";
+  }
+
+  writeControlPointFromFrame(controlPoints[1], frame);
+  controlPoints.length = 2;
+  return "updated";
+}
+
+export function createControlPointFromFrame(
+  frame: StrokePointerFrame,
+): ControlPoint {
+  return {
+    position: [frame.position[0], frame.position[1], frame.position[2]],
+    orientation: [
+      frame.orientation[0],
+      frame.orientation[1],
+      frame.orientation[2],
+      frame.orientation[3],
+    ],
+    pressure: frame.pressure,
+    timestampMs: frame.timestampMs,
+  };
+}
+
+export function writeControlPointFromFrame(
+  controlPoint: ControlPoint,
+  frame: StrokePointerFrame,
+): void {
+  controlPoint.position[0] = frame.position[0];
+  controlPoint.position[1] = frame.position[1];
+  controlPoint.position[2] = frame.position[2];
+  controlPoint.orientation[0] = frame.orientation[0];
+  controlPoint.orientation[1] = frame.orientation[1];
+  controlPoint.orientation[2] = frame.orientation[2];
+  controlPoint.orientation[3] = frame.orientation[3];
+  controlPoint.pressure = frame.pressure;
+  controlPoint.timestampMs = frame.timestampMs;
 }

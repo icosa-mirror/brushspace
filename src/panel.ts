@@ -110,6 +110,7 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "history-redo-button");
     this.nameElement(document, "tool-draw-button");
     this.nameElement(document, "tool-eraser-button");
+    this.nameElement(document, "tool-straightedge-button");
     this.nameElement(document, "tool-color-picker-button");
     this.nameElement(document, "tool-brush-picker-button");
     this.nameElement(document, "tool-pick-button");
@@ -170,6 +171,13 @@ export class PanelSystem extends createSystem({
     ) as TextElement;
     eraserToolButton?.addEventListener("click", () => {
       this.selectTool("eraser");
+    });
+
+    const straightedgeToolButton = document.getElementById(
+      "tool-straightedge-button",
+    ) as TextElement;
+    straightedgeToolButton?.addEventListener("click", () => {
+      this.selectTool("straightedge");
     });
 
     const colorPickerToolButton = document.getElementById(
@@ -459,6 +467,11 @@ export class PanelSystem extends createSystem({
       document,
       "tool-eraser-button",
       activeTool.id === "eraser" ? "Eraser *" : "Eraser",
+    );
+    this.setText(
+      document,
+      "tool-straightedge-button",
+      activeTool.id === "straightedge" ? "Line *" : "Line",
     );
     this.setText(
       document,

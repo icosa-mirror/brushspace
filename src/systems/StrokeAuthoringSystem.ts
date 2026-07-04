@@ -30,8 +30,17 @@ import {
 } from "../openbrush/brush-inventory.js";
 import { generateBrushGeometry } from "../openbrush/brush-geometry.js";
 import { createBrushMaterialSpec } from "../openbrush/brush-materials.js";
-import { shouldSampleControlPoint } from "../openbrush/stroke-authoring.js";
-import { resolveOpenBrushTool } from "../openbrush/tools.js";
+import {
+  shouldSampleControlPoint,
+  upsertStraightedgeEndpoint,
+  type StrokePointerFrame,
+} from "../openbrush/stroke-authoring.js";
+import {
+  resolveOpenBrushTool,
+  type OpenBrushToolDescriptor,
+  type OpenBrushToolId,
+  type OpenBrushToolSamplingMode,
+} from "../openbrush/tools.js";
 import {
   createEmptyStrokeData,
   type ControlPoint,
@@ -47,6 +56,9 @@ interface RuntimeStroke {
   mesh: Mesh;
   geometry: BufferGeometry;
   geometryFamily: BrushGeometryFamily;
+  toolId: OpenBrushToolId;
+  groupId: number;
+  samplingMode: OpenBrushToolSamplingMode;
   strokeData: StrokeData;
   controlPoints: ControlPoint[];
   lastPosition: Vec3;
@@ -77,6 +89,13 @@ export class StrokeAuthoringSystem extends createSystem({
   private readonly panelDelta = new Vector3();
   private readonly panelHit = new Vector3();
   private readonly rayDirection = new Vector3();
+  private readonly sampleFrame: StrokePointerFrame = {
+    paintPressed: true,
+    pressure: 0,
+    position: [0, 0, 0],
+    orientation: [0, 0, 0, 1],
+    timestampMs: 0,
+  };
   private activeStroke: RuntimeStroke | undefined;
   private strokeCounter = 0;
   private readonly undoStack: Entity[] = [];
@@ -109,6 +128,8 @@ export class StrokeAuthoringSystem extends createSystem({
       const pressure = Number(commandEntity.getValue(InputCommandState, "pressure"));
       if (!this.activeStroke) {
         this.startStroke(commandEntity, time, pressure);
+      } else if (this.activeStroke.samplingMode === "straightedge") {
+        this.sampleStraightedgeStroke(time, pressure);
       } else {
         this.sampleActiveStroke(time, pressure, false);
       }
@@ -140,13 +161,7 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private isActiveToolPaintTool(): boolean {
-    const appStateEntity = this.getFirstEntity("appState");
-    const activeTool = resolveOpenBrushTool(
-      appStateEntity
-        ? String(appStateEntity.getValue(OpenBrushAppState, "activeTool"))
-        : "free-paint",
-    );
-    return activeTool.paints;
+    return this.getActiveTool().paints;
   }
 
   private isActiveLayerPaintable(): boolean {
@@ -235,9 +250,11 @@ export class StrokeAuthoringSystem extends createSystem({
     const brushEntry = findBrushByGuid(openBrushInventory, brushGuid);
     const geometryFamily = brushEntry?.geometryFamily ?? "unsupported";
     const materialSpec = createBrushMaterialSpec(brushEntry, color);
+    const activeTool = this.getActiveTool();
 
     this.strokeCounter += 1;
     const guid = `runtime-stroke-${this.strokeCounter}`;
+    const groupId = this.strokeCounter;
     const strokeData = createEmptyStrokeData({
       guid,
       brushGuid,
@@ -246,6 +263,7 @@ export class StrokeAuthoringSystem extends createSystem({
       color,
       layerIndex,
       seed: this.strokeCounter,
+      groupId,
       controlPoints: [],
     });
     const geometry = new BufferGeometry();
@@ -268,6 +286,9 @@ export class StrokeAuthoringSystem extends createSystem({
     entity.addComponent(BrushStroke, {
       guid,
       brushGuid,
+      toolId: activeTool.id,
+      groupId,
+      groupContinuation: false,
       geometryFamily,
       materialFamily: materialSpec.materialFamily,
       renderWarning: materialSpec.warning ?? "",
@@ -289,6 +310,9 @@ export class StrokeAuthoringSystem extends createSystem({
       mesh,
       geometry,
       geometryFamily,
+      toolId: activeTool.id,
+      groupId,
+      samplingMode: activeTool.samplingMode,
       strokeData,
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
@@ -353,6 +377,31 @@ export class StrokeAuthoringSystem extends createSystem({
     this.setPointerSampleCount(stroke.controlPoints.length);
   }
 
+  private sampleStraightedgeStroke(time: number, pressure: number): void {
+    const stroke = this.activeStroke;
+    if (!stroke) {
+      return;
+    }
+
+    const result = upsertStraightedgeEndpoint(
+      stroke.controlPoints,
+      this.writeSampleFrame(time, pressure),
+      MIN_SAMPLE_DISTANCE,
+    );
+    if (result === "ignored") {
+      return;
+    }
+
+    this.recalculateBounds(stroke);
+    this.rebuildStrokeMesh(stroke);
+    stroke.entity.setValue(
+      BrushStroke,
+      "controlPointCount",
+      stroke.controlPoints.length,
+    );
+    this.setPointerSampleCount(stroke.controlPoints.length);
+  }
+
   private rebuildStrokeMesh(stroke: RuntimeStroke): void {
     const generated = generateBrushGeometry(
       stroke.strokeData,
@@ -381,6 +430,47 @@ export class StrokeAuthoringSystem extends createSystem({
     stroke.entity.setValue(BrushStroke, "indexCount", generated.indices.length);
     if (generated.warning) {
       stroke.entity.setValue(BrushStroke, "renderWarning", generated.warning);
+    }
+  }
+
+  private recalculateBounds(stroke: RuntimeStroke): void {
+    if (stroke.controlPoints.length === 0) {
+      stroke.minBounds[0] = 0;
+      stroke.minBounds[1] = 0;
+      stroke.minBounds[2] = 0;
+      stroke.maxBounds[0] = 0;
+      stroke.maxBounds[1] = 0;
+      stroke.maxBounds[2] = 0;
+      return;
+    }
+
+    const first = stroke.controlPoints[0].position;
+    stroke.minBounds[0] = first[0];
+    stroke.minBounds[1] = first[1];
+    stroke.minBounds[2] = first[2];
+    stroke.maxBounds[0] = first[0];
+    stroke.maxBounds[1] = first[1];
+    stroke.maxBounds[2] = first[2];
+    for (let index = 1; index < stroke.controlPoints.length; index += 1) {
+      const position = stroke.controlPoints[index].position;
+      if (position[0] < stroke.minBounds[0]) {
+        stroke.minBounds[0] = position[0];
+      }
+      if (position[1] < stroke.minBounds[1]) {
+        stroke.minBounds[1] = position[1];
+      }
+      if (position[2] < stroke.minBounds[2]) {
+        stroke.minBounds[2] = position[2];
+      }
+      if (position[0] > stroke.maxBounds[0]) {
+        stroke.maxBounds[0] = position[0];
+      }
+      if (position[1] > stroke.maxBounds[1]) {
+        stroke.maxBounds[1] = position[1];
+      }
+      if (position[2] > stroke.maxBounds[2]) {
+        stroke.maxBounds[2] = position[2];
+      }
     }
   }
 
@@ -421,6 +511,11 @@ export class StrokeAuthoringSystem extends createSystem({
   private finalizeActiveStroke(): void {
     const stroke = this.activeStroke;
     if (!stroke) {
+      return;
+    }
+    if (stroke.samplingMode === "straightedge" && stroke.controlPoints.length < 2) {
+      stroke.entity.dispose();
+      this.activeStroke = undefined;
       return;
     }
     stroke.entity.setValue(BrushStroke, "finalized", true);
@@ -506,6 +601,28 @@ export class StrokeAuthoringSystem extends createSystem({
       "color",
     ) as Float32Array;
     return [colorView[0], colorView[1], colorView[2], colorView[3]];
+  }
+
+  private writeSampleFrame(time: number, pressure: number): StrokePointerFrame {
+    this.sampleFrame.pressure = pressure;
+    this.sampleFrame.position[0] = this.samplePosition.x;
+    this.sampleFrame.position[1] = this.samplePosition.y;
+    this.sampleFrame.position[2] = this.samplePosition.z;
+    this.sampleFrame.orientation[0] = this.sampleQuaternion.x;
+    this.sampleFrame.orientation[1] = this.sampleQuaternion.y;
+    this.sampleFrame.orientation[2] = this.sampleQuaternion.z;
+    this.sampleFrame.orientation[3] = this.sampleQuaternion.w;
+    this.sampleFrame.timestampMs = Math.round(time * 1000);
+    return this.sampleFrame;
+  }
+
+  private getActiveTool(): OpenBrushToolDescriptor {
+    const appStateEntity = this.getFirstEntity("appState");
+    return resolveOpenBrushTool(
+      appStateEntity
+        ? String(appStateEntity.getValue(OpenBrushAppState, "activeTool"))
+        : "free-paint",
+    );
   }
 
   private setActivePointerSampleCount(commandEntity: Entity): void {

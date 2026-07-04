@@ -28,6 +28,14 @@ describe("Open Brush tools", () => {
     const eraser = resolveOpenBrushTool("eraser");
     expect(eraser.paints).toBe(false);
     expect(eraser.erases).toBe(true);
+    expect(eraser.samplingMode).toBe("none");
+  });
+
+  it("marks straightedge as a painting line-sampling tool", () => {
+    const straightedge = resolveOpenBrushTool("straightedge");
+    expect(straightedge.paints).toBe(true);
+    expect(straightedge.erases).toBe(false);
+    expect(straightedge.samplingMode).toBe("straightedge");
   });
 
   it("marks pickers as state-only tools", () => {
@@ -36,6 +44,7 @@ describe("Open Brush tools", () => {
       expect(picker.status).toBe("picker-pending");
       expect(picker.paints).toBe(false);
       expect(picker.erases).toBe(false);
+      expect(picker.samplingMode).toBe("none");
     }
   });
 });

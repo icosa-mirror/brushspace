@@ -4,8 +4,10 @@ import {
   advanceStrokeAuthoringState,
   createStrokeAuthoringState,
   shouldSampleControlPoint,
+  upsertStraightedgeEndpoint,
   type StrokePointerFrame,
 } from "./stroke-authoring.js";
+import type { ControlPoint } from "./types.js";
 
 function frame(paintPressed: boolean, x: number): StrokePointerFrame {
   return {
@@ -51,5 +53,31 @@ describe("stroke authoring state", () => {
     expect(shouldSampleControlPoint([0, 0, 0], [0.015, 0.015, 0], 0.02)).toBe(
       true,
     );
+  });
+
+  it("keeps straightedge strokes to a start point and moving endpoint", () => {
+    const controlPoints: ControlPoint[] = [];
+
+    expect(upsertStraightedgeEndpoint(controlPoints, frame(true, 0), 0.02)).toBe(
+      "created",
+    );
+    expect(controlPoints).toHaveLength(1);
+    expect(
+      upsertStraightedgeEndpoint(controlPoints, frame(true, 0.01), 0.02),
+    ).toBe("ignored");
+    expect(controlPoints).toHaveLength(1);
+
+    expect(upsertStraightedgeEndpoint(controlPoints, frame(true, 0.1), 0.02)).toBe(
+      "created",
+    );
+    const endpoint = controlPoints[1];
+    expect(endpoint.position).toEqual([0.1, 0, 0]);
+
+    expect(upsertStraightedgeEndpoint(controlPoints, frame(true, 0.3), 0.02)).toBe(
+      "updated",
+    );
+    expect(controlPoints).toHaveLength(2);
+    expect(controlPoints[1]).toBe(endpoint);
+    expect(controlPoints[1].position).toEqual([0.3, 0, 0]);
   });
 });

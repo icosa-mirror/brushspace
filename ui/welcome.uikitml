@@ -124,6 +124,7 @@
     <button id="tool-draw-button" class="brush-button">Draw *</button>
     <button id="tool-eraser-button" class="brush-button">Eraser</button>
   </div>
+  <button id="tool-straightedge-button" class="wide-button">Line</button>
   <div class="button-row">
     <button id="tool-color-picker-button" class="brush-button">Color</button>
     <button id="tool-brush-picker-button" class="brush-button">Brush</button>

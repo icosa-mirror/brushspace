@@ -1,8 +1,11 @@
 export type OpenBrushToolId =
   | "free-paint"
   | "eraser"
+  | "straightedge"
   | "color-picker"
   | "brush-picker";
+
+export type OpenBrushToolSamplingMode = "none" | "freehand" | "straightedge";
 
 export interface OpenBrushToolDescriptor {
   id: OpenBrushToolId;
@@ -10,6 +13,7 @@ export interface OpenBrushToolDescriptor {
   status: string;
   paints: boolean;
   erases: boolean;
+  samplingMode: OpenBrushToolSamplingMode;
 }
 
 export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
@@ -19,6 +23,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     status: "draw-ready",
     paints: true,
     erases: false,
+    samplingMode: "freehand",
   },
   {
     id: "eraser",
@@ -26,6 +31,15 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     status: "erase-ready",
     paints: false,
     erases: true,
+    samplingMode: "none",
+  },
+  {
+    id: "straightedge",
+    label: "Straightedge",
+    status: "line-ready",
+    paints: true,
+    erases: false,
+    samplingMode: "straightedge",
   },
   {
     id: "color-picker",
@@ -33,6 +47,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     status: "picker-pending",
     paints: false,
     erases: false,
+    samplingMode: "none",
   },
   {
     id: "brush-picker",
@@ -40,6 +55,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     status: "picker-pending",
     paints: false,
     erases: false,
+    samplingMode: "none",
   },
 ];
 
