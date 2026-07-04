@@ -6,6 +6,7 @@ export type OpenBrushToolId =
   | "grid-snap"
   | "lazy-input"
   | "tape"
+  | "stencil"
   | "color-picker"
   | "brush-picker";
 
@@ -17,6 +18,7 @@ export type OpenBrushToolSamplingMode =
 export type OpenBrushToolMirrorMode = "none" | "x";
 export type OpenBrushToolSnapMode = "none" | "grid";
 export type OpenBrushToolLazyMode = "none" | "position";
+export type OpenBrushToolStencilMode = "none" | "front-plane";
 
 export interface OpenBrushToolDescriptor {
   id: OpenBrushToolId;
@@ -28,6 +30,7 @@ export interface OpenBrushToolDescriptor {
   mirrorMode: OpenBrushToolMirrorMode;
   snapMode: OpenBrushToolSnapMode;
   lazyMode: OpenBrushToolLazyMode;
+  stencilMode: OpenBrushToolStencilMode;
 }
 
 export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
@@ -41,6 +44,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     mirrorMode: "none",
     snapMode: "none",
     lazyMode: "none",
+    stencilMode: "none",
   },
   {
     id: "eraser",
@@ -52,6 +56,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     mirrorMode: "none",
     snapMode: "none",
     lazyMode: "none",
+    stencilMode: "none",
   },
   {
     id: "straightedge",
@@ -63,6 +68,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     mirrorMode: "none",
     snapMode: "none",
     lazyMode: "none",
+    stencilMode: "none",
   },
   {
     id: "mirror",
@@ -74,6 +80,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     mirrorMode: "x",
     snapMode: "none",
     lazyMode: "none",
+    stencilMode: "none",
   },
   {
     id: "grid-snap",
@@ -85,6 +92,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     mirrorMode: "none",
     snapMode: "grid",
     lazyMode: "none",
+    stencilMode: "none",
   },
   {
     id: "lazy-input",
@@ -96,6 +104,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     mirrorMode: "none",
     snapMode: "none",
     lazyMode: "position",
+    stencilMode: "none",
   },
   {
     id: "tape",
@@ -107,6 +116,19 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     mirrorMode: "none",
     snapMode: "none",
     lazyMode: "none",
+    stencilMode: "none",
+  },
+  {
+    id: "stencil",
+    label: "Stencil",
+    status: "stencil-ready",
+    paints: true,
+    erases: false,
+    samplingMode: "freehand",
+    mirrorMode: "none",
+    snapMode: "none",
+    lazyMode: "none",
+    stencilMode: "front-plane",
   },
   {
     id: "color-picker",
@@ -118,6 +140,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     mirrorMode: "none",
     snapMode: "none",
     lazyMode: "none",
+    stencilMode: "none",
   },
   {
     id: "brush-picker",
@@ -129,6 +152,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     mirrorMode: "none",
     snapMode: "none",
     lazyMode: "none",
+    stencilMode: "none",
   },
 ];
 

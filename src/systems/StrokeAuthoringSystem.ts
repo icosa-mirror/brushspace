@@ -37,6 +37,7 @@ import {
   upsertStraightedgeEndpoint,
   writeGridSnappedPosition,
   writeLazyInputPosition,
+  writeStencilPlaneProjectedPosition,
   type StrokePointerFrame,
 } from "../openbrush/stroke-authoring.js";
 import {
@@ -47,6 +48,7 @@ import {
   type OpenBrushToolMirrorMode,
   type OpenBrushToolSamplingMode,
   type OpenBrushToolSnapMode,
+  type OpenBrushToolStencilMode,
 } from "../openbrush/tools.js";
 import {
   createEmptyStrokeData,
@@ -59,6 +61,7 @@ import {
 const MIN_SAMPLE_DISTANCE = 0.015;
 const GRID_SNAP_SIZE = 0.1;
 const LAZY_INPUT_RADIUS = 0.08;
+const STENCIL_FRONT_PLANE_Z = -1.2;
 
 interface RuntimeStroke {
   entity: Entity;
@@ -71,6 +74,7 @@ interface RuntimeStroke {
   mirrorMode: OpenBrushToolMirrorMode;
   snapMode: OpenBrushToolSnapMode;
   lazyMode: OpenBrushToolLazyMode;
+  stencilMode: OpenBrushToolStencilMode;
   strokeData: StrokeData;
   controlPoints: ControlPoint[];
   lastPosition: Vec3;
@@ -339,6 +343,7 @@ export class StrokeAuthoringSystem extends createSystem({
       mirrorMode: activeTool.mirrorMode,
       snapMode: activeTool.snapMode,
       lazyMode: activeTool.lazyMode,
+      stencilMode: activeTool.stencilMode,
       strokeData,
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
@@ -655,6 +660,7 @@ export class StrokeAuthoringSystem extends createSystem({
       mirrorMode: "none",
       snapMode: "none",
       lazyMode: "none",
+      stencilMode: source.stencilMode,
       strokeData,
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
@@ -770,6 +776,14 @@ export class StrokeAuthoringSystem extends createSystem({
         this.sampleFrame.position,
         this.sampleFrame.position,
         GRID_SNAP_SIZE,
+      );
+    }
+    if (stroke.stencilMode === "front-plane") {
+      writeStencilPlaneProjectedPosition(
+        this.sampleFrame.position,
+        this.sampleFrame.position,
+        "z",
+        STENCIL_FRONT_PLANE_Z,
       );
     }
     this.sampleFrame.orientation[0] = this.sampleQuaternion.x;

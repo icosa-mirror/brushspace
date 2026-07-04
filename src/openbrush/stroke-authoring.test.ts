@@ -9,6 +9,7 @@ import {
   upsertTapeMeasureEndpoints,
   writeGridSnappedPosition,
   writeLazyInputPosition,
+  writeStencilPlaneProjectedPosition,
   type StrokePointerFrame,
 } from "./stroke-authoring.js";
 import { StrokeFlags, createEmptyStrokeData, type ControlPoint } from "./types.js";
@@ -94,6 +95,24 @@ describe("stroke authoring state", () => {
     writeLazyInputPosition(target, [0, 0, 0], [0.2, 0, 0], 0.05);
 
     expect(target).toEqual([0.15000000000000002, 0, 0]);
+  });
+
+  it("projects stencil samples onto a fixed plane without mutating the source", () => {
+    const target: [number, number, number] = [0, 0, 0];
+    const source: [number, number, number] = [0.4, 1.1, -0.7];
+
+    writeStencilPlaneProjectedPosition(target, source, "z", -1.2);
+
+    expect(target).toEqual([0.4, 1.1, -1.2]);
+    expect(source).toEqual([0.4, 1.1, -0.7]);
+  });
+
+  it("supports in-place stencil projection", () => {
+    const target: [number, number, number] = [0.4, 1.1, -0.7];
+
+    writeStencilPlaneProjectedPosition(target, target, "x", 0.25);
+
+    expect(target).toEqual([0.25, 1.1, -0.7]);
   });
 
   it("keeps straightedge strokes to a start point and moving endpoint", () => {

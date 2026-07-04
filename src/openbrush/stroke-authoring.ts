@@ -112,6 +112,26 @@ export function writeLazyInputPosition(
   target[2] = anchor[2] + dz * scale;
 }
 
+export type StencilPlaneAxis = "x" | "y" | "z";
+
+export function writeStencilPlaneProjectedPosition(
+  target: Vec3,
+  source: Vec3,
+  axis: StencilPlaneAxis,
+  coordinate: number,
+): void {
+  target[0] = source[0];
+  target[1] = source[1];
+  target[2] = source[2];
+  if (axis === "x") {
+    target[0] = coordinate;
+  } else if (axis === "y") {
+    target[1] = coordinate;
+  } else {
+    target[2] = coordinate;
+  }
+}
+
 export type StraightedgeSampleResult = "ignored" | "created" | "updated";
 
 export function upsertStraightedgeEndpoint(

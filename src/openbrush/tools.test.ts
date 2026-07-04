@@ -81,6 +81,18 @@ describe("Open Brush tools", () => {
     expect(tape.mirrorMode).toBe("none");
     expect(tape.snapMode).toBe("none");
     expect(tape.lazyMode).toBe("none");
+    expect(tape.stencilMode).toBe("none");
+  });
+
+  it("marks stencil as a painting projected freehand tool", () => {
+    const stencil = resolveOpenBrushTool("stencil");
+    expect(stencil.paints).toBe(true);
+    expect(stencil.erases).toBe(false);
+    expect(stencil.samplingMode).toBe("freehand");
+    expect(stencil.mirrorMode).toBe("none");
+    expect(stencil.snapMode).toBe("none");
+    expect(stencil.lazyMode).toBe("none");
+    expect(stencil.stencilMode).toBe("front-plane");
   });
 
   it("marks pickers as state-only tools", () => {
@@ -93,6 +105,7 @@ describe("Open Brush tools", () => {
       expect(picker.mirrorMode).toBe("none");
       expect(picker.snapMode).toBe("none");
       expect(picker.lazyMode).toBe("none");
+      expect(picker.stencilMode).toBe("none");
     }
   });
 });
