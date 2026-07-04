@@ -60,6 +60,9 @@ export const BrushPointer = createComponent("BrushPointer", {
 export const BrushStroke = createComponent("BrushStroke", {
   guid: { type: Types.String, default: "" },
   brushGuid: { type: Types.String, default: "" },
+  geometryFamily: { type: Types.String, default: "ribbon" },
+  materialFamily: { type: Types.String, default: "standard" },
+  renderWarning: { type: Types.String, default: "" },
   layerIndex: { type: Types.Int32, default: 0 },
   brushSize: { type: Types.Float32, default: 0 },
   color: { type: Types.Color, default: [1, 1, 1, 1] },

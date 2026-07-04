@@ -1,14 +1,18 @@
 import {
+  AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
   DoubleSide,
   Mesh,
   MeshBasicMaterial,
+  NormalBlending,
   Quaternion,
   Vector3,
   createSystem,
 } from "@iwsdk/core";
 import type { Entity } from "@iwsdk/core";
+
+import referenceManifest from "../../reference/Support/exportManifest.json";
 
 import {
   BrushPointer,
@@ -18,7 +22,14 @@ import {
   OpenBrushAppState,
   StrokeHistoryState,
 } from "../components/OpenBrushCore.js";
+import {
+  buildBrushInventoryFromExportManifest,
+  findBrushByGuid,
+  type BrushGeometryFamily,
+  type OpenBrushExportManifest,
+} from "../openbrush/brush-inventory.js";
 import { generateBrushGeometry } from "../openbrush/brush-geometry.js";
+import { createBrushMaterialSpec } from "../openbrush/brush-materials.js";
 import { shouldSampleControlPoint } from "../openbrush/stroke-authoring.js";
 import {
   createEmptyStrokeData,
@@ -29,11 +40,15 @@ import {
 } from "../openbrush/types.js";
 
 const MIN_SAMPLE_DISTANCE = 0.015;
+const brushInventory = buildBrushInventoryFromExportManifest(
+  referenceManifest as unknown as OpenBrushExportManifest,
+);
 
 interface RuntimeStroke {
   entity: Entity;
   mesh: Mesh;
   geometry: BufferGeometry;
+  geometryFamily: BrushGeometryFamily;
   strokeData: StrokeData;
   controlPoints: ControlPoint[];
   lastPosition: Vec3;
@@ -106,6 +121,9 @@ export class StrokeAuthoringSystem extends createSystem({
     const layerIndex = appStateEntity
       ? Number(appStateEntity.getValue(OpenBrushAppState, "activeLayerIndex"))
       : 0;
+    const brushEntry = findBrushByGuid(brushInventory, brushGuid);
+    const geometryFamily = brushEntry?.geometryFamily ?? "unsupported";
+    const materialSpec = createBrushMaterialSpec(brushEntry, color);
 
     this.strokeCounter += 1;
     const guid = `runtime-stroke-${this.strokeCounter}`;
@@ -121,10 +139,13 @@ export class StrokeAuthoringSystem extends createSystem({
     });
     const geometry = new BufferGeometry();
     const material = new MeshBasicMaterial({
-      vertexColors: true,
-      side: DoubleSide,
+      vertexColors: materialSpec.vertexColors,
+      side: materialSpec.doubleSided ? DoubleSide : undefined,
       opacity: color[3],
-      transparent: color[3] < 1,
+      transparent: materialSpec.transparent,
+      depthWrite: materialSpec.depthWrite,
+      blending:
+        materialSpec.blending === "additive" ? AdditiveBlending : NormalBlending,
     });
     const mesh = new Mesh(geometry, material);
     mesh.frustumCulled = false;
@@ -135,6 +156,9 @@ export class StrokeAuthoringSystem extends createSystem({
     entity.addComponent(BrushStroke, {
       guid,
       brushGuid,
+      geometryFamily,
+      materialFamily: materialSpec.materialFamily,
+      renderWarning: materialSpec.warning ?? "",
       layerIndex,
       brushSize,
       color,
@@ -150,6 +174,7 @@ export class StrokeAuthoringSystem extends createSystem({
       entity,
       mesh,
       geometry,
+      geometryFamily,
       strokeData,
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
@@ -215,7 +240,10 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private rebuildStrokeMesh(stroke: RuntimeStroke): void {
-    const generated = generateBrushGeometry(stroke.strokeData, "ribbon");
+    const generated = generateBrushGeometry(
+      stroke.strokeData,
+      stroke.geometryFamily,
+    );
     stroke.geometry.setAttribute(
       "position",
       new BufferAttribute(generated.positions, 3),
@@ -237,6 +265,9 @@ export class StrokeAuthoringSystem extends createSystem({
       generated.positions.length / 3,
     );
     stroke.entity.setValue(BrushStroke, "indexCount", generated.indices.length);
+    if (generated.warning) {
+      stroke.entity.setValue(BrushStroke, "renderWarning", generated.warning);
+    }
   }
 
   private updateBounds(stroke: RuntimeStroke, index: number): void {
