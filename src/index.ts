@@ -19,6 +19,7 @@ import { AudioFeedbackSystem } from "./systems/AudioFeedbackSystem.js";
 import { BrushCatalogSystem } from "./systems/BrushCatalogSystem.js";
 import { InputCommandSystem } from "./systems/InputCommandSystem.js";
 import { LayerCanvasSystem } from "./systems/LayerCanvasSystem.js";
+import { PerformanceCounterSystem } from "./systems/PerformanceCounterSystem.js";
 import { RuntimeDebugSystem } from "./systems/RuntimeDebugSystem.js";
 import { SelectionSystem } from "./systems/SelectionSystem.js";
 import { StrokeAuthoringSystem } from "./systems/StrokeAuthoringSystem.js";
@@ -75,5 +76,6 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .registerSystem(LayerCanvasSystem)
     .registerSystem(StrokeAuthoringSystem)
     .registerSystem(SelectionSystem)
+    .registerSystem(PerformanceCounterSystem)
     .registerSystem(RuntimeDebugSystem);
 });

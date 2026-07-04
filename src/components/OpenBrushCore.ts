@@ -82,6 +82,20 @@ export const SettingsState = createComponent("SettingsState", {
   settingsStatus: { type: Types.String, default: "ready" },
 });
 
+export const PerformanceState = createComponent("PerformanceState", {
+  drawCallCount: { type: Types.Int32, default: 0 },
+  batchCount: { type: Types.Int32, default: 0 },
+  visibleStrokeCount: { type: Types.Int32, default: 0 },
+  finalizedStrokeCount: { type: Types.Int32, default: 0 },
+  vertexCount: { type: Types.Int32, default: 0 },
+  indexCount: { type: Types.Int32, default: 0 },
+  bufferUploadBytes: { type: Types.Int32, default: 0 },
+  memoryEstimateBytes: { type: Types.Int32, default: 0 },
+  materialVariantCount: { type: Types.Int32, default: 0 },
+  warning: { type: Types.String, default: "" },
+  performanceRevision: { type: Types.Int32, default: 0 },
+});
+
 export const PersistenceState = createComponent("PersistenceState", {
   activeSketchId: { type: Types.String, default: "" },
   activeSketchName: { type: Types.String, default: "Untitled Sketch" },

@@ -7,9 +7,9 @@ import {
 } from "./port-phase.js";
 
 describe("Open Brush port phase metadata", () => {
-  it("identifies the active Phase 10 settings workflow", () => {
+  it("identifies the active Phase 11 performance counter workflow", () => {
     expect(OPEN_BRUSH_PLAN_FILE).toBe("OPEN_BRUSH_IWSDK_PORT_PLAN.md");
-    expect(OPEN_BRUSH_PORT_PHASE).toBe("phase-10");
-    expect(OPEN_BRUSH_PORT_STATUS).toBe("settings-workflow");
+    expect(OPEN_BRUSH_PORT_PHASE).toBe("phase-11");
+    expect(OPEN_BRUSH_PORT_STATUS).toBe("performance-counters");
   });
 });

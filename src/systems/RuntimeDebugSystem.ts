@@ -10,6 +10,7 @@ import {
   CanvasLayer,
   InputCommandState,
   OpenBrushAppState,
+  PerformanceState,
   PlaybackState,
   PersistenceState,
   SelectionState,
@@ -41,6 +42,7 @@ export class RuntimeDebugSystem extends createSystem({
   history: { required: [StrokeHistoryState] },
   uiHistory: { required: [UiCommandHistoryState] },
   settings: { required: [SettingsState] },
+  performance: { required: [PerformanceState] },
   persistence: { required: [PersistenceState] },
   playback: { required: [PlaybackState] },
 }) {
@@ -374,6 +376,61 @@ export class RuntimeDebugSystem extends createSystem({
     );
     entity.setValue(
       OpenBrushDebug,
+      "perfDrawCallCount",
+      this.getPerformanceNumber("drawCallCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "perfBatchCount",
+      this.getPerformanceNumber("batchCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "perfVisibleStrokeCount",
+      this.getPerformanceNumber("visibleStrokeCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "perfFinalizedStrokeCount",
+      this.getPerformanceNumber("finalizedStrokeCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "perfVertexCount",
+      this.getPerformanceNumber("vertexCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "perfIndexCount",
+      this.getPerformanceNumber("indexCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "perfBufferUploadBytes",
+      this.getPerformanceNumber("bufferUploadBytes", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "perfMemoryEstimateBytes",
+      this.getPerformanceNumber("memoryEstimateBytes", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "perfMaterialVariantCount",
+      this.getPerformanceNumber("materialVariantCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "perfWarning",
+      this.getPerformanceString("warning", ""),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "perfRevision",
+      this.getPerformanceNumber("performanceRevision", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
       "persistenceStatus",
       this.getPersistenceString("status", "idle"),
     );
@@ -669,6 +726,29 @@ export class RuntimeDebugSystem extends createSystem({
     return entity ? Boolean(entity.getValue(SettingsState, field)) : fallback;
   }
 
+  private getPerformanceNumber(
+    field:
+      | "drawCallCount"
+      | "batchCount"
+      | "visibleStrokeCount"
+      | "finalizedStrokeCount"
+      | "vertexCount"
+      | "indexCount"
+      | "bufferUploadBytes"
+      | "memoryEstimateBytes"
+      | "materialVariantCount"
+      | "performanceRevision",
+    fallback: number,
+  ): number {
+    const entity = this.getFirstEntity("performance");
+    return entity ? Number(entity.getValue(PerformanceState, field)) : fallback;
+  }
+
+  private getPerformanceString(field: "warning", fallback: string): string {
+    const entity = this.getFirstEntity("performance");
+    return entity ? String(entity.getValue(PerformanceState, field)) : fallback;
+  }
+
   private getPersistenceString(
     field: "activeSketchId" | "activeSketchName" | "status" | "error",
     fallback: string,
@@ -835,6 +915,7 @@ export class RuntimeDebugSystem extends createSystem({
       | "history"
       | "uiHistory"
       | "settings"
+      | "performance"
       | "persistence"
       | "playback",
   ): Entity | undefined {
