@@ -8,6 +8,7 @@ import {
 import type { Entity, World } from "@iwsdk/core";
 
 import {
+  AudioFeedbackState,
   BrushPointer,
   BrushCatalogState,
   BrushSettings,
@@ -48,6 +49,7 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
       color: [0.1, 0.45, 0.95, 1],
     })
     .addComponent(InputCommandState)
+    .addComponent(AudioFeedbackState)
     .addComponent(UiCommandHistoryState)
     .addComponent(SelectionState)
     .addComponent(StrokeHistoryState)

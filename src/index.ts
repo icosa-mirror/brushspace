@@ -15,6 +15,7 @@ import { PanelSystem } from "./panel.js";
 
 import { setupOpenBrushShell } from "./openbrush/setup-shell.js";
 
+import { AudioFeedbackSystem } from "./systems/AudioFeedbackSystem.js";
 import { BrushCatalogSystem } from "./systems/BrushCatalogSystem.js";
 import { InputCommandSystem } from "./systems/InputCommandSystem.js";
 import { LayerCanvasSystem } from "./systems/LayerCanvasSystem.js";
@@ -69,6 +70,7 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
   world
     .registerSystem(PanelSystem)
     .registerSystem(InputCommandSystem)
+    .registerSystem(AudioFeedbackSystem)
     .registerSystem(BrushCatalogSystem)
     .registerSystem(LayerCanvasSystem)
     .registerSystem(StrokeAuthoringSystem)

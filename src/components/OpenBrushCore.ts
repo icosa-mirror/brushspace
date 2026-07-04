@@ -38,6 +38,16 @@ export const InputCommandState = createComponent("InputCommandState", {
   commandRevision: { type: Types.Int32, default: 0 },
 });
 
+export const AudioFeedbackState = createComponent("AudioFeedbackState", {
+  enabled: { type: Types.Boolean, default: true },
+  eventCount: { type: Types.Int32, default: 0 },
+  toolChangeCount: { type: Types.Int32, default: 0 },
+  paintStartCount: { type: Types.Int32, default: 0 },
+  paintEndCount: { type: Types.Int32, default: 0 },
+  lastEvent: { type: Types.String, default: "" },
+  lastTool: { type: Types.String, default: "free-paint" },
+});
+
 export const StrokeHistoryState = createComponent("StrokeHistoryState", {
   undoDepth: { type: Types.Int32, default: 0 },
   redoDepth: { type: Types.Int32, default: 0 },
