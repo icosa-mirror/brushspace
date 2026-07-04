@@ -4,6 +4,7 @@ import {
   type SketchDocument,
   type SketchDocumentSummary,
   type SketchLayer,
+  type SketchMediaReference,
 } from "./document.js";
 import {
   createSketchCatalogRecord,
@@ -396,12 +397,26 @@ function cloneSketchDocument(document: SketchDocument): SketchDocument {
   return {
     metadata: { ...document.metadata },
     layers: document.layers.map(cloneSketchLayer),
+    media: document.media.map(cloneSketchMediaReference),
     strokes: document.strokes.map(cloneStrokeData),
   };
 }
 
 function cloneSketchLayer(layer: SketchLayer): SketchLayer {
   return { ...layer };
+}
+
+function cloneSketchMediaReference(
+  media: SketchMediaReference,
+): SketchMediaReference {
+  return {
+    ...media,
+    transform: {
+      position: [...media.transform.position] as Vec3,
+      rotation: [...media.transform.rotation] as Quat,
+      scale: [...media.transform.scale] as Vec3,
+    },
+  };
 }
 
 function cloneStrokeData(stroke: StrokeData): StrokeData {

@@ -3,6 +3,7 @@ import {
   createSketchLayer,
   type SketchDocument,
   type SketchLayer,
+  type SketchMediaReference,
   type SketchMetadata,
 } from "./document.js";
 import { normalizeGuid } from "./binary.js";
@@ -34,6 +35,7 @@ export interface TiltFileMetadata {
     schemaVersion: number;
     source: SketchMetadata["source"];
     layers: SketchLayer[];
+    media?: SketchMediaReference[];
   };
 }
 
@@ -56,6 +58,14 @@ export function writeTiltFile(
       schemaVersion: document.metadata.schemaVersion,
       source: document.metadata.source,
       layers: document.layers.map((layer) => ({ ...layer })),
+      media: document.media.map((media) => ({
+        ...media,
+        transform: {
+          position: [...media.transform.position],
+          rotation: [...media.transform.rotation],
+          scale: [...media.transform.scale],
+        },
+      })),
     },
   };
   const entries: Array<{ name: string; bytes: Uint8Array }> = [
@@ -96,6 +106,7 @@ export function readTiltFile(bytes: Uint8Array): SketchDocument {
   const brushGuids = readBrushIndex(metadata);
   const strokes = readSketchMemory(sketchBytes, brushGuids);
   const layers = readLayers(metadata, strokes.map((stroke) => stroke.layerIndex));
+  const media = readMedia(metadata);
   return createSketchDocument({
     metadata: {
       appName:
@@ -104,6 +115,7 @@ export function readTiltFile(bytes: Uint8Array): SketchDocument {
       source: "tilt",
     },
     layers,
+    media,
     strokes,
   });
 }
@@ -117,6 +129,39 @@ function readBrushIndex(metadata: TiltFileMetadata): string[] {
     throw new Error("Invalid Open Brush .tilt metadata: BrushIndex missing");
   }
   return metadata.BrushIndex.map(normalizeGuid);
+}
+
+function readMedia(metadata: TiltFileMetadata): SketchMediaReference[] {
+  const media = metadata.OpenBrushIwSdk?.media;
+  if (!Array.isArray(media)) {
+    return [];
+  }
+  return media.map((reference) => ({
+    id: String(reference.id),
+    kind: reference.kind === "model" ? "model" : "image",
+    mediaPath: String(reference.mediaPath),
+    originalName: String(reference.originalName),
+    mimeType: String(reference.mimeType),
+    byteLength: Number(reference.byteLength),
+    transform: {
+      position: readNumberTuple(reference.transform?.position, [0, 1, -1]),
+      rotation: readNumberTuple(reference.transform?.rotation, [0, 0, 0, 1]),
+      scale: readNumberTuple(reference.transform?.scale, [1, 1, 1]),
+    },
+  }));
+}
+
+function readNumberTuple<T extends number[]>(
+  value: unknown,
+  fallback: T,
+): T {
+  if (!Array.isArray(value)) {
+    return [...fallback] as T;
+  }
+  return fallback.map((fallbackValue, index) => {
+    const numberValue = Number(value[index]);
+    return Number.isFinite(numberValue) ? numberValue : fallbackValue;
+  }) as T;
 }
 
 function readLayers(

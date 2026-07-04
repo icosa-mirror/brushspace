@@ -3,6 +3,7 @@ import { openBrushInventory } from "./brush-catalog.js";
 import { findBrushByGuid } from "./brush-inventory.js";
 import { createBrushMaterialSpec } from "./brush-materials.js";
 import type { SketchDocument, SketchLayer } from "./document.js";
+import { isManagedMediaPath } from "./media-assets.js";
 import type { Rgba, StrokeData } from "./types.js";
 
 const GLB_MAGIC = 0x46546c67;
@@ -20,6 +21,7 @@ export interface GlbExportSummary {
   meshCount: number;
   materialCount: number;
   nodeCount: number;
+  mediaNodeCount: number;
   triangleCount: number;
   skippedStrokeCount: number;
   warnings: string[];
@@ -57,6 +59,9 @@ interface GlbNode {
   name: string;
   mesh?: number;
   children?: number[];
+  translation?: number[];
+  rotation?: number[];
+  scale?: number[];
   extras?: Record<string, unknown>;
 }
 
@@ -268,6 +273,38 @@ export function exportSketchDocumentToGlb(
     nodes[layerNodeIndex].children.push(strokeNodeIndex);
   }
 
+  const rootNodeIndices = [...layerNodes.values()];
+  let mediaNodeCount = 0;
+  for (const media of document.media) {
+    if (!isManagedMediaPath(media.mediaPath)) {
+      warnings.push(
+        `Media ${media.id} uses unmanaged path ${media.mediaPath}; exported as metadata only.`,
+      );
+    }
+    if (media.byteLength === 0) {
+      warnings.push(
+        `Media ${media.id} has no bytes; exported as reference metadata only.`,
+      );
+    }
+    const nodeIndex = nodes.length;
+    nodes.push({
+      name: `Reference ${media.kind}: ${media.originalName}`,
+      translation: [...media.transform.position],
+      rotation: [...media.transform.rotation],
+      scale: [...media.transform.scale],
+      extras: {
+        openBrushMediaId: media.id,
+        openBrushMediaKind: media.kind,
+        openBrushMediaPath: media.mediaPath,
+        openBrushOriginalName: media.originalName,
+        openBrushMimeType: media.mimeType,
+        openBrushByteLength: media.byteLength,
+      },
+    });
+    rootNodeIndices.push(nodeIndex);
+    mediaNodeCount += 1;
+  }
+
   const binChunk = writer.toUint8Array();
   const json: GlbDocument = {
     asset: {
@@ -277,14 +314,16 @@ export function exportSketchDocumentToGlb(
     scene: 0,
     scenes: [
       {
-        nodes: [...layerNodes.values()],
+        nodes: rootNodeIndices,
         extras: {
           TB_Application: "Open Brush IWSDK Port",
           TB_SchemaVersion: document.metadata.schemaVersion,
           TB_Source: document.metadata.source,
           openBrushLayerCount: document.layers.length,
           openBrushStrokeCount: document.strokes.length,
+          openBrushMediaCount: document.media.length,
           openBrushExportedStrokeCount: meshes.length,
+          openBrushExportedMediaNodeCount: mediaNodeCount,
           openBrushTriangleCount: triangleCount,
         },
       },
@@ -306,6 +345,7 @@ export function exportSketchDocumentToGlb(
       meshCount: meshes.length,
       materialCount: materials.length,
       nodeCount: nodes.length,
+      mediaNodeCount,
       triangleCount,
       skippedStrokeCount,
       warnings,

@@ -38,6 +38,31 @@ describe("Open Brush sketch documents", () => {
     ]);
   });
 
+  it("stores media references and validates required media paths", () => {
+    const document = createSketchDocument({
+      media: [
+        {
+          id: "ref-1",
+          kind: "image",
+          mediaPath: "",
+          originalName: "reference.png",
+          mimeType: "image/png",
+          byteLength: 10,
+          transform: {
+            position: [0, 1, -1],
+            rotation: [0, 0, 0, 1],
+            scale: [1, 1, 1],
+          },
+        },
+      ],
+    });
+
+    expect(document.media).toHaveLength(1);
+    expect(validateSketchDocument(document)).toEqual([
+      "Media ref-1 is missing a media path.",
+    ]);
+  });
+
   it("creates a runtime summary from the real brush manifest and fixture memory", () => {
     const summary = createPhase1RuntimeSummary();
 

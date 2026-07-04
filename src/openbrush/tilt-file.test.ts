@@ -50,6 +50,7 @@ describe("Open Brush .tilt files", () => {
       source: "tilt",
     });
     expect(roundTrip.layers).toEqual(source.layers);
+    expect(roundTrip.media).toEqual(source.media);
     expect(roundTrip.strokes).toHaveLength(1);
     const [stroke] = roundTrip.strokes;
     expect(stroke.brushGuid).toBe(source.strokes[0].brushGuid);
@@ -74,6 +75,21 @@ function createTiltFixtureDocument() {
     layers: [
       createSketchLayer({ id: 0, name: "Sketch" }),
       createSketchLayer({ id: 2, name: "Foreground", locked: true }),
+    ],
+    media: [
+      {
+        id: "reference-image",
+        kind: "image",
+        mediaPath: "media/reference-image/reference.png",
+        originalName: "reference.png",
+        mimeType: "image/png",
+        byteLength: 12,
+        transform: {
+          position: [0, 1.25, -1],
+          rotation: [0, 0, 0, 1],
+          scale: [1, 1, 1],
+        },
+      },
     ],
     strokes: [
       createEmptyStrokeData({

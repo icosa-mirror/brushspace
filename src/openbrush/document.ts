@@ -1,4 +1,4 @@
-import type { StrokeData } from "./types.js";
+import type { Quat, StrokeData, Vec3 } from "./types.js";
 
 export interface SketchLayer {
   id: number;
@@ -13,10 +13,29 @@ export interface SketchMetadata {
   source: "fixture" | "tilt" | "runtime";
 }
 
+export type SketchMediaKind = "image" | "model";
+
+export interface SketchMediaTransform {
+  position: Vec3;
+  rotation: Quat;
+  scale: Vec3;
+}
+
+export interface SketchMediaReference {
+  id: string;
+  kind: SketchMediaKind;
+  mediaPath: string;
+  originalName: string;
+  mimeType: string;
+  byteLength: number;
+  transform: SketchMediaTransform;
+}
+
 export interface SketchDocument {
   metadata: SketchMetadata;
   layers: SketchLayer[];
   strokes: StrokeData[];
+  media: SketchMediaReference[];
 }
 
 export interface SketchDocumentSummary {
@@ -29,10 +48,12 @@ export interface SketchDocumentSummary {
 export function createSketchDocument({
   metadata,
   layers,
+  media,
   strokes,
 }: {
   metadata?: Partial<SketchMetadata>;
   layers?: SketchLayer[];
+  media?: SketchMediaReference[];
   strokes?: StrokeData[];
 } = {}): SketchDocument {
   return {
@@ -43,6 +64,7 @@ export function createSketchDocument({
       ...metadata,
     },
     layers: layers ?? [createSketchLayer({ id: 0, name: "Layer 1" })],
+    media: media?.map(cloneSketchMediaReference) ?? [],
     strokes: strokes ?? [],
   };
 }
@@ -96,5 +118,27 @@ export function validateSketchDocument(document: SketchDocument): string[] {
     }
   }
 
+  for (const media of document.media) {
+    if (!media.id) {
+      errors.push("Media reference is missing an id.");
+    }
+    if (!media.mediaPath) {
+      errors.push(`Media ${media.id || "(unknown)"} is missing a media path.`);
+    }
+  }
+
   return errors;
+}
+
+function cloneSketchMediaReference(
+  media: SketchMediaReference,
+): SketchMediaReference {
+  return {
+    ...media,
+    transform: {
+      position: [...media.transform.position] as Vec3,
+      rotation: [...media.transform.rotation] as Quat,
+      scale: [...media.transform.scale] as Vec3,
+    },
+  };
 }

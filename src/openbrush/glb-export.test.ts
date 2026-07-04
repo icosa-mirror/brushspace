@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { createSketchDocument, createSketchLayer } from "./document.js";
 import { createPhase1FixtureDocument, PHASE1_FIXTURE_BRUSH_GUID } from "./fixtures.js";
 import { exportSketchDocumentToGlb } from "./glb-export.js";
+import { createReferenceMediaAsset, toMediaReference } from "./media-assets.js";
 import { createEmptyStrokeData } from "./types.js";
 
 describe("Open Brush GLB export", () => {
@@ -110,6 +111,78 @@ describe("Open Brush GLB export", () => {
     });
     expect(result.summary.warnings[0]).toContain("missing layer 7");
     expect(parseGlb(result.bytes).json.meshes).toHaveLength(0);
+  });
+
+  it("exports media references as transformable metadata nodes", () => {
+    const media = createReferenceMediaAsset({
+      id: "ref-image",
+      kind: "image",
+      fileName: "reference.png",
+      mimeType: "image/png",
+      bytes: new Uint8Array([1, 2, 3]),
+      transform: {
+        position: [1, 2, 3],
+        rotation: [0, 0, 0, 1],
+        scale: [0.5, 0.5, 0.5],
+      },
+    });
+    const document = createSketchDocument({
+      metadata: { source: "runtime" },
+      layers: [createSketchLayer({ id: 0, name: "Sketch" })],
+      media: [toMediaReference(media)],
+    });
+
+    const result = exportSketchDocumentToGlb(document);
+    const parsed = parseGlb(result.bytes);
+    const mediaNode = parsed.json.nodes.find(
+      (node: { extras?: Record<string, unknown> }) =>
+        node.extras?.openBrushMediaId === "ref-image",
+    );
+
+    expect(result.summary).toMatchObject({
+      mediaNodeCount: 1,
+      meshCount: 0,
+      skippedStrokeCount: 0,
+    });
+    expect(parsed.json.scenes[0].extras).toMatchObject({
+      openBrushMediaCount: 1,
+      openBrushExportedMediaNodeCount: 1,
+    });
+    expect(mediaNode).toMatchObject({
+      name: "Reference image: reference.png",
+      translation: [1, 2, 3],
+      rotation: [0, 0, 0, 1],
+      scale: [0.5, 0.5, 0.5],
+      extras: {
+        openBrushMediaPath: "media/ref-image/reference.png",
+        openBrushMimeType: "image/png",
+        openBrushByteLength: 3,
+      },
+    });
+  });
+
+  it("warns about missing media bytes without failing GLB export", () => {
+    const media = createReferenceMediaAsset({
+      id: "empty-model",
+      kind: "model",
+      fileName: "reference.glb",
+      mimeType: "model/gltf-binary",
+      bytes: new Uint8Array(),
+    });
+    const result = exportSketchDocumentToGlb(
+      createSketchDocument({
+        metadata: { source: "runtime" },
+        media: [toMediaReference(media)],
+      }),
+    );
+
+    expect(result.summary.mediaNodeCount).toBe(1);
+    expect(result.summary.warnings).toEqual([
+      "Media empty-model has no bytes; exported as reference metadata only.",
+    ]);
+    expect(parseGlb(result.bytes).json.scenes[0].extras.openBrushMediaCount).toBe(
+      1,
+    );
   });
 });
 
