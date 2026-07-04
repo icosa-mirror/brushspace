@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  planSelectedStrokeTranslation,
   resolveLastSelectableStroke,
   summarizeStrokeSelection,
   type RuntimeStrokeSelectionState,
@@ -75,5 +76,37 @@ describe("Open Brush stroke selection", () => {
       activeSelectionLayerIndex: -1,
       lastSelectedStrokeCommandIndex: 4,
     });
+  });
+
+  it("plans selected stroke translations without mutating source positions", () => {
+    const transforms = [
+      {
+        commandIndex: 3,
+        selected: true,
+        position: [0.4, 1, -0.2] as [number, number, number],
+      },
+      {
+        commandIndex: 1,
+        selected: false,
+        position: [2, 2, 2] as [number, number, number],
+      },
+      {
+        commandIndex: 2,
+        selected: true,
+        position: [-0.1, 0.5, -1] as [number, number, number],
+      },
+    ];
+
+    expect(planSelectedStrokeTranslation(transforms, [0.1, 0, -0.2])).toEqual([
+      {
+        commandIndex: 2,
+        position: [0, 0.5, -1.2],
+      },
+      {
+        commandIndex: 3,
+        position: [0.5, 1, -0.4],
+      },
+    ]);
+    expect(transforms[0].position).toEqual([0.4, 1, -0.2]);
   });
 });

@@ -93,7 +93,8 @@
   #layer-next-button,
   #layer-toggle-lock-button,
   #layer-move-down-button,
-  #selection-clear-button {
+  #selection-clear-button,
+  #selection-nudge-right-button {
     margin-left: 1;
   }
 
@@ -176,5 +177,9 @@
   <div class="button-row">
     <button id="selection-select-last-button" class="brush-button">Select Last</button>
     <button id="selection-clear-button" class="brush-button">Deselect</button>
+  </div>
+  <div class="button-row">
+    <button id="selection-nudge-left-button" class="brush-button">Move Left</button>
+    <button id="selection-nudge-right-button" class="brush-button">Move Right</button>
   </div>
 </div>

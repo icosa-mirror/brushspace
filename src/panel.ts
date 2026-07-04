@@ -31,7 +31,9 @@ import {
   type RuntimeLayerState,
 } from "./openbrush/layers.js";
 import {
+  planSelectedStrokeTranslation,
   resolveLastSelectableStroke,
+  type RuntimeStrokeTransformState,
   type RuntimeStrokeSelectionState,
 } from "./openbrush/selection.js";
 import {
@@ -51,6 +53,13 @@ interface StrokePanelSnapshot {
   renderVisible: boolean;
   selected: boolean;
 }
+interface StrokeTransformSnapshot {
+  entity: Entity;
+  commandIndex: number;
+  position: [number, number, number];
+}
+
+const SELECTION_NUDGE_DISTANCE = 0.1;
 
 export class PanelSystem extends createSystem({
   welcomePanel: {
@@ -131,6 +140,8 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "layer-clear-button");
     this.nameElement(document, "selection-select-last-button");
     this.nameElement(document, "selection-clear-button");
+    this.nameElement(document, "selection-nudge-left-button");
+    this.nameElement(document, "selection-nudge-right-button");
 
     const xrButton = document.getElementById("xr-button") as TextElement;
     xrButton?.addEventListener("click", () => {
@@ -321,6 +332,20 @@ export class PanelSystem extends createSystem({
     ) as TextElement;
     clearSelectionButton?.addEventListener("click", () => {
       this.clearSelection();
+    });
+
+    const nudgeLeftButton = document.getElementById(
+      "selection-nudge-left-button",
+    ) as TextElement;
+    nudgeLeftButton?.addEventListener("click", () => {
+      this.nudgeSelectedStrokes(-SELECTION_NUDGE_DISTANCE, 0, 0);
+    });
+
+    const nudgeRightButton = document.getElementById(
+      "selection-nudge-right-button",
+    ) as TextElement;
+    nudgeRightButton?.addEventListener("click", () => {
+      this.nudgeSelectedStrokes(SELECTION_NUDGE_DISTANCE, 0, 0);
     });
     this.updateBrushLabels(document);
     this.updateToolLabels(document);
@@ -734,6 +759,57 @@ export class PanelSystem extends createSystem({
     });
   }
 
+  private nudgeSelectedStrokes(
+    deltaX: number,
+    deltaY: number,
+    deltaZ: number,
+  ): void {
+    const appState = this.getAppStateEntity();
+    if (!appState) {
+      return;
+    }
+    const previousTransforms = this.getSelectedTransformSnapshots();
+    if (previousTransforms.length === 0) {
+      return;
+    }
+
+    const transformStates: RuntimeStrokeTransformState[] = previousTransforms.map(
+      (snapshot) => ({
+        commandIndex: snapshot.commandIndex,
+        selected: true,
+        position: snapshot.position,
+      }),
+    );
+    const targetPositions = new Map(
+      planSelectedStrokeTranslation(transformStates, [
+        deltaX,
+        deltaY,
+        deltaZ,
+      ]).map((target) => [target.commandIndex, target.position] as const),
+    );
+
+    this.executeUiCommand({
+      name: "nudge-selection",
+      redo: () => {
+        for (const snapshot of previousTransforms) {
+          const targetPosition = targetPositions.get(snapshot.commandIndex);
+          if (targetPosition) {
+            this.applyStrokeTransform(snapshot.entity, targetPosition);
+          }
+        }
+        this.touchSelectionState();
+        this.touchAppState(appState);
+      },
+      undo: () => {
+        for (const snapshot of previousTransforms) {
+          this.applyStrokeTransform(snapshot.entity, snapshot.position);
+        }
+        this.touchSelectionState();
+        this.touchAppState(appState);
+      },
+    });
+  }
+
   private toggleActiveLayerVisibility(): void {
     const layer = this.getActiveLayerEntity();
     if (!layer) {
@@ -1099,6 +1175,32 @@ export class PanelSystem extends createSystem({
     if (snapshot.entity.object3D) {
       snapshot.entity.object3D.visible = snapshot.renderVisible;
     }
+  }
+
+  private getSelectedTransformSnapshots(): StrokeTransformSnapshot[] {
+    const snapshots: StrokeTransformSnapshot[] = [];
+    for (const stroke of this.queries.strokes.entities) {
+      if (!stroke.getValue(BrushStroke, "selected") || !stroke.object3D) {
+        continue;
+      }
+      snapshots.push({
+        entity: stroke,
+        commandIndex: Number(stroke.getValue(BrushStroke, "commandIndex")),
+        position: [
+          stroke.object3D.position.x,
+          stroke.object3D.position.y,
+          stroke.object3D.position.z,
+        ],
+      });
+    }
+    return snapshots;
+  }
+
+  private applyStrokeTransform(
+    stroke: Entity,
+    position: [number, number, number],
+  ): void {
+    stroke.object3D?.position.set(position[0], position[1], position[2]);
   }
 
   private getSelectedCommandIndices(): number[] {

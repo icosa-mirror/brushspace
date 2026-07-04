@@ -1,3 +1,5 @@
+import type { Vec3 } from "./types.js";
+
 export interface RuntimeStrokeSelectionState {
   layerIndex: number;
   commandIndex: number;
@@ -11,6 +13,17 @@ export interface StrokeSelectionSummary {
   selectedStrokeCount: number;
   activeSelectionLayerIndex: number;
   lastSelectedStrokeCommandIndex: number;
+}
+
+export interface RuntimeStrokeTransformState {
+  commandIndex: number;
+  selected: boolean;
+  position: Vec3;
+}
+
+export interface StrokeTransformTarget {
+  commandIndex: number;
+  position: Vec3;
 }
 
 export function resolveLastSelectableStroke(
@@ -67,4 +80,25 @@ export function summarizeStrokeSelection(
       : activeSelectionLayerIndex,
     lastSelectedStrokeCommandIndex,
   };
+}
+
+export function planSelectedStrokeTranslation(
+  strokes: readonly RuntimeStrokeTransformState[],
+  delta: Vec3,
+): StrokeTransformTarget[] {
+  const targets: StrokeTransformTarget[] = [];
+  for (const stroke of strokes) {
+    if (!stroke.selected) {
+      continue;
+    }
+    targets.push({
+      commandIndex: stroke.commandIndex,
+      position: [
+        stroke.position[0] + delta[0],
+        stroke.position[1] + delta[1],
+        stroke.position[2] + delta[2],
+      ],
+    });
+  }
+  return targets.sort((left, right) => left.commandIndex - right.commandIndex);
 }
