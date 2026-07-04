@@ -3,16 +3,16 @@ import {
   BufferAttribute,
   BufferGeometry,
   DoubleSide,
+  Hovered,
   Mesh,
   MeshBasicMaterial,
   NormalBlending,
+  PanelUI,
   Quaternion,
   Vector3,
   createSystem,
 } from "@iwsdk/core";
 import type { Entity } from "@iwsdk/core";
-
-import referenceManifest from "../../reference/Support/exportManifest.json";
 
 import {
   BrushPointer,
@@ -22,11 +22,10 @@ import {
   OpenBrushAppState,
   StrokeHistoryState,
 } from "../components/OpenBrushCore.js";
+import { openBrushInventory } from "../openbrush/brush-catalog.js";
 import {
-  buildBrushInventoryFromExportManifest,
   findBrushByGuid,
   type BrushGeometryFamily,
-  type OpenBrushExportManifest,
 } from "../openbrush/brush-inventory.js";
 import { generateBrushGeometry } from "../openbrush/brush-geometry.js";
 import { createBrushMaterialSpec } from "../openbrush/brush-materials.js";
@@ -40,9 +39,6 @@ import {
 } from "../openbrush/types.js";
 
 const MIN_SAMPLE_DISTANCE = 0.015;
-const brushInventory = buildBrushInventoryFromExportManifest(
-  referenceManifest as unknown as OpenBrushExportManifest,
-);
 
 interface RuntimeStroke {
   entity: Entity;
@@ -62,12 +58,22 @@ export class StrokeAuthoringSystem extends createSystem({
   brushSettings: { required: [BrushSettings] },
   pointers: { required: [BrushPointer] },
   history: { required: [StrokeHistoryState] },
+  hoveredPanels: { required: [PanelUI, Hovered] },
+  panels: { required: [PanelUI] },
 }) {
   private readonly samplePosition = new Vector3();
   private readonly sampleQuaternion = new Quaternion();
   private readonly cameraPosition = new Vector3();
   private readonly sampleDirection = new Vector3();
   private readonly sampleNdc = new Vector3();
+  private readonly panelPosition = new Vector3();
+  private readonly panelQuaternion = new Quaternion();
+  private readonly panelRight = new Vector3();
+  private readonly panelUp = new Vector3();
+  private readonly panelNormal = new Vector3();
+  private readonly panelDelta = new Vector3();
+  private readonly panelHit = new Vector3();
+  private readonly rayDirection = new Vector3();
   private activeStroke: RuntimeStroke | undefined;
   private strokeCounter = 0;
   private readonly undoStack: Entity[] = [];
@@ -86,11 +92,17 @@ export class StrokeAuthoringSystem extends createSystem({
       this.redoLastStroke();
     }
 
-    const paintPressed = Boolean(
+    const rawPaintPressed = Boolean(
       commandEntity.getValue(InputCommandState, "paintPressed"),
     );
-    if (paintPressed) {
+    if (rawPaintPressed) {
       this.samplePointerPose(commandEntity);
+    }
+    const commandSource = String(commandEntity.getValue(InputCommandState, "source"));
+    const paintPressed =
+      rawPaintPressed &&
+      (!!this.activeStroke || !this.isPaintStartBlocked(commandSource));
+    if (paintPressed) {
       const pressure = Number(commandEntity.getValue(InputCommandState, "pressure"));
       if (!this.activeStroke) {
         this.startStroke(commandEntity, time, pressure);
@@ -102,6 +114,66 @@ export class StrokeAuthoringSystem extends createSystem({
     }
 
     this.updateHistoryState();
+  }
+
+  private isHoveringPanel(): boolean {
+    return this.queries.hoveredPanels.entities.size > 0;
+  }
+
+  private isPaintStartBlocked(commandSource: string): boolean {
+    if (this.isHoveringPanel()) {
+      return true;
+    }
+    if (commandSource !== "xr-right" && commandSource !== "xr-left") {
+      return false;
+    }
+    return this.isPointerRayIntersectingPanel();
+  }
+
+  private isPointerRayIntersectingPanel(): boolean {
+    this.rayDirection
+      .set(0, 0, -1)
+      .applyQuaternion(this.sampleQuaternion)
+      .normalize();
+
+    for (const entity of this.queries.panels.entities) {
+      const panelObject = entity.object3D;
+      if (!panelObject) {
+        continue;
+      }
+
+      panelObject.getWorldPosition(this.panelPosition);
+      panelObject.getWorldQuaternion(this.panelQuaternion);
+      this.panelRight.set(1, 0, 0).applyQuaternion(this.panelQuaternion);
+      this.panelUp.set(0, 1, 0).applyQuaternion(this.panelQuaternion);
+      this.panelNormal.set(0, 0, 1).applyQuaternion(this.panelQuaternion);
+
+      const denominator = this.rayDirection.dot(this.panelNormal);
+      if (Math.abs(denominator) < 0.0001) {
+        continue;
+      }
+
+      this.panelDelta.copy(this.panelPosition).sub(this.samplePosition);
+      const distance = this.panelDelta.dot(this.panelNormal) / denominator;
+      if (distance < 0) {
+        continue;
+      }
+
+      this.panelHit
+        .copy(this.samplePosition)
+        .addScaledVector(this.rayDirection, distance);
+      this.panelDelta.copy(this.panelHit).sub(this.panelPosition);
+
+      const localX = this.panelDelta.dot(this.panelRight);
+      const localY = this.panelDelta.dot(this.panelUp);
+      const halfWidth = Number(entity.getValue(PanelUI, "maxWidth")) * 0.5;
+      const halfHeight = Number(entity.getValue(PanelUI, "maxHeight")) * 0.5;
+      if (Math.abs(localX) <= halfWidth && Math.abs(localY) <= halfHeight) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private startStroke(
@@ -121,7 +193,7 @@ export class StrokeAuthoringSystem extends createSystem({
     const layerIndex = appStateEntity
       ? Number(appStateEntity.getValue(OpenBrushAppState, "activeLayerIndex"))
       : 0;
-    const brushEntry = findBrushByGuid(brushInventory, brushGuid);
+    const brushEntry = findBrushByGuid(openBrushInventory, brushGuid);
     const geometryFamily = brushEntry?.geometryFamily ?? "unsupported";
     const materialSpec = createBrushMaterialSpec(brushEntry, color);
 
