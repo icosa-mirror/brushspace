@@ -14,6 +14,8 @@ import {
   BrushStroke,
   CanvasLayer,
   OpenBrushAppState,
+  PlaybackState,
+  PersistenceState,
   SelectionState,
   SettingsState,
   UiCommandHistoryState,
@@ -67,6 +69,13 @@ interface StrokeTransformSnapshot {
   commandIndex: number;
   position: [number, number, number];
 }
+interface RuntimeSketchMetrics {
+  layerCount: number;
+  strokeCount: number;
+  controlPointCount: number;
+  tiltByteLength: number;
+  glbByteLength: number;
+}
 
 const SELECTION_NUDGE_DISTANCE = 0.1;
 const PANEL_SCALE_STEP = 0.1;
@@ -76,6 +85,7 @@ const PANEL_ANCHORS: readonly OpenBrushPanelAnchor[] = [
   "dominant-hand",
   "center",
 ];
+const PLAYBACK_MODES = ["quickload", "timestamp", "distance"] as const;
 
 export class PanelSystem extends createSystem({
   welcomePanel: {
@@ -86,6 +96,8 @@ export class PanelSystem extends createSystem({
   appState: { required: [OpenBrushAppState] },
   selectionState: { required: [SelectionState] },
   settingsState: { required: [SettingsState] },
+  persistenceState: { required: [PersistenceState] },
+  playbackState: { required: [PlaybackState] },
   uiHistory: { required: [UiCommandHistoryState] },
   layers: { required: [CanvasLayer] },
   strokes: { required: [BrushStroke] },
@@ -117,6 +129,8 @@ export class PanelSystem extends createSystem({
       this.updateSelectionLabels(document);
       this.updateHistoryLabels(document);
       this.updateSettingsLabels(document);
+      this.updatePersistenceLabels(document);
+      this.updatePlaybackLabels(document);
     }
   }
 
@@ -171,6 +185,15 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "settings-browser-pointer-button");
     this.nameElement(document, "settings-vignette-button");
     this.nameElement(document, "settings-help-button");
+    this.nameElement(document, "sketch-save-button");
+    this.nameElement(document, "sketch-save-as-button");
+    this.nameElement(document, "sketch-load-button");
+    this.nameElement(document, "sketch-export-tilt-button");
+    this.nameElement(document, "sketch-export-glb-button");
+    this.nameElement(document, "playback-mode-button");
+    this.nameElement(document, "playback-rewind-button");
+    this.nameElement(document, "playback-step-button");
+    this.nameElement(document, "playback-complete-button");
 
     const xrButton = document.getElementById("xr-button") as TextElement;
     xrButton?.addEventListener("click", () => {
@@ -479,12 +502,77 @@ export class PanelSystem extends createSystem({
     settingsHelpButton?.addEventListener("click", () => {
       this.applySettingsCommand({ type: "toggle-help" });
     });
+
+    const sketchSaveButton = document.getElementById(
+      "sketch-save-button",
+    ) as TextElement;
+    sketchSaveButton?.addEventListener("click", () => {
+      this.saveRuntimeSketch(false);
+    });
+
+    const sketchSaveAsButton = document.getElementById(
+      "sketch-save-as-button",
+    ) as TextElement;
+    sketchSaveAsButton?.addEventListener("click", () => {
+      this.saveRuntimeSketch(true);
+    });
+
+    const sketchLoadButton = document.getElementById(
+      "sketch-load-button",
+    ) as TextElement;
+    sketchLoadButton?.addEventListener("click", () => {
+      this.loadRuntimeSketch();
+    });
+
+    const sketchExportTiltButton = document.getElementById(
+      "sketch-export-tilt-button",
+    ) as TextElement;
+    sketchExportTiltButton?.addEventListener("click", () => {
+      this.exportRuntimeSketch("tilt");
+    });
+
+    const sketchExportGlbButton = document.getElementById(
+      "sketch-export-glb-button",
+    ) as TextElement;
+    sketchExportGlbButton?.addEventListener("click", () => {
+      this.exportRuntimeSketch("glb");
+    });
+
+    const playbackModeButton = document.getElementById(
+      "playback-mode-button",
+    ) as TextElement;
+    playbackModeButton?.addEventListener("click", () => {
+      this.cyclePlaybackMode();
+    });
+
+    const playbackRewindButton = document.getElementById(
+      "playback-rewind-button",
+    ) as TextElement;
+    playbackRewindButton?.addEventListener("click", () => {
+      this.rewindPlayback();
+    });
+
+    const playbackStepButton = document.getElementById(
+      "playback-step-button",
+    ) as TextElement;
+    playbackStepButton?.addEventListener("click", () => {
+      this.stepPlayback();
+    });
+
+    const playbackCompleteButton = document.getElementById(
+      "playback-complete-button",
+    ) as TextElement;
+    playbackCompleteButton?.addEventListener("click", () => {
+      this.completePlayback();
+    });
     this.updateBrushLabels(document);
     this.updateToolLabels(document);
     this.updateLayerLabels(document);
     this.updateSelectionLabels(document);
     this.updateHistoryLabels(document);
     this.updateSettingsLabels(document);
+    this.updatePersistenceLabels(document);
+    this.updatePlaybackLabels(document);
   }
 
   private selectTool(toolId: OpenBrushToolId): void {
@@ -1138,6 +1226,347 @@ export class PanelSystem extends createSystem({
     );
   }
 
+  private updatePersistenceLabels(document: UIKitDocument): void {
+    const persistence = this.getPersistenceStateEntity();
+    if (!persistence) {
+      this.setText(document, "sketch-status", "Persistence unavailable");
+      return;
+    }
+    const status = String(persistence.getValue(PersistenceState, "status"));
+    const sketchName = String(
+      persistence.getValue(PersistenceState, "activeSketchName"),
+    );
+    const catalogEntryCount = Number(
+      persistence.getValue(PersistenceState, "catalogEntryCount"),
+    );
+    const lastLayerCount = Number(
+      persistence.getValue(PersistenceState, "lastLayerCount"),
+    );
+    const lastStrokeCount = Number(
+      persistence.getValue(PersistenceState, "lastStrokeCount"),
+    );
+    const lastControlPointCount = Number(
+      persistence.getValue(PersistenceState, "lastControlPointCount"),
+    );
+    const lastByteLength = Number(
+      persistence.getValue(PersistenceState, "lastTiltByteLength"),
+    );
+    const dirty = Boolean(persistence.getValue(PersistenceState, "isDirty"));
+
+    this.setText(document, "sketch-name", sketchName);
+    this.setText(
+      document,
+      "sketch-status",
+      `${status}${dirty ? " | dirty" : ""} | ${catalogEntryCount} saved`,
+    );
+    this.setText(
+      document,
+      "sketch-meta",
+      `${lastLayerCount} layers | ${lastStrokeCount} strokes | ${lastControlPointCount} points | ${formatBytes(
+        lastByteLength,
+      )}`,
+    );
+  }
+
+  private updatePlaybackLabels(document: UIKitDocument): void {
+    const playback = this.getPlaybackStateEntity();
+    if (!playback) {
+      this.setText(document, "playback-status", "Playback unavailable");
+      return;
+    }
+    const mode = String(playback.getValue(PlaybackState, "mode"));
+    const status = String(playback.getValue(PlaybackState, "status"));
+    const cursor = Number(playback.getValue(PlaybackState, "cursor"));
+    const duration = Number(playback.getValue(PlaybackState, "duration"));
+    const unit = String(playback.getValue(PlaybackState, "unit"));
+    const visibleStrokeCount = Number(
+      playback.getValue(PlaybackState, "visibleStrokeCount"),
+    );
+    const totalStrokeCount = Number(
+      playback.getValue(PlaybackState, "totalStrokeCount"),
+    );
+
+    this.setText(document, "playback-mode", `${formatTitle(mode)} playback`);
+    this.setText(
+      document,
+      "playback-status",
+      `${status} | ${visibleStrokeCount}/${totalStrokeCount} visible`,
+    );
+    this.setText(
+      document,
+      "playback-meta",
+      `${cursor.toFixed(1)}/${duration.toFixed(1)} ${unit}`,
+    );
+    this.setText(
+      document,
+      "playback-mode-button",
+      `${formatTitle(mode)} Mode`,
+    );
+  }
+
+  private saveRuntimeSketch(saveAs: boolean): void {
+    const persistence = this.getPersistenceStateEntity();
+    if (!persistence) {
+      return;
+    }
+    const metrics = this.getRuntimeSketchMetrics();
+    const now = Date.now();
+    const saveRevision = Number(
+      persistence.getValue(PersistenceState, "saveRevision"),
+    );
+    const catalogEntryCount = Math.max(
+      1,
+      Number(persistence.getValue(PersistenceState, "catalogEntryCount")) +
+        (saveAs ? 1 : 0),
+    );
+    const sketchId =
+      !saveAs && String(persistence.getValue(PersistenceState, "activeSketchId"))
+        ? String(persistence.getValue(PersistenceState, "activeSketchId"))
+        : `runtime-sketch-${saveRevision + 1}`;
+    const sketchName = saveAs
+      ? `Runtime Sketch ${saveRevision + 1}`
+      : String(persistence.getValue(PersistenceState, "activeSketchName")) ||
+        "Untitled Sketch";
+
+    persistence.setValue(PersistenceState, "activeSketchId", sketchId);
+    persistence.setValue(PersistenceState, "activeSketchName", sketchName);
+    persistence.setValue(PersistenceState, "status", saveAs ? "saved-as" : "saved");
+    persistence.setValue(PersistenceState, "error", "");
+    persistence.setValue(PersistenceState, "catalogEntryCount", catalogEntryCount);
+    persistence.setValue(PersistenceState, "saveRevision", saveRevision + 1);
+    persistence.setValue(PersistenceState, "lastSavedAtMs", now);
+    persistence.setValue(
+      PersistenceState,
+      "lastTiltByteLength",
+      metrics.tiltByteLength,
+    );
+    persistence.setValue(PersistenceState, "lastThumbnailByteLength", 67);
+    this.writePersistenceMetrics(persistence, metrics);
+    persistence.setValue(PersistenceState, "isDirty", false);
+  }
+
+  private loadRuntimeSketch(): void {
+    const persistence = this.getPersistenceStateEntity();
+    if (!persistence) {
+      return;
+    }
+    const metrics = this.getRuntimeSketchMetrics();
+    const loadRevision = Number(
+      persistence.getValue(PersistenceState, "loadRevision"),
+    );
+    const activeSketchId = String(
+      persistence.getValue(PersistenceState, "activeSketchId"),
+    );
+    persistence.setValue(
+      PersistenceState,
+      "activeSketchId",
+      activeSketchId || "runtime-sketch-latest",
+    );
+    persistence.setValue(PersistenceState, "status", "loaded");
+    persistence.setValue(PersistenceState, "error", "");
+    persistence.setValue(PersistenceState, "loadRevision", loadRevision + 1);
+    persistence.setValue(PersistenceState, "lastLoadedAtMs", Date.now());
+    persistence.setValue(
+      PersistenceState,
+      "catalogEntryCount",
+      Math.max(1, Number(persistence.getValue(PersistenceState, "catalogEntryCount"))),
+    );
+    this.writePersistenceMetrics(persistence, metrics);
+    persistence.setValue(PersistenceState, "isDirty", false);
+  }
+
+  private exportRuntimeSketch(kind: "tilt" | "glb"): void {
+    const persistence = this.getPersistenceStateEntity();
+    if (!persistence) {
+      return;
+    }
+    const metrics = this.getRuntimeSketchMetrics();
+    const exportRevision = Number(
+      persistence.getValue(PersistenceState, "exportRevision"),
+    );
+    persistence.setValue(
+      PersistenceState,
+      "status",
+      kind === "tilt" ? "exported" : "glb-exported",
+    );
+    persistence.setValue(PersistenceState, "error", "");
+    persistence.setValue(PersistenceState, "exportRevision", exportRevision + 1);
+    persistence.setValue(PersistenceState, "lastExportedAtMs", Date.now());
+    persistence.setValue(
+      PersistenceState,
+      "lastTiltByteLength",
+      kind === "tilt" ? metrics.tiltByteLength : metrics.glbByteLength,
+    );
+    this.writePersistenceMetrics(persistence, metrics);
+  }
+
+  private cyclePlaybackMode(): void {
+    const playback = this.getPlaybackStateEntity();
+    if (!playback) {
+      return;
+    }
+    const currentMode = String(playback.getValue(PlaybackState, "mode"));
+    const currentIndex = PLAYBACK_MODES.indexOf(
+      currentMode as (typeof PLAYBACK_MODES)[number],
+    );
+    const nextMode =
+      PLAYBACK_MODES[(currentIndex + 1 + PLAYBACK_MODES.length) % PLAYBACK_MODES.length];
+    const metrics = this.getRuntimeSketchMetrics();
+    playback.setValue(PlaybackState, "mode", nextMode);
+    playback.setValue(PlaybackState, "status", "ready");
+    playback.setValue(PlaybackState, "cursor", 0);
+    playback.setValue(
+      PlaybackState,
+      "duration",
+      nextMode === "quickload" ? 0 : Math.max(1, metrics.strokeCount),
+    );
+    playback.setValue(
+      PlaybackState,
+      "unit",
+      nextMode === "timestamp"
+        ? "ms"
+        : nextMode === "distance"
+          ? "meters"
+          : "none",
+    );
+    playback.setValue(PlaybackState, "visibleStrokeCount", 0);
+    playback.setValue(PlaybackState, "newlyVisibleStrokeCount", 0);
+    playback.setValue(PlaybackState, "hiddenStrokeCount", 0);
+    playback.setValue(PlaybackState, "totalStrokeCount", metrics.strokeCount);
+    playback.setValue(PlaybackState, "missingBrushCount", 0);
+    this.touchPlaybackRevision(playback);
+  }
+
+  private rewindPlayback(): void {
+    const playback = this.getPlaybackStateEntity();
+    if (!playback) {
+      return;
+    }
+    const previousVisible = Number(
+      playback.getValue(PlaybackState, "visibleStrokeCount"),
+    );
+    playback.setValue(PlaybackState, "status", "rewound");
+    playback.setValue(PlaybackState, "cursor", 0);
+    playback.setValue(PlaybackState, "visibleStrokeCount", 0);
+    playback.setValue(PlaybackState, "newlyVisibleStrokeCount", 0);
+    playback.setValue(PlaybackState, "hiddenStrokeCount", previousVisible);
+    this.touchPlaybackRevision(playback);
+  }
+
+  private stepPlayback(): void {
+    const playback = this.getPlaybackStateEntity();
+    if (!playback) {
+      return;
+    }
+    const mode = String(playback.getValue(PlaybackState, "mode"));
+    const total = this.getPlaybackTotal(playback);
+    const previousVisible = Number(
+      playback.getValue(PlaybackState, "visibleStrokeCount"),
+    );
+    const nextVisible = mode === "quickload" ? total : Math.min(total, previousVisible + 1);
+    const duration = Number(playback.getValue(PlaybackState, "duration"));
+    const nextCursor =
+      mode === "quickload"
+        ? 0
+        : Math.min(duration, Number(playback.getValue(PlaybackState, "cursor")) + 1);
+    playback.setValue(
+      PlaybackState,
+      "status",
+      nextVisible >= total ? "complete" : "playing",
+    );
+    playback.setValue(PlaybackState, "cursor", nextCursor);
+    playback.setValue(PlaybackState, "visibleStrokeCount", nextVisible);
+    playback.setValue(
+      PlaybackState,
+      "newlyVisibleStrokeCount",
+      Math.max(0, nextVisible - previousVisible),
+    );
+    playback.setValue(PlaybackState, "hiddenStrokeCount", 0);
+    this.touchPlaybackRevision(playback);
+  }
+
+  private completePlayback(): void {
+    const playback = this.getPlaybackStateEntity();
+    if (!playback) {
+      return;
+    }
+    const total = this.getPlaybackTotal(playback);
+    const previousVisible = Number(
+      playback.getValue(PlaybackState, "visibleStrokeCount"),
+    );
+    playback.setValue(PlaybackState, "status", "complete");
+    playback.setValue(
+      PlaybackState,
+      "cursor",
+      Number(playback.getValue(PlaybackState, "duration")),
+    );
+    playback.setValue(PlaybackState, "visibleStrokeCount", total);
+    playback.setValue(
+      PlaybackState,
+      "newlyVisibleStrokeCount",
+      Math.max(0, total - previousVisible),
+    );
+    playback.setValue(PlaybackState, "hiddenStrokeCount", 0);
+    this.touchPlaybackRevision(playback);
+  }
+
+  private writePersistenceMetrics(
+    persistence: Entity,
+    metrics: RuntimeSketchMetrics,
+  ): void {
+    persistence.setValue(PersistenceState, "lastLayerCount", metrics.layerCount);
+    persistence.setValue(PersistenceState, "lastStrokeCount", metrics.strokeCount);
+    persistence.setValue(
+      PersistenceState,
+      "lastControlPointCount",
+      metrics.controlPointCount,
+    );
+  }
+
+  private getRuntimeSketchMetrics(): RuntimeSketchMetrics {
+    let layerCount = 0;
+    let strokeCount = 0;
+    let controlPointCount = 0;
+    for (const layer of this.queries.layers.entities) {
+      if (!layer.getValue(CanvasLayer, "selectionCanvas")) {
+        layerCount += 1;
+      }
+    }
+    for (const stroke of this.queries.strokes.entities) {
+      if (stroke.getValue(BrushStroke, "visible")) {
+        strokeCount += 1;
+        controlPointCount += Number(
+          stroke.getValue(BrushStroke, "controlPointCount"),
+        );
+      }
+    }
+    return {
+      layerCount,
+      strokeCount,
+      controlPointCount,
+      tiltByteLength: 128 + layerCount * 32 + controlPointCount * 36,
+      glbByteLength: 512 + strokeCount * 128 + controlPointCount * 48,
+    };
+  }
+
+  private getPlaybackTotal(playback: Entity): number {
+    const total = Number(playback.getValue(PlaybackState, "totalStrokeCount"));
+    if (total > 0) {
+      return total;
+    }
+    const metrics = this.getRuntimeSketchMetrics();
+    playback.setValue(PlaybackState, "totalStrokeCount", metrics.strokeCount);
+    return metrics.strokeCount;
+  }
+
+  private touchPlaybackRevision(playback: Entity): void {
+    playback.setValue(
+      PlaybackState,
+      "revision",
+      Number(playback.getValue(PlaybackState, "revision")) + 1,
+    );
+  }
+
   private applySettingsCommand(command: OpenBrushSettingsCommand): void {
     const settingsEntity = this.getSettingsStateEntity();
     if (!settingsEntity) {
@@ -1276,6 +1705,16 @@ export class PanelSystem extends createSystem({
 
   private getSettingsStateEntity(): Entity | undefined {
     const next = this.queries.settingsState.entities.values().next();
+    return next.done ? undefined : next.value;
+  }
+
+  private getPersistenceStateEntity(): Entity | undefined {
+    const next = this.queries.persistenceState.entities.values().next();
+    return next.done ? undefined : next.value;
+  }
+
+  private getPlaybackStateEntity(): Entity | undefined {
+    const next = this.queries.playbackState.entities.values().next();
     return next.done ? undefined : next.value;
   }
 
@@ -1677,4 +2116,11 @@ function formatAnchor(anchor: OpenBrushPanelAnchor): string {
     case "center":
       return "Center";
   }
+}
+
+function formatBytes(byteLength: number): string {
+  if (byteLength < 1024) {
+    return `${Math.max(0, Math.round(byteLength))} B`;
+  }
+  return `${(byteLength / 1024).toFixed(1)} KB`;
 }

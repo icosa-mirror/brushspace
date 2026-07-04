@@ -115,7 +115,10 @@
   #settings-scale-up-button,
   #settings-distance-far-button,
   #settings-locomotion-button,
-  #settings-vignette-button {
+  #settings-vignette-button,
+  #sketch-save-as-button,
+  #sketch-export-tilt-button,
+  #playback-step-button {
     margin-left: 1;
   }
 
@@ -240,6 +243,29 @@
       <button id="settings-help-button" class="wide-button">Show Help</button>
       <span id="settings-status" class="brush-meta">ready r0</span>
       <span id="settings-help-text" class="help-text"></span>
+      <span class="section-label">Sketch</span>
+      <span id="sketch-name" class="brush-name">Untitled Sketch</span>
+      <span id="sketch-status" class="brush-meta">idle | 0 saved</span>
+      <span id="sketch-meta" class="brush-meta">0 layers | 0 strokes | 0 points | 0 B</span>
+      <div class="button-row">
+        <button id="sketch-save-button" class="brush-button">Save</button>
+        <button id="sketch-save-as-button" class="brush-button">Save As</button>
+      </div>
+      <div class="button-row">
+        <button id="sketch-load-button" class="brush-button">Load</button>
+        <button id="sketch-export-tilt-button" class="brush-button">Export Tilt</button>
+      </div>
+      <button id="sketch-export-glb-button" class="wide-button">Export GLB</button>
+      <span class="section-label">Playback</span>
+      <span id="playback-mode" class="brush-name">Quickload playback</span>
+      <span id="playback-status" class="brush-meta">idle | 0/0 visible</span>
+      <span id="playback-meta" class="brush-meta">0.0/0.0 none</span>
+      <button id="playback-mode-button" class="wide-button">Quickload Mode</button>
+      <div class="button-row">
+        <button id="playback-rewind-button" class="brush-button">Rewind</button>
+        <button id="playback-step-button" class="brush-button">Step</button>
+      </div>
+      <button id="playback-complete-button" class="wide-button">Complete</button>
     </div>
   </div>
 </div>
