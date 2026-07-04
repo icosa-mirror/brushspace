@@ -7,9 +7,9 @@ import {
 } from "./port-phase.js";
 
 describe("Open Brush port phase metadata", () => {
-  it("identifies the active Phase 0 harness", () => {
+  it("identifies the active Phase 1 fixture harness", () => {
     expect(OPEN_BRUSH_PLAN_FILE).toBe("OPEN_BRUSH_IWSDK_PORT_PLAN.md");
-    expect(OPEN_BRUSH_PORT_PHASE).toBe("phase-0");
-    expect(OPEN_BRUSH_PORT_STATUS).toBe("baseline-harness");
+    expect(OPEN_BRUSH_PORT_PHASE).toBe("phase-1");
+    expect(OPEN_BRUSH_PORT_STATUS).toBe("domain-fixtures");
   });
 });

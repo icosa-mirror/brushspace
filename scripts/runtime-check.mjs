@@ -26,17 +26,38 @@ try {
 }
 
 const state = status.data?.state;
-if (!state?.running || !state?.browserConnected || !state?.browserCommandReady) {
+if (!state?.running || !state?.browserConnected) {
   console.error("IWSDK runtime is not ready for browser/runtime checks.");
   console.error("Start it with `npm run dev`, then rerun this command.");
   console.error(JSON.stringify(state, null, 2));
   process.exit(1);
 }
 
-if (mode === "xr" && !state.session) {
-  console.error("IWSDK runtime is ready, but no XR session is active.");
-  console.error("Use the runtime XR tools or the in-app button to enter XR first.");
-  process.exit(1);
+if (mode === "xr") {
+  const xrStatus = spawnSync("npx", ["iwsdk", "xr", "status"], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+
+  if (xrStatus.status !== 0) {
+    process.stderr.write(xrStatus.stderr);
+    process.exit(xrStatus.status ?? 1);
+  }
+
+  let xr;
+  try {
+    xr = JSON.parse(xrStatus.stdout);
+  } catch {
+    console.error("Unable to parse `iwsdk xr status` output as JSON.");
+    process.stdout.write(xrStatus.stdout);
+    process.exit(1);
+  }
+
+  if (!xr.data?.result?.sessionActive) {
+    console.error("IWSDK runtime is ready, but no XR session is active.");
+    console.error("Use the runtime XR tools or the in-app button to enter XR first.");
+    process.exit(1);
+  }
 }
 
 console.log(`IWSDK ${mode} runtime check passed.`);
