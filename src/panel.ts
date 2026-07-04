@@ -15,6 +15,7 @@ import {
   CanvasLayer,
   OpenBrushAppState,
   SelectionState,
+  UiCommandHistoryState,
 } from "./components/OpenBrushCore.js";
 import {
   cycleSelectableBrush,
@@ -33,8 +34,19 @@ import {
   resolveLastSelectableStroke,
   type RuntimeStrokeSelectionState,
 } from "./openbrush/selection.js";
+import {
+  UiCommandHistory,
+  type UiCommand,
+} from "./openbrush/ui-command-history.js";
 
 type TextElement = UIKit.Text | null;
+type LayerOrderSnapshot = Array<{ layerIndex: number; order: number }>;
+interface StrokePanelSnapshot {
+  entity: Entity;
+  visible: boolean;
+  renderVisible: boolean;
+  selected: boolean;
+}
 
 export class PanelSystem extends createSystem({
   welcomePanel: {
@@ -44,10 +56,12 @@ export class PanelSystem extends createSystem({
   brushSettings: { required: [BrushSettings] },
   appState: { required: [OpenBrushAppState] },
   selectionState: { required: [SelectionState] },
+  uiHistory: { required: [UiCommandHistoryState] },
   layers: { required: [CanvasLayer] },
   strokes: { required: [BrushStroke] },
 }) {
   private readonly initializedPanels = new Set<number>();
+  private readonly commandHistory = new UiCommandHistory();
 
   init() {
     this.queries.welcomePanel.subscribe("qualify", (entity) => {
@@ -59,6 +73,7 @@ export class PanelSystem extends createSystem({
   }
 
   update() {
+    this.updateUiCommandHistoryState();
     for (const entity of this.queries.welcomePanel.entities) {
       const document = PanelDocument.data.document[
         entity.index
@@ -69,6 +84,7 @@ export class PanelSystem extends createSystem({
       this.updateBrushLabels(document);
       this.updateLayerLabels(document);
       this.updateSelectionLabels(document);
+      this.updateHistoryLabels(document);
     }
   }
 
@@ -85,6 +101,8 @@ export class PanelSystem extends createSystem({
     this.initializedPanels.add(entity.index);
 
     this.nameElement(document, "xr-button");
+    this.nameElement(document, "history-undo-button");
+    this.nameElement(document, "history-redo-button");
     this.nameElement(document, "brush-previous-button");
     this.nameElement(document, "brush-next-button");
     this.nameElement(document, "layer-new-button");
@@ -114,6 +132,20 @@ export class PanelSystem extends createSystem({
         }
       }),
     );
+
+    const undoButton = document.getElementById(
+      "history-undo-button",
+    ) as TextElement;
+    undoButton?.addEventListener("click", () => {
+      this.undoUiCommand();
+    });
+
+    const redoButton = document.getElementById(
+      "history-redo-button",
+    ) as TextElement;
+    redoButton?.addEventListener("click", () => {
+      this.redoUiCommand();
+    });
 
     const previousBrushButton = document.getElementById(
       "brush-previous-button",
@@ -194,6 +226,7 @@ export class PanelSystem extends createSystem({
     this.updateBrushLabels(document);
     this.updateLayerLabels(document);
     this.updateSelectionLabels(document);
+    this.updateHistoryLabels(document);
   }
 
   private selectBrushOffset(offset: number): void {
@@ -243,18 +276,24 @@ export class PanelSystem extends createSystem({
       return;
     }
 
+    const previousLayerIndex = this.getActiveLayerIndex(appState);
     const nextLayer = createNextLayerState(this.getLayerStates());
-    const layerEntity = this.world.createTransformEntity().addComponent(CanvasLayer, {
-      layerIndex: nextLayer.layerIndex,
-      order: nextLayer.order,
-      layerName: nextLayer.layerName,
-      visible: true,
-      locked: false,
-      selectionCanvas: false,
-      active: true,
+    let layerEntity: Entity | undefined;
+
+    this.executeUiCommand({
+      name: "create-layer",
+      redo: () => {
+        layerEntity = this.createLayerEntity(nextLayer);
+        this.setActiveLayerIndex(nextLayer.layerIndex);
+      },
+      undo: () => {
+        if (layerEntity) {
+          layerEntity.dispose();
+          layerEntity = undefined;
+        }
+        this.setActiveLayerIndex(previousLayerIndex);
+      },
     });
-    layerEntity.object3D!.name = `OpenBrushLayer_${nextLayer.layerIndex}`;
-    this.setActiveLayerIndex(nextLayer.layerIndex);
   }
 
   private selectLayerOffset(offset: number): void {
@@ -265,9 +304,23 @@ export class PanelSystem extends createSystem({
     const activeLayerIndex = Number(
       appState.getValue(OpenBrushAppState, "activeLayerIndex"),
     );
-    this.setActiveLayerIndex(
-      cycleLayerIndex(this.getLayerStates(), activeLayerIndex, offset),
+    const nextLayerIndex = cycleLayerIndex(
+      this.getLayerStates(),
+      activeLayerIndex,
+      offset,
     );
+    if (nextLayerIndex === activeLayerIndex) {
+      return;
+    }
+    this.executeUiCommand({
+      name: "select-layer",
+      redo: () => {
+        this.setActiveLayerIndex(nextLayerIndex);
+      },
+      undo: () => {
+        this.setActiveLayerIndex(activeLayerIndex);
+      },
+    });
   }
 
   private moveActiveLayer(offset: number): void {
@@ -276,22 +329,29 @@ export class PanelSystem extends createSystem({
       return;
     }
     const activeLayerIndex = this.getActiveLayerIndex(appState);
+    const previousOrders = this.getLayerOrderSnapshot();
     const reorderedLayers = reorderLayerStates(
       this.getLayerStates(),
       activeLayerIndex,
       offset,
     );
-
-    for (const layerState of reorderedLayers) {
-      const layerEntity = this.getLayerEntity(layerState.layerIndex);
-      if (
-        layerEntity &&
-        Number(layerEntity.getValue(CanvasLayer, "order")) !== layerState.order
-      ) {
-        layerEntity.setValue(CanvasLayer, "order", layerState.order);
-      }
+    const nextOrders = reorderedLayers.map((layer) => ({
+      layerIndex: layer.layerIndex,
+      order: layer.order,
+    }));
+    if (this.layerOrdersMatch(previousOrders, nextOrders)) {
+      return;
     }
-    this.touchAppState(appState);
+
+    this.executeUiCommand({
+      name: offset < 0 ? "move-layer-up" : "move-layer-down",
+      redo: () => {
+        this.applyLayerOrders(nextOrders);
+      },
+      undo: () => {
+        this.applyLayerOrders(previousOrders);
+      },
+    });
   }
 
   private clearActiveLayer(): void {
@@ -300,31 +360,36 @@ export class PanelSystem extends createSystem({
       return;
     }
     const activeLayerIndex = this.getActiveLayerIndex(appState);
-    let clearedStrokeCount = 0;
-    let selectionChanged = false;
-    for (const stroke of this.queries.strokes.entities) {
-      if (Number(stroke.getValue(BrushStroke, "layerIndex")) !== activeLayerIndex) {
-        continue;
-      }
-      if (stroke.getValue(BrushStroke, "visible")) {
-        clearedStrokeCount += 1;
-      }
-      if (stroke.getValue(BrushStroke, "selected")) {
-        selectionChanged = true;
-      }
-      stroke.setValue(BrushStroke, "visible", false);
-      stroke.setValue(BrushStroke, "renderVisible", false);
-      stroke.setValue(BrushStroke, "selected", false);
-      if (stroke.object3D) {
-        stroke.object3D.visible = false;
-      }
+    const previousStrokes = this.getLayerStrokeSnapshots(activeLayerIndex);
+    if (
+      !previousStrokes.some(
+        (stroke) => stroke.visible || stroke.renderVisible || stroke.selected,
+      )
+    ) {
+      return;
     }
-    if (selectionChanged) {
-      this.touchSelectionState();
-    }
-    if (clearedStrokeCount > 0) {
-      this.touchAppState(appState);
-    }
+    this.executeUiCommand({
+      name: "clear-layer",
+      redo: () => {
+        for (const stroke of previousStrokes) {
+          this.applyStrokeSnapshot({
+            ...stroke,
+            visible: false,
+            renderVisible: false,
+            selected: false,
+          });
+        }
+        this.touchSelectionState();
+        this.touchAppState(appState);
+      },
+      undo: () => {
+        for (const stroke of previousStrokes) {
+          this.applyStrokeSnapshot(stroke);
+        }
+        this.touchSelectionState();
+        this.touchAppState(appState);
+      },
+    });
   }
 
   private selectLastStrokeOnActiveLayer(): void {
@@ -340,36 +405,44 @@ export class PanelSystem extends createSystem({
       return;
     }
 
-    let selectionChanged = false;
-    for (const stroke of this.queries.strokes.entities) {
-      const shouldSelect =
-        Number(stroke.getValue(BrushStroke, "commandIndex")) ===
-        target.commandIndex;
-      if (Boolean(stroke.getValue(BrushStroke, "selected")) !== shouldSelect) {
-        stroke.setValue(BrushStroke, "selected", shouldSelect);
-        selectionChanged = true;
-      }
+    const previousSelection = this.getSelectedCommandIndices();
+    const nextSelection = [target.commandIndex];
+    if (this.sameCommandIndexSet(previousSelection, nextSelection)) {
+      return;
     }
-
-    if (selectionChanged) {
-      this.touchSelectionState();
-      this.touchAppState(appState);
-    }
+    this.executeUiCommand({
+      name: "select-last-stroke",
+      redo: () => {
+        this.restoreSelectedCommandIndices(nextSelection);
+        this.touchSelectionState();
+        this.touchAppState(appState);
+      },
+      undo: () => {
+        this.restoreSelectedCommandIndices(previousSelection);
+        this.touchSelectionState();
+        this.touchAppState(appState);
+      },
+    });
   }
 
   private clearSelection(): void {
-    let selectionChanged = false;
-    for (const stroke of this.queries.strokes.entities) {
-      if (!stroke.getValue(BrushStroke, "selected")) {
-        continue;
-      }
-      stroke.setValue(BrushStroke, "selected", false);
-      selectionChanged = true;
+    const previousSelection = this.getSelectedCommandIndices();
+    if (previousSelection.length === 0) {
+      return;
     }
-    if (selectionChanged) {
-      this.touchSelectionState();
-      this.touchAppState();
-    }
+    this.executeUiCommand({
+      name: "clear-selection",
+      redo: () => {
+        this.restoreSelectedCommandIndices([]);
+        this.touchSelectionState();
+        this.touchAppState();
+      },
+      undo: () => {
+        this.restoreSelectedCommandIndices(previousSelection);
+        this.touchSelectionState();
+        this.touchAppState();
+      },
+    });
   }
 
   private toggleActiveLayerVisibility(): void {
@@ -377,12 +450,17 @@ export class PanelSystem extends createSystem({
     if (!layer) {
       return;
     }
-    layer.setValue(
-      CanvasLayer,
-      "visible",
-      !Boolean(layer.getValue(CanvasLayer, "visible")),
-    );
-    this.touchAppState();
+    const layerIndex = Number(layer.getValue(CanvasLayer, "layerIndex"));
+    const previousVisible = Boolean(layer.getValue(CanvasLayer, "visible"));
+    this.executeUiCommand({
+      name: previousVisible ? "hide-layer" : "show-layer",
+      redo: () => {
+        this.setLayerBoolean(layerIndex, "visible", !previousVisible);
+      },
+      undo: () => {
+        this.setLayerBoolean(layerIndex, "visible", previousVisible);
+      },
+    });
   }
 
   private toggleActiveLayerLock(): void {
@@ -390,12 +468,17 @@ export class PanelSystem extends createSystem({
     if (!layer) {
       return;
     }
-    layer.setValue(
-      CanvasLayer,
-      "locked",
-      !Boolean(layer.getValue(CanvasLayer, "locked")),
-    );
-    this.touchAppState();
+    const layerIndex = Number(layer.getValue(CanvasLayer, "layerIndex"));
+    const previousLocked = Boolean(layer.getValue(CanvasLayer, "locked"));
+    this.executeUiCommand({
+      name: previousLocked ? "unlock-layer" : "lock-layer",
+      redo: () => {
+        this.setLayerBoolean(layerIndex, "locked", !previousLocked);
+      },
+      undo: () => {
+        this.setLayerBoolean(layerIndex, "locked", previousLocked);
+      },
+    });
   }
 
   private setActiveLayerIndex(layerIndex: number): void {
@@ -483,6 +566,15 @@ export class PanelSystem extends createSystem({
     );
   }
 
+  private updateHistoryLabels(document: UIKitDocument): void {
+    const summary = this.commandHistory.summarize();
+    this.setText(
+      document,
+      "history-state",
+      `${summary.undoDepth} undo | ${summary.redoDepth} redo`,
+    );
+  }
+
   private setText(document: UIKitDocument, id: string, text: string): void {
     const element = document.getElementById(id) as TextElement;
     element?.setProperties({ text });
@@ -507,6 +599,11 @@ export class PanelSystem extends createSystem({
 
   private getSelectionStateEntity(): Entity | undefined {
     const next = this.queries.selectionState.entities.values().next();
+    return next.done ? undefined : next.value;
+  }
+
+  private getUiCommandHistoryEntity(): Entity | undefined {
+    const next = this.queries.uiHistory.entities.values().next();
     return next.done ? undefined : next.value;
   }
 
@@ -558,6 +655,135 @@ export class PanelSystem extends createSystem({
     return strokes;
   }
 
+  private createLayerEntity(layerState: RuntimeLayerState): Entity {
+    const layerEntity = this.world.createTransformEntity().addComponent(CanvasLayer, {
+      layerIndex: layerState.layerIndex,
+      order: layerState.order,
+      layerName: layerState.layerName,
+      visible: layerState.visible,
+      locked: layerState.locked,
+      selectionCanvas: layerState.selectionCanvas,
+      active: layerState.active,
+    });
+    layerEntity.object3D!.name = `OpenBrushLayer_${layerState.layerIndex}`;
+    return layerEntity;
+  }
+
+  private getLayerOrderSnapshot(): LayerOrderSnapshot {
+    return this.getLayerStates().map((layer) => ({
+      layerIndex: layer.layerIndex,
+      order: layer.order,
+    }));
+  }
+
+  private applyLayerOrders(snapshot: LayerOrderSnapshot): void {
+    for (const layerState of snapshot) {
+      const layerEntity = this.getLayerEntity(layerState.layerIndex);
+      if (
+        layerEntity &&
+        Number(layerEntity.getValue(CanvasLayer, "order")) !== layerState.order
+      ) {
+        layerEntity.setValue(CanvasLayer, "order", layerState.order);
+      }
+    }
+    this.touchAppState();
+  }
+
+  private layerOrdersMatch(
+    left: LayerOrderSnapshot,
+    right: LayerOrderSnapshot,
+  ): boolean {
+    if (left.length !== right.length) {
+      return false;
+    }
+    for (let index = 0; index < left.length; index += 1) {
+      if (
+        left[index].layerIndex !== right[index].layerIndex ||
+        left[index].order !== right[index].order
+      ) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private getLayerStrokeSnapshots(layerIndex: number): StrokePanelSnapshot[] {
+    const strokes: StrokePanelSnapshot[] = [];
+    for (const stroke of this.queries.strokes.entities) {
+      if (Number(stroke.getValue(BrushStroke, "layerIndex")) !== layerIndex) {
+        continue;
+      }
+      strokes.push({
+        entity: stroke,
+        visible: Boolean(stroke.getValue(BrushStroke, "visible")),
+        renderVisible: Boolean(stroke.getValue(BrushStroke, "renderVisible")),
+        selected: Boolean(stroke.getValue(BrushStroke, "selected")),
+      });
+    }
+    return strokes;
+  }
+
+  private applyStrokeSnapshot(snapshot: StrokePanelSnapshot): void {
+    snapshot.entity.setValue(BrushStroke, "visible", snapshot.visible);
+    snapshot.entity.setValue(
+      BrushStroke,
+      "renderVisible",
+      snapshot.renderVisible,
+    );
+    snapshot.entity.setValue(BrushStroke, "selected", snapshot.selected);
+    if (snapshot.entity.object3D) {
+      snapshot.entity.object3D.visible = snapshot.renderVisible;
+    }
+  }
+
+  private getSelectedCommandIndices(): number[] {
+    const selected: number[] = [];
+    for (const stroke of this.queries.strokes.entities) {
+      if (stroke.getValue(BrushStroke, "selected")) {
+        selected.push(Number(stroke.getValue(BrushStroke, "commandIndex")));
+      }
+    }
+    return selected.sort((a, b) => a - b);
+  }
+
+  private restoreSelectedCommandIndices(commandIndices: number[]): void {
+    const selected = new Set(commandIndices);
+    for (const stroke of this.queries.strokes.entities) {
+      stroke.setValue(
+        BrushStroke,
+        "selected",
+        selected.has(Number(stroke.getValue(BrushStroke, "commandIndex"))),
+      );
+    }
+  }
+
+  private sameCommandIndexSet(left: number[], right: number[]): boolean {
+    if (left.length !== right.length) {
+      return false;
+    }
+    const sortedLeft = [...left].sort((a, b) => a - b);
+    const sortedRight = [...right].sort((a, b) => a - b);
+    for (let index = 0; index < sortedLeft.length; index += 1) {
+      if (sortedLeft[index] !== sortedRight[index]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private setLayerBoolean(
+    layerIndex: number,
+    field: "visible" | "locked",
+    value: boolean,
+  ): void {
+    const layer = this.getLayerEntity(layerIndex);
+    if (!layer) {
+      return;
+    }
+    layer.setValue(CanvasLayer, field, value);
+    this.touchAppState();
+  }
+
   private getActiveLayerIndex(appState = this.getAppStateEntity()): number {
     return appState
       ? Number(appState.getValue(OpenBrushAppState, "activeLayerIndex"))
@@ -586,6 +812,44 @@ export class PanelSystem extends createSystem({
       SelectionState,
       "selectionRevision",
       Number(selectionState.getValue(SelectionState, "selectionRevision")) + 1,
+    );
+  }
+
+  private executeUiCommand(command: UiCommand): void {
+    this.commandHistory.execute(command);
+    this.updateUiCommandHistoryState();
+  }
+
+  private undoUiCommand(): void {
+    if (this.commandHistory.undo()) {
+      this.updateUiCommandHistoryState();
+    }
+  }
+
+  private redoUiCommand(): void {
+    if (this.commandHistory.redo()) {
+      this.updateUiCommandHistoryState();
+    }
+  }
+
+  private updateUiCommandHistoryState(
+    entity = this.getUiCommandHistoryEntity(),
+  ): void {
+    if (!entity) {
+      return;
+    }
+    const summary = this.commandHistory.summarize();
+    entity.setValue(UiCommandHistoryState, "undoDepth", summary.undoDepth);
+    entity.setValue(UiCommandHistoryState, "redoDepth", summary.redoDepth);
+    entity.setValue(
+      UiCommandHistoryState,
+      "historyRevision",
+      summary.historyRevision,
+    );
+    entity.setValue(
+      UiCommandHistoryState,
+      "lastCommandName",
+      summary.lastCommandName,
     );
   }
 }

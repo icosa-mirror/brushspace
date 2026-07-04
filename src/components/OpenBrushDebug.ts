@@ -2,7 +2,7 @@ import { createComponent, Types } from "@iwsdk/core";
 
 export const OpenBrushDebug = createComponent("OpenBrushDebug", {
   phase: { type: Types.String, default: "phase-6" },
-  status: { type: Types.String, default: "layers" },
+  status: { type: Types.String, default: "selection-widget" },
   planFile: { type: Types.String, default: "OPEN_BRUSH_IWSDK_PORT_PLAN.md" },
   visibilityState: { type: Types.String, default: "unknown" },
   appMode: { type: Types.String, default: "ready" },
@@ -42,6 +42,10 @@ export const OpenBrushDebug = createComponent("OpenBrushDebug", {
   activeStrokeControlPoints: { type: Types.Int32, default: 0 },
   undoDepth: { type: Types.Int32, default: 0 },
   redoDepth: { type: Types.Int32, default: 0 },
+  uiUndoDepth: { type: Types.Int32, default: 0 },
+  uiRedoDepth: { type: Types.Int32, default: 0 },
+  uiHistoryRevision: { type: Types.Int32, default: 0 },
+  uiLastCommandName: { type: Types.String, default: "" },
   brushInventoryTotal: { type: Types.Int32, default: 0 },
   brushInventorySupported: { type: Types.Int32, default: 0 },
   brushInventoryFallback: { type: Types.Int32, default: 0 },

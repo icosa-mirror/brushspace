@@ -42,6 +42,13 @@ export const StrokeHistoryState = createComponent("StrokeHistoryState", {
   activeStrokeControlPoints: { type: Types.Int32, default: 0 },
 });
 
+export const UiCommandHistoryState = createComponent("UiCommandHistoryState", {
+  undoDepth: { type: Types.Int32, default: 0 },
+  redoDepth: { type: Types.Int32, default: 0 },
+  historyRevision: { type: Types.Int32, default: 0 },
+  lastCommandName: { type: Types.String, default: "" },
+});
+
 export const SelectionState = createComponent("SelectionState", {
   selectedStrokeCount: { type: Types.Int32, default: 0 },
   activeSelectionLayerIndex: { type: Types.Int32, default: -1 },

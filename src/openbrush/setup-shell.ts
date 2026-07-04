@@ -17,6 +17,7 @@ import {
   SelectionState,
   SelectionWidget,
   StrokeHistoryState,
+  UiCommandHistoryState,
 } from "../components/OpenBrushCore.js";
 import { PHASE1_FIXTURE_BRUSH_GUID } from "./fixtures.js";
 
@@ -44,6 +45,7 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
       color: [0.1, 0.45, 0.95, 1],
     })
     .addComponent(InputCommandState)
+    .addComponent(UiCommandHistoryState)
     .addComponent(SelectionState)
     .addComponent(StrokeHistoryState)
     .addComponent(BrushCatalogState);

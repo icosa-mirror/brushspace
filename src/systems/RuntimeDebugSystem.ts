@@ -13,6 +13,7 @@ import {
   SelectionState,
   SelectionWidget,
   StrokeHistoryState,
+  UiCommandHistoryState,
 } from "../components/OpenBrushCore.js";
 import {
   OPEN_BRUSH_PLAN_FILE,
@@ -35,6 +36,7 @@ export class RuntimeDebugSystem extends createSystem({
   selectionState: { required: [SelectionState] },
   selectionWidgets: { required: [SelectionWidget] },
   history: { required: [StrokeHistoryState] },
+  uiHistory: { required: [UiCommandHistoryState] },
 }) {
   init() {
     this.queries.debug.subscribe("qualify", (entity) => {
@@ -246,6 +248,26 @@ export class RuntimeDebugSystem extends createSystem({
     );
     entity.setValue(
       OpenBrushDebug,
+      "uiUndoDepth",
+      this.getUiHistoryNumber("undoDepth", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "uiRedoDepth",
+      this.getUiHistoryNumber("redoDepth", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "uiHistoryRevision",
+      this.getUiHistoryNumber("historyRevision", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "uiLastCommandName",
+      this.getUiHistoryString("lastCommandName", ""),
+    );
+    entity.setValue(
+      OpenBrushDebug,
       "brushInventoryTotal",
       phase1Summary.inventory.total,
     );
@@ -332,6 +354,26 @@ export class RuntimeDebugSystem extends createSystem({
   ): number {
     const entity = this.getFirstEntity("history");
     return entity ? Number(entity.getValue(StrokeHistoryState, field)) : fallback;
+  }
+
+  private getUiHistoryNumber(
+    field: "undoDepth" | "redoDepth" | "historyRevision",
+    fallback: number,
+  ): number {
+    const entity = this.getFirstEntity("uiHistory");
+    return entity
+      ? Number(entity.getValue(UiCommandHistoryState, field))
+      : fallback;
+  }
+
+  private getUiHistoryString(
+    field: "lastCommandName",
+    fallback: string,
+  ): string {
+    const entity = this.getFirstEntity("uiHistory");
+    return entity
+      ? String(entity.getValue(UiCommandHistoryState, field))
+      : fallback;
   }
 
   private getSelectionNumber(
@@ -440,7 +482,8 @@ export class RuntimeDebugSystem extends createSystem({
       | "inputCommands"
       | "selectionState"
       | "selectionWidgets"
-      | "history",
+      | "history"
+      | "uiHistory",
   ): Entity | undefined {
     const next = this.queries[queryName].entities.values().next();
     return next.done ? undefined : next.value;

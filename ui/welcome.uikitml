@@ -84,6 +84,7 @@
   }
 
   #brush-next-button,
+  #history-redo-button,
   #layer-next-button,
   #layer-toggle-lock-button,
   #layer-move-down-button,
@@ -109,6 +110,11 @@
 <div class="panel-container">
   <span class="heading">Open Brush</span>
   <button id="xr-button" class="xr-button">Enter XR</button>
+  <div class="button-row">
+    <button id="history-undo-button" class="brush-button">Undo</button>
+    <button id="history-redo-button" class="brush-button">Redo</button>
+  </div>
+  <span id="history-state" class="brush-meta">0 undo | 0 redo</span>
   <span class="section-label">Brush</span>
   <span id="active-brush-name" class="brush-name">Marker</span>
   <span id="active-brush-meta" class="brush-meta">ribbon / standard / 3/5</span>
