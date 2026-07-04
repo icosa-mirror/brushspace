@@ -67,6 +67,7 @@ export const BrushStroke = createComponent("BrushStroke", {
   visible: { type: Types.Boolean, default: true },
   controlPointCount: { type: Types.Int32, default: 0 },
   vertexCount: { type: Types.Int32, default: 0 },
+  indexCount: { type: Types.Int32, default: 0 },
   commandIndex: { type: Types.Int32, default: 0 },
   minBounds: { type: Types.Vec3, default: [0, 0, 0] },
   maxBounds: { type: Types.Vec3, default: [0, 0, 0] },

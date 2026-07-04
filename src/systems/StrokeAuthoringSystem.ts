@@ -1,10 +1,9 @@
 import {
   BufferAttribute,
   BufferGeometry,
-  Color,
-  DynamicDrawUsage,
-  Line,
-  LineBasicMaterial,
+  DoubleSide,
+  Mesh,
+  MeshBasicMaterial,
   Quaternion,
   Vector3,
   createSystem,
@@ -19,19 +18,23 @@ import {
   OpenBrushAppState,
   StrokeHistoryState,
 } from "../components/OpenBrushCore.js";
+import { generateBrushGeometry } from "../openbrush/brush-geometry.js";
 import { shouldSampleControlPoint } from "../openbrush/stroke-authoring.js";
-import type { ControlPoint, Rgba, Vec3 } from "../openbrush/types.js";
+import {
+  createEmptyStrokeData,
+  type ControlPoint,
+  type Rgba,
+  type StrokeData,
+  type Vec3,
+} from "../openbrush/types.js";
 
-const INITIAL_STROKE_CAPACITY = 64;
 const MIN_SAMPLE_DISTANCE = 0.015;
 
 interface RuntimeStroke {
   entity: Entity;
-  line: Line;
+  mesh: Mesh;
   geometry: BufferGeometry;
-  positionAttribute: BufferAttribute;
-  positions: Float32Array;
-  capacity: number;
+  strokeData: StrokeData;
   controlPoints: ControlPoint[];
   lastPosition: Vec3;
   minBounds: Float32Array;
@@ -106,24 +109,28 @@ export class StrokeAuthoringSystem extends createSystem({
 
     this.strokeCounter += 1;
     const guid = `runtime-stroke-${this.strokeCounter}`;
+    const strokeData = createEmptyStrokeData({
+      guid,
+      brushGuid,
+      brushSize,
+      brushScale: 1,
+      color,
+      layerIndex,
+      seed: this.strokeCounter,
+      controlPoints: [],
+    });
     const geometry = new BufferGeometry();
-    const positions = new Float32Array(INITIAL_STROKE_CAPACITY * 3);
-    const positionAttribute = new BufferAttribute(positions, 3);
-    positionAttribute.setUsage(DynamicDrawUsage);
-    geometry.setAttribute("position", positionAttribute);
-    geometry.setDrawRange(0, 0);
-
-    const material = new LineBasicMaterial({
-      color: new Color(color[0], color[1], color[2]),
+    const material = new MeshBasicMaterial({
+      vertexColors: true,
+      side: DoubleSide,
       opacity: color[3],
       transparent: color[3] < 1,
-      linewidth: Math.max(1, brushSize * 8),
     });
-    const line = new Line(geometry, material);
-    line.frustumCulled = false;
-    line.name = `OpenBrushStrokeLine_${this.strokeCounter}`;
+    const mesh = new Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    mesh.name = `OpenBrushStrokeMesh_${this.strokeCounter}`;
 
-    const entity = this.world.createTransformEntity(line);
+    const entity = this.world.createTransformEntity(mesh);
     entity.object3D!.name = `OpenBrushStroke_${this.strokeCounter}`;
     entity.addComponent(BrushStroke, {
       guid,
@@ -135,17 +142,16 @@ export class StrokeAuthoringSystem extends createSystem({
       visible: true,
       controlPointCount: 0,
       vertexCount: 0,
+      indexCount: 0,
       commandIndex: this.strokeCounter,
     });
 
     const stroke: RuntimeStroke = {
       entity,
-      line,
+      mesh,
       geometry,
-      positionAttribute,
-      positions,
-      capacity: INITIAL_STROKE_CAPACITY,
-      controlPoints: [],
+      strokeData,
+      controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
       minBounds: entity.getVectorView(BrushStroke, "minBounds") as Float32Array,
       maxBounds: entity.getVectorView(BrushStroke, "maxBounds") as Float32Array,
@@ -177,12 +183,7 @@ export class StrokeAuthoringSystem extends createSystem({
       return;
     }
 
-    this.ensureStrokeCapacity(stroke, stroke.controlPoints.length + 1);
     const index = stroke.controlPoints.length;
-    const offset = index * 3;
-    stroke.positions[offset] = this.samplePosition.x;
-    stroke.positions[offset + 1] = this.samplePosition.y;
-    stroke.positions[offset + 2] = this.samplePosition.z;
     stroke.lastPosition[0] = this.samplePosition.x;
     stroke.lastPosition[1] = this.samplePosition.y;
     stroke.lastPosition[2] = this.samplePosition.z;
@@ -204,34 +205,38 @@ export class StrokeAuthoringSystem extends createSystem({
     };
     stroke.controlPoints.push(controlPoint);
     this.updateBounds(stroke, index);
-    stroke.geometry.setDrawRange(0, stroke.controlPoints.length);
-    stroke.positionAttribute.needsUpdate = true;
+    this.rebuildStrokeMesh(stroke);
     stroke.entity.setValue(
       BrushStroke,
       "controlPointCount",
       stroke.controlPoints.length,
     );
-    stroke.entity.setValue(BrushStroke, "vertexCount", stroke.controlPoints.length);
     this.setPointerSampleCount(stroke.controlPoints.length);
   }
 
-  private ensureStrokeCapacity(stroke: RuntimeStroke, nextCount: number): void {
-    if (nextCount <= stroke.capacity) {
-      return;
-    }
-
-    let nextCapacity = stroke.capacity;
-    while (nextCapacity < nextCount) {
-      nextCapacity *= 2;
-    }
-
-    const nextPositions = new Float32Array(nextCapacity * 3);
-    nextPositions.set(stroke.positions);
-    stroke.positions = nextPositions;
-    stroke.capacity = nextCapacity;
-    stroke.positionAttribute = new BufferAttribute(stroke.positions, 3);
-    stroke.positionAttribute.setUsage(DynamicDrawUsage);
-    stroke.geometry.setAttribute("position", stroke.positionAttribute);
+  private rebuildStrokeMesh(stroke: RuntimeStroke): void {
+    const generated = generateBrushGeometry(stroke.strokeData, "ribbon");
+    stroke.geometry.setAttribute(
+      "position",
+      new BufferAttribute(generated.positions, 3),
+    );
+    stroke.geometry.setAttribute(
+      "normal",
+      new BufferAttribute(generated.normals, 3),
+    );
+    stroke.geometry.setAttribute(
+      "color",
+      new BufferAttribute(generated.colors, 4),
+    );
+    stroke.geometry.setAttribute("uv", new BufferAttribute(generated.uvs, 2));
+    stroke.geometry.setIndex(new BufferAttribute(generated.indices, 1));
+    stroke.geometry.setDrawRange(0, generated.indices.length);
+    stroke.entity.setValue(
+      BrushStroke,
+      "vertexCount",
+      generated.positions.length / 3,
+    );
+    stroke.entity.setValue(BrushStroke, "indexCount", generated.indices.length);
   }
 
   private updateBounds(stroke: RuntimeStroke, index: number): void {
