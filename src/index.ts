@@ -32,6 +32,7 @@ import { RobotSystem } from "./robot.js";
 
 import { setupOpenBrushShell } from "./openbrush/setup-shell.js";
 
+import { BrushCatalogSystem } from "./systems/BrushCatalogSystem.js";
 import { InputCommandSystem } from "./systems/InputCommandSystem.js";
 import { RuntimeDebugSystem } from "./systems/RuntimeDebugSystem.js";
 import { StrokeAuthoringSystem } from "./systems/StrokeAuthoringSystem.js";
@@ -162,6 +163,7 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .registerSystem(PanelSystem)
     .registerSystem(RobotSystem)
     .registerSystem(InputCommandSystem)
+    .registerSystem(BrushCatalogSystem)
     .registerSystem(StrokeAuthoringSystem)
     .registerSystem(RuntimeDebugSystem);
 });

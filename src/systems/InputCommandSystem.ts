@@ -122,6 +122,8 @@ export class InputCommandSystem extends createSystem({
       keyboard.getKeyUp("ShiftLeft") || keyboard.getKeyUp("ShiftRight");
     target.undoDown = keyboard.getKeyDown("KeyZ");
     target.redoDown = keyboard.getKeyDown("KeyY");
+    target.brushNextDown = keyboard.getKeyDown("BracketRight");
+    target.brushPreviousDown = keyboard.getKeyDown("BracketLeft");
     target.pressure = target.paintPressed ? 1 : 0;
     target.connected =
       target.paintPressed ||
@@ -131,7 +133,9 @@ export class InputCommandSystem extends createSystem({
       target.alternateDown ||
       target.alternateUp ||
       target.undoDown ||
-      target.redoDown;
+      target.redoDown ||
+      target.brushNextDown ||
+      target.brushPreviousDown;
   }
 
   private attachBrowserPointerEvents(): void {
@@ -227,6 +231,16 @@ export class InputCommandSystem extends createSystem({
     );
     entity.setValue(InputCommandState, "undoDown", this.commandSnapshot.undoDown);
     entity.setValue(InputCommandState, "redoDown", this.commandSnapshot.redoDown);
+    entity.setValue(
+      InputCommandState,
+      "brushNextDown",
+      this.commandSnapshot.brushNextDown,
+    );
+    entity.setValue(
+      InputCommandState,
+      "brushPreviousDown",
+      this.commandSnapshot.brushPreviousDown,
+    );
     entity.setValue(InputCommandState, "pressure", this.commandSnapshot.pressure);
     entity.setValue(InputCommandState, "pointerX", this.commandSnapshot.pointerX);
     entity.setValue(InputCommandState, "pointerY", this.commandSnapshot.pointerY);
@@ -271,5 +285,7 @@ export class InputCommandSystem extends createSystem({
     this.browserPointerInput.alternateUp = false;
     this.browserPointerInput.undoDown = false;
     this.browserPointerInput.redoDown = false;
+    this.browserPointerInput.brushNextDown = false;
+    this.browserPointerInput.brushPreviousDown = false;
   }
 }

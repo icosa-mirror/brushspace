@@ -3,6 +3,7 @@ import type { Entity } from "@iwsdk/core";
 
 import { OpenBrushDebug } from "../components/OpenBrushDebug.js";
 import {
+  BrushCatalogState,
   BrushPointer,
   BrushSettings,
   BrushStroke,
@@ -24,6 +25,7 @@ export class RuntimeDebugSystem extends createSystem({
   debug: { required: [OpenBrushDebug] },
   appState: { required: [OpenBrushAppState] },
   brushSettings: { required: [BrushSettings] },
+  brushCatalog: { required: [BrushCatalogState] },
   inputCommands: { required: [InputCommandState] },
   canvases: { required: [CanvasLayer] },
   pointers: { required: [BrushPointer] },
@@ -71,6 +73,26 @@ export class RuntimeDebugSystem extends createSystem({
       OpenBrushDebug,
       "activeBrushGuid",
       this.getBrushString("brushGuid", phase1Summary.activeBrushGuid),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "activeBrushName",
+      this.getCatalogString("activeBrushName", ""),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "activeGeometryFamily",
+      this.getCatalogString("activeGeometryFamily", "ribbon"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "activeMaterialFamily",
+      this.getCatalogString("activeMaterialFamily", "standard"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "brushCatalogWarning",
+      this.getCatalogString("warning", ""),
     );
     entity.setValue(
       OpenBrushDebug,
@@ -211,6 +233,18 @@ export class RuntimeDebugSystem extends createSystem({
     return entity ? String(entity.getValue(BrushSettings, field)) : fallback;
   }
 
+  private getCatalogString(
+    field:
+      | "activeBrushName"
+      | "activeGeometryFamily"
+      | "activeMaterialFamily"
+      | "warning",
+    fallback: string,
+  ): string {
+    const entity = this.getFirstEntity("brushCatalog");
+    return entity ? String(entity.getValue(BrushCatalogState, field)) : fallback;
+  }
+
   private getCommandString(field: "source", fallback: string): string {
     const entity = this.getFirstEntity("inputCommands");
     return entity ? String(entity.getValue(InputCommandState, field)) : fallback;
@@ -251,7 +285,12 @@ export class RuntimeDebugSystem extends createSystem({
   }
 
   private getFirstEntity(
-    queryName: "appState" | "brushSettings" | "inputCommands" | "history",
+    queryName:
+      | "appState"
+      | "brushSettings"
+      | "brushCatalog"
+      | "inputCommands"
+      | "history",
   ): Entity | undefined {
     const next = this.queries[queryName].entities.values().next();
     return next.done ? undefined : next.value;

@@ -2,6 +2,7 @@ import type { Entity, World } from "@iwsdk/core";
 
 import {
   BrushPointer,
+  BrushCatalogState,
   BrushSettings,
   CanvasLayer,
   InputCommandState,
@@ -33,7 +34,8 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
       color: [0.1, 0.45, 0.95, 1],
     })
     .addComponent(InputCommandState)
-    .addComponent(StrokeHistoryState);
+    .addComponent(StrokeHistoryState)
+    .addComponent(BrushCatalogState);
   appState.object3D!.name = "OpenBrushAppState";
 
   const mainCanvas = world.createTransformEntity().addComponent(CanvasLayer, {

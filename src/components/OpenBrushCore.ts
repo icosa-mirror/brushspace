@@ -25,6 +25,8 @@ export const InputCommandState = createComponent("InputCommandState", {
   alternateUp: { type: Types.Boolean, default: false },
   undoDown: { type: Types.Boolean, default: false },
   redoDown: { type: Types.Boolean, default: false },
+  brushNextDown: { type: Types.Boolean, default: false },
+  brushPreviousDown: { type: Types.Boolean, default: false },
   pressure: { type: Types.Float32, default: 0 },
   pointerX: { type: Types.Float32, default: 0 },
   pointerY: { type: Types.Float32, default: 0 },
@@ -38,6 +40,18 @@ export const StrokeHistoryState = createComponent("StrokeHistoryState", {
   redoDepth: { type: Types.Int32, default: 0 },
   totalStrokeCount: { type: Types.Int32, default: 0 },
   activeStrokeControlPoints: { type: Types.Int32, default: 0 },
+});
+
+export const BrushCatalogState = createComponent("BrushCatalogState", {
+  activeBrushIndex: { type: Types.Int32, default: 0 },
+  brushCount: { type: Types.Int32, default: 0 },
+  supportedBrushCount: { type: Types.Int32, default: 0 },
+  fallbackBrushCount: { type: Types.Int32, default: 0 },
+  unsupportedBrushCount: { type: Types.Int32, default: 0 },
+  activeBrushName: { type: Types.String, default: "" },
+  activeGeometryFamily: { type: Types.String, default: "ribbon" },
+  activeMaterialFamily: { type: Types.String, default: "standard" },
+  warning: { type: Types.String, default: "" },
 });
 
 export const CanvasLayer = createComponent("CanvasLayer", {

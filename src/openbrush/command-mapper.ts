@@ -19,6 +19,8 @@ export interface OpenBrushCommandInput {
   alternateUp: boolean;
   undoDown: boolean;
   redoDown: boolean;
+  brushNextDown: boolean;
+  brushPreviousDown: boolean;
   pressure: number;
   pointerX: number;
   pointerY: number;
@@ -53,6 +55,8 @@ export function createOpenBrushCommandInput(
     alternateUp: false,
     undoDown: false,
     redoDown: false,
+    brushNextDown: false,
+    brushPreviousDown: false,
     pressure: 0,
     pointerX: 0,
     pointerY: 0,
@@ -78,6 +82,8 @@ export function resetOpenBrushCommandInput(input: OpenBrushCommandInput): void {
   input.alternateUp = false;
   input.undoDown = false;
   input.redoDown = false;
+  input.brushNextDown = false;
+  input.brushPreviousDown = false;
   input.pressure = 0;
   input.pointerX = 0;
   input.pointerY = 0;
@@ -107,6 +113,16 @@ export function resolveOpenBrushCommandFrame(
     inputs.xrLeft.redoDown ||
     inputs.browserPointer.redoDown ||
     inputs.keyboard.redoDown;
+  out.brushNextDown =
+    inputs.xrRight.brushNextDown ||
+    inputs.xrLeft.brushNextDown ||
+    inputs.browserPointer.brushNextDown ||
+    inputs.keyboard.brushNextDown;
+  out.brushPreviousDown =
+    inputs.xrRight.brushPreviousDown ||
+    inputs.xrLeft.brushPreviousDown ||
+    inputs.browserPointer.brushPreviousDown ||
+    inputs.keyboard.brushPreviousDown;
   out.pressure = clamp01(selected.pressure);
   out.pointerX = selected.pointerX;
   out.pointerY = selected.pointerY;
@@ -118,7 +134,9 @@ export function resolveOpenBrushCommandFrame(
     out.alternateDown ||
     out.alternateUp ||
     out.undoDown ||
-    out.redoDown;
+    out.redoDown ||
+    out.brushNextDown ||
+    out.brushPreviousDown;
   return out;
 }
 
@@ -161,7 +179,9 @@ function hasInputActivity(input: OpenBrushCommandInput): boolean {
     input.alternateDown ||
     input.alternateUp ||
     input.undoDown ||
-    input.redoDown
+    input.redoDown ||
+    input.brushNextDown ||
+    input.brushPreviousDown
   );
 }
 
@@ -187,6 +207,8 @@ const idleInput: OpenBrushCommandInput = {
   alternateUp: false,
   undoDown: false,
   redoDown: false,
+  brushNextDown: false,
+  brushPreviousDown: false,
   pressure: 0,
   pointerX: 0,
   pointerY: 0,

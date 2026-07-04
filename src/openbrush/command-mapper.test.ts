@@ -104,4 +104,21 @@ describe("Open Brush command mapper", () => {
     expect(snapshot.rightControllerConnected).toBe(true);
     expect(snapshot.hasCommandEdge).toBe(false);
   });
+
+  it("maps brush cycling commands as command edges", () => {
+    const inputs = createInputs();
+    inputs.xrRight.connected = true;
+    inputs.keyboard.connected = true;
+    inputs.keyboard.brushNextDown = true;
+
+    const snapshot = resolveOpenBrushCommandFrame(
+      inputs,
+      createOpenBrushCommandSnapshot(),
+    );
+
+    expect(snapshot.source).toBe("keyboard");
+    expect(snapshot.brushNextDown).toBe(true);
+    expect(snapshot.brushPreviousDown).toBe(false);
+    expect(snapshot.hasCommandEdge).toBe(true);
+  });
 });
