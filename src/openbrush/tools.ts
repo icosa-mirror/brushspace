@@ -3,11 +3,13 @@ export type OpenBrushToolId =
   | "eraser"
   | "straightedge"
   | "mirror"
+  | "grid-snap"
   | "color-picker"
   | "brush-picker";
 
 export type OpenBrushToolSamplingMode = "none" | "freehand" | "straightedge";
 export type OpenBrushToolMirrorMode = "none" | "x";
+export type OpenBrushToolSnapMode = "none" | "grid";
 
 export interface OpenBrushToolDescriptor {
   id: OpenBrushToolId;
@@ -17,6 +19,7 @@ export interface OpenBrushToolDescriptor {
   erases: boolean;
   samplingMode: OpenBrushToolSamplingMode;
   mirrorMode: OpenBrushToolMirrorMode;
+  snapMode: OpenBrushToolSnapMode;
 }
 
 export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
@@ -28,6 +31,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     erases: false,
     samplingMode: "freehand",
     mirrorMode: "none",
+    snapMode: "none",
   },
   {
     id: "eraser",
@@ -37,6 +41,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     erases: true,
     samplingMode: "none",
     mirrorMode: "none",
+    snapMode: "none",
   },
   {
     id: "straightedge",
@@ -46,6 +51,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     erases: false,
     samplingMode: "straightedge",
     mirrorMode: "none",
+    snapMode: "none",
   },
   {
     id: "mirror",
@@ -55,6 +61,17 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     erases: false,
     samplingMode: "freehand",
     mirrorMode: "x",
+    snapMode: "none",
+  },
+  {
+    id: "grid-snap",
+    label: "Grid Snap",
+    status: "grid-ready",
+    paints: true,
+    erases: false,
+    samplingMode: "freehand",
+    mirrorMode: "none",
+    snapMode: "grid",
   },
   {
     id: "color-picker",
@@ -64,6 +81,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     erases: false,
     samplingMode: "none",
     mirrorMode: "none",
+    snapMode: "none",
   },
   {
     id: "brush-picker",
@@ -73,6 +91,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     erases: false,
     samplingMode: "none",
     mirrorMode: "none",
+    snapMode: "none",
   },
 ];
 

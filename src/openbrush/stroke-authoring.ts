@@ -65,6 +65,23 @@ export function shouldSampleControlPoint(
   return dx * dx + dy * dy + dz * dz >= minDistance * minDistance;
 }
 
+export function writeGridSnappedPosition(
+  target: Vec3,
+  source: Vec3,
+  gridSize: number,
+): void {
+  if (gridSize <= 0) {
+    target[0] = source[0];
+    target[1] = source[1];
+    target[2] = source[2];
+    return;
+  }
+
+  target[0] = Math.round(source[0] / gridSize) * gridSize;
+  target[1] = Math.round(source[1] / gridSize) * gridSize;
+  target[2] = Math.round(source[2] / gridSize) * gridSize;
+}
+
 export type StraightedgeSampleResult = "ignored" | "created" | "updated";
 
 export function upsertStraightedgeEndpoint(

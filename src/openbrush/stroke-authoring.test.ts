@@ -6,6 +6,7 @@ import {
   createStrokeAuthoringState,
   shouldSampleControlPoint,
   upsertStraightedgeEndpoint,
+  writeGridSnappedPosition,
   type StrokePointerFrame,
 } from "./stroke-authoring.js";
 import { StrokeFlags, createEmptyStrokeData, type ControlPoint } from "./types.js";
@@ -54,6 +55,26 @@ describe("stroke authoring state", () => {
     expect(shouldSampleControlPoint([0, 0, 0], [0.015, 0.015, 0], 0.02)).toBe(
       true,
     );
+  });
+
+  it("snaps positions to a fixed grid without allocating a result vector", () => {
+    const target: [number, number, number] = [0, 0, 0];
+    const source: [number, number, number] = [0.134, 1.249, -0.151];
+
+    writeGridSnappedPosition(target, source, 0.1);
+
+    expect(target).toEqual([0.1, 1.2000000000000002, -0.2]);
+    expect(source).toEqual([0.134, 1.249, -0.151]);
+  });
+
+  it("copies positions unchanged when grid size is disabled", () => {
+    const target: [number, number, number] = [0, 0, 0];
+    const source: [number, number, number] = [0.134, 1.249, -0.151];
+
+    writeGridSnappedPosition(target, source, 0);
+
+    expect(target).toEqual(source);
+    expect(target).not.toBe(source);
   });
 
   it("keeps straightedge strokes to a start point and moving endpoint", () => {

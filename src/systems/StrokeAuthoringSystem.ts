@@ -34,6 +34,7 @@ import {
   createMirroredStrokeDataX,
   shouldSampleControlPoint,
   upsertStraightedgeEndpoint,
+  writeGridSnappedPosition,
   type StrokePointerFrame,
 } from "../openbrush/stroke-authoring.js";
 import {
@@ -42,6 +43,7 @@ import {
   type OpenBrushToolId,
   type OpenBrushToolMirrorMode,
   type OpenBrushToolSamplingMode,
+  type OpenBrushToolSnapMode,
 } from "../openbrush/tools.js";
 import {
   createEmptyStrokeData,
@@ -52,6 +54,7 @@ import {
 } from "../openbrush/types.js";
 
 const MIN_SAMPLE_DISTANCE = 0.015;
+const GRID_SNAP_SIZE = 0.1;
 
 interface RuntimeStroke {
   entity: Entity;
@@ -62,6 +65,7 @@ interface RuntimeStroke {
   groupId: number;
   samplingMode: OpenBrushToolSamplingMode;
   mirrorMode: OpenBrushToolMirrorMode;
+  snapMode: OpenBrushToolSnapMode;
   strokeData: StrokeData;
   controlPoints: ControlPoint[];
   lastPosition: Vec3;
@@ -317,6 +321,7 @@ export class StrokeAuthoringSystem extends createSystem({
       groupId,
       samplingMode: activeTool.samplingMode,
       mirrorMode: activeTool.mirrorMode,
+      snapMode: activeTool.snapMode,
       strokeData,
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
@@ -339,11 +344,13 @@ export class StrokeAuthoringSystem extends createSystem({
       return;
     }
 
+    const frame = this.writeSampleFrame(time, pressure, stroke.snapMode);
+
     if (
       !force &&
       !shouldSampleControlPoint(
         stroke.lastPosition,
-        [this.samplePosition.x, this.samplePosition.y, this.samplePosition.z],
+        frame.position,
         MIN_SAMPLE_DISTANCE,
       )
     ) {
@@ -351,27 +358,27 @@ export class StrokeAuthoringSystem extends createSystem({
     }
 
     const index = stroke.controlPoints.length;
-    stroke.lastPosition[0] = this.samplePosition.x;
-    stroke.lastPosition[1] = this.samplePosition.y;
-    stroke.lastPosition[2] = this.samplePosition.z;
+    stroke.lastPosition[0] = frame.position[0];
+    stroke.lastPosition[1] = frame.position[1];
+    stroke.lastPosition[2] = frame.position[2];
 
     const controlPoint: ControlPoint = {
       position: [
-        this.samplePosition.x,
-        this.samplePosition.y,
-        this.samplePosition.z,
+        frame.position[0],
+        frame.position[1],
+        frame.position[2],
       ],
       orientation: [
-        this.sampleQuaternion.x,
-        this.sampleQuaternion.y,
-        this.sampleQuaternion.z,
-        this.sampleQuaternion.w,
+        frame.orientation[0],
+        frame.orientation[1],
+        frame.orientation[2],
+        frame.orientation[3],
       ],
-      pressure,
-      timestampMs: Math.round(time * 1000),
+      pressure: frame.pressure,
+      timestampMs: frame.timestampMs,
     };
     stroke.controlPoints.push(controlPoint);
-    this.updateBounds(stroke, index);
+    this.updateBounds(stroke, index, frame.position);
     this.rebuildStrokeMesh(stroke);
     stroke.entity.setValue(
       BrushStroke,
@@ -389,7 +396,7 @@ export class StrokeAuthoringSystem extends createSystem({
 
     const result = upsertStraightedgeEndpoint(
       stroke.controlPoints,
-      this.writeSampleFrame(time, pressure),
+      this.writeSampleFrame(time, pressure, stroke.snapMode),
       MIN_SAMPLE_DISTANCE,
     );
     if (result === "ignored") {
@@ -478,10 +485,14 @@ export class StrokeAuthoringSystem extends createSystem({
     }
   }
 
-  private updateBounds(stroke: RuntimeStroke, index: number): void {
-    const x = this.samplePosition.x;
-    const y = this.samplePosition.y;
-    const z = this.samplePosition.z;
+  private updateBounds(
+    stroke: RuntimeStroke,
+    index: number,
+    position: Vec3,
+  ): void {
+    const x = position[0];
+    const y = position[1];
+    const z = position[2];
     if (index === 0) {
       stroke.minBounds[0] = x;
       stroke.minBounds[1] = y;
@@ -591,6 +602,7 @@ export class StrokeAuthoringSystem extends createSystem({
       groupId: source.groupId,
       samplingMode: source.samplingMode,
       mirrorMode: "none",
+      snapMode: "none",
       strokeData,
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
@@ -684,11 +696,22 @@ export class StrokeAuthoringSystem extends createSystem({
     return [colorView[0], colorView[1], colorView[2], colorView[3]];
   }
 
-  private writeSampleFrame(time: number, pressure: number): StrokePointerFrame {
+  private writeSampleFrame(
+    time: number,
+    pressure: number,
+    snapMode: OpenBrushToolSnapMode,
+  ): StrokePointerFrame {
     this.sampleFrame.pressure = pressure;
     this.sampleFrame.position[0] = this.samplePosition.x;
     this.sampleFrame.position[1] = this.samplePosition.y;
     this.sampleFrame.position[2] = this.samplePosition.z;
+    if (snapMode === "grid") {
+      writeGridSnappedPosition(
+        this.sampleFrame.position,
+        this.sampleFrame.position,
+        GRID_SNAP_SIZE,
+      );
+    }
     this.sampleFrame.orientation[0] = this.sampleQuaternion.x;
     this.sampleFrame.orientation[1] = this.sampleQuaternion.y;
     this.sampleFrame.orientation[2] = this.sampleQuaternion.z;

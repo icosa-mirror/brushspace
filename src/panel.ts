@@ -112,6 +112,7 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "tool-eraser-button");
     this.nameElement(document, "tool-straightedge-button");
     this.nameElement(document, "tool-mirror-button");
+    this.nameElement(document, "tool-grid-snap-button");
     this.nameElement(document, "tool-color-picker-button");
     this.nameElement(document, "tool-brush-picker-button");
     this.nameElement(document, "tool-pick-button");
@@ -186,6 +187,13 @@ export class PanelSystem extends createSystem({
     ) as TextElement;
     mirrorToolButton?.addEventListener("click", () => {
       this.selectTool("mirror");
+    });
+
+    const gridSnapToolButton = document.getElementById(
+      "tool-grid-snap-button",
+    ) as TextElement;
+    gridSnapToolButton?.addEventListener("click", () => {
+      this.selectTool("grid-snap");
     });
 
     const colorPickerToolButton = document.getElementById(
@@ -485,6 +493,11 @@ export class PanelSystem extends createSystem({
       document,
       "tool-mirror-button",
       activeTool.id === "mirror" ? "Mirror *" : "Mirror",
+    );
+    this.setText(
+      document,
+      "tool-grid-snap-button",
+      activeTool.id === "grid-snap" ? "Grid *" : "Grid",
     );
     this.setText(
       document,
