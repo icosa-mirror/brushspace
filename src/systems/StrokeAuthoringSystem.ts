@@ -144,6 +144,7 @@ export class StrokeAuthoringSystem extends createSystem({
       opacity: color[3],
       transparent: materialSpec.transparent,
       depthWrite: materialSpec.depthWrite,
+      alphaTest: materialSpec.alphaCutoff,
       blending:
         materialSpec.blending === "additive" ? AdditiveBlending : NormalBlending,
     });
