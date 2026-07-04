@@ -15,6 +15,7 @@ import {
   CanvasLayer,
   OpenBrushAppState,
   SelectionState,
+  SettingsState,
   UiCommandHistoryState,
 } from "./components/OpenBrushCore.js";
 import {
@@ -44,6 +45,14 @@ import {
   UiCommandHistory,
   type UiCommand,
 } from "./openbrush/ui-command-history.js";
+import {
+  normalizeOpenBrushSettings,
+  resolveOpenBrushSettingsCommand,
+  type OpenBrushLocomotionMode,
+  type OpenBrushPanelAnchor,
+  type OpenBrushSettings,
+  type OpenBrushSettingsCommand,
+} from "./openbrush/settings.js";
 
 type TextElement = UIKit.Text | null;
 type LayerOrderSnapshot = Array<{ layerIndex: number; order: number }>;
@@ -60,6 +69,13 @@ interface StrokeTransformSnapshot {
 }
 
 const SELECTION_NUDGE_DISTANCE = 0.1;
+const PANEL_SCALE_STEP = 0.1;
+const PANEL_DISTANCE_STEP = 0.1;
+const PANEL_ANCHORS: readonly OpenBrushPanelAnchor[] = [
+  "off-hand",
+  "dominant-hand",
+  "center",
+];
 
 export class PanelSystem extends createSystem({
   welcomePanel: {
@@ -69,6 +85,7 @@ export class PanelSystem extends createSystem({
   brushSettings: { required: [BrushSettings] },
   appState: { required: [OpenBrushAppState] },
   selectionState: { required: [SelectionState] },
+  settingsState: { required: [SettingsState] },
   uiHistory: { required: [UiCommandHistoryState] },
   layers: { required: [CanvasLayer] },
   strokes: { required: [BrushStroke] },
@@ -99,6 +116,7 @@ export class PanelSystem extends createSystem({
       this.updateLayerLabels(document);
       this.updateSelectionLabels(document);
       this.updateHistoryLabels(document);
+      this.updateSettingsLabels(document);
     }
   }
 
@@ -142,6 +160,17 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "selection-clear-button");
     this.nameElement(document, "selection-nudge-left-button");
     this.nameElement(document, "selection-nudge-right-button");
+    this.nameElement(document, "settings-hand-button");
+    this.nameElement(document, "settings-anchor-button");
+    this.nameElement(document, "settings-scale-down-button");
+    this.nameElement(document, "settings-scale-up-button");
+    this.nameElement(document, "settings-distance-near-button");
+    this.nameElement(document, "settings-distance-far-button");
+    this.nameElement(document, "settings-turn-mode-button");
+    this.nameElement(document, "settings-locomotion-button");
+    this.nameElement(document, "settings-browser-pointer-button");
+    this.nameElement(document, "settings-vignette-button");
+    this.nameElement(document, "settings-help-button");
 
     const xrButton = document.getElementById("xr-button") as TextElement;
     xrButton?.addEventListener("click", () => {
@@ -347,11 +376,115 @@ export class PanelSystem extends createSystem({
     nudgeRightButton?.addEventListener("click", () => {
       this.nudgeSelectedStrokes(SELECTION_NUDGE_DISTANCE, 0, 0);
     });
+
+    const settingsHandButton = document.getElementById(
+      "settings-hand-button",
+    ) as TextElement;
+    settingsHandButton?.addEventListener("click", () => {
+      this.applySettingsCommand({ type: "toggle-dominant-hand" });
+    });
+
+    const settingsAnchorButton = document.getElementById(
+      "settings-anchor-button",
+    ) as TextElement;
+    settingsAnchorButton?.addEventListener("click", () => {
+      this.applySettingsCommand({
+        type: "set-panel-anchor",
+        anchor: this.getNextPanelAnchor(),
+      });
+    });
+
+    const settingsScaleDownButton = document.getElementById(
+      "settings-scale-down-button",
+    ) as TextElement;
+    settingsScaleDownButton?.addEventListener("click", () => {
+      this.applySettingsCommand({
+        type: "nudge-panel-scale",
+        delta: -PANEL_SCALE_STEP,
+      });
+    });
+
+    const settingsScaleUpButton = document.getElementById(
+      "settings-scale-up-button",
+    ) as TextElement;
+    settingsScaleUpButton?.addEventListener("click", () => {
+      this.applySettingsCommand({
+        type: "nudge-panel-scale",
+        delta: PANEL_SCALE_STEP,
+      });
+    });
+
+    const settingsDistanceNearButton = document.getElementById(
+      "settings-distance-near-button",
+    ) as TextElement;
+    settingsDistanceNearButton?.addEventListener("click", () => {
+      this.applySettingsCommand({
+        type: "nudge-panel-distance",
+        delta: -PANEL_DISTANCE_STEP,
+      });
+    });
+
+    const settingsDistanceFarButton = document.getElementById(
+      "settings-distance-far-button",
+    ) as TextElement;
+    settingsDistanceFarButton?.addEventListener("click", () => {
+      this.applySettingsCommand({
+        type: "nudge-panel-distance",
+        delta: PANEL_DISTANCE_STEP,
+      });
+    });
+
+    const settingsTurnModeButton = document.getElementById(
+      "settings-turn-mode-button",
+    ) as TextElement;
+    settingsTurnModeButton?.addEventListener("click", () => {
+      this.applySettingsCommand({ type: "cycle-turn-mode" });
+    });
+
+    const settingsLocomotionButton = document.getElementById(
+      "settings-locomotion-button",
+    ) as TextElement;
+    settingsLocomotionButton?.addEventListener("click", () => {
+      this.applySettingsCommand({
+        type: "set-locomotion-mode",
+        mode: this.getNextLocomotionMode(),
+      });
+    });
+
+    const settingsBrowserPointerButton = document.getElementById(
+      "settings-browser-pointer-button",
+    ) as TextElement;
+    settingsBrowserPointerButton?.addEventListener("click", () => {
+      const settings = this.readSettingsState();
+      this.applySettingsCommand({
+        type: "set-browser-pointer-enabled",
+        enabled: !settings.browserPointerEnabled,
+      });
+    });
+
+    const settingsVignetteButton = document.getElementById(
+      "settings-vignette-button",
+    ) as TextElement;
+    settingsVignetteButton?.addEventListener("click", () => {
+      const settings = this.readSettingsState();
+      this.applySettingsCommand({
+        type: "set-comfort-vignette-enabled",
+        enabled: !settings.comfortVignetteEnabled,
+      });
+    });
+
+    const settingsHelpButton = document.getElementById(
+      "settings-help-button",
+    ) as TextElement;
+    settingsHelpButton?.addEventListener("click", () => {
+      this.applySettingsCommand({ type: "toggle-help" });
+    });
     this.updateBrushLabels(document);
     this.updateToolLabels(document);
     this.updateLayerLabels(document);
     this.updateSelectionLabels(document);
     this.updateHistoryLabels(document);
+    this.updateSettingsLabels(document);
   }
 
   private selectTool(toolId: OpenBrushToolId): void {
@@ -940,6 +1073,180 @@ export class PanelSystem extends createSystem({
     );
   }
 
+  private updateSettingsLabels(document: UIKitDocument): void {
+    const settings = this.readSettingsState();
+    this.setText(
+      document,
+      "settings-summary",
+      `${formatTitle(settings.dominantHand)} hand`,
+    );
+    this.setText(
+      document,
+      "settings-panel-meta",
+      `${formatTitle(settings.turnMode)} turn | ${formatTitle(
+        settings.locomotionMode,
+      )} | Panel ${settings.panelScale.toFixed(2)}x | ${settings.panelDistance.toFixed(
+        2,
+      )}m | ${formatAnchor(settings.panelAnchor)}`,
+    );
+    this.setText(
+      document,
+      "settings-hand-button",
+      `${formatTitle(settings.dominantHand)} Hand`,
+    );
+    this.setText(
+      document,
+      "settings-anchor-button",
+      formatAnchor(settings.panelAnchor),
+    );
+    this.setText(
+      document,
+      "settings-turn-mode-button",
+      `${formatTitle(settings.turnMode)} Turn`,
+    );
+    this.setText(
+      document,
+      "settings-locomotion-button",
+      `${formatTitle(settings.locomotionMode)} Move`,
+    );
+    this.setText(
+      document,
+      "settings-browser-pointer-button",
+      settings.browserPointerEnabled ? "Pointer On" : "Pointer Off",
+    );
+    this.setText(
+      document,
+      "settings-vignette-button",
+      settings.comfortVignetteEnabled ? "Vignette On" : "Vignette Off",
+    );
+    this.setText(
+      document,
+      "settings-help-button",
+      settings.helpVisible ? "Hide Help" : "Show Help",
+    );
+    this.setText(
+      document,
+      "settings-status",
+      `${settings.settingsStatus} r${settings.settingsRevision}`,
+    );
+    this.setText(
+      document,
+      "settings-help-text",
+      settings.helpVisible
+        ? "Browser pointer and XR rays share the same panel commands."
+        : "",
+    );
+  }
+
+  private applySettingsCommand(command: OpenBrushSettingsCommand): void {
+    const settingsEntity = this.getSettingsStateEntity();
+    if (!settingsEntity) {
+      return;
+    }
+    const result = resolveOpenBrushSettingsCommand(
+      this.readSettingsState(settingsEntity),
+      command,
+    );
+    this.writeSettingsState(settingsEntity, result.settings);
+  }
+
+  private readSettingsState(
+    entity = this.getSettingsStateEntity(),
+  ): OpenBrushSettings {
+    if (!entity) {
+      return normalizeOpenBrushSettings(undefined);
+    }
+    return normalizeOpenBrushSettings({
+      dominantHand: String(entity.getValue(SettingsState, "dominantHand")),
+      panelScale: Number(entity.getValue(SettingsState, "panelScale")),
+      panelDistance: Number(entity.getValue(SettingsState, "panelDistance")),
+      panelHeight: Number(entity.getValue(SettingsState, "panelHeight")),
+      panelAnchor: String(entity.getValue(SettingsState, "panelAnchor")),
+      turnMode: String(entity.getValue(SettingsState, "turnMode")),
+      snapTurnDegrees: Number(entity.getValue(SettingsState, "snapTurnDegrees")),
+      continuousTurnDegreesPerSecond: Number(
+        entity.getValue(SettingsState, "continuousTurnDegreesPerSecond"),
+      ),
+      locomotionMode: String(entity.getValue(SettingsState, "locomotionMode")),
+      browserPointerEnabled: Boolean(
+        entity.getValue(SettingsState, "browserPointerEnabled"),
+      ),
+      xrRayEnabled: Boolean(entity.getValue(SettingsState, "xrRayEnabled")),
+      comfortVignetteEnabled: Boolean(
+        entity.getValue(SettingsState, "comfortVignetteEnabled"),
+      ),
+      helpVisible: Boolean(entity.getValue(SettingsState, "helpVisible")),
+      controllerHintsVisible: Boolean(
+        entity.getValue(SettingsState, "controllerHintsVisible"),
+      ),
+      settingsRevision: Number(
+        entity.getValue(SettingsState, "settingsRevision"),
+      ),
+      lastSettingsCommand: String(
+        entity.getValue(SettingsState, "lastSettingsCommand"),
+      ),
+      settingsStatus: String(entity.getValue(SettingsState, "settingsStatus")),
+    });
+  }
+
+  private writeSettingsState(
+    entity: Entity,
+    settings: OpenBrushSettings,
+  ): void {
+    entity.setValue(SettingsState, "dominantHand", settings.dominantHand);
+    entity.setValue(SettingsState, "panelScale", settings.panelScale);
+    entity.setValue(SettingsState, "panelDistance", settings.panelDistance);
+    entity.setValue(SettingsState, "panelHeight", settings.panelHeight);
+    entity.setValue(SettingsState, "panelAnchor", settings.panelAnchor);
+    entity.setValue(SettingsState, "turnMode", settings.turnMode);
+    entity.setValue(SettingsState, "snapTurnDegrees", settings.snapTurnDegrees);
+    entity.setValue(
+      SettingsState,
+      "continuousTurnDegreesPerSecond",
+      settings.continuousTurnDegreesPerSecond,
+    );
+    entity.setValue(SettingsState, "locomotionMode", settings.locomotionMode);
+    entity.setValue(
+      SettingsState,
+      "browserPointerEnabled",
+      settings.browserPointerEnabled,
+    );
+    entity.setValue(SettingsState, "xrRayEnabled", settings.xrRayEnabled);
+    entity.setValue(
+      SettingsState,
+      "comfortVignetteEnabled",
+      settings.comfortVignetteEnabled,
+    );
+    entity.setValue(SettingsState, "helpVisible", settings.helpVisible);
+    entity.setValue(
+      SettingsState,
+      "controllerHintsVisible",
+      settings.controllerHintsVisible,
+    );
+    entity.setValue(
+      SettingsState,
+      "settingsRevision",
+      settings.settingsRevision,
+    );
+    entity.setValue(
+      SettingsState,
+      "lastSettingsCommand",
+      settings.lastSettingsCommand,
+    );
+    entity.setValue(SettingsState, "settingsStatus", settings.settingsStatus);
+  }
+
+  private getNextPanelAnchor(): OpenBrushPanelAnchor {
+    const settings = this.readSettingsState();
+    const currentIndex = PANEL_ANCHORS.indexOf(settings.panelAnchor);
+    return PANEL_ANCHORS[(currentIndex + 1) % PANEL_ANCHORS.length];
+  }
+
+  private getNextLocomotionMode(): OpenBrushLocomotionMode {
+    const settings = this.readSettingsState();
+    return settings.locomotionMode === "stationary" ? "smooth" : "stationary";
+  }
+
   private setText(document: UIKitDocument, id: string, text: string): void {
     const element = document.getElementById(id) as TextElement;
     element?.setProperties({ text });
@@ -964,6 +1271,11 @@ export class PanelSystem extends createSystem({
 
   private getSelectionStateEntity(): Entity | undefined {
     const next = this.queries.selectionState.entities.values().next();
+    return next.done ? undefined : next.value;
+  }
+
+  private getSettingsStateEntity(): Entity | undefined {
+    const next = this.queries.settingsState.entities.values().next();
     return next.done ? undefined : next.value;
   }
 
@@ -1346,5 +1658,23 @@ export class PanelSystem extends createSystem({
       "lastCommandName",
       summary.lastCommandName,
     );
+  }
+}
+
+function formatTitle(value: string): string {
+  return value
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function formatAnchor(anchor: OpenBrushPanelAnchor): string {
+  switch (anchor) {
+    case "off-hand":
+      return "Off Hand";
+    case "dominant-hand":
+      return "Dominant Hand";
+    case "center":
+      return "Center";
   }
 }

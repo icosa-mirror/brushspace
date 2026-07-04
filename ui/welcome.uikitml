@@ -2,7 +2,7 @@
   .panel-container {
     align-items: flex-start;
     padding: 1.1;
-    width: 42;
+    width: 78;
     display: flex;
     flex-direction: column;
     background-color: #09090b;
@@ -54,8 +54,24 @@
     margin-top: 0.65;
   }
 
+  .content-row {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+  }
+
+  .panel-column {
+    display: flex;
+    flex-direction: column;
+    width: 37;
+  }
+
+  .right-column {
+    margin-left: 1.6;
+  }
+
   .brush-button {
-    width: 19.5;
+    width: 18;
     padding: 1;
     background-color: #27272a;
     color: #fafafa;
@@ -94,8 +110,20 @@
   #layer-toggle-lock-button,
   #layer-move-down-button,
   #selection-clear-button,
-  #selection-nudge-right-button {
+  #selection-nudge-right-button,
+  #settings-anchor-button,
+  #settings-scale-up-button,
+  #settings-distance-far-button,
+  #settings-locomotion-button,
+  #settings-vignette-button {
     margin-left: 1;
+  }
+
+  .help-text {
+    font-size: 1.2;
+    color: #a1a1aa;
+    text-align: left;
+    margin-top: 0.5;
   }
 
   .xr-button {
@@ -121,65 +149,97 @@
     <button id="history-redo-button" class="brush-button">Redo</button>
   </div>
   <span id="history-state" class="brush-meta">0 undo | 0 redo</span>
-  <span class="section-label">Tool</span>
-  <span id="active-tool-name" class="brush-name">Draw</span>
-  <span id="active-tool-state" class="brush-meta">draw-ready</span>
-  <div class="button-row">
-    <button id="tool-draw-button" class="brush-button">Draw *</button>
-    <button id="tool-eraser-button" class="brush-button">Eraser</button>
-  </div>
-  <div class="button-row">
-    <button id="tool-straightedge-button" class="brush-button">Line</button>
-    <button id="tool-mirror-button" class="brush-button">Mirror</button>
-  </div>
-  <div class="button-row">
-    <button id="tool-color-picker-button" class="brush-button">Color</button>
-    <button id="tool-brush-picker-button" class="brush-button">Brush</button>
-  </div>
-  <div class="button-row">
-    <button id="tool-grid-snap-button" class="brush-button">Grid</button>
-    <button id="tool-lazy-input-button" class="brush-button">Lazy</button>
-  </div>
-  <div class="button-row">
-    <button id="tool-tape-button" class="brush-button">Tape</button>
-    <button id="tool-stencil-button" class="brush-button">Stencil</button>
-  </div>
-  <button id="tool-pick-button" class="wide-button">Pick Target</button>
-  <button id="tool-erase-button" class="wide-button">Erase Target</button>
-  <span class="section-label">Brush</span>
-  <span id="active-brush-name" class="brush-name">Marker</span>
-  <span id="active-brush-meta" class="brush-meta">ribbon / standard / 3/5</span>
-  <span id="brush-catalog-counts" class="brush-meta">4 supported | 1 fallback | 118 pending</span>
-  <span id="brush-warning" class="warning">Ready</span>
-  <div class="button-row">
-    <button id="brush-previous-button" class="brush-button">Prev</button>
-    <button id="brush-next-button" class="brush-button">Next</button>
-  </div>
-  <span class="section-label">Layer</span>
-  <span id="active-layer-name" class="brush-name">Sketch</span>
-  <span id="active-layer-meta" class="brush-meta">Layer 0 | 1 paint / 1 selection</span>
-  <span id="layer-state" class="brush-meta">Visible | Unlocked</span>
-  <div class="button-row">
-    <button id="layer-new-button" class="brush-button">New</button>
-    <button id="layer-next-button" class="brush-button">Next</button>
-  </div>
-  <div class="button-row">
-    <button id="layer-toggle-visible-button" class="brush-button">Hide</button>
-    <button id="layer-toggle-lock-button" class="brush-button">Lock</button>
-  </div>
-  <div class="button-row">
-    <button id="layer-move-up-button" class="brush-button">Move Up</button>
-    <button id="layer-move-down-button" class="brush-button">Move Down</button>
-  </div>
-  <button id="layer-clear-button" class="wide-button">Clear Layer</button>
-  <span class="section-label">Selection</span>
-  <span id="selection-state" class="brush-meta">No selection</span>
-  <div class="button-row">
-    <button id="selection-select-last-button" class="brush-button">Select Last</button>
-    <button id="selection-clear-button" class="brush-button">Deselect</button>
-  </div>
-  <div class="button-row">
-    <button id="selection-nudge-left-button" class="brush-button">Move Left</button>
-    <button id="selection-nudge-right-button" class="brush-button">Move Right</button>
+  <div class="content-row">
+    <div class="panel-column">
+      <span class="section-label">Tool</span>
+      <span id="active-tool-name" class="brush-name">Draw</span>
+      <span id="active-tool-state" class="brush-meta">draw-ready</span>
+      <div class="button-row">
+        <button id="tool-draw-button" class="brush-button">Draw *</button>
+        <button id="tool-eraser-button" class="brush-button">Eraser</button>
+      </div>
+      <div class="button-row">
+        <button id="tool-straightedge-button" class="brush-button">Line</button>
+        <button id="tool-mirror-button" class="brush-button">Mirror</button>
+      </div>
+      <div class="button-row">
+        <button id="tool-color-picker-button" class="brush-button">Color</button>
+        <button id="tool-brush-picker-button" class="brush-button">Brush</button>
+      </div>
+      <div class="button-row">
+        <button id="tool-grid-snap-button" class="brush-button">Grid</button>
+        <button id="tool-lazy-input-button" class="brush-button">Lazy</button>
+      </div>
+      <div class="button-row">
+        <button id="tool-tape-button" class="brush-button">Tape</button>
+        <button id="tool-stencil-button" class="brush-button">Stencil</button>
+      </div>
+      <button id="tool-pick-button" class="wide-button">Pick Target</button>
+      <button id="tool-erase-button" class="wide-button">Erase Target</button>
+      <span class="section-label">Brush</span>
+      <span id="active-brush-name" class="brush-name">Marker</span>
+      <span id="active-brush-meta" class="brush-meta">ribbon / standard / 3/5</span>
+      <span id="brush-catalog-counts" class="brush-meta">4 supported | 1 fallback | 118 pending</span>
+      <span id="brush-warning" class="warning">Ready</span>
+      <div class="button-row">
+        <button id="brush-previous-button" class="brush-button">Prev</button>
+        <button id="brush-next-button" class="brush-button">Next</button>
+      </div>
+      <span class="section-label">Layer</span>
+      <span id="active-layer-name" class="brush-name">Sketch</span>
+      <span id="active-layer-meta" class="brush-meta">Layer 0 | 1 paint / 1 selection</span>
+      <span id="layer-state" class="brush-meta">Visible | Unlocked</span>
+      <div class="button-row">
+        <button id="layer-new-button" class="brush-button">New</button>
+        <button id="layer-next-button" class="brush-button">Next</button>
+      </div>
+      <div class="button-row">
+        <button id="layer-toggle-visible-button" class="brush-button">Hide</button>
+        <button id="layer-toggle-lock-button" class="brush-button">Lock</button>
+      </div>
+      <div class="button-row">
+        <button id="layer-move-up-button" class="brush-button">Move Up</button>
+        <button id="layer-move-down-button" class="brush-button">Move Down</button>
+      </div>
+      <button id="layer-clear-button" class="wide-button">Clear Layer</button>
+    </div>
+    <div class="panel-column right-column">
+      <span class="section-label">Selection</span>
+      <span id="selection-state" class="brush-meta">No selection</span>
+      <div class="button-row">
+        <button id="selection-select-last-button" class="brush-button">Select Last</button>
+        <button id="selection-clear-button" class="brush-button">Deselect</button>
+      </div>
+      <div class="button-row">
+        <button id="selection-nudge-left-button" class="brush-button">Move Left</button>
+        <button id="selection-nudge-right-button" class="brush-button">Move Right</button>
+      </div>
+      <span class="section-label">Settings</span>
+      <span id="settings-summary" class="brush-name">Right hand</span>
+      <span id="settings-panel-meta" class="brush-meta">Snap turn | Stationary | Panel 1.00x | 0.90m | Off Hand</span>
+      <div class="button-row">
+        <button id="settings-hand-button" class="brush-button">Right Hand</button>
+        <button id="settings-anchor-button" class="brush-button">Off Hand</button>
+      </div>
+      <div class="button-row">
+        <button id="settings-scale-down-button" class="brush-button">Scale -</button>
+        <button id="settings-scale-up-button" class="brush-button">Scale +</button>
+      </div>
+      <div class="button-row">
+        <button id="settings-distance-near-button" class="brush-button">Nearer</button>
+        <button id="settings-distance-far-button" class="brush-button">Farther</button>
+      </div>
+      <div class="button-row">
+        <button id="settings-turn-mode-button" class="brush-button">Snap Turn</button>
+        <button id="settings-locomotion-button" class="brush-button">Stationary Move</button>
+      </div>
+      <div class="button-row">
+        <button id="settings-browser-pointer-button" class="brush-button">Pointer On</button>
+        <button id="settings-vignette-button" class="brush-button">Vignette Off</button>
+      </div>
+      <button id="settings-help-button" class="wide-button">Show Help</button>
+      <span id="settings-status" class="brush-meta">ready r0</span>
+      <span id="settings-help-text" class="help-text"></span>
+    </div>
   </div>
 </div>
