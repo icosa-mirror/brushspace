@@ -86,7 +86,8 @@
   #brush-next-button,
   #layer-next-button,
   #layer-toggle-lock-button,
-  #layer-move-down-button {
+  #layer-move-down-button,
+  #selection-clear-button {
     margin-left: 1;
   }
 
@@ -134,4 +135,10 @@
     <button id="layer-move-down-button" class="brush-button">Move Down</button>
   </div>
   <button id="layer-clear-button" class="wide-button">Clear Layer</button>
+  <span class="section-label">Selection</span>
+  <span id="selection-state" class="brush-meta">No selection</span>
+  <div class="button-row">
+    <button id="selection-select-last-button" class="brush-button">Select Last</button>
+    <button id="selection-clear-button" class="brush-button">Deselect</button>
+  </div>
 </div>

@@ -10,6 +10,7 @@ import {
   CanvasLayer,
   InputCommandState,
   OpenBrushAppState,
+  SelectionState,
   StrokeHistoryState,
 } from "../components/OpenBrushCore.js";
 import {
@@ -30,6 +31,7 @@ export class RuntimeDebugSystem extends createSystem({
   canvases: { required: [CanvasLayer] },
   pointers: { required: [BrushPointer] },
   strokes: { required: [BrushStroke] },
+  selectionState: { required: [SelectionState] },
   history: { required: [StrokeHistoryState] },
 }) {
   init() {
@@ -196,6 +198,26 @@ export class RuntimeDebugSystem extends createSystem({
     );
     entity.setValue(
       OpenBrushDebug,
+      "selectedStrokeCount",
+      this.getSelectionNumber("selectedStrokeCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "activeSelectionLayerIndex",
+      this.getSelectionNumber("activeSelectionLayerIndex", -1),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "lastSelectedStrokeCommandIndex",
+      this.getSelectionNumber("lastSelectedStrokeCommandIndex", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "selectionRevision",
+      this.getSelectionNumber("selectionRevision", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
       "activeStrokeControlPoints",
       this.getHistoryNumber("activeStrokeControlPoints", 0),
     );
@@ -299,6 +321,18 @@ export class RuntimeDebugSystem extends createSystem({
     return entity ? Number(entity.getValue(StrokeHistoryState, field)) : fallback;
   }
 
+  private getSelectionNumber(
+    field:
+      | "selectedStrokeCount"
+      | "activeSelectionLayerIndex"
+      | "lastSelectedStrokeCommandIndex"
+      | "selectionRevision",
+    fallback: number,
+  ): number {
+    const entity = this.getFirstEntity("selectionState");
+    return entity ? Number(entity.getValue(SelectionState, field)) : fallback;
+  }
+
   private countStrokeBoolean(
     field: "visible" | "renderVisible" | "finalized",
   ): number {
@@ -358,6 +392,7 @@ export class RuntimeDebugSystem extends createSystem({
       | "brushSettings"
       | "brushCatalog"
       | "inputCommands"
+      | "selectionState"
       | "history",
   ): Entity | undefined {
     const next = this.queries[queryName].entities.values().next();

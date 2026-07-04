@@ -7,9 +7,9 @@ import {
 } from "./port-phase.js";
 
 describe("Open Brush port phase metadata", () => {
-  it("identifies the active Phase 6 layer controls", () => {
+  it("identifies the active Phase 6 selection controls", () => {
     expect(OPEN_BRUSH_PLAN_FILE).toBe("OPEN_BRUSH_IWSDK_PORT_PLAN.md");
     expect(OPEN_BRUSH_PORT_PHASE).toBe("phase-6");
-    expect(OPEN_BRUSH_PORT_STATUS).toBe("layers");
+    expect(OPEN_BRUSH_PORT_STATUS).toBe("selection");
   });
 });

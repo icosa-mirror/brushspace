@@ -263,6 +263,7 @@ export class StrokeAuthoringSystem extends createSystem({
       finalized: false,
       visible: true,
       renderVisible: true,
+      selected: false,
       controlPointCount: 0,
       vertexCount: 0,
       indexCount: 0,
@@ -422,6 +423,7 @@ export class StrokeAuthoringSystem extends createSystem({
     }
     entity.setValue(BrushStroke, "visible", false);
     entity.setValue(BrushStroke, "renderVisible", false);
+    entity.setValue(BrushStroke, "selected", false);
     if (entity.object3D) {
       entity.object3D.visible = false;
     }

@@ -42,6 +42,13 @@ export const StrokeHistoryState = createComponent("StrokeHistoryState", {
   activeStrokeControlPoints: { type: Types.Int32, default: 0 },
 });
 
+export const SelectionState = createComponent("SelectionState", {
+  selectedStrokeCount: { type: Types.Int32, default: 0 },
+  activeSelectionLayerIndex: { type: Types.Int32, default: -1 },
+  lastSelectedStrokeCommandIndex: { type: Types.Int32, default: 0 },
+  selectionRevision: { type: Types.Int32, default: 0 },
+});
+
 export const BrushCatalogState = createComponent("BrushCatalogState", {
   activeBrushIndex: { type: Types.Int32, default: 0 },
   brushCount: { type: Types.Int32, default: 0 },
@@ -84,6 +91,7 @@ export const BrushStroke = createComponent("BrushStroke", {
   finalized: { type: Types.Boolean, default: false },
   visible: { type: Types.Boolean, default: true },
   renderVisible: { type: Types.Boolean, default: true },
+  selected: { type: Types.Boolean, default: false },
   controlPointCount: { type: Types.Int32, default: 0 },
   vertexCount: { type: Types.Int32, default: 0 },
   indexCount: { type: Types.Int32, default: 0 },

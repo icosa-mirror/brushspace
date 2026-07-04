@@ -1,34 +1,17 @@
 import {
-  AssetManifest,
-  AssetType,
-  Mesh,
-  MeshBasicMaterial,
-  PlaneGeometry,
   SessionMode,
-  SRGBColorSpace,
-  AssetManager,
   World,
 } from "@iwsdk/core";
 
 import {
-  AudioSource,
-  DistanceGrabbable,
-  MovementMode,
   Interactable,
   PanelUI,
-  PlaybackMode,
   ScreenSpace,
 } from "@iwsdk/core";
-
-import { EnvironmentType, LocomotionEnvironment } from "@iwsdk/core";
 
 import { OpenBrushDebug } from "./components/OpenBrushDebug.js";
 
 import { PanelSystem } from "./panel.js";
-
-import { Robot } from "./robot.js";
-
-import { RobotSystem } from "./robot.js";
 
 import { setupOpenBrushShell } from "./openbrush/setup-shell.js";
 
@@ -36,38 +19,10 @@ import { BrushCatalogSystem } from "./systems/BrushCatalogSystem.js";
 import { InputCommandSystem } from "./systems/InputCommandSystem.js";
 import { LayerCanvasSystem } from "./systems/LayerCanvasSystem.js";
 import { RuntimeDebugSystem } from "./systems/RuntimeDebugSystem.js";
+import { SelectionSystem } from "./systems/SelectionSystem.js";
 import { StrokeAuthoringSystem } from "./systems/StrokeAuthoringSystem.js";
 
-const assets: AssetManifest = {
-  chimeSound: {
-    url: "/audio/chime.mp3",
-    type: AssetType.Audio,
-    priority: "background",
-  },
-  webxr: {
-    url: "/textures/webxr.png",
-    type: AssetType.Texture,
-    priority: "critical",
-  },
-  environmentDesk: {
-    url: "./gltf/environmentDesk/environmentDesk.gltf",
-    type: AssetType.GLTF,
-    priority: "critical",
-  },
-  plantSansevieria: {
-    url: "./gltf/plantSansevieria/plantSansevieria.gltf",
-    type: AssetType.GLTF,
-    priority: "critical",
-  },
-  robot: {
-    url: "./gltf/robot/robot.gltf",
-    type: AssetType.GLTF,
-    priority: "critical",
-  },
-};
-
 World.create(document.getElementById("scene-container") as HTMLDivElement, {
-  assets,
   xr: {
     sessionMode: SessionMode.ImmersiveVR,
     offer: "always",
@@ -75,7 +30,7 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
   },
   features: {
     locomotion: false,
-    grabbing: true,
+    grabbing: false,
     physics: false,
     sceneUnderstanding: false,
     environmentRaycast: false,
@@ -92,47 +47,11 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
 
   setupOpenBrushShell(world);
 
-  const { scene: envMesh } = AssetManager.getGLTF("environmentDesk")!;
-  envMesh.rotateY(Math.PI);
-  envMesh.position.set(0, -0.1, 0);
-  world
-    .createTransformEntity(envMesh)
-    .addComponent(LocomotionEnvironment, { type: EnvironmentType.STATIC });
-
-  const { scene: plantMesh } = AssetManager.getGLTF("plantSansevieria")!;
-
-  plantMesh.position.set(1.2, 0.85, -1.8);
-
-  world
-    .createTransformEntity(plantMesh)
-    .addComponent(Interactable)
-    .addComponent(DistanceGrabbable, {
-      movementMode: MovementMode.MoveFromTarget,
-    });
-
-  const { scene: robotMesh } = AssetManager.getGLTF("robot")!;
-  // defaults for AR
-  robotMesh.position.set(-1.2, 0.4, -1.8);
-  robotMesh.scale.setScalar(1);
-
-  robotMesh.position.set(-1.2, 0.95, -1.8);
-  robotMesh.scale.setScalar(0.5);
-
-  world
-    .createTransformEntity(robotMesh)
-    .addComponent(Interactable)
-    .addComponent(Robot)
-    .addComponent(AudioSource, {
-      src: "./audio/chime.mp3",
-      maxInstances: 3,
-      playbackMode: PlaybackMode.FadeRestart,
-    });
-
   const panelEntity = world
     .createTransformEntity()
     .addComponent(PanelUI, {
       config: "./ui/welcome.json",
-      maxHeight: 3,
+      maxHeight: 3.35,
       maxWidth: 1.6,
     })
     .addComponent(Interactable)
@@ -141,20 +60,7 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
       left: "20px",
       height: "95%",
     });
-  panelEntity.object3D!.position.set(0, 1.95, -1.9);
-
-  const webxrLogoTexture = AssetManager.getTexture("webxr")!;
-  webxrLogoTexture.colorSpace = SRGBColorSpace;
-  const logoBanner = new Mesh(
-    new PlaneGeometry(3.39, 0.96),
-    new MeshBasicMaterial({
-      map: webxrLogoTexture,
-      transparent: true,
-    }),
-  );
-  world.createTransformEntity(logoBanner);
-  logoBanner.position.set(0, 1, 1.8);
-  logoBanner.rotateY(Math.PI);
+  panelEntity.object3D!.position.set(0, 2.05, -1.9);
 
   const debugEntity = world.createTransformEntity();
   debugEntity.object3D!.name = "OpenBrushRuntimeDebug";
@@ -162,10 +68,10 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
 
   world
     .registerSystem(PanelSystem)
-    .registerSystem(RobotSystem)
     .registerSystem(InputCommandSystem)
     .registerSystem(BrushCatalogSystem)
     .registerSystem(LayerCanvasSystem)
     .registerSystem(StrokeAuthoringSystem)
+    .registerSystem(SelectionSystem)
     .registerSystem(RuntimeDebugSystem);
 });

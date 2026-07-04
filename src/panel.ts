@@ -14,6 +14,7 @@ import {
   BrushStroke,
   CanvasLayer,
   OpenBrushAppState,
+  SelectionState,
 } from "./components/OpenBrushCore.js";
 import {
   cycleSelectableBrush,
@@ -28,6 +29,10 @@ import {
   summarizeRuntimeLayers,
   type RuntimeLayerState,
 } from "./openbrush/layers.js";
+import {
+  resolveLastSelectableStroke,
+  type RuntimeStrokeSelectionState,
+} from "./openbrush/selection.js";
 
 type TextElement = UIKit.Text | null;
 
@@ -38,6 +43,7 @@ export class PanelSystem extends createSystem({
   },
   brushSettings: { required: [BrushSettings] },
   appState: { required: [OpenBrushAppState] },
+  selectionState: { required: [SelectionState] },
   layers: { required: [CanvasLayer] },
   strokes: { required: [BrushStroke] },
 }) {
@@ -62,6 +68,7 @@ export class PanelSystem extends createSystem({
       }
       this.updateBrushLabels(document);
       this.updateLayerLabels(document);
+      this.updateSelectionLabels(document);
     }
   }
 
@@ -87,6 +94,8 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "layer-move-up-button");
     this.nameElement(document, "layer-move-down-button");
     this.nameElement(document, "layer-clear-button");
+    this.nameElement(document, "selection-select-last-button");
+    this.nameElement(document, "selection-clear-button");
 
     const xrButton = document.getElementById("xr-button") as TextElement;
     xrButton?.addEventListener("click", () => {
@@ -168,8 +177,23 @@ export class PanelSystem extends createSystem({
     clearLayerButton?.addEventListener("click", () => {
       this.clearActiveLayer();
     });
+
+    const selectLastButton = document.getElementById(
+      "selection-select-last-button",
+    ) as TextElement;
+    selectLastButton?.addEventListener("click", () => {
+      this.selectLastStrokeOnActiveLayer();
+    });
+
+    const clearSelectionButton = document.getElementById(
+      "selection-clear-button",
+    ) as TextElement;
+    clearSelectionButton?.addEventListener("click", () => {
+      this.clearSelection();
+    });
     this.updateBrushLabels(document);
     this.updateLayerLabels(document);
+    this.updateSelectionLabels(document);
   }
 
   private selectBrushOffset(offset: number): void {
@@ -277,6 +301,7 @@ export class PanelSystem extends createSystem({
     }
     const activeLayerIndex = this.getActiveLayerIndex(appState);
     let clearedStrokeCount = 0;
+    let selectionChanged = false;
     for (const stroke of this.queries.strokes.entities) {
       if (Number(stroke.getValue(BrushStroke, "layerIndex")) !== activeLayerIndex) {
         continue;
@@ -284,14 +309,66 @@ export class PanelSystem extends createSystem({
       if (stroke.getValue(BrushStroke, "visible")) {
         clearedStrokeCount += 1;
       }
+      if (stroke.getValue(BrushStroke, "selected")) {
+        selectionChanged = true;
+      }
       stroke.setValue(BrushStroke, "visible", false);
       stroke.setValue(BrushStroke, "renderVisible", false);
+      stroke.setValue(BrushStroke, "selected", false);
       if (stroke.object3D) {
         stroke.object3D.visible = false;
       }
     }
+    if (selectionChanged) {
+      this.touchSelectionState();
+    }
     if (clearedStrokeCount > 0) {
       this.touchAppState(appState);
+    }
+  }
+
+  private selectLastStrokeOnActiveLayer(): void {
+    const appState = this.getAppStateEntity();
+    if (!appState) {
+      return;
+    }
+    const target = resolveLastSelectableStroke(
+      this.getStrokeSelectionStates(),
+      this.getActiveLayerIndex(appState),
+    );
+    if (!target) {
+      return;
+    }
+
+    let selectionChanged = false;
+    for (const stroke of this.queries.strokes.entities) {
+      const shouldSelect =
+        Number(stroke.getValue(BrushStroke, "commandIndex")) ===
+        target.commandIndex;
+      if (Boolean(stroke.getValue(BrushStroke, "selected")) !== shouldSelect) {
+        stroke.setValue(BrushStroke, "selected", shouldSelect);
+        selectionChanged = true;
+      }
+    }
+
+    if (selectionChanged) {
+      this.touchSelectionState();
+      this.touchAppState(appState);
+    }
+  }
+
+  private clearSelection(): void {
+    let selectionChanged = false;
+    for (const stroke of this.queries.strokes.entities) {
+      if (!stroke.getValue(BrushStroke, "selected")) {
+        continue;
+      }
+      stroke.setValue(BrushStroke, "selected", false);
+      selectionChanged = true;
+    }
+    if (selectionChanged) {
+      this.touchSelectionState();
+      this.touchAppState();
     }
   }
 
@@ -371,6 +448,41 @@ export class PanelSystem extends createSystem({
     );
   }
 
+  private updateSelectionLabels(document: UIKitDocument): void {
+    const selectionState = this.getSelectionStateEntity();
+    const selectedStrokeCount = selectionState
+      ? Number(selectionState.getValue(SelectionState, "selectedStrokeCount"))
+      : 0;
+    const activeSelectionLayerIndex = selectionState
+      ? Number(
+          selectionState.getValue(SelectionState, "activeSelectionLayerIndex"),
+        )
+      : -1;
+    const lastSelectedStrokeCommandIndex = selectionState
+      ? Number(
+          selectionState.getValue(
+            SelectionState,
+            "lastSelectedStrokeCommandIndex",
+          ),
+        )
+      : 0;
+
+    if (selectedStrokeCount === 0) {
+      this.setText(document, "selection-state", "No selection");
+      return;
+    }
+
+    const layerLabel =
+      activeSelectionLayerIndex >= 0
+        ? `Layer ${activeSelectionLayerIndex}`
+        : "Mixed layers";
+    this.setText(
+      document,
+      "selection-state",
+      `${selectedStrokeCount} selected | ${layerLabel} | #${lastSelectedStrokeCommandIndex}`,
+    );
+  }
+
   private setText(document: UIKitDocument, id: string, text: string): void {
     const element = document.getElementById(id) as TextElement;
     element?.setProperties({ text });
@@ -390,6 +502,11 @@ export class PanelSystem extends createSystem({
 
   private getAppStateEntity(): Entity | undefined {
     const next = this.queries.appState.entities.values().next();
+    return next.done ? undefined : next.value;
+  }
+
+  private getSelectionStateEntity(): Entity | undefined {
+    const next = this.queries.selectionState.entities.values().next();
     return next.done ? undefined : next.value;
   }
 
@@ -426,6 +543,21 @@ export class PanelSystem extends createSystem({
     return layers;
   }
 
+  private getStrokeSelectionStates(): RuntimeStrokeSelectionState[] {
+    const strokes: RuntimeStrokeSelectionState[] = [];
+    for (const stroke of this.queries.strokes.entities) {
+      strokes.push({
+        layerIndex: Number(stroke.getValue(BrushStroke, "layerIndex")),
+        commandIndex: Number(stroke.getValue(BrushStroke, "commandIndex")),
+        visible: Boolean(stroke.getValue(BrushStroke, "visible")),
+        renderVisible: Boolean(stroke.getValue(BrushStroke, "renderVisible")),
+        finalized: Boolean(stroke.getValue(BrushStroke, "finalized")),
+        selected: Boolean(stroke.getValue(BrushStroke, "selected")),
+      });
+    }
+    return strokes;
+  }
+
   private getActiveLayerIndex(appState = this.getAppStateEntity()): number {
     return appState
       ? Number(appState.getValue(OpenBrushAppState, "activeLayerIndex"))
@@ -441,6 +573,19 @@ export class PanelSystem extends createSystem({
       OpenBrushAppState,
       "commandRevision",
       Number(appState.getValue(OpenBrushAppState, "commandRevision")) + 1,
+    );
+  }
+
+  private touchSelectionState(
+    selectionState = this.getSelectionStateEntity(),
+  ): void {
+    if (!selectionState) {
+      return;
+    }
+    selectionState.setValue(
+      SelectionState,
+      "selectionRevision",
+      Number(selectionState.getValue(SelectionState, "selectionRevision")) + 1,
     );
   }
 }
