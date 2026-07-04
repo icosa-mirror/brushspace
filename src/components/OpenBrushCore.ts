@@ -82,6 +82,7 @@ export const BrushStroke = createComponent("BrushStroke", {
   color: { type: Types.Color, default: [1, 1, 1, 1] },
   finalized: { type: Types.Boolean, default: false },
   visible: { type: Types.Boolean, default: true },
+  renderVisible: { type: Types.Boolean, default: true },
   controlPointCount: { type: Types.Int32, default: 0 },
   vertexCount: { type: Types.Int32, default: 0 },
   indexCount: { type: Types.Int32, default: 0 },

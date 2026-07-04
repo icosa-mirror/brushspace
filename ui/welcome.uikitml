@@ -51,7 +51,7 @@
     display: flex;
     flex-direction: row;
     width: 100%;
-    margin-top: 1.2;
+    margin-top: 0.9;
   }
 
   .brush-button {
@@ -68,7 +68,23 @@
     cursor: pointer;
   }
 
-  #brush-next-button {
+  .wide-button {
+    width: 100%;
+    padding: 1;
+    background-color: #27272a;
+    color: #fafafa;
+    border-radius: 0.8;
+    border-width: 0.1;
+    border-color: #3f3f46;
+    font-size: 1.6;
+    font-weight: medium;
+    text-align: center;
+    cursor: pointer;
+    margin-top: 0.9;
+  }
+
+  #brush-next-button,
+  #layer-toggle-lock-button {
     margin-left: 1;
   }
 
@@ -98,5 +114,15 @@
     <button id="brush-previous-button" class="brush-button">Prev</button>
     <button id="brush-next-button" class="brush-button">Next</button>
   </div>
+  <span class="section-label">Layer</span>
+  <span id="active-layer-name" class="brush-name">Sketch</span>
+  <span id="active-layer-meta" class="brush-meta">Layer 0 | 1 paint / 1 selection</span>
+  <span id="layer-state" class="brush-meta">Visible | Unlocked</span>
+  <button id="layer-new-button" class="wide-button">New Layer</button>
+  <div class="button-row">
+    <button id="layer-toggle-visible-button" class="brush-button">Hide</button>
+    <button id="layer-toggle-lock-button" class="brush-button">Lock</button>
+  </div>
+  <button id="layer-next-button" class="wide-button">Next Layer</button>
   <button id="xr-button" class="xr-button">Enter XR</button>
 </div>

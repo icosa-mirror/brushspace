@@ -34,6 +34,7 @@ import { setupOpenBrushShell } from "./openbrush/setup-shell.js";
 
 import { BrushCatalogSystem } from "./systems/BrushCatalogSystem.js";
 import { InputCommandSystem } from "./systems/InputCommandSystem.js";
+import { LayerCanvasSystem } from "./systems/LayerCanvasSystem.js";
 import { RuntimeDebugSystem } from "./systems/RuntimeDebugSystem.js";
 import { StrokeAuthoringSystem } from "./systems/StrokeAuthoringSystem.js";
 
@@ -131,14 +132,14 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .createTransformEntity()
     .addComponent(PanelUI, {
       config: "./ui/welcome.json",
-      maxHeight: 0.8,
+      maxHeight: 1.25,
       maxWidth: 1.6,
     })
     .addComponent(Interactable)
     .addComponent(ScreenSpace, {
       top: "20px",
       left: "20px",
-      height: "40%",
+      height: "55%",
     });
   panelEntity.object3D!.position.set(0, 1.29, -1.9);
 
@@ -164,6 +165,7 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .registerSystem(RobotSystem)
     .registerSystem(InputCommandSystem)
     .registerSystem(BrushCatalogSystem)
+    .registerSystem(LayerCanvasSystem)
     .registerSystem(StrokeAuthoringSystem)
     .registerSystem(RuntimeDebugSystem);
 });

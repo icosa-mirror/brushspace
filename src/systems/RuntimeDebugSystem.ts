@@ -136,6 +136,26 @@ export class RuntimeDebugSystem extends createSystem({
     );
     entity.setValue(
       OpenBrushDebug,
+      "runtimeLayerCount",
+      this.countPaintLayers(),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "activeLayerName",
+      this.getActiveLayerString("layerName", "Sketch"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "activeLayerVisible",
+      this.getActiveLayerBoolean("visible", true),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "activeLayerLocked",
+      this.getActiveLayerBoolean("locked", false),
+    );
+    entity.setValue(
+      OpenBrushDebug,
       "strokeCount",
       phase1Summary.fixture.strokeCount,
     );
@@ -162,7 +182,7 @@ export class RuntimeDebugSystem extends createSystem({
     entity.setValue(
       OpenBrushDebug,
       "runtimeVisibleStrokeCount",
-      this.countStrokeBoolean("visible"),
+      this.countStrokeBoolean("renderVisible"),
     );
     entity.setValue(
       OpenBrushDebug,
@@ -274,7 +294,9 @@ export class RuntimeDebugSystem extends createSystem({
     return entity ? Number(entity.getValue(StrokeHistoryState, field)) : fallback;
   }
 
-  private countStrokeBoolean(field: "visible" | "finalized"): number {
+  private countStrokeBoolean(
+    field: "visible" | "renderVisible" | "finalized",
+  ): number {
     let count = 0;
     for (const entity of this.queries.strokes.entities) {
       if (entity.getValue(BrushStroke, field)) {
@@ -282,6 +304,42 @@ export class RuntimeDebugSystem extends createSystem({
       }
     }
     return count;
+  }
+
+  private countPaintLayers(): number {
+    let count = 0;
+    for (const entity of this.queries.canvases.entities) {
+      if (!entity.getValue(CanvasLayer, "selectionCanvas")) {
+        count += 1;
+      }
+    }
+    return count;
+  }
+
+  private getActiveLayerString(field: "layerName", fallback: string): string {
+    const layer = this.getActiveLayerEntity();
+    return layer ? String(layer.getValue(CanvasLayer, field)) : fallback;
+  }
+
+  private getActiveLayerBoolean(
+    field: "visible" | "locked",
+    fallback: boolean,
+  ): boolean {
+    const layer = this.getActiveLayerEntity();
+    return layer ? Boolean(layer.getValue(CanvasLayer, field)) : fallback;
+  }
+
+  private getActiveLayerEntity(): Entity | undefined {
+    const activeLayerIndex = this.getAppNumber("activeLayerIndex", 0);
+    for (const entity of this.queries.canvases.entities) {
+      if (
+        !entity.getValue(CanvasLayer, "selectionCanvas") &&
+        Number(entity.getValue(CanvasLayer, "layerIndex")) === activeLayerIndex
+      ) {
+        return entity;
+      }
+    }
+    return undefined;
   }
 
   private getFirstEntity(

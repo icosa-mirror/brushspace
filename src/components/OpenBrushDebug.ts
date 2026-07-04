@@ -1,8 +1,8 @@
 import { createComponent, Types } from "@iwsdk/core";
 
 export const OpenBrushDebug = createComponent("OpenBrushDebug", {
-  phase: { type: Types.String, default: "phase-5" },
-  status: { type: Types.String, default: "brush-catalog" },
+  phase: { type: Types.String, default: "phase-6" },
+  status: { type: Types.String, default: "layers" },
   planFile: { type: Types.String, default: "OPEN_BRUSH_IWSDK_PORT_PLAN.md" },
   visibilityState: { type: Types.String, default: "unknown" },
   appMode: { type: Types.String, default: "ready" },
@@ -20,6 +20,10 @@ export const OpenBrushDebug = createComponent("OpenBrushDebug", {
   paintUp: { type: Types.Boolean, default: false },
   inputPressure: { type: Types.Float32, default: 0 },
   layerCount: { type: Types.Int32, default: 1 },
+  runtimeLayerCount: { type: Types.Int32, default: 1 },
+  activeLayerName: { type: Types.String, default: "Sketch" },
+  activeLayerVisible: { type: Types.Boolean, default: true },
+  activeLayerLocked: { type: Types.Boolean, default: false },
   strokeCount: { type: Types.Int32, default: 0 },
   controlPointCount: { type: Types.Int32, default: 0 },
   runtimeCanvasCount: { type: Types.Int32, default: 0 },

@@ -18,6 +18,7 @@ import {
   BrushPointer,
   BrushSettings,
   BrushStroke,
+  CanvasLayer,
   InputCommandState,
   OpenBrushAppState,
   StrokeHistoryState,
@@ -58,6 +59,7 @@ export class StrokeAuthoringSystem extends createSystem({
   brushSettings: { required: [BrushSettings] },
   pointers: { required: [BrushPointer] },
   history: { required: [StrokeHistoryState] },
+  layers: { required: [CanvasLayer] },
   hoveredPanels: { required: [PanelUI, Hovered] },
   panels: { required: [PanelUI] },
 }) {
@@ -121,6 +123,9 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private isPaintStartBlocked(commandSource: string): boolean {
+    if (!this.isActiveLayerPaintable()) {
+      return true;
+    }
     if (this.isHoveringPanel()) {
       return true;
     }
@@ -128,6 +133,26 @@ export class StrokeAuthoringSystem extends createSystem({
       return false;
     }
     return this.isPointerRayIntersectingPanel();
+  }
+
+  private isActiveLayerPaintable(): boolean {
+    const appStateEntity = this.getFirstEntity("appState");
+    const activeLayerIndex = appStateEntity
+      ? Number(appStateEntity.getValue(OpenBrushAppState, "activeLayerIndex"))
+      : 0;
+
+    for (const layer of this.queries.layers.entities) {
+      if (
+        !layer.getValue(CanvasLayer, "selectionCanvas") &&
+        Number(layer.getValue(CanvasLayer, "layerIndex")) === activeLayerIndex
+      ) {
+        return (
+          Boolean(layer.getValue(CanvasLayer, "visible")) &&
+          !Boolean(layer.getValue(CanvasLayer, "locked"))
+        );
+      }
+    }
+    return false;
   }
 
   private isPointerRayIntersectingPanel(): boolean {
@@ -237,6 +262,7 @@ export class StrokeAuthoringSystem extends createSystem({
       color,
       finalized: false,
       visible: true,
+      renderVisible: true,
       controlPointCount: 0,
       vertexCount: 0,
       indexCount: 0,
@@ -384,6 +410,7 @@ export class StrokeAuthoringSystem extends createSystem({
     }
     stroke.entity.setValue(BrushStroke, "finalized", true);
     stroke.entity.setValue(BrushStroke, "visible", true);
+    stroke.entity.setValue(BrushStroke, "renderVisible", true);
     this.undoStack.push(stroke.entity);
     this.activeStroke = undefined;
   }
@@ -394,6 +421,7 @@ export class StrokeAuthoringSystem extends createSystem({
       return;
     }
     entity.setValue(BrushStroke, "visible", false);
+    entity.setValue(BrushStroke, "renderVisible", false);
     if (entity.object3D) {
       entity.object3D.visible = false;
     }
@@ -406,6 +434,7 @@ export class StrokeAuthoringSystem extends createSystem({
       return;
     }
     entity.setValue(BrushStroke, "visible", true);
+    entity.setValue(BrushStroke, "renderVisible", true);
     if (entity.object3D) {
       entity.object3D.visible = true;
     }
