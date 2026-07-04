@@ -34,6 +34,7 @@ import { setupOpenBrushShell } from "./openbrush/setup-shell.js";
 
 import { InputCommandSystem } from "./systems/InputCommandSystem.js";
 import { RuntimeDebugSystem } from "./systems/RuntimeDebugSystem.js";
+import { StrokeAuthoringSystem } from "./systems/StrokeAuthoringSystem.js";
 
 const assets: AssetManifest = {
   chimeSound: {
@@ -161,5 +162,6 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .registerSystem(PanelSystem)
     .registerSystem(RobotSystem)
     .registerSystem(InputCommandSystem)
+    .registerSystem(StrokeAuthoringSystem)
     .registerSystem(RuntimeDebugSystem);
 });

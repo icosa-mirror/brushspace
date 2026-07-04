@@ -7,9 +7,9 @@ import {
 } from "./port-phase.js";
 
 describe("Open Brush port phase metadata", () => {
-  it("identifies the active Phase 2 ECS shell", () => {
+  it("identifies the active Phase 3 paint MVP", () => {
     expect(OPEN_BRUSH_PLAN_FILE).toBe("OPEN_BRUSH_IWSDK_PORT_PLAN.md");
-    expect(OPEN_BRUSH_PORT_PHASE).toBe("phase-2");
-    expect(OPEN_BRUSH_PORT_STATUS).toBe("ecs-shell");
+    expect(OPEN_BRUSH_PORT_PHASE).toBe("phase-3");
+    expect(OPEN_BRUSH_PORT_STATUS).toBe("paint-mvp");
   });
 });

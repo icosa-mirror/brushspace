@@ -1,8 +1,8 @@
 import { createComponent, Types } from "@iwsdk/core";
 
 export const OpenBrushDebug = createComponent("OpenBrushDebug", {
-  phase: { type: Types.String, default: "phase-2" },
-  status: { type: Types.String, default: "ecs-shell" },
+  phase: { type: Types.String, default: "phase-3" },
+  status: { type: Types.String, default: "paint-mvp" },
   planFile: { type: Types.String, default: "OPEN_BRUSH_IWSDK_PORT_PLAN.md" },
   visibilityState: { type: Types.String, default: "unknown" },
   appMode: { type: Types.String, default: "ready" },
@@ -20,6 +20,12 @@ export const OpenBrushDebug = createComponent("OpenBrushDebug", {
   controlPointCount: { type: Types.Int32, default: 0 },
   runtimeCanvasCount: { type: Types.Int32, default: 0 },
   runtimePointerCount: { type: Types.Int32, default: 0 },
+  runtimeStrokeCount: { type: Types.Int32, default: 0 },
+  runtimeVisibleStrokeCount: { type: Types.Int32, default: 0 },
+  runtimeFinalizedStrokeCount: { type: Types.Int32, default: 0 },
+  activeStrokeControlPoints: { type: Types.Int32, default: 0 },
+  undoDepth: { type: Types.Int32, default: 0 },
+  redoDepth: { type: Types.Int32, default: 0 },
   brushInventoryTotal: { type: Types.Int32, default: 0 },
   brushInventorySupported: { type: Types.Int32, default: 0 },
   brushInventoryFallback: { type: Types.Int32, default: 0 },

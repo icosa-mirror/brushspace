@@ -6,6 +6,7 @@ import {
   CanvasLayer,
   InputCommandState,
   OpenBrushAppState,
+  StrokeHistoryState,
 } from "../components/OpenBrushCore.js";
 import { PHASE1_FIXTURE_BRUSH_GUID } from "./fixtures.js";
 
@@ -31,7 +32,8 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
       size: 0.42,
       color: [0.1, 0.45, 0.95, 1],
     })
-    .addComponent(InputCommandState);
+    .addComponent(InputCommandState)
+    .addComponent(StrokeHistoryState);
   appState.object3D!.name = "OpenBrushAppState";
 
   const mainCanvas = world.createTransformEntity().addComponent(CanvasLayer, {

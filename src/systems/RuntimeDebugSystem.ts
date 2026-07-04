@@ -5,9 +5,11 @@ import { OpenBrushDebug } from "../components/OpenBrushDebug.js";
 import {
   BrushPointer,
   BrushSettings,
+  BrushStroke,
   CanvasLayer,
   InputCommandState,
   OpenBrushAppState,
+  StrokeHistoryState,
 } from "../components/OpenBrushCore.js";
 import {
   OPEN_BRUSH_PLAN_FILE,
@@ -25,6 +27,8 @@ export class RuntimeDebugSystem extends createSystem({
   inputCommands: { required: [InputCommandState] },
   canvases: { required: [CanvasLayer] },
   pointers: { required: [BrushPointer] },
+  strokes: { required: [BrushStroke] },
+  history: { required: [StrokeHistoryState] },
 }) {
   init() {
     this.queries.debug.subscribe("qualify", (entity) => {
@@ -130,6 +134,36 @@ export class RuntimeDebugSystem extends createSystem({
     );
     entity.setValue(
       OpenBrushDebug,
+      "runtimeStrokeCount",
+      this.queries.strokes.entities.size,
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "runtimeVisibleStrokeCount",
+      this.countStrokeBoolean("visible"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "runtimeFinalizedStrokeCount",
+      this.countStrokeBoolean("finalized"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "activeStrokeControlPoints",
+      this.getHistoryNumber("activeStrokeControlPoints", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "undoDepth",
+      this.getHistoryNumber("undoDepth", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "redoDepth",
+      this.getHistoryNumber("redoDepth", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
       "brushInventoryTotal",
       phase1Summary.inventory.total,
     );
@@ -198,8 +232,26 @@ export class RuntimeDebugSystem extends createSystem({
     return entity ? Number(entity.getValue(InputCommandState, field)) : fallback;
   }
 
+  private getHistoryNumber(
+    field: "activeStrokeControlPoints" | "undoDepth" | "redoDepth",
+    fallback: number,
+  ): number {
+    const entity = this.getFirstEntity("history");
+    return entity ? Number(entity.getValue(StrokeHistoryState, field)) : fallback;
+  }
+
+  private countStrokeBoolean(field: "visible" | "finalized"): number {
+    let count = 0;
+    for (const entity of this.queries.strokes.entities) {
+      if (entity.getValue(BrushStroke, field)) {
+        count += 1;
+      }
+    }
+    return count;
+  }
+
   private getFirstEntity(
-    queryName: "appState" | "brushSettings" | "inputCommands",
+    queryName: "appState" | "brushSettings" | "inputCommands" | "history",
   ): Entity | undefined {
     const next = this.queries[queryName].entities.values().next();
     return next.done ? undefined : next.value;
