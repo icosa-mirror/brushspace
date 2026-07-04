@@ -19,6 +19,7 @@ import {
   PersistenceState,
   SelectionState,
   SelectionWidget,
+  SettingsState,
   StrokeHistoryState,
   UiCommandHistoryState,
 } from "../components/OpenBrushCore.js";
@@ -53,6 +54,7 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
     .addComponent(InputCommandState)
     .addComponent(AudioFeedbackState)
     .addComponent(UiCommandHistoryState)
+    .addComponent(SettingsState)
     .addComponent(PersistenceState)
     .addComponent(PlaybackState)
     .addComponent(SelectionState)

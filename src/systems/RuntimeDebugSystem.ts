@@ -14,6 +14,7 @@ import {
   PersistenceState,
   SelectionState,
   SelectionWidget,
+  SettingsState,
   StrokeHistoryState,
   UiCommandHistoryState,
 } from "../components/OpenBrushCore.js";
@@ -39,6 +40,7 @@ export class RuntimeDebugSystem extends createSystem({
   selectionWidgets: { required: [SelectionWidget] },
   history: { required: [StrokeHistoryState] },
   uiHistory: { required: [UiCommandHistoryState] },
+  settings: { required: [SettingsState] },
   persistence: { required: [PersistenceState] },
   playback: { required: [PlaybackState] },
 }) {
@@ -284,6 +286,91 @@ export class RuntimeDebugSystem extends createSystem({
       OpenBrushDebug,
       "uiLastCommandName",
       this.getUiHistoryString("lastCommandName", ""),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "dominantHand",
+      this.getSettingsString("dominantHand", "right"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "panelScale",
+      this.getSettingsNumber("panelScale", 1),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "panelDistance",
+      this.getSettingsNumber("panelDistance", 0.9),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "panelHeight",
+      this.getSettingsNumber("panelHeight", 1.15),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "panelAnchor",
+      this.getSettingsString("panelAnchor", "off-hand"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "turnMode",
+      this.getSettingsString("turnMode", "snap"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "snapTurnDegrees",
+      this.getSettingsNumber("snapTurnDegrees", 30),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "continuousTurnDegreesPerSecond",
+      this.getSettingsNumber("continuousTurnDegreesPerSecond", 90),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "locomotionMode",
+      this.getSettingsString("locomotionMode", "stationary"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "browserPointerEnabled",
+      this.getSettingsBoolean("browserPointerEnabled", true),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "xrRayEnabled",
+      this.getSettingsBoolean("xrRayEnabled", true),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "comfortVignetteEnabled",
+      this.getSettingsBoolean("comfortVignetteEnabled", false),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "helpVisible",
+      this.getSettingsBoolean("helpVisible", false),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "controllerHintsVisible",
+      this.getSettingsBoolean("controllerHintsVisible", true),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "settingsRevision",
+      this.getSettingsNumber("settingsRevision", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "lastSettingsCommand",
+      this.getSettingsString("lastSettingsCommand", ""),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "settingsStatus",
+      this.getSettingsString("settingsStatus", "ready"),
     );
     entity.setValue(
       OpenBrushDebug,
@@ -541,6 +628,47 @@ export class RuntimeDebugSystem extends createSystem({
       : fallback;
   }
 
+  private getSettingsString(
+    field:
+      | "dominantHand"
+      | "panelAnchor"
+      | "turnMode"
+      | "locomotionMode"
+      | "lastSettingsCommand"
+      | "settingsStatus",
+    fallback: string,
+  ): string {
+    const entity = this.getFirstEntity("settings");
+    return entity ? String(entity.getValue(SettingsState, field)) : fallback;
+  }
+
+  private getSettingsNumber(
+    field:
+      | "panelScale"
+      | "panelDistance"
+      | "panelHeight"
+      | "snapTurnDegrees"
+      | "continuousTurnDegreesPerSecond"
+      | "settingsRevision",
+    fallback: number,
+  ): number {
+    const entity = this.getFirstEntity("settings");
+    return entity ? Number(entity.getValue(SettingsState, field)) : fallback;
+  }
+
+  private getSettingsBoolean(
+    field:
+      | "browserPointerEnabled"
+      | "xrRayEnabled"
+      | "comfortVignetteEnabled"
+      | "helpVisible"
+      | "controllerHintsVisible",
+    fallback: boolean,
+  ): boolean {
+    const entity = this.getFirstEntity("settings");
+    return entity ? Boolean(entity.getValue(SettingsState, field)) : fallback;
+  }
+
   private getPersistenceString(
     field: "activeSketchId" | "activeSketchName" | "status" | "error",
     fallback: string,
@@ -706,6 +834,7 @@ export class RuntimeDebugSystem extends createSystem({
       | "selectionWidgets"
       | "history"
       | "uiHistory"
+      | "settings"
       | "persistence"
       | "playback",
   ): Entity | undefined {

@@ -62,6 +62,26 @@ export const UiCommandHistoryState = createComponent("UiCommandHistoryState", {
   lastCommandName: { type: Types.String, default: "" },
 });
 
+export const SettingsState = createComponent("SettingsState", {
+  dominantHand: { type: Types.String, default: "right" },
+  panelScale: { type: Types.Float32, default: 1 },
+  panelDistance: { type: Types.Float32, default: 0.9 },
+  panelHeight: { type: Types.Float32, default: 1.15 },
+  panelAnchor: { type: Types.String, default: "off-hand" },
+  turnMode: { type: Types.String, default: "snap" },
+  snapTurnDegrees: { type: Types.Float32, default: 30 },
+  continuousTurnDegreesPerSecond: { type: Types.Float32, default: 90 },
+  locomotionMode: { type: Types.String, default: "stationary" },
+  browserPointerEnabled: { type: Types.Boolean, default: true },
+  xrRayEnabled: { type: Types.Boolean, default: true },
+  comfortVignetteEnabled: { type: Types.Boolean, default: false },
+  helpVisible: { type: Types.Boolean, default: false },
+  controllerHintsVisible: { type: Types.Boolean, default: true },
+  settingsRevision: { type: Types.Int32, default: 0 },
+  lastSettingsCommand: { type: Types.String, default: "" },
+  settingsStatus: { type: Types.String, default: "ready" },
+});
+
 export const PersistenceState = createComponent("PersistenceState", {
   activeSketchId: { type: Types.String, default: "" },
   activeSketchName: { type: Types.String, default: "Untitled Sketch" },
