@@ -22,11 +22,15 @@ import {
 
 import { EnvironmentType, LocomotionEnvironment } from "@iwsdk/core";
 
+import { OpenBrushDebug } from "./components/OpenBrushDebug.js";
+
 import { PanelSystem } from "./panel.js";
 
 import { Robot } from "./robot.js";
 
 import { RobotSystem } from "./robot.js";
+
+import { RuntimeDebugSystem } from "./systems/RuntimeDebugSystem.js";
 
 const assets: AssetManifest = {
   chimeSound: {
@@ -65,10 +69,14 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
   },
   features: {
     locomotion: false,
-    grabbing: false,
+    grabbing: true,
     physics: false,
     sceneUnderstanding: false,
     environmentRaycast: false,
+    spatialUI: {
+      forwardHtmlEvents: true,
+      preferredColorScheme: "dark",
+    },
   },
 }).then((world) => {
   const { camera } = world;
@@ -140,5 +148,12 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
   logoBanner.position.set(0, 1, 1.8);
   logoBanner.rotateY(Math.PI);
 
-  world.registerSystem(PanelSystem).registerSystem(RobotSystem);
+  const debugEntity = world.createTransformEntity();
+  debugEntity.object3D!.name = "OpenBrushRuntimeDebug";
+  debugEntity.addComponent(OpenBrushDebug);
+
+  world
+    .registerSystem(PanelSystem)
+    .registerSystem(RobotSystem)
+    .registerSystem(RuntimeDebugSystem);
 });
