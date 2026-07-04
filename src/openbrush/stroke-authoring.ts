@@ -144,6 +144,39 @@ export function upsertStraightedgeEndpoint(
   return "updated";
 }
 
+export function upsertTapeMeasureEndpoints(
+  controlPoints: ControlPoint[],
+  anchorFrame: StrokePointerFrame,
+  endpointFrame: StrokePointerFrame,
+  minDistance: number,
+): StraightedgeSampleResult {
+  if (
+    !shouldSampleControlPoint(
+      anchorFrame.position,
+      endpointFrame.position,
+      minDistance,
+    )
+  ) {
+    return "ignored";
+  }
+
+  if (controlPoints.length === 0) {
+    controlPoints.push(createControlPointFromFrame(anchorFrame));
+    controlPoints.push(createControlPointFromFrame(endpointFrame));
+    return "created";
+  }
+
+  writeControlPointFromFrame(controlPoints[0], anchorFrame);
+  if (controlPoints.length === 1) {
+    controlPoints.push(createControlPointFromFrame(endpointFrame));
+    return "created";
+  }
+
+  writeControlPointFromFrame(controlPoints[1], endpointFrame);
+  controlPoints.length = 2;
+  return "updated";
+}
+
 export function createControlPointFromFrame(
   frame: StrokePointerFrame,
 ): ControlPoint {

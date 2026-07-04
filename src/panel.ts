@@ -114,6 +114,7 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "tool-mirror-button");
     this.nameElement(document, "tool-grid-snap-button");
     this.nameElement(document, "tool-lazy-input-button");
+    this.nameElement(document, "tool-tape-button");
     this.nameElement(document, "tool-color-picker-button");
     this.nameElement(document, "tool-brush-picker-button");
     this.nameElement(document, "tool-pick-button");
@@ -202,6 +203,13 @@ export class PanelSystem extends createSystem({
     ) as TextElement;
     lazyInputToolButton?.addEventListener("click", () => {
       this.selectTool("lazy-input");
+    });
+
+    const tapeToolButton = document.getElementById(
+      "tool-tape-button",
+    ) as TextElement;
+    tapeToolButton?.addEventListener("click", () => {
+      this.selectTool("tape");
     });
 
     const colorPickerToolButton = document.getElementById(
@@ -511,6 +519,11 @@ export class PanelSystem extends createSystem({
       document,
       "tool-lazy-input-button",
       activeTool.id === "lazy-input" ? "Lazy *" : "Lazy",
+    );
+    this.setText(
+      document,
+      "tool-tape-button",
+      activeTool.id === "tape" ? "Tape *" : "Tape",
     );
     this.setText(
       document,

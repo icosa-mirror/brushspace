@@ -73,6 +73,16 @@ describe("Open Brush tools", () => {
     expect(lazyInput.lazyMode).toBe("position");
   });
 
+  it("marks tape as a painting bimanual endpoint tool", () => {
+    const tape = resolveOpenBrushTool("tape");
+    expect(tape.paints).toBe(true);
+    expect(tape.erases).toBe(false);
+    expect(tape.samplingMode).toBe("tape");
+    expect(tape.mirrorMode).toBe("none");
+    expect(tape.snapMode).toBe("none");
+    expect(tape.lazyMode).toBe("none");
+  });
+
   it("marks pickers as state-only tools", () => {
     for (const toolId of ["color-picker", "brush-picker"]) {
       const picker = resolveOpenBrushTool(toolId);

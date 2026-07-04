@@ -89,6 +89,7 @@
   #tool-mirror-button,
   #tool-brush-picker-button,
   #tool-lazy-input-button,
+  #tool-tape-button,
   #layer-next-button,
   #layer-toggle-lock-button,
   #layer-move-down-button,
@@ -138,6 +139,7 @@
     <button id="tool-grid-snap-button" class="brush-button">Grid</button>
     <button id="tool-lazy-input-button" class="brush-button">Lazy</button>
   </div>
+  <button id="tool-tape-button" class="wide-button">Tape</button>
   <button id="tool-pick-button" class="wide-button">Pick Target</button>
   <button id="tool-erase-button" class="wide-button">Erase Target</button>
   <span class="section-label">Brush</span>

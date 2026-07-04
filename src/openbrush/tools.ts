@@ -5,10 +5,15 @@ export type OpenBrushToolId =
   | "mirror"
   | "grid-snap"
   | "lazy-input"
+  | "tape"
   | "color-picker"
   | "brush-picker";
 
-export type OpenBrushToolSamplingMode = "none" | "freehand" | "straightedge";
+export type OpenBrushToolSamplingMode =
+  | "none"
+  | "freehand"
+  | "straightedge"
+  | "tape";
 export type OpenBrushToolMirrorMode = "none" | "x";
 export type OpenBrushToolSnapMode = "none" | "grid";
 export type OpenBrushToolLazyMode = "none" | "position";
@@ -91,6 +96,17 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     mirrorMode: "none",
     snapMode: "none",
     lazyMode: "position",
+  },
+  {
+    id: "tape",
+    label: "Tape",
+    status: "tape-ready",
+    paints: true,
+    erases: false,
+    samplingMode: "tape",
+    mirrorMode: "none",
+    snapMode: "none",
+    lazyMode: "none",
   },
   {
     id: "color-picker",

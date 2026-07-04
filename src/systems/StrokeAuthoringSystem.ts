@@ -33,6 +33,7 @@ import { createBrushMaterialSpec } from "../openbrush/brush-materials.js";
 import {
   createMirroredStrokeDataX,
   shouldSampleControlPoint,
+  upsertTapeMeasureEndpoints,
   upsertStraightedgeEndpoint,
   writeGridSnappedPosition,
   writeLazyInputPosition,
@@ -100,7 +101,16 @@ export class StrokeAuthoringSystem extends createSystem({
   private readonly panelDelta = new Vector3();
   private readonly panelHit = new Vector3();
   private readonly rayDirection = new Vector3();
+  private readonly tapeAnchorPosition = new Vector3();
+  private readonly tapeAnchorQuaternion = new Quaternion();
   private readonly sampleFrame: StrokePointerFrame = {
+    paintPressed: true,
+    pressure: 0,
+    position: [0, 0, 0],
+    orientation: [0, 0, 0, 1],
+    timestampMs: 0,
+  };
+  private readonly tapeAnchorFrame: StrokePointerFrame = {
     paintPressed: true,
     pressure: 0,
     position: [0, 0, 0],
@@ -141,6 +151,8 @@ export class StrokeAuthoringSystem extends createSystem({
         this.startStroke(commandEntity, time, pressure);
       } else if (this.activeStroke.samplingMode === "straightedge") {
         this.sampleStraightedgeStroke(time, pressure);
+      } else if (this.activeStroke.samplingMode === "tape") {
+        this.sampleTapeStroke(time, pressure);
       } else {
         this.sampleActiveStroke(time, pressure, false);
       }
@@ -335,7 +347,11 @@ export class StrokeAuthoringSystem extends createSystem({
     };
     this.activeStroke = stroke;
     this.redoStack.length = 0;
-    this.sampleActiveStroke(time, pressure, true);
+    if (stroke.samplingMode === "tape") {
+      this.sampleTapeStroke(time, pressure);
+    } else {
+      this.sampleActiveStroke(time, pressure, true);
+    }
     this.setActivePointerSampleCount(commandEntity);
   }
 
@@ -401,6 +417,32 @@ export class StrokeAuthoringSystem extends createSystem({
 
     const result = upsertStraightedgeEndpoint(
       stroke.controlPoints,
+      this.writeSampleFrame(time, pressure, stroke),
+      MIN_SAMPLE_DISTANCE,
+    );
+    if (result === "ignored") {
+      return;
+    }
+
+    this.recalculateBounds(stroke);
+    this.rebuildStrokeMesh(stroke);
+    stroke.entity.setValue(
+      BrushStroke,
+      "controlPointCount",
+      stroke.controlPoints.length,
+    );
+    this.setPointerSampleCount(stroke.controlPoints.length);
+  }
+
+  private sampleTapeStroke(time: number, pressure: number): void {
+    const stroke = this.activeStroke;
+    if (!stroke) {
+      return;
+    }
+
+    const result = upsertTapeMeasureEndpoints(
+      stroke.controlPoints,
+      this.writeTapeAnchorFrame(time, pressure),
       this.writeSampleFrame(time, pressure, stroke),
       MIN_SAMPLE_DISTANCE,
     );
@@ -533,7 +575,11 @@ export class StrokeAuthoringSystem extends createSystem({
     if (!stroke) {
       return;
     }
-    if (stroke.samplingMode === "straightedge" && stroke.controlPoints.length < 2) {
+    if (
+      (stroke.samplingMode === "straightedge" ||
+        stroke.samplingMode === "tape") &&
+      stroke.controlPoints.length < 2
+    ) {
       stroke.entity.dispose();
       this.activeStroke = undefined;
       return;
@@ -732,6 +778,26 @@ export class StrokeAuthoringSystem extends createSystem({
     this.sampleFrame.orientation[3] = this.sampleQuaternion.w;
     this.sampleFrame.timestampMs = Math.round(time * 1000);
     return this.sampleFrame;
+  }
+
+  private writeTapeAnchorFrame(
+    time: number,
+    pressure: number,
+  ): StrokePointerFrame {
+    this.world.player.raySpaces.left.getWorldPosition(this.tapeAnchorPosition);
+    this.world.player.raySpaces.left.getWorldQuaternion(
+      this.tapeAnchorQuaternion,
+    );
+    this.tapeAnchorFrame.pressure = pressure;
+    this.tapeAnchorFrame.position[0] = this.tapeAnchorPosition.x;
+    this.tapeAnchorFrame.position[1] = this.tapeAnchorPosition.y;
+    this.tapeAnchorFrame.position[2] = this.tapeAnchorPosition.z;
+    this.tapeAnchorFrame.orientation[0] = this.tapeAnchorQuaternion.x;
+    this.tapeAnchorFrame.orientation[1] = this.tapeAnchorQuaternion.y;
+    this.tapeAnchorFrame.orientation[2] = this.tapeAnchorQuaternion.z;
+    this.tapeAnchorFrame.orientation[3] = this.tapeAnchorQuaternion.w;
+    this.tapeAnchorFrame.timestampMs = Math.round(time * 1000);
+    return this.tapeAnchorFrame;
   }
 
   private getActiveTool(): OpenBrushToolDescriptor {

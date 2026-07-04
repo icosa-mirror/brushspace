@@ -6,6 +6,7 @@ import {
   createStrokeAuthoringState,
   shouldSampleControlPoint,
   upsertStraightedgeEndpoint,
+  upsertTapeMeasureEndpoints,
   writeGridSnappedPosition,
   writeLazyInputPosition,
   type StrokePointerFrame,
@@ -119,6 +120,48 @@ describe("stroke authoring state", () => {
     expect(controlPoints).toHaveLength(2);
     expect(controlPoints[1]).toBe(endpoint);
     expect(controlPoints[1].position).toEqual([0.3, 0, 0]);
+  });
+
+  it("keeps tape measure strokes to bimanual anchor and endpoint pairs", () => {
+    const controlPoints: ControlPoint[] = [];
+
+    expect(
+      upsertTapeMeasureEndpoints(
+        controlPoints,
+        frame(true, 0),
+        frame(true, 0.01),
+        0.02,
+      ),
+    ).toBe("ignored");
+    expect(controlPoints).toHaveLength(0);
+
+    expect(
+      upsertTapeMeasureEndpoints(
+        controlPoints,
+        frame(true, -0.2),
+        frame(true, 0.2),
+        0.02,
+      ),
+    ).toBe("created");
+    expect(controlPoints).toHaveLength(2);
+    expect(controlPoints[0].position).toEqual([-0.2, 0, 0]);
+    expect(controlPoints[1].position).toEqual([0.2, 0, 0]);
+
+    const anchor = controlPoints[0];
+    const endpoint = controlPoints[1];
+    expect(
+      upsertTapeMeasureEndpoints(
+        controlPoints,
+        frame(true, -0.4),
+        frame(true, 0.1),
+        0.02,
+      ),
+    ).toBe("updated");
+    expect(controlPoints).toHaveLength(2);
+    expect(controlPoints[0]).toBe(anchor);
+    expect(controlPoints[1]).toBe(endpoint);
+    expect(controlPoints[0].position).toEqual([-0.4, 0, 0]);
+    expect(controlPoints[1].position).toEqual([0.1, 0, 0]);
   });
 
   it("mirrors stroke data across the X axis with group continuation metadata", () => {
