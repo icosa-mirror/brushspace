@@ -15,6 +15,7 @@ import {
   CanvasLayer,
   InputCommandState,
   OpenBrushAppState,
+  PersistenceState,
   SelectionState,
   SelectionWidget,
   StrokeHistoryState,
@@ -51,6 +52,7 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
     .addComponent(InputCommandState)
     .addComponent(AudioFeedbackState)
     .addComponent(UiCommandHistoryState)
+    .addComponent(PersistenceState)
     .addComponent(SelectionState)
     .addComponent(StrokeHistoryState)
     .addComponent(BrushCatalogState);

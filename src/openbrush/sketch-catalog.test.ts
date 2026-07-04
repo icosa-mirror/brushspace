@@ -3,10 +3,13 @@ import { describe, expect, it } from "vitest";
 import {
   MemorySketchCatalogStore,
   createSketchCatalogRecord,
+  createSketchCatalogRecordFromTiltBytes,
   readSketchCatalogRecordDocument,
+  searchSketchCatalogItems,
 } from "./sketch-catalog.js";
 import { createSketchDocument, createSketchLayer } from "./document.js";
 import { PHASE1_FIXTURE_BRUSH_GUID } from "./fixtures.js";
+import { writeTiltFile } from "./tilt-file.js";
 import { createEmptyStrokeData } from "./types.js";
 
 describe("Open Brush sketch catalog", () => {
@@ -89,6 +92,31 @@ describe("Open Brush sketch catalog", () => {
     });
     expect(await store.delete("new")).toBe(true);
     expect(await store.load("new")).toBeUndefined();
+  });
+
+  it("imports copied .tilt bytes and searches catalog metadata", async () => {
+    const document = createCatalogDocument();
+    const tiltBytes = writeTiltFile(document);
+    const record = createSketchCatalogRecordFromTiltBytes({
+      id: "import-1",
+      name: "Imported Tilt",
+      tiltBytes,
+      nowMs: 7000,
+    });
+    tiltBytes[0] = 0;
+
+    expect(record.summary.strokeCount).toBe(1);
+    expect(record.tiltBytes[0]).not.toBe(0);
+    expect(readSketchCatalogRecordDocument(record).layers[0].name).toBe(
+      "Sketch",
+    );
+
+    const store = new MemorySketchCatalogStore();
+    await store.save(record);
+    const items = await store.list();
+    expect(searchSketchCatalogItems(items, "imported")).toHaveLength(1);
+    expect(searchSketchCatalogItems(items, "1 strokes")).toHaveLength(1);
+    expect(searchSketchCatalogItems(items, "missing")).toHaveLength(0);
   });
 });
 

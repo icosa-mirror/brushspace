@@ -67,10 +67,55 @@ export function createSketchCatalogRecord({
   };
 }
 
+export function createSketchCatalogRecordFromTiltBytes({
+  id,
+  name,
+  tiltBytes,
+  nowMs,
+  thumbnailPng = DEFAULT_CATALOG_THUMBNAIL_PNG,
+}: {
+  id: string;
+  name: string;
+  tiltBytes: Uint8Array;
+  nowMs: number;
+  thumbnailPng?: Uint8Array;
+}): SketchCatalogRecord {
+  const document = readTiltFile(tiltBytes);
+  return {
+    id,
+    name,
+    createdAtMs: nowMs,
+    updatedAtMs: nowMs,
+    summary: summarizeSketchDocument(document),
+    tiltBytes: cloneBytes(tiltBytes),
+    thumbnailPng: cloneBytes(thumbnailPng),
+  };
+}
+
 export function readSketchCatalogRecordDocument(
   record: SketchCatalogRecord,
 ): SketchDocument {
   return readTiltFile(record.tiltBytes);
+}
+
+export function searchSketchCatalogItems(
+  items: readonly SketchCatalogListItem[],
+  query: string,
+): SketchCatalogListItem[] {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) {
+    return [...items];
+  }
+  return items.filter((item) =>
+    [
+      item.id,
+      item.name,
+      `${item.summary.layerCount} layers`,
+      `${item.summary.strokeCount} strokes`,
+      `${item.summary.controlPointCount} points`,
+      `${item.summary.brushGuidCount} brushes`,
+    ].some((value) => value.toLowerCase().includes(normalizedQuery)),
+  );
 }
 
 export class MemorySketchCatalogStore implements SketchCatalogStore {

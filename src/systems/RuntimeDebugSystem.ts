@@ -10,6 +10,7 @@ import {
   CanvasLayer,
   InputCommandState,
   OpenBrushAppState,
+  PersistenceState,
   SelectionState,
   SelectionWidget,
   StrokeHistoryState,
@@ -37,6 +38,7 @@ export class RuntimeDebugSystem extends createSystem({
   selectionWidgets: { required: [SelectionWidget] },
   history: { required: [StrokeHistoryState] },
   uiHistory: { required: [UiCommandHistoryState] },
+  persistence: { required: [PersistenceState] },
 }) {
   init() {
     this.queries.debug.subscribe("qualify", (entity) => {
@@ -283,6 +285,91 @@ export class RuntimeDebugSystem extends createSystem({
     );
     entity.setValue(
       OpenBrushDebug,
+      "persistenceStatus",
+      this.getPersistenceString("status", "idle"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "persistenceError",
+      this.getPersistenceString("error", ""),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "activeSketchId",
+      this.getPersistenceString("activeSketchId", ""),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "activeSketchName",
+      this.getPersistenceString("activeSketchName", "Untitled Sketch"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "sketchCatalogEntryCount",
+      this.getPersistenceNumber("catalogEntryCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "sketchSaveRevision",
+      this.getPersistenceNumber("saveRevision", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "sketchLoadRevision",
+      this.getPersistenceNumber("loadRevision", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "sketchExportRevision",
+      this.getPersistenceNumber("exportRevision", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "lastSavedAtMs",
+      this.getPersistenceNumber("lastSavedAtMs", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "lastLoadedAtMs",
+      this.getPersistenceNumber("lastLoadedAtMs", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "lastExportedAtMs",
+      this.getPersistenceNumber("lastExportedAtMs", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "lastTiltByteLength",
+      this.getPersistenceNumber("lastTiltByteLength", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "lastThumbnailByteLength",
+      this.getPersistenceNumber("lastThumbnailByteLength", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "lastPersistedLayerCount",
+      this.getPersistenceNumber("lastLayerCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "lastPersistedStrokeCount",
+      this.getPersistenceNumber("lastStrokeCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "lastPersistedControlPointCount",
+      this.getPersistenceNumber("lastControlPointCount", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "sketchDirty",
+      this.getPersistenceBoolean("isDirty", false),
+    );
+    entity.setValue(
+      OpenBrushDebug,
       "brushInventoryTotal",
       phase1Summary.inventory.total,
     );
@@ -397,6 +484,39 @@ export class RuntimeDebugSystem extends createSystem({
       : fallback;
   }
 
+  private getPersistenceString(
+    field: "activeSketchId" | "activeSketchName" | "status" | "error",
+    fallback: string,
+  ): string {
+    const entity = this.getFirstEntity("persistence");
+    return entity ? String(entity.getValue(PersistenceState, field)) : fallback;
+  }
+
+  private getPersistenceNumber(
+    field:
+      | "catalogEntryCount"
+      | "saveRevision"
+      | "loadRevision"
+      | "exportRevision"
+      | "lastSavedAtMs"
+      | "lastLoadedAtMs"
+      | "lastExportedAtMs"
+      | "lastTiltByteLength"
+      | "lastThumbnailByteLength"
+      | "lastLayerCount"
+      | "lastStrokeCount"
+      | "lastControlPointCount",
+    fallback: number,
+  ): number {
+    const entity = this.getFirstEntity("persistence");
+    return entity ? Number(entity.getValue(PersistenceState, field)) : fallback;
+  }
+
+  private getPersistenceBoolean(field: "isDirty", fallback: boolean): boolean {
+    const entity = this.getFirstEntity("persistence");
+    return entity ? Boolean(entity.getValue(PersistenceState, field)) : fallback;
+  }
+
   private getSelectionNumber(
     field:
       | "selectedStrokeCount"
@@ -504,7 +624,8 @@ export class RuntimeDebugSystem extends createSystem({
       | "selectionState"
       | "selectionWidgets"
       | "history"
-      | "uiHistory",
+      | "uiHistory"
+      | "persistence",
   ): Entity | undefined {
     const next = this.queries[queryName].entities.values().next();
     return next.done ? undefined : next.value;

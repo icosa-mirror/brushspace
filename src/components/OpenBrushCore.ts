@@ -62,6 +62,26 @@ export const UiCommandHistoryState = createComponent("UiCommandHistoryState", {
   lastCommandName: { type: Types.String, default: "" },
 });
 
+export const PersistenceState = createComponent("PersistenceState", {
+  activeSketchId: { type: Types.String, default: "" },
+  activeSketchName: { type: Types.String, default: "Untitled Sketch" },
+  status: { type: Types.String, default: "idle" },
+  error: { type: Types.String, default: "" },
+  catalogEntryCount: { type: Types.Int32, default: 0 },
+  saveRevision: { type: Types.Int32, default: 0 },
+  loadRevision: { type: Types.Int32, default: 0 },
+  exportRevision: { type: Types.Int32, default: 0 },
+  lastSavedAtMs: { type: Types.Float64, default: 0 },
+  lastLoadedAtMs: { type: Types.Float64, default: 0 },
+  lastExportedAtMs: { type: Types.Float64, default: 0 },
+  lastTiltByteLength: { type: Types.Int32, default: 0 },
+  lastThumbnailByteLength: { type: Types.Int32, default: 0 },
+  lastLayerCount: { type: Types.Int32, default: 0 },
+  lastStrokeCount: { type: Types.Int32, default: 0 },
+  lastControlPointCount: { type: Types.Int32, default: 0 },
+  isDirty: { type: Types.Boolean, default: false },
+});
+
 export const SelectionState = createComponent("SelectionState", {
   selectedStrokeCount: { type: Types.Int32, default: 0 },
   activeSelectionLayerIndex: { type: Types.Int32, default: -1 },
