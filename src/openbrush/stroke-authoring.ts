@@ -82,6 +82,36 @@ export function writeGridSnappedPosition(
   target[2] = Math.round(source[2] / gridSize) * gridSize;
 }
 
+export function writeLazyInputPosition(
+  target: Vec3,
+  anchor: Vec3,
+  source: Vec3,
+  radius: number,
+): void {
+  if (radius <= 0) {
+    target[0] = source[0];
+    target[1] = source[1];
+    target[2] = source[2];
+    return;
+  }
+
+  const dx = source[0] - anchor[0];
+  const dy = source[1] - anchor[1];
+  const dz = source[2] - anchor[2];
+  const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+  if (distance <= radius) {
+    target[0] = anchor[0];
+    target[1] = anchor[1];
+    target[2] = anchor[2];
+    return;
+  }
+
+  const scale = (distance - radius) / distance;
+  target[0] = anchor[0] + dx * scale;
+  target[1] = anchor[1] + dy * scale;
+  target[2] = anchor[2] + dz * scale;
+}
+
 export type StraightedgeSampleResult = "ignored" | "created" | "updated";
 
 export function upsertStraightedgeEndpoint(

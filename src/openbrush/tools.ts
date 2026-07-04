@@ -4,12 +4,14 @@ export type OpenBrushToolId =
   | "straightedge"
   | "mirror"
   | "grid-snap"
+  | "lazy-input"
   | "color-picker"
   | "brush-picker";
 
 export type OpenBrushToolSamplingMode = "none" | "freehand" | "straightedge";
 export type OpenBrushToolMirrorMode = "none" | "x";
 export type OpenBrushToolSnapMode = "none" | "grid";
+export type OpenBrushToolLazyMode = "none" | "position";
 
 export interface OpenBrushToolDescriptor {
   id: OpenBrushToolId;
@@ -20,6 +22,7 @@ export interface OpenBrushToolDescriptor {
   samplingMode: OpenBrushToolSamplingMode;
   mirrorMode: OpenBrushToolMirrorMode;
   snapMode: OpenBrushToolSnapMode;
+  lazyMode: OpenBrushToolLazyMode;
 }
 
 export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
@@ -32,6 +35,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     samplingMode: "freehand",
     mirrorMode: "none",
     snapMode: "none",
+    lazyMode: "none",
   },
   {
     id: "eraser",
@@ -42,6 +46,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     samplingMode: "none",
     mirrorMode: "none",
     snapMode: "none",
+    lazyMode: "none",
   },
   {
     id: "straightedge",
@@ -52,6 +57,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     samplingMode: "straightedge",
     mirrorMode: "none",
     snapMode: "none",
+    lazyMode: "none",
   },
   {
     id: "mirror",
@@ -62,6 +68,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     samplingMode: "freehand",
     mirrorMode: "x",
     snapMode: "none",
+    lazyMode: "none",
   },
   {
     id: "grid-snap",
@@ -72,6 +79,18 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     samplingMode: "freehand",
     mirrorMode: "none",
     snapMode: "grid",
+    lazyMode: "none",
+  },
+  {
+    id: "lazy-input",
+    label: "Lazy Input",
+    status: "lazy-ready",
+    paints: true,
+    erases: false,
+    samplingMode: "freehand",
+    mirrorMode: "none",
+    snapMode: "none",
+    lazyMode: "position",
   },
   {
     id: "color-picker",
@@ -82,6 +101,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     samplingMode: "none",
     mirrorMode: "none",
     snapMode: "none",
+    lazyMode: "none",
   },
   {
     id: "brush-picker",
@@ -92,6 +112,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     samplingMode: "none",
     mirrorMode: "none",
     snapMode: "none",
+    lazyMode: "none",
   },
 ];
 

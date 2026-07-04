@@ -30,6 +30,7 @@ describe("Open Brush tools", () => {
     expect(eraser.erases).toBe(true);
     expect(eraser.samplingMode).toBe("none");
     expect(eraser.snapMode).toBe("none");
+    expect(eraser.lazyMode).toBe("none");
   });
 
   it("marks straightedge as a painting line-sampling tool", () => {
@@ -39,6 +40,7 @@ describe("Open Brush tools", () => {
     expect(straightedge.samplingMode).toBe("straightedge");
     expect(straightedge.mirrorMode).toBe("none");
     expect(straightedge.snapMode).toBe("none");
+    expect(straightedge.lazyMode).toBe("none");
   });
 
   it("marks mirror as a painting mirrored freehand tool", () => {
@@ -48,6 +50,7 @@ describe("Open Brush tools", () => {
     expect(mirror.samplingMode).toBe("freehand");
     expect(mirror.mirrorMode).toBe("x");
     expect(mirror.snapMode).toBe("none");
+    expect(mirror.lazyMode).toBe("none");
   });
 
   it("marks grid snap as a painting freehand snap tool", () => {
@@ -57,6 +60,17 @@ describe("Open Brush tools", () => {
     expect(gridSnap.samplingMode).toBe("freehand");
     expect(gridSnap.mirrorMode).toBe("none");
     expect(gridSnap.snapMode).toBe("grid");
+    expect(gridSnap.lazyMode).toBe("none");
+  });
+
+  it("marks lazy input as a painting freehand smoothing tool", () => {
+    const lazyInput = resolveOpenBrushTool("lazy-input");
+    expect(lazyInput.paints).toBe(true);
+    expect(lazyInput.erases).toBe(false);
+    expect(lazyInput.samplingMode).toBe("freehand");
+    expect(lazyInput.mirrorMode).toBe("none");
+    expect(lazyInput.snapMode).toBe("none");
+    expect(lazyInput.lazyMode).toBe("position");
   });
 
   it("marks pickers as state-only tools", () => {
@@ -68,6 +82,7 @@ describe("Open Brush tools", () => {
       expect(picker.samplingMode).toBe("none");
       expect(picker.mirrorMode).toBe("none");
       expect(picker.snapMode).toBe("none");
+      expect(picker.lazyMode).toBe("none");
     }
   });
 });

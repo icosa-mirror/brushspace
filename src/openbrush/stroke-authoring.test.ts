@@ -7,6 +7,7 @@ import {
   shouldSampleControlPoint,
   upsertStraightedgeEndpoint,
   writeGridSnappedPosition,
+  writeLazyInputPosition,
   type StrokePointerFrame,
 } from "./stroke-authoring.js";
 import { StrokeFlags, createEmptyStrokeData, type ControlPoint } from "./types.js";
@@ -75,6 +76,23 @@ describe("stroke authoring state", () => {
 
     expect(target).toEqual(source);
     expect(target).not.toBe(source);
+  });
+
+  it("keeps lazy input anchored until the pointer leaves the radius", () => {
+    const target: [number, number, number] = [0, 0, 0];
+    const anchor: [number, number, number] = [1, 2, 3];
+
+    writeLazyInputPosition(target, anchor, [1.03, 2, 3], 0.05);
+
+    expect(target).toEqual(anchor);
+  });
+
+  it("moves lazy input toward the pointer while preserving the leash radius", () => {
+    const target: [number, number, number] = [0, 0, 0];
+
+    writeLazyInputPosition(target, [0, 0, 0], [0.2, 0, 0], 0.05);
+
+    expect(target).toEqual([0.15000000000000002, 0, 0]);
   });
 
   it("keeps straightedge strokes to a start point and moving endpoint", () => {

@@ -35,12 +35,14 @@ import {
   shouldSampleControlPoint,
   upsertStraightedgeEndpoint,
   writeGridSnappedPosition,
+  writeLazyInputPosition,
   type StrokePointerFrame,
 } from "../openbrush/stroke-authoring.js";
 import {
   resolveOpenBrushTool,
   type OpenBrushToolDescriptor,
   type OpenBrushToolId,
+  type OpenBrushToolLazyMode,
   type OpenBrushToolMirrorMode,
   type OpenBrushToolSamplingMode,
   type OpenBrushToolSnapMode,
@@ -55,6 +57,7 @@ import {
 
 const MIN_SAMPLE_DISTANCE = 0.015;
 const GRID_SNAP_SIZE = 0.1;
+const LAZY_INPUT_RADIUS = 0.08;
 
 interface RuntimeStroke {
   entity: Entity;
@@ -66,6 +69,7 @@ interface RuntimeStroke {
   samplingMode: OpenBrushToolSamplingMode;
   mirrorMode: OpenBrushToolMirrorMode;
   snapMode: OpenBrushToolSnapMode;
+  lazyMode: OpenBrushToolLazyMode;
   strokeData: StrokeData;
   controlPoints: ControlPoint[];
   lastPosition: Vec3;
@@ -322,6 +326,7 @@ export class StrokeAuthoringSystem extends createSystem({
       samplingMode: activeTool.samplingMode,
       mirrorMode: activeTool.mirrorMode,
       snapMode: activeTool.snapMode,
+      lazyMode: activeTool.lazyMode,
       strokeData,
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
@@ -344,7 +349,7 @@ export class StrokeAuthoringSystem extends createSystem({
       return;
     }
 
-    const frame = this.writeSampleFrame(time, pressure, stroke.snapMode);
+    const frame = this.writeSampleFrame(time, pressure, stroke);
 
     if (
       !force &&
@@ -396,7 +401,7 @@ export class StrokeAuthoringSystem extends createSystem({
 
     const result = upsertStraightedgeEndpoint(
       stroke.controlPoints,
-      this.writeSampleFrame(time, pressure, stroke.snapMode),
+      this.writeSampleFrame(time, pressure, stroke),
       MIN_SAMPLE_DISTANCE,
     );
     if (result === "ignored") {
@@ -603,6 +608,7 @@ export class StrokeAuthoringSystem extends createSystem({
       samplingMode: source.samplingMode,
       mirrorMode: "none",
       snapMode: "none",
+      lazyMode: "none",
       strokeData,
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
@@ -699,13 +705,21 @@ export class StrokeAuthoringSystem extends createSystem({
   private writeSampleFrame(
     time: number,
     pressure: number,
-    snapMode: OpenBrushToolSnapMode,
+    stroke: RuntimeStroke,
   ): StrokePointerFrame {
     this.sampleFrame.pressure = pressure;
     this.sampleFrame.position[0] = this.samplePosition.x;
     this.sampleFrame.position[1] = this.samplePosition.y;
     this.sampleFrame.position[2] = this.samplePosition.z;
-    if (snapMode === "grid") {
+    if (stroke.lazyMode === "position" && stroke.controlPoints.length > 0) {
+      writeLazyInputPosition(
+        this.sampleFrame.position,
+        stroke.lastPosition,
+        this.sampleFrame.position,
+        LAZY_INPUT_RADIUS,
+      );
+    }
+    if (stroke.snapMode === "grid") {
       writeGridSnappedPosition(
         this.sampleFrame.position,
         this.sampleFrame.position,
