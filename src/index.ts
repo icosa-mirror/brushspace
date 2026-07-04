@@ -32,6 +32,7 @@ import { RobotSystem } from "./robot.js";
 
 import { setupOpenBrushShell } from "./openbrush/setup-shell.js";
 
+import { InputCommandSystem } from "./systems/InputCommandSystem.js";
 import { RuntimeDebugSystem } from "./systems/RuntimeDebugSystem.js";
 
 const assets: AssetManifest = {
@@ -159,5 +160,6 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
   world
     .registerSystem(PanelSystem)
     .registerSystem(RobotSystem)
+    .registerSystem(InputCommandSystem)
     .registerSystem(RuntimeDebugSystem);
 });

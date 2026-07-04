@@ -14,6 +14,25 @@ export const BrushSettings = createComponent("BrushSettings", {
   color: { type: Types.Color, default: [0.1, 0.45, 0.95, 1] },
 });
 
+export const InputCommandState = createComponent("InputCommandState", {
+  source: { type: Types.String, default: "idle" },
+  primaryHand: { type: Types.String, default: "none" },
+  paintPressed: { type: Types.Boolean, default: false },
+  paintDown: { type: Types.Boolean, default: false },
+  paintUp: { type: Types.Boolean, default: false },
+  alternatePressed: { type: Types.Boolean, default: false },
+  alternateDown: { type: Types.Boolean, default: false },
+  alternateUp: { type: Types.Boolean, default: false },
+  undoDown: { type: Types.Boolean, default: false },
+  redoDown: { type: Types.Boolean, default: false },
+  pressure: { type: Types.Float32, default: 0 },
+  pointerX: { type: Types.Float32, default: 0 },
+  pointerY: { type: Types.Float32, default: 0 },
+  leftControllerConnected: { type: Types.Boolean, default: false },
+  rightControllerConnected: { type: Types.Boolean, default: false },
+  commandRevision: { type: Types.Int32, default: 0 },
+});
+
 export const CanvasLayer = createComponent("CanvasLayer", {
   layerIndex: { type: Types.Int32, default: 0 },
   layerName: { type: Types.String, default: "Sketch" },

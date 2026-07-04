@@ -6,6 +6,7 @@ import {
   BrushPointer,
   BrushSettings,
   CanvasLayer,
+  InputCommandState,
   OpenBrushAppState,
 } from "../components/OpenBrushCore.js";
 import {
@@ -21,6 +22,7 @@ export class RuntimeDebugSystem extends createSystem({
   debug: { required: [OpenBrushDebug] },
   appState: { required: [OpenBrushAppState] },
   brushSettings: { required: [BrushSettings] },
+  inputCommands: { required: [InputCommandState] },
   canvases: { required: [CanvasLayer] },
   pointers: { required: [BrushPointer] },
 }) {
@@ -45,6 +47,12 @@ export class RuntimeDebugSystem extends createSystem({
     );
   }
 
+  update() {
+    for (const entity of this.queries.debug.entities) {
+      this.applyDebugValues(entity);
+    }
+  }
+
   private applyDebugValues(entity: Entity) {
     entity.setValue(OpenBrushDebug, "phase", OPEN_BRUSH_PORT_PHASE);
     entity.setValue(OpenBrushDebug, "status", OPEN_BRUSH_PORT_STATUS);
@@ -64,6 +72,36 @@ export class RuntimeDebugSystem extends createSystem({
       OpenBrushDebug,
       "activeLayerIndex",
       this.getAppNumber("activeLayerIndex", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "commandSource",
+      this.getCommandString("source", "idle"),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "commandRevision",
+      this.getCommandNumber("commandRevision", 0),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "paintPressed",
+      this.getCommandBoolean("paintPressed", false),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "paintDown",
+      this.getCommandBoolean("paintDown", false),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "paintUp",
+      this.getCommandBoolean("paintUp", false),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "inputPressure",
+      this.getCommandNumber("pressure", 0),
     );
     entity.setValue(
       OpenBrushDebug,
@@ -139,8 +177,29 @@ export class RuntimeDebugSystem extends createSystem({
     return entity ? String(entity.getValue(BrushSettings, field)) : fallback;
   }
 
+  private getCommandString(field: "source", fallback: string): string {
+    const entity = this.getFirstEntity("inputCommands");
+    return entity ? String(entity.getValue(InputCommandState, field)) : fallback;
+  }
+
+  private getCommandBoolean(
+    field: "paintPressed" | "paintDown" | "paintUp",
+    fallback: boolean,
+  ): boolean {
+    const entity = this.getFirstEntity("inputCommands");
+    return entity ? Boolean(entity.getValue(InputCommandState, field)) : fallback;
+  }
+
+  private getCommandNumber(
+    field: "commandRevision" | "pressure",
+    fallback: number,
+  ): number {
+    const entity = this.getFirstEntity("inputCommands");
+    return entity ? Number(entity.getValue(InputCommandState, field)) : fallback;
+  }
+
   private getFirstEntity(
-    queryName: "appState" | "brushSettings",
+    queryName: "appState" | "brushSettings" | "inputCommands",
   ): Entity | undefined {
     const next = this.queries[queryName].entities.values().next();
     return next.done ? undefined : next.value;
