@@ -3,6 +3,12 @@ import type { Entity } from "@iwsdk/core";
 
 import { OpenBrushDebug } from "../components/OpenBrushDebug.js";
 import {
+  BrushPointer,
+  BrushSettings,
+  CanvasLayer,
+  OpenBrushAppState,
+} from "../components/OpenBrushCore.js";
+import {
   OPEN_BRUSH_PLAN_FILE,
   OPEN_BRUSH_PORT_PHASE,
   OPEN_BRUSH_PORT_STATUS,
@@ -13,6 +19,10 @@ const phase1Summary = createPhase1RuntimeSummary();
 
 export class RuntimeDebugSystem extends createSystem({
   debug: { required: [OpenBrushDebug] },
+  appState: { required: [OpenBrushAppState] },
+  brushSettings: { required: [BrushSettings] },
+  canvases: { required: [CanvasLayer] },
+  pointers: { required: [BrushPointer] },
 }) {
   init() {
     this.queries.debug.subscribe("qualify", (entity) => {
@@ -39,10 +49,21 @@ export class RuntimeDebugSystem extends createSystem({
     entity.setValue(OpenBrushDebug, "phase", OPEN_BRUSH_PORT_PHASE);
     entity.setValue(OpenBrushDebug, "status", OPEN_BRUSH_PORT_STATUS);
     entity.setValue(OpenBrushDebug, "planFile", OPEN_BRUSH_PLAN_FILE);
+    entity.setValue(OpenBrushDebug, "appMode", this.getAppString("mode", "ready"));
+    entity.setValue(
+      OpenBrushDebug,
+      "activeTool",
+      this.getAppString("activeTool", "free-paint"),
+    );
     entity.setValue(
       OpenBrushDebug,
       "activeBrushGuid",
-      phase1Summary.activeBrushGuid,
+      this.getBrushString("brushGuid", phase1Summary.activeBrushGuid),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "activeLayerIndex",
+      this.getAppNumber("activeLayerIndex", 0),
     );
     entity.setValue(
       OpenBrushDebug,
@@ -58,6 +79,16 @@ export class RuntimeDebugSystem extends createSystem({
       OpenBrushDebug,
       "controlPointCount",
       phase1Summary.fixture.controlPointCount,
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "runtimeCanvasCount",
+      this.queries.canvases.entities.size,
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "runtimePointerCount",
+      this.queries.pointers.entities.size,
     );
     entity.setValue(
       OpenBrushDebug,
@@ -91,5 +122,27 @@ export class RuntimeDebugSystem extends createSystem({
       "visibilityState",
       String(this.world.visibilityState.value),
     );
+  }
+
+  private getAppString(field: "mode" | "activeTool", fallback: string): string {
+    const entity = this.getFirstEntity("appState");
+    return entity ? String(entity.getValue(OpenBrushAppState, field)) : fallback;
+  }
+
+  private getAppNumber(field: "activeLayerIndex", fallback: number): number {
+    const entity = this.getFirstEntity("appState");
+    return entity ? Number(entity.getValue(OpenBrushAppState, field)) : fallback;
+  }
+
+  private getBrushString(field: "brushGuid", fallback: string): string {
+    const entity = this.getFirstEntity("brushSettings");
+    return entity ? String(entity.getValue(BrushSettings, field)) : fallback;
+  }
+
+  private getFirstEntity(
+    queryName: "appState" | "brushSettings",
+  ): Entity | undefined {
+    const next = this.queries[queryName].entities.values().next();
+    return next.done ? undefined : next.value;
   }
 }

@@ -30,6 +30,8 @@ import { Robot } from "./robot.js";
 
 import { RobotSystem } from "./robot.js";
 
+import { setupOpenBrushShell } from "./openbrush/setup-shell.js";
+
 import { RuntimeDebugSystem } from "./systems/RuntimeDebugSystem.js";
 
 const assets: AssetManifest = {
@@ -83,6 +85,8 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
 
   camera.position.set(-4, 1.5, -6);
   camera.rotateY(-Math.PI * 0.75);
+
+  setupOpenBrushShell(world);
 
   const { scene: envMesh } = AssetManager.getGLTF("environmentDesk")!;
   envMesh.rotateY(Math.PI);
