@@ -11,6 +11,7 @@ import {
   InputCommandState,
   OpenBrushAppState,
   SelectionState,
+  SelectionWidget,
   StrokeHistoryState,
 } from "../components/OpenBrushCore.js";
 import {
@@ -32,6 +33,7 @@ export class RuntimeDebugSystem extends createSystem({
   pointers: { required: [BrushPointer] },
   strokes: { required: [BrushStroke] },
   selectionState: { required: [SelectionState] },
+  selectionWidgets: { required: [SelectionWidget] },
   history: { required: [StrokeHistoryState] },
 }) {
   init() {
@@ -218,6 +220,17 @@ export class RuntimeDebugSystem extends createSystem({
     );
     entity.setValue(
       OpenBrushDebug,
+      "selectionWidgetActive",
+      this.getSelectionWidgetBoolean("active", false),
+    );
+    entity.setValue(
+      OpenBrushDebug,
+      "selectionWidgetSelectedStrokeCount",
+      this.getSelectionWidgetNumber("selectedStrokeCount", 0),
+    );
+    this.applySelectionWidgetPosition(entity);
+    entity.setValue(
+      OpenBrushDebug,
       "activeStrokeControlPoints",
       this.getHistoryNumber("activeStrokeControlPoints", 0),
     );
@@ -333,6 +346,39 @@ export class RuntimeDebugSystem extends createSystem({
     return entity ? Number(entity.getValue(SelectionState, field)) : fallback;
   }
 
+  private getSelectionWidgetBoolean(
+    field: "active",
+    fallback: boolean,
+  ): boolean {
+    const entity = this.getFirstEntity("selectionWidgets");
+    return entity ? Boolean(entity.getValue(SelectionWidget, field)) : fallback;
+  }
+
+  private getSelectionWidgetNumber(
+    field: "selectedStrokeCount",
+    fallback: number,
+  ): number {
+    const entity = this.getFirstEntity("selectionWidgets");
+    return entity ? Number(entity.getValue(SelectionWidget, field)) : fallback;
+  }
+
+  private applySelectionWidgetPosition(entity: Entity): void {
+    const position = entity.getVectorView(
+      OpenBrushDebug,
+      "selectionWidgetPosition",
+    ) as Float32Array;
+    const widget = this.getFirstEntity("selectionWidgets");
+    if (!widget?.object3D) {
+      position[0] = 0;
+      position[1] = 0;
+      position[2] = 0;
+      return;
+    }
+    position[0] = widget.object3D.position.x;
+    position[1] = widget.object3D.position.y;
+    position[2] = widget.object3D.position.z;
+  }
+
   private countStrokeBoolean(
     field: "visible" | "renderVisible" | "finalized",
   ): number {
@@ -393,6 +439,7 @@ export class RuntimeDebugSystem extends createSystem({
       | "brushCatalog"
       | "inputCommands"
       | "selectionState"
+      | "selectionWidgets"
       | "history",
   ): Entity | undefined {
     const next = this.queries[queryName].entities.values().next();

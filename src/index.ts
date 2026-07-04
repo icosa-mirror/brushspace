@@ -30,7 +30,7 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
   },
   features: {
     locomotion: false,
-    grabbing: false,
+    grabbing: true,
     physics: false,
     sceneUnderstanding: false,
     environmentRaycast: false,

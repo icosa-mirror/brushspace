@@ -49,6 +49,13 @@ export const SelectionState = createComponent("SelectionState", {
   selectionRevision: { type: Types.Int32, default: 0 },
 });
 
+export const SelectionWidget = createComponent("SelectionWidget", {
+  active: { type: Types.Boolean, default: false },
+  initialized: { type: Types.Boolean, default: false },
+  selectedStrokeCount: { type: Types.Int32, default: 0 },
+  lastPosition: { type: Types.Vec3, default: [0, 0, 0] },
+});
+
 export const BrushCatalogState = createComponent("BrushCatalogState", {
   activeBrushIndex: { type: Types.Int32, default: 0 },
   brushCount: { type: Types.Int32, default: 0 },

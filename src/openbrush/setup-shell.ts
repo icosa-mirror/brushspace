@@ -1,3 +1,10 @@
+import {
+  Interactable,
+  Mesh,
+  MeshBasicMaterial,
+  OneHandGrabbable,
+  SphereGeometry,
+} from "@iwsdk/core";
 import type { Entity, World } from "@iwsdk/core";
 
 import {
@@ -8,6 +15,7 @@ import {
   InputCommandState,
   OpenBrushAppState,
   SelectionState,
+  SelectionWidget,
   StrokeHistoryState,
 } from "../components/OpenBrushCore.js";
 import { PHASE1_FIXTURE_BRUSH_GUID } from "./fixtures.js";
@@ -16,6 +24,7 @@ export interface OpenBrushShellEntities {
   appState: Entity;
   mainCanvas: Entity;
   selectionCanvas: Entity;
+  selectionWidget: Entity;
   rightPointer: Entity;
 }
 
@@ -62,6 +71,26 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
   });
   selectionCanvas.object3D!.name = "OpenBrushSelectionCanvas";
 
+  const widgetMesh = new Mesh(
+    new SphereGeometry(0.055, 16, 12),
+    new MeshBasicMaterial({
+      color: 0xffd166,
+      transparent: true,
+      opacity: 0.9,
+    }),
+  );
+  widgetMesh.name = "OpenBrushSelectionWidgetMesh";
+  widgetMesh.visible = false;
+  const selectionWidget = world
+    .createTransformEntity(widgetMesh)
+    .addComponent(SelectionWidget)
+    .addComponent(Interactable)
+    .addComponent(OneHandGrabbable, {
+      rotate: false,
+      translate: true,
+    });
+  selectionWidget.object3D!.name = "OpenBrushSelectionWidget";
+
   const rightPointer = world.createTransformEntity().addComponent(BrushPointer, {
     hand: "right",
     tool: "free-paint",
@@ -72,5 +101,5 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
   rightPointer.object3D!.name = "OpenBrushRightBrushPointer";
   rightPointer.object3D!.position.set(0.25, 1.1, -0.6);
 
-  return { appState, mainCanvas, selectionCanvas, rightPointer };
+  return { appState, mainCanvas, selectionCanvas, selectionWidget, rightPointer };
 }
