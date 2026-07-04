@@ -1,0 +1,135 @@
+import { describe, expect, it } from "vitest";
+
+import { createSketchDocument, createSketchLayer } from "./document.js";
+import { createPhase1FixtureDocument, PHASE1_FIXTURE_BRUSH_GUID } from "./fixtures.js";
+import { exportSketchDocumentToGlb } from "./glb-export.js";
+import { createEmptyStrokeData } from "./types.js";
+
+describe("Open Brush GLB export", () => {
+  it("exports a valid binary GLB with stroke geometry and metadata extras", () => {
+    const result = exportSketchDocumentToGlb(createPhase1FixtureDocument());
+    const parsed = parseGlb(result.bytes);
+
+    expect(result.mimeType).toBe("model/gltf-binary");
+    expect(result.fileName).toBe("open-brush-sketch.glb");
+    expect(parsed.version).toBe(2);
+    expect(parsed.totalLength).toBe(result.bytes.byteLength);
+    expect(result.summary).toMatchObject({
+      meshCount: 1,
+      materialCount: 1,
+      skippedStrokeCount: 0,
+    });
+    expect(result.summary.triangleCount).toBeGreaterThan(0);
+    expect(parsed.json.asset).toMatchObject({
+      version: "2.0",
+      generator: "Open Brush IWSDK Port",
+    });
+    expect(parsed.json.scenes[0].extras).toMatchObject({
+      TB_Application: "Open Brush IWSDK Port",
+      TB_Source: "fixture",
+      openBrushLayerCount: 2,
+      openBrushStrokeCount: 1,
+      openBrushExportedStrokeCount: 1,
+    });
+    expect(parsed.json.buffers[0].byteLength).toBe(parsed.binLength);
+    expect(parsed.json.meshes).toHaveLength(1);
+    expect(parsed.json.materials).toHaveLength(1);
+
+    const primitive = parsed.json.meshes[0].primitives[0];
+    expect(primitive.mode).toBe(4);
+    expect(primitive.attributes).toEqual({
+      POSITION: expect.any(Number),
+      NORMAL: expect.any(Number),
+      COLOR_0: expect.any(Number),
+      TEXCOORD_0: expect.any(Number),
+    });
+    expect(primitive.extras).toMatchObject({
+      openBrushBrushGuid: PHASE1_FIXTURE_BRUSH_GUID,
+      openBrushLayerIndex: 0,
+    });
+    expect(parsed.json.meshes[0].extras).toMatchObject({
+      openBrushBrushGuid: PHASE1_FIXTURE_BRUSH_GUID,
+      openBrushBrushName: "Marker",
+      openBrushControlPointCount: 3,
+      openBrushSeed: 42,
+      openBrushGroupId: 0,
+    });
+    expect(parsed.json.materials[0].extras).toMatchObject({
+      openBrushBrushGuid: PHASE1_FIXTURE_BRUSH_GUID,
+      openBrushBrushName: "Marker",
+    });
+  });
+
+  it("keeps layer roots and buffer views internally consistent", () => {
+    const result = exportSketchDocumentToGlb(createPhase1FixtureDocument());
+    const parsed = parseGlb(result.bytes);
+    const layerNodes = parsed.json.scenes[0].nodes.map(
+      (nodeIndex: number) => parsed.json.nodes[nodeIndex],
+    );
+
+    expect(layerNodes.map((node: { name: string }) => node.name)).toEqual([
+      "Layer 0: Sketch",
+      "Layer 1: Reference",
+    ]);
+    expect(layerNodes[0].children).toHaveLength(1);
+    expect(layerNodes[1].children).toHaveLength(0);
+    for (const bufferView of parsed.json.bufferViews) {
+      expect(bufferView.buffer).toBe(0);
+      expect(bufferView.byteOffset + bufferView.byteLength).toBeLessThanOrEqual(
+        parsed.binLength,
+      );
+      expect(bufferView.byteOffset % 4).toBe(0);
+    }
+  });
+
+  it("reports recoverable warnings for strokes that cannot be exported", () => {
+    const document = createSketchDocument({
+      metadata: { source: "runtime" },
+      layers: [createSketchLayer({ id: 0, name: "Sketch" })],
+      strokes: [
+        createEmptyStrokeData({
+          guid: "missing-layer-stroke",
+          brushGuid: PHASE1_FIXTURE_BRUSH_GUID,
+          layerIndex: 7,
+          controlPoints: [
+            {
+              position: [0, 1, -1],
+              orientation: [0, 0, 0, 1],
+              pressure: 1,
+              timestampMs: 0,
+            },
+          ],
+        }),
+      ],
+    });
+
+    const result = exportSketchDocumentToGlb(document);
+    expect(result.summary).toMatchObject({
+      meshCount: 0,
+      skippedStrokeCount: 1,
+    });
+    expect(result.summary.warnings[0]).toContain("missing layer 7");
+    expect(parseGlb(result.bytes).json.meshes).toHaveLength(0);
+  });
+});
+
+function parseGlb(bytes: Uint8Array) {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  expect(view.getUint32(0, true)).toBe(0x46546c67);
+  const version = view.getUint32(4, true);
+  const totalLength = view.getUint32(8, true);
+  let offset = 12;
+  const jsonLength = view.getUint32(offset, true);
+  offset += 4;
+  expect(view.getUint32(offset, true)).toBe(0x4e4f534a);
+  offset += 4;
+  const jsonBytes = bytes.slice(offset, offset + jsonLength);
+  offset += jsonLength;
+  const binLength = view.getUint32(offset, true);
+  offset += 4;
+  expect(view.getUint32(offset, true)).toBe(0x004e4942);
+  offset += 4;
+  expect(offset + binLength).toBe(totalLength);
+  const json = JSON.parse(new TextDecoder().decode(jsonBytes).trim());
+  return { version, totalLength, jsonLength, binLength, json };
+}
