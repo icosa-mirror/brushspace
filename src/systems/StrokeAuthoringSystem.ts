@@ -57,6 +57,7 @@ import {
   type StrokeData,
   type Vec3,
 } from "../openbrush/types.js";
+import { StrokeEntityHistory } from "../openbrush/stroke-entity-history.js";
 
 const MIN_SAMPLE_DISTANCE = 0.015;
 const GRID_SNAP_SIZE = 0.1;
@@ -123,8 +124,7 @@ export class StrokeAuthoringSystem extends createSystem({
   };
   private activeStroke: RuntimeStroke | undefined;
   private strokeCounter = 0;
-  private readonly undoStack: Entity[][] = [];
-  private readonly redoStack: Entity[][] = [];
+  private readonly strokeHistory = new StrokeEntityHistory<Entity>();
 
   update(_delta: number, time: number) {
     const commandEntity = this.getFirstEntity("commands");
@@ -351,7 +351,7 @@ export class StrokeAuthoringSystem extends createSystem({
       maxBounds: entity.getVectorView(BrushStroke, "maxBounds") as Float32Array,
     };
     this.activeStroke = stroke;
-    this.redoStack.length = 0;
+    this.strokeHistory.clearRedo();
     if (stroke.samplingMode === "tape") {
       this.sampleTapeStroke(time, pressure);
     } else {
@@ -596,7 +596,7 @@ export class StrokeAuthoringSystem extends createSystem({
     if (stroke.mirrorMode === "x" && stroke.controlPoints.length >= 2) {
       strokeGroup.push(this.createMirroredStroke(stroke));
     }
-    this.undoStack.push(strokeGroup);
+    this.strokeHistory.commit(strokeGroup);
     this.activeStroke = undefined;
   }
 
@@ -673,7 +673,7 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private undoLastStroke(): void {
-    const group = this.undoStack.pop();
+    const group = this.strokeHistory.undo();
     if (!group) {
       return;
     }
@@ -685,11 +685,10 @@ export class StrokeAuthoringSystem extends createSystem({
         entity.object3D.visible = false;
       }
     }
-    this.redoStack.push(group);
   }
 
   private redoLastStroke(): void {
-    const group = this.redoStack.pop();
+    const group = this.strokeHistory.redo();
     if (!group) {
       return;
     }
@@ -700,7 +699,6 @@ export class StrokeAuthoringSystem extends createSystem({
         entity.object3D.visible = true;
       }
     }
-    this.undoStack.push(group);
   }
 
   private samplePointerPose(commandEntity: Entity): void {
@@ -842,8 +840,16 @@ export class StrokeAuthoringSystem extends createSystem({
 
   private updateHistoryState(): void {
     for (const entity of this.queries.history.entities) {
-      entity.setValue(StrokeHistoryState, "undoDepth", this.undoStack.length);
-      entity.setValue(StrokeHistoryState, "redoDepth", this.redoStack.length);
+      entity.setValue(
+        StrokeHistoryState,
+        "undoDepth",
+        this.strokeHistory.undoDepth,
+      );
+      entity.setValue(
+        StrokeHistoryState,
+        "redoDepth",
+        this.strokeHistory.redoDepth,
+      );
       entity.setValue(
         StrokeHistoryState,
         "totalStrokeCount",
