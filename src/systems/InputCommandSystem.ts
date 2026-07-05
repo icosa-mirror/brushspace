@@ -12,6 +12,7 @@ import {
   createOpenBrushCommandInput,
   createOpenBrushCommandSnapshot,
   resetOpenBrushCommandInput,
+  resolveOpenBrushInputPressure,
   resolveOpenBrushCommandRouting,
   resolveOpenBrushCommandFrame,
   type OpenBrushCommandRouting,
@@ -149,9 +150,10 @@ export class InputCommandSystem extends createSystem({
       target.alternatePressed = gamepad.getButtonPressed(InputComponent.Squeeze);
       target.alternateDown = gamepad.getButtonDown(InputComponent.Squeeze);
       target.alternateUp = gamepad.getButtonUp(InputComponent.Squeeze);
-      target.pressure = target.paintPressed
-        ? gamepad.getButtonValue(InputComponent.Trigger) || 1
-        : 0;
+      target.pressure = resolveOpenBrushInputPressure(
+        target.paintPressed,
+        gamepad.getButtonValue(InputComponent.Trigger),
+      );
     }
 
     if (handedness === routing.wandHand) {
@@ -236,7 +238,10 @@ export class InputCommandSystem extends createSystem({
     target.redoDown = keyboard.getKeyDown("KeyY");
     target.brushNextDown = keyboard.getKeyDown("BracketRight");
     target.brushPreviousDown = keyboard.getKeyDown("BracketLeft");
-    target.pressure = target.paintPressed ? 1 : 0;
+    target.pressure = resolveOpenBrushInputPressure(
+      target.paintPressed,
+      Number.NaN,
+    );
     target.connected =
       target.paintPressed ||
       target.paintDown ||
@@ -317,10 +322,7 @@ export class InputCommandSystem extends createSystem({
   }
 
   private getPointerPressure(event: PointerEvent, pressed: boolean): number {
-    if (event.pressure > 0) {
-      return event.pressure;
-    }
-    return pressed ? 1 : 0;
+    return resolveOpenBrushInputPressure(pressed, event.pressure);
   }
 
   private applyCommandState(entity: Entity): void {

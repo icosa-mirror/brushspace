@@ -4,6 +4,8 @@ import {
   clearOpenBrushCommandActivity,
   createOpenBrushCommandInput,
   createOpenBrushCommandSnapshot,
+  OPEN_BRUSH_DIGITAL_PRESSURE,
+  resolveOpenBrushInputPressure,
   resolveOpenBrushCommandRouting,
   resolveOpenBrushCommandFrame,
   type OpenBrushCommandInputs,
@@ -204,5 +206,18 @@ describe("Open Brush command mapper", () => {
     expect(snapshot.brushNextDown).toBe(true);
     expect(snapshot.brushPreviousDown).toBe(false);
     expect(snapshot.hasCommandEdge).toBe(true);
+  });
+
+  it("preserves analog trigger pressure and uses midpoint fallback for digital inputs", () => {
+    expect(resolveOpenBrushInputPressure(false, 1)).toBe(0);
+    expect(resolveOpenBrushInputPressure(true, 0.27)).toBeCloseTo(0.27);
+    expect(resolveOpenBrushInputPressure(true, 2)).toBe(1);
+    expect(resolveOpenBrushInputPressure(true, 0)).toBe(
+      OPEN_BRUSH_DIGITAL_PRESSURE,
+    );
+    expect(resolveOpenBrushInputPressure(true, Number.NaN)).toBe(
+      OPEN_BRUSH_DIGITAL_PRESSURE,
+    );
+    expect(resolveOpenBrushInputPressure(true, 0, 0.25)).toBeCloseTo(0.25);
   });
 });

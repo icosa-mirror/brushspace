@@ -45,6 +45,8 @@ export interface OpenBrushCommandSnapshot extends OpenBrushCommandInput {
   hasCommandEdge: boolean;
 }
 
+export const OPEN_BRUSH_DIGITAL_PRESSURE = 0.5;
+
 export function createOpenBrushCommandInput(
   source: OpenBrushCommandSource,
   hand: OpenBrushCommandHand,
@@ -110,6 +112,20 @@ export function clearOpenBrushCommandActivity(input: OpenBrushCommandInput): voi
   input.pressure = 0;
   input.pointerX = 0;
   input.pointerY = 0;
+}
+
+export function resolveOpenBrushInputPressure(
+  pressed: boolean,
+  analogValue: number,
+  digitalFallback = OPEN_BRUSH_DIGITAL_PRESSURE,
+): number {
+  if (!pressed) {
+    return 0;
+  }
+  if (Number.isFinite(analogValue) && analogValue > 0) {
+    return clamp01(analogValue);
+  }
+  return clamp01(digitalFallback);
 }
 
 export function resolveOpenBrushCommandFrame(
@@ -220,6 +236,9 @@ function hasInputActivity(input: OpenBrushCommandInput): boolean {
 }
 
 function clamp01(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
   if (value < 0) {
     return 0;
   }
