@@ -109,11 +109,12 @@ describe("Open Brush panel attachment", () => {
     expect(brushPose.slotIndex).toBe(1);
     expect(brushPose.slotAngleDegrees).toBe(120);
     expect(brushPose.position[0]).toBeCloseTo(0.3278, 4);
-    expect(brushPose.position[1]).toBeCloseTo(-0.02, 4);
+    expect(brushPose.position[1]).toBeCloseTo(0.1, 4);
     expect(toolsPose.slotIndex).toBe(2);
     expect(toolsPose.slotAngleDegrees).toBe(240);
     expect(toolsPose.position[0]).toBeCloseTo(-0.0878, 4);
-    expect(toolsPose.position[1]).toBeCloseTo(-0.02, 4);
+    expect(toolsPose.position[1]).toBeCloseTo(0.1, 4);
+    expect(toolsPose.position[1]).toBeGreaterThan(0);
   });
 
   it("mirrors fixed wand ring panel offsets when handedness swaps", () => {

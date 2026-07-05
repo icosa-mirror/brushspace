@@ -70,6 +70,7 @@ const HAND_PANEL_SCALE = 0.72;
 const FIXED_RING_RADIUS = 0.24;
 const FIXED_RING_PANEL_SCALE = 0.68;
 const FIXED_RING_SLOT_DEGREES = 120;
+const FIXED_RING_LOWER_SLOT_LIFT = 0.12;
 const DEFAULT_PANEL_DISTANCE = 0.9;
 const DEFAULT_PANEL_HEIGHT = 1.15;
 const DEFAULT_PANEL_SCALE = 1;
@@ -205,13 +206,18 @@ function applyFixedWandPanelSlot(
   );
   const slotAngleDegrees = slotIndex * FIXED_RING_SLOT_DEGREES;
   const angle = (slotAngleDegrees * Math.PI) / 180;
+  const sin = Math.sin(angle);
+  const cos = Math.cos(angle);
   const mirror = out.hand === "right" ? -1 : 1;
 
   out.mode = "fixed-ring";
   out.slotIndex = slotIndex;
   out.slotAngleDegrees = slotAngleDegrees;
-  out.position[0] += Math.sin(angle) * FIXED_RING_RADIUS * mirror;
-  out.position[1] += Math.cos(angle) * FIXED_RING_RADIUS;
+  out.position[0] += sin * FIXED_RING_RADIUS * mirror;
+  out.position[1] += cos * FIXED_RING_RADIUS;
+  if (cos < -0.25) {
+    out.position[1] += FIXED_RING_LOWER_SLOT_LIFT;
+  }
   out.scale[0] *= FIXED_RING_PANEL_SCALE;
   out.scale[1] *= FIXED_RING_PANEL_SCALE;
   out.scale[2] *= FIXED_RING_PANEL_SCALE;
