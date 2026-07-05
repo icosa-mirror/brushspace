@@ -45,10 +45,7 @@ import {
   type StrokePointerFrame,
 } from "../openbrush/stroke-authoring.js";
 import {
-  brushSize01ToLiveBrushSize,
-  liveBrushSizeToSize01,
   normalizeBrushSize,
-  normalizeBrushSize01,
 } from "../openbrush/brush-size.js";
 import { indexedTriangleGeometryIntersectsSphere } from "../openbrush/geometry-intersections.js";
 import { isOpenBrushEraserHit } from "../openbrush/stroke-eraser.js";
@@ -78,6 +75,11 @@ import {
 } from "../openbrush/types.js";
 import { StrokeEntityHistory } from "../openbrush/stroke-entity-history.js";
 import { writeOpenBrushToolOffsetPosition } from "../openbrush/tool-pose.js";
+import {
+  resolveOpenBrushPickerBrushSettings,
+  type OpenBrushBrushSettingsSnapshot,
+  type OpenBrushPickedStrokeSnapshot,
+} from "../openbrush/picker-settings.js";
 
 const MIN_SAMPLE_DISTANCE = 0.015;
 const GRID_SNAP_SIZE = 0.1;
@@ -916,22 +918,15 @@ export class StrokeAuthoringSystem extends createSystem({
     }
 
     const commandIndex = Number(target.getValue(BrushStroke, "commandIndex"));
-    if (pickerSpec.picksColor) {
-      this.copyStrokeColorToBrushSettings(target, settingsEntity);
-    }
-    if (pickerSpec.picksBrush) {
-      const brushGuid = String(target.getValue(BrushStroke, "brushGuid"));
-      settingsEntity.setValue(BrushSettings, "brushGuid", brushGuid);
-      if (pickerSpec.picksSize) {
-        this.applyPickedBrushSize(
-          settingsEntity,
-          brushGuid,
-          Number(target.getValue(BrushStroke, "brushSize")),
-        );
-      } else {
-        this.syncBrushSettingsSize(settingsEntity, brushGuid);
-      }
-    }
+    this.writeBrushSettingsSnapshot(
+      settingsEntity,
+      resolveOpenBrushPickerBrushSettings(
+        pickerSpec,
+        this.readBrushSettingsSnapshot(settingsEntity),
+        this.readPickedStrokeSnapshot(target),
+        openBrushInventory,
+      ),
+    );
     this.setToolStatus(
       appStateEntity,
       `picked ${pickerSpec.pickedStatusLabel} #${commandIndex}`,
@@ -1016,50 +1011,54 @@ export class StrokeAuthoringSystem extends createSystem({
     );
   }
 
-  private copyStrokeColorToBrushSettings(
-    strokeEntity: Entity,
+  private readBrushSettingsSnapshot(
     settingsEntity: Entity,
-  ): void {
-    const sourceColor = strokeEntity.getVectorView(
+  ): OpenBrushBrushSettingsSnapshot {
+    const color = settingsEntity.getVectorView(
+      BrushSettings,
+      "color",
+    ) as Float32Array;
+    return {
+      brushGuid: String(settingsEntity.getValue(BrushSettings, "brushGuid")),
+      size01: Number(settingsEntity.getValue(BrushSettings, "size01")),
+      size: Number(settingsEntity.getValue(BrushSettings, "size")),
+      color: [color[0], color[1], color[2], color[3]],
+    };
+  }
+
+  private readPickedStrokeSnapshot(
+    strokeEntity: Entity,
+  ): OpenBrushPickedStrokeSnapshot {
+    const color = strokeEntity.getVectorView(
       BrushStroke,
       "color",
     ) as Float32Array;
-    const settingsColor = settingsEntity.getVectorView(
+    return {
+      brushGuid: String(strokeEntity.getValue(BrushStroke, "brushGuid")),
+      brushSize: Number(strokeEntity.getValue(BrushStroke, "brushSize")),
+      color: [color[0], color[1], color[2], color[3]],
+    };
+  }
+
+  private writeBrushSettingsSnapshot(
+    settingsEntity: Entity,
+    snapshot: OpenBrushBrushSettingsSnapshot,
+  ): void {
+    settingsEntity.setValue(BrushSettings, "brushGuid", snapshot.brushGuid);
+    settingsEntity.setValue(BrushSettings, "size01", snapshot.size01);
+    settingsEntity.setValue(
+      BrushSettings,
+      "size",
+      snapshot.size,
+    );
+    const color = settingsEntity.getVectorView(
       BrushSettings,
       "color",
     ) as Float32Array;
-    settingsColor[0] = sourceColor[0];
-    settingsColor[1] = sourceColor[1];
-    settingsColor[2] = sourceColor[2];
-    settingsColor[3] = sourceColor[3];
-  }
-
-  private applyPickedBrushSize(
-    settingsEntity: Entity,
-    brushGuid: string,
-    pickedLiveSize: number,
-  ): void {
-    const brush = findBrushByGuid(openBrushInventory, brushGuid);
-    const size01 = liveBrushSizeToSize01(pickedLiveSize, brush?.brushSizeRange);
-    settingsEntity.setValue(BrushSettings, "size01", size01);
-    settingsEntity.setValue(
-      BrushSettings,
-      "size",
-      brushSize01ToLiveBrushSize(size01, brush?.brushSizeRange),
-    );
-  }
-
-  private syncBrushSettingsSize(settingsEntity: Entity, brushGuid: string): void {
-    const brush = findBrushByGuid(openBrushInventory, brushGuid);
-    const size01 = normalizeBrushSize01(
-      Number(settingsEntity.getValue(BrushSettings, "size01")),
-    );
-    settingsEntity.setValue(BrushSettings, "size01", size01);
-    settingsEntity.setValue(
-      BrushSettings,
-      "size",
-      brushSize01ToLiveBrushSize(size01, brush?.brushSizeRange),
-    );
+    color[0] = snapshot.color[0];
+    color[1] = snapshot.color[1];
+    color[2] = snapshot.color[2];
+    color[3] = snapshot.color[3];
   }
 
   private setToolStatus(

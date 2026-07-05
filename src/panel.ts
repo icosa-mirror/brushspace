@@ -32,7 +32,6 @@ import {
 import {
   OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP,
   brushSize01ToLiveBrushSize,
-  liveBrushSizeToSize01,
   normalizeBrushSize01,
   resolveBrushSize01Adjustment,
 } from "./openbrush/brush-size.js";
@@ -66,6 +65,11 @@ import {
   UiCommandHistory,
   type UiCommand,
 } from "./openbrush/ui-command-history.js";
+import {
+  resolveOpenBrushPickerBrushSettings,
+  type OpenBrushBrushSettingsSnapshot,
+  type OpenBrushPickedStrokeSnapshot,
+} from "./openbrush/picker-settings.js";
 import { resolveWandBrushPanelLabels } from "./openbrush/wand-brush-panel-labels.js";
 import {
   PHASE_A_WAND_BUTTON_IDS,
@@ -1024,34 +1028,15 @@ export class PanelSystem extends createSystem({
     }
 
     const commandIndex = Number(target.getValue(BrushStroke, "commandIndex"));
-    if (pickerSpec.picksColor) {
-      const sourceColor = target.getVectorView(
-        BrushStroke,
-        "color",
-      ) as Float32Array;
-      const settingsColor = settingsEntity.getVectorView(
-        BrushSettings,
-        "color",
-      ) as Float32Array;
-      settingsColor[0] = sourceColor[0];
-      settingsColor[1] = sourceColor[1];
-      settingsColor[2] = sourceColor[2];
-      settingsColor[3] = sourceColor[3];
-    }
-
-    if (pickerSpec.picksBrush) {
-      const brushGuid = String(target.getValue(BrushStroke, "brushGuid"));
-      settingsEntity.setValue(BrushSettings, "brushGuid", brushGuid);
-      if (pickerSpec.picksSize) {
-        this.applyPickedBrushSize(
-          settingsEntity,
-          brushGuid,
-          Number(target.getValue(BrushStroke, "brushSize")),
-        );
-      } else {
-        this.syncBrushSettingsSize(settingsEntity, brushGuid);
-      }
-    }
+    this.writeBrushSettingsSnapshot(
+      settingsEntity,
+      resolveOpenBrushPickerBrushSettings(
+        pickerSpec,
+        this.readBrushSettingsSnapshot(settingsEntity),
+        this.readPickedStrokeSnapshot(target),
+        openBrushInventory,
+      ),
+    );
     this.setToolStatus(
       appState,
       `picked ${pickerSpec.pickedStatusLabel} #${commandIndex}`,
@@ -1142,19 +1127,54 @@ export class PanelSystem extends createSystem({
     this.touchAppState();
   }
 
-  private applyPickedBrushSize(
+  private readBrushSettingsSnapshot(
     settingsEntity: Entity,
-    brushGuid: string,
-    pickedLiveSize: number,
+  ): OpenBrushBrushSettingsSnapshot {
+    const color = settingsEntity.getVectorView(
+      BrushSettings,
+      "color",
+    ) as Float32Array;
+    return {
+      brushGuid: String(settingsEntity.getValue(BrushSettings, "brushGuid")),
+      size01: Number(settingsEntity.getValue(BrushSettings, "size01")),
+      size: Number(settingsEntity.getValue(BrushSettings, "size")),
+      color: [color[0], color[1], color[2], color[3]],
+    };
+  }
+
+  private readPickedStrokeSnapshot(
+    strokeEntity: Entity,
+  ): OpenBrushPickedStrokeSnapshot {
+    const color = strokeEntity.getVectorView(
+      BrushStroke,
+      "color",
+    ) as Float32Array;
+    return {
+      brushGuid: String(strokeEntity.getValue(BrushStroke, "brushGuid")),
+      brushSize: Number(strokeEntity.getValue(BrushStroke, "brushSize")),
+      color: [color[0], color[1], color[2], color[3]],
+    };
+  }
+
+  private writeBrushSettingsSnapshot(
+    settingsEntity: Entity,
+    snapshot: OpenBrushBrushSettingsSnapshot,
   ): void {
-    const brush = findBrushByGuid(openBrushInventory, brushGuid);
-    const size01 = liveBrushSizeToSize01(pickedLiveSize, brush?.brushSizeRange);
-    settingsEntity.setValue(BrushSettings, "size01", size01);
+    settingsEntity.setValue(BrushSettings, "brushGuid", snapshot.brushGuid);
+    settingsEntity.setValue(BrushSettings, "size01", snapshot.size01);
     settingsEntity.setValue(
       BrushSettings,
       "size",
-      brushSize01ToLiveBrushSize(size01, brush?.brushSizeRange),
+      snapshot.size,
     );
+    const color = settingsEntity.getVectorView(
+      BrushSettings,
+      "color",
+    ) as Float32Array;
+    color[0] = snapshot.color[0];
+    color[1] = snapshot.color[1];
+    color[2] = snapshot.color[2];
+    color[3] = snapshot.color[3];
   }
 
   private syncBrushSettingsSize(settingsEntity: Entity, brushGuid: string): void {
