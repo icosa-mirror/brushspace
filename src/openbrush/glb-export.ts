@@ -147,6 +147,7 @@ export function exportSketchDocumentToGlb(
     const materialSpec = createBrushMaterialSpec(brush, stroke.color);
     const geometry = generateBrushGeometry(stroke, geometryFamily, {
       pressureSizeRange: brush?.pressureSizeRange,
+      pressureOpacityRange: brush?.pressureOpacityRange,
     });
     const vertexCount = geometry.positions.length / 3;
     if (vertexCount === 0 || geometry.indices.length === 0) {

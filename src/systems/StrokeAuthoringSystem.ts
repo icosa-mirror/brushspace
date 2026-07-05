@@ -29,6 +29,7 @@ import { openBrushInventory } from "../openbrush/brush-catalog.js";
 import {
   findBrushByGuid,
   type BrushGeometryFamily,
+  type BrushPressureOpacityRange,
   type BrushPressureSizeRange,
 } from "../openbrush/brush-inventory.js";
 import { generateBrushGeometry } from "../openbrush/brush-geometry.js";
@@ -89,6 +90,7 @@ interface RuntimeStroke {
   geometry: BufferGeometry;
   geometryFamily: BrushGeometryFamily;
   pressureSizeRange: BrushPressureSizeRange | undefined;
+  pressureOpacityRange: BrushPressureOpacityRange | undefined;
   toolId: OpenBrushToolId;
   groupId: number;
   samplingMode: OpenBrushToolSamplingMode;
@@ -155,6 +157,7 @@ export class StrokeAuthoringSystem extends createSystem({
   private readonly strokeHistory = new StrokeEntityHistory<Entity>();
   private consumedStrokeUndoRequestRevision = 0;
   private consumedStrokeRedoRequestRevision = 0;
+  private eraseHoldErasedCount = 0;
 
   update(_delta: number, time: number) {
     const commandEntity = this.getFirstEntity("commands");
@@ -179,6 +182,9 @@ export class StrokeAuthoringSystem extends createSystem({
     const commandSource = String(commandEntity.getValue(InputCommandState, "source"));
     const activeTool = this.getActiveTool();
     const appStateEntity = this.getFirstEntity("appState");
+    if (!rawPaintPressed || !activeTool.erases) {
+      this.eraseHoldErasedCount = 0;
+    }
     if (rawPaintPressed && activeTool.erases) {
       if (this.activeStroke) {
         this.finalizeActiveStroke();
@@ -464,6 +470,7 @@ export class StrokeAuthoringSystem extends createSystem({
       geometry,
       geometryFamily,
       pressureSizeRange: brushEntry?.pressureSizeRange,
+      pressureOpacityRange: brushEntry?.pressureOpacityRange,
       toolId: activeTool.id,
       groupId,
       samplingMode: activeTool.samplingMode,
@@ -596,7 +603,10 @@ export class StrokeAuthoringSystem extends createSystem({
     const generated = generateBrushGeometry(
       stroke.strokeData,
       stroke.geometryFamily,
-      { pressureSizeRange: stroke.pressureSizeRange },
+      {
+        pressureSizeRange: stroke.pressureSizeRange,
+        pressureOpacityRange: stroke.pressureOpacityRange,
+      },
     );
     stroke.geometry.setAttribute(
       "position",
@@ -806,12 +816,24 @@ export class StrokeAuthoringSystem extends createSystem({
     }
 
     if (erasedStrokes.length === 0) {
+      if (appStateEntity && this.eraseHoldErasedCount === 0) {
+        this.setToolStatus(appStateEntity, "nothing-to-erase", true);
+      }
       return;
     }
     for (const entity of erasedStrokes) {
       this.setStrokeVisible(entity, false);
     }
     this.strokeHistory.commitErased(erasedStrokes);
+    this.eraseHoldErasedCount += erasedStrokes.length;
+    if (appStateEntity) {
+      const plural = this.eraseHoldErasedCount === 1 ? "" : "s";
+      this.setToolStatus(
+        appStateEntity,
+        `erased ${this.eraseHoldErasedCount} stroke${plural}`,
+        true,
+      );
+    }
   }
 
   private getEraserRadius(): number {
@@ -1153,6 +1175,7 @@ export class StrokeAuthoringSystem extends createSystem({
       geometry,
       geometryFamily: source.geometryFamily,
       pressureSizeRange: brushEntry?.pressureSizeRange,
+      pressureOpacityRange: brushEntry?.pressureOpacityRange,
       toolId: source.toolId,
       groupId: source.groupId,
       samplingMode: source.samplingMode,

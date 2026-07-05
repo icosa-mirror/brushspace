@@ -35,6 +35,7 @@ describe("Open Brush brush inventory", () => {
       materialFamily: "standard",
       brushSizeRange: [0.05, 3],
       pressureSizeRange: [0.1, 1],
+      pressureOpacityRange: [1, 1],
     });
     expect(
       findBrushByGuid(inventory, "2d35bcf0-e4d8-452c-97b1-3311be063130"),
@@ -44,6 +45,7 @@ describe("Open Brush brush inventory", () => {
       geometryFamily: "ribbon",
       brushSizeRange: [0.025, 3],
       pressureSizeRange: [1, 1],
+      pressureOpacityRange: [1, 1],
     });
     expect(
       findBrushByGuid(inventory, "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62"),
@@ -54,6 +56,7 @@ describe("Open Brush brush inventory", () => {
       materialFamily: "additive",
       brushSizeRange: [0.05, 0.2],
       pressureSizeRange: [0.15, 1],
+      pressureOpacityRange: [0.5, 1],
     });
     expect(
       findBrushByGuid(inventory, "8e58ceea-7830-49b4-aba9-6215104ab52a"),
@@ -63,6 +66,7 @@ describe("Open Brush brush inventory", () => {
       geometryFamily: "tube",
       brushSizeRange: [0.08, 1],
       pressureSizeRange: [0.25, 1],
+      pressureOpacityRange: [1, 1],
     });
     expect(
       findBrushByGuid(inventory, "70d79cca-b159-4f35-990c-f02193947fe8"),
@@ -72,6 +76,7 @@ describe("Open Brush brush inventory", () => {
       geometryFamily: "particle",
       brushSizeRange: [1, 2],
       pressureSizeRange: [0.2, 1],
+      pressureOpacityRange: [1, 1],
     });
   });
 

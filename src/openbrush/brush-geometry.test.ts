@@ -87,6 +87,25 @@ describe("brush geometry generation", () => {
     expect(geometry.bounds.max[2]).toBeCloseTo(0.015);
   });
 
+  it.each(["ribbon", "emissive", "tube", "particle"] as const)(
+    "applies brush pressure-opacity range to %s vertex alpha",
+    (family) => {
+      const stroke = createTwoPointStroke({
+        guid: `low-opacity-${family}`,
+        brushSize: 0.2,
+        pressure: 0.5,
+      });
+
+      const geometry = generateBrushGeometry(stroke, family, {
+        pressureOpacityRange: [0.5, 1],
+      });
+
+      for (let index = 3; index < geometry.colors.length; index += 4) {
+        expect(geometry.colors[index]).toBeCloseTo(0.75);
+      }
+    },
+  );
+
   it("uses full width for brushes with fixed pressure size", () => {
     const stroke = createTwoPointStroke({
       guid: "fixed-pressure-flat",

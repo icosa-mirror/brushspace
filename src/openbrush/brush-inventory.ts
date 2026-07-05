@@ -3,6 +3,7 @@ import type { BrushSizeRange } from "./brush-size.js";
 
 export type BrushSupportStatus = "supported" | "fallback" | "unsupported";
 export type BrushPressureSizeRange = readonly [number, number];
+export type BrushPressureOpacityRange = readonly [number, number];
 
 export type BrushGeometryFamily =
   | "ribbon"
@@ -46,6 +47,7 @@ export interface BrushInventoryEntry extends OpenBrushExportBrush {
   materialFamily: BrushMaterialFamily;
   brushSizeRange: BrushSizeRange;
   pressureSizeRange: BrushPressureSizeRange;
+  pressureOpacityRange: BrushPressureOpacityRange;
   unsupportedReason?: string;
 }
 
@@ -63,6 +65,7 @@ type BrushSupportDecision = Pick<
   | "materialFamily"
   | "brushSizeRange"
   | "pressureSizeRange"
+  | "pressureOpacityRange"
   | "unsupportedReason"
 >;
 
@@ -73,6 +76,7 @@ const MVP_BRUSH_SUPPORT: Record<string, BrushSupportDecision> = {
     materialFamily: "standard",
     brushSizeRange: [0.05, 3],
     pressureSizeRange: [0.1, 1],
+    pressureOpacityRange: [1, 1],
   },
   "2d35bcf0-e4d8-452c-97b1-3311be063130": {
     supportStatus: "supported",
@@ -80,6 +84,7 @@ const MVP_BRUSH_SUPPORT: Record<string, BrushSupportDecision> = {
     materialFamily: "unlit",
     brushSizeRange: [0.025, 3],
     pressureSizeRange: [1, 1],
+    pressureOpacityRange: [1, 1],
   },
   "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62": {
     supportStatus: "supported",
@@ -87,6 +92,7 @@ const MVP_BRUSH_SUPPORT: Record<string, BrushSupportDecision> = {
     materialFamily: "additive",
     brushSizeRange: [0.05, 0.2],
     pressureSizeRange: [0.15, 1],
+    pressureOpacityRange: [0.5, 1],
   },
   "8e58ceea-7830-49b4-aba9-6215104ab52a": {
     supportStatus: "supported",
@@ -94,6 +100,7 @@ const MVP_BRUSH_SUPPORT: Record<string, BrushSupportDecision> = {
     materialFamily: "standard",
     brushSizeRange: [0.08, 1],
     pressureSizeRange: [0.25, 1],
+    pressureOpacityRange: [1, 1],
   },
   "70d79cca-b159-4f35-990c-f02193947fe8": {
     supportStatus: "fallback",
@@ -101,6 +108,7 @@ const MVP_BRUSH_SUPPORT: Record<string, BrushSupportDecision> = {
     materialFamily: "particle",
     brushSizeRange: [1, 2],
     pressureSizeRange: [0.2, 1],
+    pressureOpacityRange: [1, 1],
     unsupportedReason: "Particle brush geometry and shader semantics are deferred until batching is stable.",
   },
 };
@@ -111,6 +119,7 @@ const DEFAULT_UNSUPPORTED: BrushSupportDecision = {
   materialFamily: "fallback",
   brushSizeRange: [0.05, 3],
   pressureSizeRange: [0.1, 1],
+  pressureOpacityRange: [1, 1],
   unsupportedReason: "Brush has not been mapped to an IWSDK geometry/material family yet.",
 };
 
@@ -132,6 +141,7 @@ export function buildBrushInventoryFromExportManifest(
       materialFamily: support.materialFamily,
       brushSizeRange: support.brushSizeRange,
       pressureSizeRange: support.pressureSizeRange,
+      pressureOpacityRange: support.pressureOpacityRange,
       unsupportedReason: support.unsupportedReason,
     };
   });

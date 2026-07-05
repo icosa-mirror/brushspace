@@ -1,5 +1,6 @@
 import type {
   BrushGeometryFamily,
+  BrushPressureOpacityRange,
   BrushPressureSizeRange,
 } from "./brush-inventory.js";
 import type { Rgba, StrokeData, Vec3 } from "./types.js";
@@ -22,6 +23,7 @@ export interface GeneratedBrushGeometry {
 
 export interface BrushGeometryOptions {
   pressureSizeRange?: BrushPressureSizeRange;
+  pressureOpacityRange?: BrushPressureOpacityRange;
 }
 
 const DEFAULT_PRESSURE_SIZE_MIN = 0.1;
@@ -70,11 +72,20 @@ function generateRibbonGeometry(
   const uvs = new Float32Array(vertexCount * 2);
   const indices = new Uint32Array(segmentCount * 6);
   const bounds = createEmptyBounds();
+  const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
+  const pressureOpacityMin = normalizePressureOpacityMin(
+    options.pressureOpacityRange,
+  );
+  const pressureOpacityMax = normalizePressureOpacityMax(
+    options.pressureOpacityRange,
+  );
 
   for (let index = 0; index < pointCount; index += 1) {
     const point = stroke.controlPoints[index];
     const width =
-      stroke.brushSize * getPressureSizeMultiplier(point.pressure, options) * 0.5;
+      stroke.brushSize *
+      getPressureSizeMultiplier(point.pressure, pressureSizeMin) *
+      0.5;
     const offset = getRibbonOffset(stroke, index, width);
     const leftVertex = index * 2;
     const rightVertex = leftVertex + 1;
@@ -91,8 +102,13 @@ function generateRibbonGeometry(
     ]);
     writeNormal(normals, leftVertex, [0, 1, 0]);
     writeNormal(normals, rightVertex, [0, 1, 0]);
-    writeColor(colors, leftVertex, stroke.color);
-    writeColor(colors, rightVertex, stroke.color);
+    const opacity = getPressureOpacityMultiplier(
+      point.pressure,
+      pressureOpacityMin,
+      pressureOpacityMax,
+    );
+    writeColor(colors, leftVertex, stroke.color, opacity);
+    writeColor(colors, rightVertex, stroke.color, opacity);
     writeUv(uvs, leftVertex, [0, pointCount <= 1 ? 0 : index / (pointCount - 1)]);
     writeUv(uvs, rightVertex, [1, pointCount <= 1 ? 0 : index / (pointCount - 1)]);
     includeBounds(bounds, positions, leftVertex);
@@ -127,11 +143,25 @@ function generateTubeGeometry(
   const uvs = new Float32Array(vertexCount * 2);
   const indices = new Uint32Array(segmentCount * ringSize * 6);
   const bounds = createEmptyBounds();
+  const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
+  const pressureOpacityMin = normalizePressureOpacityMin(
+    options.pressureOpacityRange,
+  );
+  const pressureOpacityMax = normalizePressureOpacityMax(
+    options.pressureOpacityRange,
+  );
 
   for (let pointIndex = 0; pointIndex < pointCount; pointIndex += 1) {
     const point = stroke.controlPoints[pointIndex];
     const radius =
-      stroke.brushSize * getPressureSizeMultiplier(point.pressure, options) * 0.5;
+      stroke.brushSize *
+      getPressureSizeMultiplier(point.pressure, pressureSizeMin) *
+      0.5;
+    const opacity = getPressureOpacityMultiplier(
+      point.pressure,
+      pressureOpacityMin,
+      pressureOpacityMax,
+    );
     for (let ringIndex = 0; ringIndex < ringSize; ringIndex += 1) {
       const vertex = pointIndex * ringSize + ringIndex;
       const normal = getTubeNormal(ringIndex);
@@ -141,7 +171,7 @@ function generateTubeGeometry(
         point.position[2] + normal[2] * radius,
       ]);
       writeNormal(normals, vertex, normal);
-      writeColor(colors, vertex, stroke.color);
+      writeColor(colors, vertex, stroke.color, opacity);
       writeUv(uvs, vertex, [
         ringIndex / ringSize,
         pointCount <= 1 ? 0 : pointIndex / (pointCount - 1),
@@ -180,12 +210,26 @@ function generateParticleGeometry(
   const uvs = new Float32Array(vertexCount * 2);
   const indices = new Uint32Array(pointCount * 6);
   const bounds = createEmptyBounds();
+  const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
+  const pressureOpacityMin = normalizePressureOpacityMin(
+    options.pressureOpacityRange,
+  );
+  const pressureOpacityMax = normalizePressureOpacityMax(
+    options.pressureOpacityRange,
+  );
 
   for (let pointIndex = 0; pointIndex < pointCount; pointIndex += 1) {
     const point = stroke.controlPoints[pointIndex];
     const radius =
-      stroke.brushSize * getPressureSizeMultiplier(point.pressure, options) * 0.5;
+      stroke.brushSize *
+      getPressureSizeMultiplier(point.pressure, pressureSizeMin) *
+      0.5;
     const vertex = pointIndex * 4;
+    const opacity = getPressureOpacityMultiplier(
+      point.pressure,
+      pressureOpacityMin,
+      pressureOpacityMax,
+    );
     writeParticleVertex(
       positions,
       normals,
@@ -195,6 +239,7 @@ function generateParticleGeometry(
       vertex,
       point.position,
       stroke.color,
+      opacity,
       -radius,
       -radius,
       0,
@@ -209,6 +254,7 @@ function generateParticleGeometry(
       vertex + 1,
       point.position,
       stroke.color,
+      opacity,
       radius,
       -radius,
       1,
@@ -223,6 +269,7 @@ function generateParticleGeometry(
       vertex + 2,
       point.position,
       stroke.color,
+      opacity,
       radius,
       radius,
       1,
@@ -237,6 +284,7 @@ function generateParticleGeometry(
       vertex + 3,
       point.position,
       stroke.color,
+      opacity,
       -radius,
       radius,
       0,
@@ -257,11 +305,21 @@ function generateParticleGeometry(
 
 function getPressureSizeMultiplier(
   pressure: number,
-  options: BrushGeometryOptions,
+  pressureSizeMin: number,
 ): number {
-  const min = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
   const clampedPressure = clamp01(pressure);
-  return min + (1 - min) * clampedPressure;
+  return pressureSizeMin + (1 - pressureSizeMin) * clampedPressure;
+}
+
+function getPressureOpacityMultiplier(
+  pressure: number,
+  pressureOpacityMin: number,
+  pressureOpacityMax: number,
+): number {
+  return (
+    pressureOpacityMin +
+    (pressureOpacityMax - pressureOpacityMin) * clamp01(pressure)
+  );
 }
 
 function normalizePressureSizeMin(value: number | undefined): number {
@@ -269,6 +327,18 @@ function normalizePressureSizeMin(value: number | undefined): number {
     return DEFAULT_PRESSURE_SIZE_MIN;
   }
   return clamp01(value);
+}
+
+function normalizePressureOpacityMin(
+  range: BrushPressureOpacityRange | undefined,
+): number {
+  return range && Number.isFinite(range[0]) ? clamp01(range[0]) : 1;
+}
+
+function normalizePressureOpacityMax(
+  range: BrushPressureOpacityRange | undefined,
+): number {
+  return range && Number.isFinite(range[1]) ? clamp01(range[1]) : 1;
 }
 
 function clamp01(value: number): number {
@@ -293,6 +363,7 @@ function writeParticleVertex(
   vertex: number,
   center: Vec3,
   color: Rgba,
+  opacityMultiplier: number,
   offsetX: number,
   offsetY: number,
   u: number,
@@ -304,7 +375,7 @@ function writeParticleVertex(
     center[2],
   ]);
   writeNormal(normals, vertex, [0, 0, 1]);
-  writeColor(colors, vertex, color);
+  writeColor(colors, vertex, color, opacityMultiplier);
   writeUv(uvs, vertex, [u, v]);
   includeBounds(bounds, positions, vertex);
 }
@@ -354,12 +425,17 @@ function writeNormal(target: Float32Array, vertex: number, value: Vec3): void {
   writePosition(target, vertex, value);
 }
 
-function writeColor(target: Float32Array, vertex: number, value: Rgba): void {
+function writeColor(
+  target: Float32Array,
+  vertex: number,
+  value: Rgba,
+  opacityMultiplier = 1,
+): void {
   const offset = vertex * 4;
   target[offset] = value[0];
   target[offset + 1] = value[1];
   target[offset + 2] = value[2];
-  target[offset + 3] = value[3];
+  target[offset + 3] = clamp01(value[3] * opacityMultiplier);
 }
 
 function writeUv(target: Float32Array, vertex: number, value: [number, number]): void {

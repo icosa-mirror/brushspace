@@ -6,6 +6,8 @@ import { exportSketchDocumentToGlb } from "./glb-export.js";
 import { createReferenceMediaAsset, toMediaReference } from "./media-assets.js";
 import { createEmptyStrokeData } from "./types.js";
 
+const LIGHT_BRUSH_GUID = "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62";
+
 describe("Open Brush GLB export", () => {
   it("exports a valid binary GLB with stroke geometry and metadata extras", () => {
     const result = exportSketchDocumentToGlb(createPhase1FixtureDocument());
@@ -59,6 +61,51 @@ describe("Open Brush GLB export", () => {
       openBrushBrushGuid: PHASE1_FIXTURE_BRUSH_GUID,
       openBrushBrushName: "Marker",
     });
+  });
+
+  it("exports pressure-opacity adjusted vertex colors", () => {
+    const result = exportSketchDocumentToGlb(
+      createSketchDocument({
+        metadata: { source: "runtime" },
+        layers: [createSketchLayer({ id: 0, name: "Sketch" })],
+        strokes: [
+          createEmptyStrokeData({
+            guid: "half-pressure-light",
+            brushGuid: LIGHT_BRUSH_GUID,
+            brushSize: 0.2,
+            color: [1, 1, 1, 1],
+            layerIndex: 0,
+            controlPoints: [
+              {
+                position: [0, 1, -1],
+                orientation: [0, 0, 0, 1],
+                pressure: 0.5,
+                timestampMs: 0,
+              },
+              {
+                position: [0.2, 1, -1],
+                orientation: [0, 0, 0, 1],
+                pressure: 0.5,
+                timestampMs: 16,
+              },
+            ],
+          }),
+        ],
+      }),
+    );
+    const parsed = parseGlb(result.bytes);
+    const colorAccessorIndex = parsed.json.meshes[0].primitives[0].attributes.COLOR_0;
+    const colorAccessor = parsed.json.accessors[colorAccessorIndex];
+    const bufferView = parsed.json.bufferViews[colorAccessor.bufferView];
+    const colorOffset = bufferView.byteOffset + (colorAccessor.byteOffset ?? 0);
+    const view = new DataView(
+      parsed.binBytes.buffer,
+      parsed.binBytes.byteOffset,
+      parsed.binBytes.byteLength,
+    );
+
+    expect(colorAccessor.type).toBe("VEC4");
+    expect(view.getFloat32(colorOffset + 3 * 4, true)).toBeCloseTo(0.75);
   });
 
   it("keeps layer roots and buffer views internally consistent", () => {
@@ -202,7 +249,8 @@ function parseGlb(bytes: Uint8Array) {
   offset += 4;
   expect(view.getUint32(offset, true)).toBe(0x004e4942);
   offset += 4;
+  const binBytes = bytes.slice(offset, offset + binLength);
   expect(offset + binLength).toBe(totalLength);
   const json = JSON.parse(new TextDecoder().decode(jsonBytes).trim());
-  return { version, totalLength, jsonLength, binLength, json };
+  return { version, totalLength, jsonLength, binLength, binBytes, json };
 }

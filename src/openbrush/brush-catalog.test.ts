@@ -21,6 +21,7 @@ describe("Open Brush brush catalog", () => {
       guid: OPEN_BRUSH_DEFAULT_BRUSH_GUID,
       name: "Light",
       brushSizeRange: [0.05, 0.2],
+      pressureOpacityRange: [0.5, 1],
     });
     expect(
       brushSize01ToLiveBrushSize(
