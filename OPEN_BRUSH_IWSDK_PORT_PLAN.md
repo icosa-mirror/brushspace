@@ -40,7 +40,7 @@ Planning-time runtime status:
 4. Preserve Open Brush update ordering: input/actions, active tool, pointer/stroke state machine, geometry generation, then batch/render flush.
 5. Keep hot paths allocation-free. Allocate vectors, arrays, buffers, and temporary objects outside `update()`.
 6. Use IWSDK ECS, interactions, and runtime inspection for user-facing behavior. Do not build parallel raw Three.js scene graphs or raycast systems.
-7. Phase fidelity from simple to complete: unbatched marker strokes first, then geometry families, batching, shaders, persistence, tools, and sharing.
+7. Phase fidelity from simple to complete: unbatched marker strokes first, then geometry families, batching, shaders, persistence, tools, hand-attached UI, and local interchange.
 
 ## Target Architecture
 
@@ -395,14 +395,18 @@ Testing plan:
 
 Scope:
 
-- Replace placeholder UI with Open Brush-style panels for brush palette, color, layers, tools, sketch catalog, settings, save/load/export, and help/status.
-- Implement browser and XR parity for core workflows.
+- Replace placeholder UI with Open Brush/Tilt Brush-style hand-attached controls, not a single large XR panel. Split brush palette, color picker, layers, tools, sketch catalog, settings, save/load/export, and help/status into workflow-specific panels that can attach to the wand/off-hand, detach, respawn, page, scroll, and hide/show like the original interaction model.
+- Preserve controller role behavior: brush hand paints, wand/off-hand manages panels and tool state, handedness swaps controller roles, and bimanual tools can temporarily hide panels or reserve both controller attach points when needed.
+- Port interaction semantics as well as functionality: controller rays, direct panel touch targets, thumbstick/trackpad paging, panel show/hide, wand rotation/placement, hover/press feedback, haptics, and XR visibility/session transitions.
+- Keep browser and desktop parity for core workflows with a consolidated fallback/debug surface where useful, but do not treat that fallback panel as XR UI parity.
 - Add accessibility and comfort options: scale, handedness, controller mapping, panel placement, locomotion decision, snap/continuous turn if locomotion is later enabled, and session visibility handling.
 - Add robust error/reporting surfaces for unsupported brushes, invalid files, failed saves, asset load failures, and runtime state.
 
 Acceptance criteria:
 
-- A user can complete the main workflow entirely in XR: choose brush/color, draw, undo/redo, use layers, save, reload, export.
+- A user can complete the main workflow entirely in XR using hand-attached Open Brush-style controls: choose brush/color, draw, undo/redo, use layers, save, reload, and export without opening one oversized panel.
+- Handedness swaps preserve brush/wand roles, panel attachment points, haptics, and controller command routing.
+- Bimanual tools and panel visibility behave like Open Brush references: panels can hide during two-hand operations, return afterward, and respawn to a reachable controller-relative position.
 - The same core workflow works with browser pointer/keyboard fallback.
 - UI state and ECS state remain synchronized after reloads and XR session transitions.
 - No visible UI text overlaps or overflows at supported desktop and Quest browser resolutions.
@@ -410,9 +414,10 @@ Acceptance criteria:
 
 Testing plan:
 
-- Unit: settings persistence and command routing tests.
-- Browser: visual regression screenshots for panels at desktop and mobile-like sizes.
-- Runtime E2E: run the complete user journey using `xr_accept_session`, controller transforms/selects, screenshots, ECS queries, and console log checks; repeat after `xr_end_session` and re-enter.
+- Unit: settings persistence, command routing, handedness swaps, panel attachment state, panel show/hide state, and bimanual tool visibility tests.
+- Browser: visual regression screenshots for the consolidated fallback/debug surface and individual panel layouts at desktop and mobile-like sizes.
+- Runtime E2E: run the complete user journey using `xr_accept_session`, controller transforms/selects, direct panel touch/ray interactions, ECS queries, screenshots, and console log checks; repeat after `xr_end_session` and re-enter.
+- Runtime E2E shortcuts: after each interaction route is proven once, use ECS state injection for repeated permutations such as handedness, panel placement, and tool state, then verify rendered/UI state with screenshots and scene/ECS inspection.
 
 ## Phase 11: Performance, Memory, and Quest Hardening
 
@@ -438,27 +443,28 @@ Testing plan:
 - Browser: long-run stress test with repeated scripted drawing and deletion.
 - Runtime E2E: automated draw loops via controller transforms; query entity counts and debug counters before/after; capture screenshots for visual corruption; use Quest device/perf tooling for final FPS, memory, and thermal validation.
 
-## Phase 12: Sharing, Cloud, Multiplayer, and Extended Feature Parity
+## Phase 12: Local Interchange, Advanced Export, and Extended Feature Parity
 
 Scope:
 
-- Port cloud/sharing features after the local app is stable: Google Drive, Icosa/Sketchfab/Viverse-style integrations, remote sketch sets, upload progress/cancel, cached thumbnails, remix/source IDs, and auth flows.
-- Evaluate multiplayer separately from file/persistence work.
+- Complete local/offline interchange after the local app is stable: local sketch sets, browser file picker/download workflows, packaged media references, cached thumbnails, remix/source metadata, source sketch IDs, import/export progress, cancellation, and recoverable error handling.
+- Keep all interchange workflows account-free and network-independent. Provider-backed storage, service catalogs, and multi-user/networked editing are out of scope for this port.
 - Add advanced exports and Open Brush parity features: full shader generation, legacy glTF compatibility, FBX/OBJ/USD/STL/LATK/WRL, camera paths, video/GIF tooling, text-to-strokes, tutorials, APIs, and scripting.
 
 Acceptance criteria:
 
-- Local-first workflows remain fully functional without network access.
-- Cloud integrations have explicit auth, retry, cancellation, cache invalidation, and conflict-resolution behavior.
+- Local sketch import/export workflows remain fully functional without network access or accounts.
+- Exported packages include strokes, layers, metadata, managed media references, thumbnails, remix/source metadata, and warnings needed for an offline round trip.
+- Import/export progress, cancellation, cache invalidation, and recoverable error behavior are explicit and testable.
 - Advanced export formats are validated independently and do not regress GLB or `.tilt`.
-- Multiplayer, if ported, has deterministic authority, command ordering, and conflict handling.
+- No networked, account-backed, or multi-user behavior is required for complete status.
 
 Testing plan:
 
-- Unit: API adapters, auth state machines, retry/cancel behavior, and conflict resolution.
-- Browser: offline/online mode switching and catalog sync behavior.
-- Runtime E2E: verify cloud/imported sketches still render and save in XR; inspect ECS state after remote loads; use screenshots and console logs for regressions.
-- External: service sandbox tests and manual account/device validation where automation cannot cover OAuth flows.
+- Unit: local package manifests, remix/source metadata, export adapters, progress/cancel behavior, cache invalidation, and offline error paths.
+- Browser: offline import/export/download/upload-file round trips and catalog thumbnail cache invalidation.
+- Runtime E2E: verify locally imported sketches render, save, reload, and export in XR; inspect ECS state after local loads; use screenshots and console logs for regressions.
+- External: file-format validators and desktop viewers for advanced export formats.
 
 ## Definition of Complete
 
@@ -467,7 +473,7 @@ The port is complete when:
 - The IWSDK app can create, edit, save, load, and export Open Brush sketches in XR and browser fallback.
 - `.tilt` compatibility is proven against known Open Brush fixtures, including strokes, layers, metadata, thumbnails, pressure, timestamps, groups, seeds, and core media references.
 - The brush catalog has explicit supported/fallback/unsupported status, and launch-target brushes render with acceptable visual fidelity.
-- Undo/redo, selection, layers, core tools, palette, settings, and catalog workflows work end to end.
+- Undo/redo, selection, layers, core tools, palette, settings, and catalog workflows work end to end through hand-attached XR controls, with browser fallback kept separate.
 - GLB export produces valid files with expected geometry, materials, layers, and metadata.
 - IWSDK runtime E2E tests cover drawing, brush switching, tools, layers, save/load, import/export, and session transitions.
 - Quest hardware performance is acceptable for representative real sketches.
@@ -480,5 +486,6 @@ The port is complete when:
 - `.tilt` compatibility requires exact binary behavior, including .NET GUID byte order and extension skipping.
 - Transparent and additive brushes can overload mobile stereo rendering.
 - Selection and intersection behavior may need different algorithms; Unity GPU ID readback can stall badly in WebXR.
+- Hand-attached UI fidelity is a product risk as much as a technical one: panel placement, brush/wand roles, direct touch, ray targeting, paging, haptics, and bimanual visibility need to feel like Open Brush, not just expose the same commands.
 - Browser persistence and atomic save behavior differ from Unity filesystem rename semantics.
 - Emulator E2E is necessary but insufficient; Quest hardware testing remains mandatory.
