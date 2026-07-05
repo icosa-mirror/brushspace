@@ -88,6 +88,17 @@ export const SettingsState = createComponent("SettingsState", {
   settingsStatus: { type: Types.String, default: "ready" },
 });
 
+export const OpenBrushPanelAttachment = createComponent(
+  "OpenBrushPanelAttachment",
+  {
+    role: { type: Types.String, default: "main" },
+    anchor: { type: Types.String, default: "off-hand" },
+    hand: { type: Types.String, default: "left" },
+    status: { type: Types.String, default: "browser" },
+    appliedSettingsRevision: { type: Types.Int32, default: -1 },
+  },
+);
+
 export const PerformanceState = createComponent("PerformanceState", {
   drawCallCount: { type: Types.Int32, default: 0 },
   batchCount: { type: Types.Int32, default: 0 },

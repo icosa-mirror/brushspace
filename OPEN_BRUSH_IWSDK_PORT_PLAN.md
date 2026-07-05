@@ -38,6 +38,7 @@ Implementation-time runtime status:
 - Managed `iwsdk-runtime` E2E has since been used against the live app. Do not use direct Playwright for IWSDK UI/XR checks; the runtime-managed browser owns scene, console, screenshot, XR, and ECS inspection.
 - Phase 7 live checks confirmed default Draw creates finalized strokes, live Color Picker copies stroke color, Brush Picker copies stroke brush and size, and live Eraser hides intersected visible strokes with undo history. The eraser regression was traced to global `Hovered` panel blocking in XR; XR painting/erasing/picking should block only when the active pointer ray intersects a panel.
 - Default Draw/Line thickness was confirmed to be controlled by `OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE`; the IWSDK calibration now treats Open Brush `BrushSize01=0.5` as a 0.02m live stroke width while keeping brush-specific range interpolation.
+- Phase 10 foundation has begun: the consolidated `welcome` panel is now tagged with `OpenBrushPanelAttachment`, named `OpenBrushMainPanel`, and driven by `PanelAttachmentSystem`. In browser/non-immersive mode it remains the fallback `ScreenSpace` panel; in XR it consumes `SettingsState` (`dominantHand`, `panelAnchor`, `panelDistance`, `panelHeight`, `panelScale`), attaches to the requested hand ray or XR-origin anchor, and applies panel scale through `PanelUI.maxWidth/maxHeight` rather than object scale. This is a placement foundation only; it does not yet replace the fallback panel with the Open Brush wand-ring panel set.
 
 ## UI and Interaction Audit Addendum
 
@@ -54,6 +55,7 @@ The port must preserve Open Brush interaction semantics, not just expose equival
 - Tape/measure: tape is a bimanual mode that hides panels, uses wand/brush controller roles, pulls the lazy cursor along the controller line, and blocks incompatible transforms while active.
 - Stencils: stencils magnetize free-paint before lazy/grid processing, maintain previous active stencil while painting, use attract/hysteresis, and need visible stencil widget state.
 - Hand-attached UI: core brush/color/tool controls belong on off-hand/wand-attached spatial panels with brush/wand role semantics. The consolidated panel remains a browser/debug fallback, not the target XR UX.
+- Tool-spec audit queue: recheck every tool's source spec before declaring parity. The current priority checks are Draw and Straightedge/Line default thickness, per-brush size range metadata, eraser radius/intersection behavior, picker/dropper size copying, and any panel-focus conditions that can make eraser appear broken.
 
 ## Port Principles
 
@@ -455,6 +457,7 @@ Testing plan:
 - Browser: visual regression screenshots for the consolidated fallback/debug surface and individual panel layouts at desktop and mobile-like sizes.
 - Runtime E2E: run the complete user journey using `xr_accept_session`, controller transforms/selects, direct panel touch/ray interactions, `xr_set_gamepad_state` for wand scroll/paging, ECS queries, screenshots, and console log checks; repeat after `xr_end_session` and re-enter.
 - Runtime E2E: verify the fixed wand ring, attach/detach, respawn, handedness swap, panel focus suppression, and bimanual hide/restore with `ecs_snapshot`/`ecs_diff`.
+- Runtime E2E foundation check: query `OpenBrushPanelAttachment`, `SettingsState`, `PanelUI`, and `Transform`; change `dominantHand`/`panelAnchor` through ECS shortcuts after the UI route is proven; verify the panel reattaches to left ray, right ray, or XR origin and remains visible in screenshots without restarting the managed server.
 - Runtime E2E shortcuts: after each interaction route is proven once, use ECS state injection for repeated permutations such as handedness, panel placement, and tool state, then verify rendered/UI state with screenshots and scene/ECS inspection.
 
 ## Phase 11: Performance, Memory, and Quest Hardening

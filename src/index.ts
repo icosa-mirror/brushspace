@@ -10,6 +10,7 @@ import {
 } from "@iwsdk/core";
 
 import { OpenBrushDebug } from "./components/OpenBrushDebug.js";
+import { OpenBrushPanelAttachment } from "./components/OpenBrushCore.js";
 
 import { PanelSystem } from "./panel.js";
 
@@ -19,6 +20,7 @@ import { AudioFeedbackSystem } from "./systems/AudioFeedbackSystem.js";
 import { BrushCatalogSystem } from "./systems/BrushCatalogSystem.js";
 import { InputCommandSystem } from "./systems/InputCommandSystem.js";
 import { LayerCanvasSystem } from "./systems/LayerCanvasSystem.js";
+import { PanelAttachmentSystem } from "./systems/PanelAttachmentSystem.js";
 import { PerformanceCounterSystem } from "./systems/PerformanceCounterSystem.js";
 import { RuntimeDebugSystem } from "./systems/RuntimeDebugSystem.js";
 import { SelectionSystem } from "./systems/SelectionSystem.js";
@@ -56,12 +58,16 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
       maxHeight: 5,
       maxWidth: 1.6,
     })
+    .addComponent(OpenBrushPanelAttachment, {
+      role: "main",
+    })
     .addComponent(Interactable)
     .addComponent(ScreenSpace, {
       top: "20px",
       left: "20px",
       height: "95%",
     });
+  panelEntity.object3D!.name = "OpenBrushMainPanel";
   panelEntity.object3D!.position.set(0, 2.05, -1.9);
 
   const debugEntity = world.createTransformEntity();
@@ -70,6 +76,7 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
 
   world
     .registerSystem(PanelSystem)
+    .registerSystem(PanelAttachmentSystem)
     .registerSystem(InputCommandSystem)
     .registerSystem(AudioFeedbackSystem)
     .registerSystem(BrushCatalogSystem)
