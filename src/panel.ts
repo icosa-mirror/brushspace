@@ -100,6 +100,18 @@ export class PanelSystem extends createSystem({
     required: [PanelUI, PanelDocument],
     where: [eq(PanelUI, "config", "./ui/welcome.json")],
   },
+  wandBrushPanel: {
+    required: [PanelUI, PanelDocument],
+    where: [eq(PanelUI, "config", "./ui/wand-brush.json")],
+  },
+  wandColorPanel: {
+    required: [PanelUI, PanelDocument],
+    where: [eq(PanelUI, "config", "./ui/wand-color.json")],
+  },
+  wandToolsPanel: {
+    required: [PanelUI, PanelDocument],
+    where: [eq(PanelUI, "config", "./ui/wand-tools.json")],
+  },
   brushSettings: { required: [BrushSettings] },
   appState: { required: [OpenBrushAppState] },
   selectionState: { required: [SelectionState] },
@@ -117,8 +129,26 @@ export class PanelSystem extends createSystem({
     this.queries.welcomePanel.subscribe("qualify", (entity) => {
       this.setupPanel(entity);
     });
+    this.queries.wandBrushPanel.subscribe("qualify", (entity) => {
+      this.setupWandBrushPanel(entity);
+    });
+    this.queries.wandColorPanel.subscribe("qualify", (entity) => {
+      this.setupWandColorPanel(entity);
+    });
+    this.queries.wandToolsPanel.subscribe("qualify", (entity) => {
+      this.setupWandToolsPanel(entity);
+    });
     for (const entity of this.queries.welcomePanel.entities) {
       this.setupPanel(entity);
+    }
+    for (const entity of this.queries.wandBrushPanel.entities) {
+      this.setupWandBrushPanel(entity);
+    }
+    for (const entity of this.queries.wandColorPanel.entities) {
+      this.setupWandColorPanel(entity);
+    }
+    for (const entity of this.queries.wandToolsPanel.entities) {
+      this.setupWandToolsPanel(entity);
     }
   }
 
@@ -139,6 +169,15 @@ export class PanelSystem extends createSystem({
       this.updateSettingsLabels(document);
       this.updatePersistenceLabels(document);
       this.updatePlaybackLabels(document);
+    }
+    for (const entity of this.queries.wandToolsPanel.entities) {
+      const document = PanelDocument.data.document[
+        entity.index
+      ] as UIKitDocument;
+      if (!document) {
+        continue;
+      }
+      this.updateWandToolLabels(document);
     }
   }
 
@@ -583,6 +622,87 @@ export class PanelSystem extends createSystem({
     this.updatePlaybackLabels(document);
   }
 
+  private setupWandBrushPanel(entity: Entity): void {
+    if (!this.registerPanelDocument(entity)) {
+      return;
+    }
+    const document = PanelDocument.data.document[entity.index] as UIKitDocument;
+    this.nameElement(document, "brush-prev");
+    this.nameElement(document, "brush-next");
+
+    const previousBrushButton = document.getElementById(
+      "brush-prev",
+    ) as TextElement;
+    previousBrushButton?.addEventListener("click", () => {
+      this.selectBrushOffset(-1);
+    });
+
+    const nextBrushButton = document.getElementById("brush-next") as TextElement;
+    nextBrushButton?.addEventListener("click", () => {
+      this.selectBrushOffset(1);
+    });
+  }
+
+  private setupWandColorPanel(entity: Entity): void {
+    if (!this.registerPanelDocument(entity)) {
+      return;
+    }
+    const document = PanelDocument.data.document[entity.index] as UIKitDocument;
+    this.nameElement(document, "color-blue");
+    this.nameElement(document, "color-red");
+    this.nameElement(document, "color-white");
+
+    const blueButton = document.getElementById("color-blue") as TextElement;
+    blueButton?.addEventListener("click", () => {
+      this.setBrushColor([0.1, 0.45, 0.95, 1]);
+    });
+
+    const redButton = document.getElementById("color-red") as TextElement;
+    redButton?.addEventListener("click", () => {
+      this.setBrushColor([0.95, 0.18, 0.28, 1]);
+    });
+
+    const whiteButton = document.getElementById("color-white") as TextElement;
+    whiteButton?.addEventListener("click", () => {
+      this.setBrushColor([0.98, 0.98, 0.96, 1]);
+    });
+  }
+
+  private setupWandToolsPanel(entity: Entity): void {
+    if (!this.registerPanelDocument(entity)) {
+      return;
+    }
+    const document = PanelDocument.data.document[entity.index] as UIKitDocument;
+    this.nameElement(document, "tool-draw");
+    this.nameElement(document, "tool-erase");
+
+    const drawToolButton = document.getElementById("tool-draw") as TextElement;
+    drawToolButton?.addEventListener("click", () => {
+      this.selectTool("free-paint");
+    });
+
+    const eraseToolButton = document.getElementById("tool-erase") as TextElement;
+    eraseToolButton?.addEventListener("click", () => {
+      this.selectTool("eraser");
+    });
+
+    this.updateWandToolLabels(document);
+  }
+
+  private registerPanelDocument(entity: Entity): boolean {
+    if (this.initializedPanels.has(entity.index)) {
+      return false;
+    }
+    const document = PanelDocument.data.document[
+      entity.index
+    ] as UIKitDocument;
+    if (!document) {
+      return false;
+    }
+    this.initializedPanels.add(entity.index);
+    return true;
+  }
+
   private selectTool(toolId: OpenBrushToolId): void {
     const appState = this.getAppStateEntity();
     if (!appState) {
@@ -716,6 +836,30 @@ export class PanelSystem extends createSystem({
     const nextBrush = cycleSelectableBrush(currentBrushGuid, offset);
     settingsEntity.setValue(BrushSettings, "brushGuid", nextBrush.guid);
     this.syncBrushSettingsSize(settingsEntity, nextBrush.guid);
+  }
+
+  private setBrushColor(color: readonly [number, number, number, number]): void {
+    const settingsEntity = this.getBrushSettingsEntity();
+    if (!settingsEntity) {
+      return;
+    }
+    const colorView = settingsEntity.getVectorView(
+      BrushSettings,
+      "color",
+    ) as Float32Array;
+    if (
+      colorView[0] === color[0] &&
+      colorView[1] === color[1] &&
+      colorView[2] === color[2] &&
+      colorView[3] === color[3]
+    ) {
+      return;
+    }
+    colorView[0] = color[0];
+    colorView[1] = color[1];
+    colorView[2] = color[2];
+    colorView[3] = color[3];
+    this.touchAppState();
   }
 
   private applyPickedBrushSize(
@@ -854,6 +998,23 @@ export class PanelSystem extends createSystem({
         : activeTool.id === "brush-picker"
           ? "Pick Brush"
           : "Pick Target",
+    );
+  }
+
+  private updateWandToolLabels(document: UIKitDocument): void {
+    const appState = this.getAppStateEntity();
+    const activeTool = resolveOpenBrushTool(
+      appState ? String(appState.getValue(OpenBrushAppState, "activeTool")) : "",
+    );
+    this.setText(
+      document,
+      "tool-draw",
+      activeTool.id === "free-paint" ? "Draw *" : "Draw",
+    );
+    this.setText(
+      document,
+      "tool-erase",
+      activeTool.id === "eraser" ? "Erase *" : "Erase",
     );
   }
 
