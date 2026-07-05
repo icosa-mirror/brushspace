@@ -3,55 +3,40 @@ import { describe, expect, it } from "vitest";
 import { isOpenBrushPanelFocusable } from "./panel-focus.js";
 
 describe("isOpenBrushPanelFocusable", () => {
-  it("allows visible panels with a positive attachment size", () => {
-    expect(
-      isOpenBrushPanelFocusable({
-        objectVisible: true,
-        attachmentVisible: true,
-        maxWidth: 0.42,
-        maxHeight: 0.28,
-      }),
-    ).toBe(true);
+  const visiblePanel = {
+    objectVisible: true,
+    attachmentVisible: true,
+    maxWidth: 0.35,
+    maxHeight: 0.44,
+  };
+
+  it("allows visible attached panels with positive dimensions to block tools", () => {
+    expect(isOpenBrushPanelFocusable(visiblePanel)).toBe(true);
   });
 
-  it("skips XR-hidden attachment panels", () => {
+  it("ignores hidden fallback panels", () => {
     expect(
       isOpenBrushPanelFocusable({
-        objectVisible: true,
-        attachmentVisible: false,
-        maxWidth: 0.42,
-        maxHeight: 0.28,
-      }),
-    ).toBe(false);
-  });
-
-  it("skips object-hidden panels", () => {
-    expect(
-      isOpenBrushPanelFocusable({
+        ...visiblePanel,
         objectVisible: false,
-        attachmentVisible: true,
-        maxWidth: 0.42,
-        maxHeight: 0.28,
+      }),
+    ).toBe(false);
+    expect(
+      isOpenBrushPanelFocusable({
+        ...visiblePanel,
+        attachmentVisible: false,
       }),
     ).toBe(false);
   });
 
-  it("skips panels without a usable hit area", () => {
-    expect(
-      isOpenBrushPanelFocusable({
-        objectVisible: true,
-        attachmentVisible: true,
-        maxWidth: 0,
-        maxHeight: 0.28,
-      }),
-    ).toBe(false);
-    expect(
-      isOpenBrushPanelFocusable({
-        objectVisible: true,
-        attachmentVisible: true,
-        maxWidth: 0.42,
-        maxHeight: Number.NaN,
-      }),
-    ).toBe(false);
+  it("ignores zero-size and invalid panels", () => {
+    for (const panel of [
+      { ...visiblePanel, maxWidth: 0 },
+      { ...visiblePanel, maxHeight: 0 },
+      { ...visiblePanel, maxWidth: Number.NaN },
+      { ...visiblePanel, maxHeight: Number.POSITIVE_INFINITY },
+    ]) {
+      expect(isOpenBrushPanelFocusable(panel)).toBe(false);
+    }
   });
 });
