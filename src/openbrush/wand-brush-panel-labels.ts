@@ -16,6 +16,7 @@ export interface WandBrushPanelLabelInput {
   eraserRadius: number;
   eraserActive: boolean;
   panelFocusBlocked: boolean;
+  toolStatus?: string;
 }
 
 export interface WandBrushPanelLabels {
@@ -60,14 +61,15 @@ export function resolveWandBrushPanelLabels(
   const activeBrushMeta = input.eraserActive
     ? `${brushMeta} / ${sizeLabel.toLowerCase()}`
     : brushMeta;
+  const toolStatusMeta = resolveWandBrushPanelToolStatusMeta(input.toolStatus);
   const wandBrushMeta = input.eraserActive
     ? input.panelFocusBlocked
       ? "panel focus"
-      : "contact radius"
+      : (toolStatusMeta ?? "contact radius")
     : activeBrush
       ? input.panelFocusBlocked
         ? `${activeBrush.geometryFamily} / panel focus`
-        : `${activeBrush.geometryFamily} / ${catalogPosition}`
+        : `${activeBrush.geometryFamily} / ${toolStatusMeta ?? catalogPosition}`
       : "unavailable";
 
   return {
@@ -80,4 +82,31 @@ export function resolveWandBrushPanelLabels(
     sizeUp: input.eraserActive ? "Radius +" : "Size +",
     warning: activeBrush?.unsupportedReason ?? "Ready",
   };
+}
+
+export function resolveWandBrushPanelToolStatusMeta(
+  toolStatus: string | undefined,
+): string | undefined {
+  if (!toolStatus) {
+    return undefined;
+  }
+  if (toolStatus === "nothing-to-erase") {
+    return "miss: no stroke";
+  }
+  if (toolStatus === "nothing-to-pick") {
+    return "miss: no target";
+  }
+  if (toolStatus === "picker-pending") {
+    return "aim picker at stroke";
+  }
+  if (toolStatus === "dropper-pending") {
+    return "aim dropper at stroke";
+  }
+  if (toolStatus.startsWith("erased ")) {
+    return `hit: ${toolStatus}`;
+  }
+  if (toolStatus.startsWith("picked ")) {
+    return toolStatus;
+  }
+  return undefined;
 }

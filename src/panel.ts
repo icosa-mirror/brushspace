@@ -1226,6 +1226,7 @@ export class PanelSystem extends createSystem({
       eraserRadius,
       eraserActive: activeTool.erases,
       panelFocusBlocked,
+      toolStatus,
     });
 
     this.setText(document, "active-brush-name", labels.activeBrushName);

@@ -4,7 +4,10 @@ import {
   OPEN_BRUSH_DEFAULT_BRUSH_GUID,
   selectableOpenBrushes,
 } from "./brush-catalog.js";
-import { resolveWandBrushPanelLabels } from "./wand-brush-panel-labels.js";
+import {
+  resolveWandBrushPanelLabels,
+  resolveWandBrushPanelToolStatusMeta,
+} from "./wand-brush-panel-labels.js";
 
 describe("Phase A wand brush panel labels", () => {
   it("labels paint sizing as brush size controls", () => {
@@ -53,6 +56,73 @@ describe("Phase A wand brush panel labels", () => {
     ).toBe("panel focus");
   });
 
+  it("surfaces eraser miss and hit results in the hand panel", () => {
+    expect(
+      resolveWandBrushPanelLabels(
+        baseInput({
+          eraserActive: true,
+          toolStatus: "nothing-to-erase",
+        }),
+      ).wandBrushMeta,
+    ).toBe("miss: no stroke");
+
+    expect(
+      resolveWandBrushPanelLabels(
+        baseInput({
+          eraserActive: true,
+          toolStatus: "erased 2 strokes",
+        }),
+      ).wandBrushMeta,
+    ).toBe("hit: erased 2 strokes");
+  });
+
+  it("surfaces picker/dropper pending, miss, and hit results", () => {
+    expect(
+      resolveWandBrushPanelLabels(
+        baseInput({
+          toolStatus: "picker-pending",
+        }),
+      ).wandBrushMeta,
+    ).toBe(`${lightBrush.geometryFamily} / aim picker at stroke`);
+
+    expect(
+      resolveWandBrushPanelLabels(
+        baseInput({
+          toolStatus: "dropper-pending",
+        }),
+      ).wandBrushMeta,
+    ).toBe(`${lightBrush.geometryFamily} / aim dropper at stroke`);
+
+    expect(
+      resolveWandBrushPanelLabels(
+        baseInput({
+          toolStatus: "nothing-to-pick",
+        }),
+      ).wandBrushMeta,
+    ).toBe(`${lightBrush.geometryFamily} / miss: no target`);
+
+    expect(
+      resolveWandBrushPanelLabels(
+        baseInput({
+          toolStatus: "picked brush #3",
+        }),
+      ).wandBrushMeta,
+    ).toBe(`${lightBrush.geometryFamily} / picked brush #3`);
+  });
+
+  it("formats only known temporary tool statuses for the compact panel", () => {
+    expect(resolveWandBrushPanelToolStatusMeta("nothing-to-erase")).toBe(
+      "miss: no stroke",
+    );
+    expect(resolveWandBrushPanelToolStatusMeta("erased 1 stroke")).toBe(
+      "hit: erased 1 stroke",
+    );
+    expect(resolveWandBrushPanelToolStatusMeta("picked color #1")).toBe(
+      "picked color #1",
+    );
+    expect(resolveWandBrushPanelToolStatusMeta("draw-ready")).toBeUndefined();
+  });
+
   it("falls back without leaking invalid size text", () => {
     const labels = resolveWandBrushPanelLabels(
       baseInput({
@@ -81,6 +151,7 @@ function baseInput(
     eraserRadius: 0.2,
     eraserActive: false,
     panelFocusBlocked: false,
+    toolStatus: "draw-ready",
     ...overrides,
   };
 }
