@@ -150,6 +150,8 @@ export class StrokeAuthoringSystem extends createSystem({
   private activeStroke: RuntimeStroke | undefined;
   private strokeCounter = 0;
   private readonly strokeHistory = new StrokeEntityHistory<Entity>();
+  private consumedStrokeUndoRequestRevision = 0;
+  private consumedStrokeRedoRequestRevision = 0;
 
   update(_delta: number, time: number) {
     const commandEntity = this.getFirstEntity("commands");
@@ -157,6 +159,7 @@ export class StrokeAuthoringSystem extends createSystem({
       return;
     }
 
+    this.consumeStrokeHistoryRequests(this.getFirstEntity("appState"));
     if (commandEntity.getValue(InputCommandState, "undoDown")) {
       this.undoLastStroke();
     }
@@ -1117,6 +1120,34 @@ export class StrokeAuthoringSystem extends createSystem({
     const visible = operation.kind === "create";
     for (const entity of operation.group) {
       this.setStrokeVisible(entity, visible);
+    }
+  }
+
+  private consumeStrokeHistoryRequests(appState: Entity | undefined): void {
+    if (!appState) {
+      return;
+    }
+
+    const undoRevision = Math.trunc(
+      Number(appState.getValue(OpenBrushAppState, "strokeUndoRequestRevision")),
+    );
+    if (
+      Number.isFinite(undoRevision) &&
+      undoRevision > this.consumedStrokeUndoRequestRevision
+    ) {
+      this.consumedStrokeUndoRequestRevision = undoRevision;
+      this.undoLastStroke();
+    }
+
+    const redoRevision = Math.trunc(
+      Number(appState.getValue(OpenBrushAppState, "strokeRedoRequestRevision")),
+    );
+    if (
+      Number.isFinite(redoRevision) &&
+      redoRevision > this.consumedStrokeRedoRequestRevision
+    ) {
+      this.consumedStrokeRedoRequestRevision = redoRevision;
+      this.redoLastStroke();
     }
   }
 

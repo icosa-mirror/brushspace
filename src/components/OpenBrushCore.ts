@@ -19,6 +19,8 @@ export const OpenBrushAppState = createComponent("OpenBrushAppState", {
   activeLayerIndex: { type: Types.Int32, default: 0 },
   isDirty: { type: Types.Boolean, default: false },
   commandRevision: { type: Types.Int32, default: 0 },
+  strokeUndoRequestRevision: { type: Types.Int32, default: 0 },
+  strokeRedoRequestRevision: { type: Types.Int32, default: 0 },
 });
 
 export const BrushSettings = createComponent("BrushSettings", {

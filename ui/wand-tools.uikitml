@@ -39,8 +39,21 @@
     cursor: pointer;
   }
 
+  .wide-button {
+    width: 10.95;
+  }
+
+  .meta {
+    margin-top: 0.45;
+    font-size: 1.05;
+    color: #a1a1aa;
+    text-align: left;
+  }
+
   #tool-line,
-  #tool-erase {
+  #tool-erase,
+  #tool-brush-picker,
+  #stroke-history-redo {
     margin-left: 0.5;
   }
 </style>
@@ -51,4 +64,13 @@
     <button id="tool-line" class="tool-button">Line</button>
     <button id="tool-erase" class="tool-button">Erase</button>
   </div>
+  <div class="button-row">
+    <button id="tool-color-picker" class="tool-button wide-button">Color</button>
+    <button id="tool-brush-picker" class="tool-button wide-button">Brush</button>
+  </div>
+  <div class="button-row">
+    <button id="stroke-history-undo" class="tool-button wide-button">Undo</button>
+    <button id="stroke-history-redo" class="tool-button wide-button">Redo</button>
+  </div>
+  <span id="stroke-history-state" class="meta">0 undo | 0 redo</span>
 </div>

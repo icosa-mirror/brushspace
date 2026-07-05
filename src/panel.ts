@@ -19,6 +19,7 @@ import {
   PersistenceState,
   SelectionState,
   SettingsState,
+  StrokeHistoryState,
   UiCommandHistoryState,
 } from "./components/OpenBrushCore.js";
 import {
@@ -129,6 +130,7 @@ export class PanelSystem extends createSystem({
   persistenceState: { required: [PersistenceState] },
   playbackState: { required: [PlaybackState] },
   uiHistory: { required: [UiCommandHistoryState] },
+  strokeHistory: { required: [StrokeHistoryState] },
   eraserCursors: { required: [OpenBrushEraserCursor] },
   layers: { required: [CanvasLayer] },
   strokes: { required: [BrushStroke] },
@@ -733,6 +735,11 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "tool-draw");
     this.nameElement(document, "tool-line");
     this.nameElement(document, "tool-erase");
+    this.nameElement(document, "tool-color-picker");
+    this.nameElement(document, "tool-brush-picker");
+    this.nameElement(document, "stroke-history-undo");
+    this.nameElement(document, "stroke-history-redo");
+    this.nameElement(document, "stroke-history-state");
 
     const drawToolButton = document.getElementById("tool-draw") as TextElement;
     drawToolButton?.addEventListener("click", () => {
@@ -747,6 +754,34 @@ export class PanelSystem extends createSystem({
     const eraseToolButton = document.getElementById("tool-erase") as TextElement;
     eraseToolButton?.addEventListener("click", () => {
       this.selectTool("eraser");
+    });
+
+    const colorPickerToolButton = document.getElementById(
+      "tool-color-picker",
+    ) as TextElement;
+    colorPickerToolButton?.addEventListener("click", () => {
+      this.selectTool("color-picker");
+    });
+
+    const brushPickerToolButton = document.getElementById(
+      "tool-brush-picker",
+    ) as TextElement;
+    brushPickerToolButton?.addEventListener("click", () => {
+      this.selectTool("brush-picker");
+    });
+
+    const undoButton = document.getElementById(
+      "stroke-history-undo",
+    ) as TextElement;
+    undoButton?.addEventListener("click", () => {
+      this.requestStrokeUndo();
+    });
+
+    const redoButton = document.getElementById(
+      "stroke-history-redo",
+    ) as TextElement;
+    redoButton?.addEventListener("click", () => {
+      this.requestStrokeRedo();
     });
 
     this.updateWandToolLabels(document);
@@ -1204,6 +1239,28 @@ export class PanelSystem extends createSystem({
       document,
       "tool-erase",
       activeTool.id === "eraser" ? "Erase *" : "Erase",
+    );
+    this.setText(
+      document,
+      "tool-color-picker",
+      activeTool.id === "color-picker" ? "Color *" : "Color",
+    );
+    this.setText(
+      document,
+      "tool-brush-picker",
+      activeTool.id === "brush-picker" ? "Brush *" : "Brush",
+    );
+    const strokeHistory = this.getStrokeHistoryEntity();
+    const undoDepth = strokeHistory
+      ? Number(strokeHistory.getValue(StrokeHistoryState, "undoDepth"))
+      : 0;
+    const redoDepth = strokeHistory
+      ? Number(strokeHistory.getValue(StrokeHistoryState, "redoDepth"))
+      : 0;
+    this.setText(
+      document,
+      "stroke-history-state",
+      `${undoDepth} undo | ${redoDepth} redo`,
     );
   }
 
@@ -2138,6 +2195,11 @@ export class PanelSystem extends createSystem({
     return next.done ? undefined : next.value;
   }
 
+  private getStrokeHistoryEntity(): Entity | undefined {
+    const next = this.queries.strokeHistory.entities.values().next();
+    return next.done ? undefined : next.value;
+  }
+
   private getActiveLayerEntity(): Entity | undefined {
     const activeLayerIndex = this.getActiveLayerIndex();
     return this.getLayerEntity(activeLayerIndex);
@@ -2456,6 +2518,37 @@ export class PanelSystem extends createSystem({
       return;
     }
     appState.setValue(OpenBrushAppState, "isDirty", true);
+    appState.setValue(
+      OpenBrushAppState,
+      "commandRevision",
+      Number(appState.getValue(OpenBrushAppState, "commandRevision")) + 1,
+    );
+  }
+
+  private requestStrokeUndo(): void {
+    this.requestStrokeHistory("strokeUndoRequestRevision");
+  }
+
+  private requestStrokeRedo(): void {
+    this.requestStrokeHistory("strokeRedoRequestRevision");
+  }
+
+  private requestStrokeHistory(
+    field: "strokeUndoRequestRevision" | "strokeRedoRequestRevision",
+  ): void {
+    const appState = this.getAppStateEntity();
+    if (!appState) {
+      return;
+    }
+    const currentRevision = Number(appState.getValue(OpenBrushAppState, field));
+    const nextRevision = Number.isFinite(currentRevision)
+      ? Math.trunc(currentRevision) + 1
+      : 1;
+    appState.setValue(
+      OpenBrushAppState,
+      field,
+      nextRevision,
+    );
     appState.setValue(
       OpenBrushAppState,
       "commandRevision",
