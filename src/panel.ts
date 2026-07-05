@@ -1246,6 +1246,16 @@ export class PanelSystem extends createSystem({
     );
     this.setText(
       document,
+      "brush-size-down",
+      activeTool.erases ? "Radius -" : "Size -",
+    );
+    this.setText(
+      document,
+      "brush-size-up",
+      activeTool.erases ? "Radius +" : "Size +",
+    );
+    this.setText(
+      document,
       "brush-catalog-counts",
       `${openBrushInventorySummary.supported} supported | ${openBrushInventorySummary.fallback} fallback | ${openBrushInventorySummary.unsupported} pending`,
     );
