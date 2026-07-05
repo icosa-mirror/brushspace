@@ -124,6 +124,8 @@ export class StrokeAuthoringSystem extends createSystem({
   private readonly tapeAnchorQuaternion = new Quaternion();
   private readonly eraserCenter: Vec3 = [0, 0, 0];
   private readonly pickerCenter: Vec3 = [0, 0, 0];
+  private readonly strokeWorldPosition = new Vector3();
+  private readonly strokeBoundsOffset: Vec3 = [0, 0, 0];
   private readonly sampleFrame: StrokePointerFrame = {
     paintPressed: true,
     pressure: 0,
@@ -702,6 +704,10 @@ export class StrokeAuthoringSystem extends createSystem({
         BrushStroke,
         "maxBounds",
       ) as unknown as Vec3;
+      const boundsOffset = this.writeStrokeBoundsOffset(
+        entity,
+        this.strokeBoundsOffset,
+      );
       if (
         strokeIntersectsEraser(
           {
@@ -712,6 +718,7 @@ export class StrokeAuthoringSystem extends createSystem({
             brushSize: Number(entity.getValue(BrushStroke, "brushSize")),
             minBounds,
             maxBounds,
+            boundsOffset,
           },
           activeLayerIndex,
           this.eraserCenter,
@@ -782,6 +789,10 @@ export class StrokeAuthoringSystem extends createSystem({
         BrushStroke,
         "maxBounds",
       ) as unknown as Vec3;
+      const boundsOffset = this.writeStrokeBoundsOffset(
+        entity,
+        this.strokeBoundsOffset,
+      );
       if (
         !strokeIntersectsTool(
           {
@@ -792,6 +803,7 @@ export class StrokeAuthoringSystem extends createSystem({
             brushSize: Number(entity.getValue(BrushStroke, "brushSize")),
             minBounds,
             maxBounds,
+            boundsOffset,
           },
           activeLayerIndex,
           center,
@@ -808,6 +820,22 @@ export class StrokeAuthoringSystem extends createSystem({
       }
     }
 
+    return target;
+  }
+
+  private writeStrokeBoundsOffset(entity: Entity, target: Vec3): Vec3 {
+    const object = entity.object3D;
+    if (!object) {
+      target[0] = 0;
+      target[1] = 0;
+      target[2] = 0;
+      return target;
+    }
+
+    object.getWorldPosition(this.strokeWorldPosition);
+    target[0] = this.strokeWorldPosition.x;
+    target[1] = this.strokeWorldPosition.y;
+    target[2] = this.strokeWorldPosition.z;
     return target;
   }
 

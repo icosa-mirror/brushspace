@@ -31,6 +31,18 @@ describe("tool intersections", () => {
     expect(strokeIntersectsTool(baseStroke, 0, [0.13, 1, -1], 0.005)).toBe(false);
   });
 
+  it("tests translated stroke bounds in world space", () => {
+    const movedStroke: ToolStrokeIntersectionCandidate = {
+      ...baseStroke,
+      boundsOffset: [0.5, 0.25, -0.25],
+    };
+
+    expect(strokeIntersectsEraser(movedStroke, 0, [0.5, 1.25, -1.25], 0.03)).toBe(
+      true,
+    );
+    expect(strokeIntersectsEraser(movedStroke, 0, [0, 1, -1], 0.03)).toBe(false);
+  });
+
   it("ignores hidden, unfinished, and inactive-layer strokes", () => {
     expect(
       strokeIntersectsEraser({ ...baseStroke, visible: false }, 0, [0, 1, -1], 1),
