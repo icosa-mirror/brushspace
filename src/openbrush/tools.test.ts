@@ -8,11 +8,13 @@ import {
   OPEN_BRUSH_SIMPLE_PICKER_RADIUS,
   getNextOpenBrushTool,
   isOpenBrushToolId,
+  isOpenBrushPanelFocusStatus,
   normalizeOpenBrushEraserRadius,
   openBrushEraserRadiusToSize01,
   openBrushEraserSize01ToRadius,
   openBrushTools,
   resolveOpenBrushPickerToolSpec,
+  resolveOpenBrushPanelFocusStatus,
   resolveOpenBrushEraserSizeAdjustment,
   resolveOpenBrushTool,
 } from "./tools.js";
@@ -169,5 +171,19 @@ describe("Open Brush tools", () => {
       forwardOffset: OPEN_BRUSH_DROPPER_FORWARD_OFFSET,
       pickedStatusLabel: "dropper",
     });
+  });
+
+  it("resolves temporary panel focus statuses by tool role", () => {
+    expect(
+      resolveOpenBrushPanelFocusStatus(resolveOpenBrushTool("free-paint")),
+    ).toBe("draw-panel-focus");
+    expect(resolveOpenBrushPanelFocusStatus(resolveOpenBrushTool("eraser"))).toBe(
+      "erase-panel-focus",
+    );
+    expect(
+      resolveOpenBrushPanelFocusStatus(resolveOpenBrushTool("brush-picker")),
+    ).toBe("pick-panel-focus");
+    expect(isOpenBrushPanelFocusStatus("draw-panel-focus")).toBe(true);
+    expect(isOpenBrushPanelFocusStatus("draw-ready")).toBe(false);
   });
 });

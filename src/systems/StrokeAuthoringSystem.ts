@@ -57,7 +57,9 @@ import {
 } from "../openbrush/tool-intersections.js";
 import {
   OPEN_BRUSH_ERASER_FORWARD_OFFSET,
+  isOpenBrushPanelFocusStatus,
   normalizeOpenBrushEraserRadius,
+  resolveOpenBrushPanelFocusStatus,
   resolveOpenBrushPickerToolSpec,
   type OpenBrushToolDescriptor,
   type OpenBrushToolId,
@@ -178,12 +180,19 @@ export class StrokeAuthoringSystem extends createSystem({
     }
     const commandSource = String(commandEntity.getValue(InputCommandState, "source"));
     const activeTool = this.getActiveTool();
+    const appStateEntity = this.getFirstEntity("appState");
     if (rawPaintPressed && activeTool.erases) {
       if (this.activeStroke) {
         this.finalizeActiveStroke();
       }
-      if (!this.isEraseBlocked(commandSource)) {
+      const blockReason = this.getEraseBlockReason(commandSource);
+      if (blockReason === "panel") {
+        this.setPanelFocusStatus(appStateEntity, activeTool);
+      } else if (!blockReason) {
+        this.clearPanelFocusStatus(appStateEntity, activeTool);
         this.eraseIntersectingStrokes();
+      } else {
+        this.clearPanelFocusStatus(appStateEntity, activeTool);
       }
       this.updateHistoryState();
       return;
@@ -193,17 +202,27 @@ export class StrokeAuthoringSystem extends createSystem({
       if (this.activeStroke) {
         this.finalizeActiveStroke();
       }
-      if (!this.isPickerBlocked(commandSource)) {
+      const blockReason = this.getPickerBlockReason(commandSource, activeTool);
+      if (blockReason === "panel") {
+        this.setPanelFocusStatus(appStateEntity, activeTool);
+      } else if (!blockReason) {
+        this.clearPanelFocusStatus(appStateEntity, activeTool);
         this.pickIntersectingStroke(activeTool);
+      } else {
+        this.clearPanelFocusStatus(appStateEntity, activeTool);
       }
       this.updateHistoryState();
       return;
     }
 
+    const paintBlockReason =
+      rawPaintPressed && !this.activeStroke
+        ? this.getPaintStartBlockReason(commandSource)
+        : undefined;
     const paintPressed =
-      rawPaintPressed &&
-      (!!this.activeStroke || !this.isPaintStartBlocked(commandSource));
+      rawPaintPressed && (!!this.activeStroke || !paintBlockReason);
     if (paintPressed) {
+      this.clearPanelFocusStatus(appStateEntity, activeTool);
       const pressure = Number(commandEntity.getValue(InputCommandState, "pressure"));
       if (!this.activeStroke) {
         this.startStroke(commandEntity, time, pressure);
@@ -214,6 +233,10 @@ export class StrokeAuthoringSystem extends createSystem({
       } else {
         this.sampleActiveStroke(time, pressure, false);
       }
+    } else if (paintBlockReason === "panel") {
+      this.setPanelFocusStatus(appStateEntity, activeTool);
+    } else if (paintBlockReason) {
+      this.clearPanelFocusStatus(appStateEntity, activeTool);
     } else if (this.activeStroke) {
       this.finalizeActiveStroke();
     }
@@ -230,14 +253,16 @@ export class StrokeAuthoringSystem extends createSystem({
     return false;
   }
 
-  private isPaintStartBlocked(commandSource: string): boolean {
+  private getPaintStartBlockReason(
+    commandSource: string,
+  ): "tool" | "layer" | "panel" | undefined {
     if (!this.isActiveToolPaintTool()) {
-      return true;
+      return "tool";
     }
     if (!this.isActiveLayerPaintable()) {
-      return true;
+      return "layer";
     }
-    return this.isPanelInteractionBlocked(commandSource);
+    return this.isPanelInteractionBlocked(commandSource) ? "panel" : undefined;
   }
 
   private isActiveToolPaintTool(): boolean {
@@ -248,24 +273,29 @@ export class StrokeAuthoringSystem extends createSystem({
     return resolveOpenBrushPickerToolSpec(tool.id) !== undefined;
   }
 
-  private isEraseBlocked(commandSource: string): boolean {
+  private getEraseBlockReason(
+    commandSource: string,
+  ): "tool" | "layer" | "panel" | undefined {
     if (!this.getActiveTool().erases) {
-      return true;
+      return "tool";
     }
     if (!this.isActiveLayerPaintable()) {
-      return true;
+      return "layer";
     }
-    return this.isPanelInteractionBlocked(commandSource);
+    return this.isPanelInteractionBlocked(commandSource) ? "panel" : undefined;
   }
 
-  private isPickerBlocked(commandSource: string): boolean {
-    if (!this.isPickerTool(this.getActiveTool())) {
-      return true;
+  private getPickerBlockReason(
+    commandSource: string,
+    activeTool: OpenBrushToolDescriptor,
+  ): "tool" | "layer" | "panel" | undefined {
+    if (!this.isPickerTool(activeTool)) {
+      return "tool";
     }
     if (!this.isActiveLayerPaintable()) {
-      return true;
+      return "layer";
     }
-    return this.isPanelInteractionBlocked(commandSource);
+    return this.isPanelInteractionBlocked(commandSource) ? "panel" : undefined;
   }
 
   private isPanelInteractionBlocked(commandSource: string): boolean {
@@ -1039,6 +1069,34 @@ export class StrokeAuthoringSystem extends createSystem({
     }
     appStateEntity.setValue(OpenBrushAppState, "toolStatus", status);
     this.touchToolState(appStateEntity);
+  }
+
+  private setPanelFocusStatus(
+    appStateEntity: Entity | undefined,
+    activeTool: OpenBrushToolDescriptor,
+  ): void {
+    if (!appStateEntity) {
+      return;
+    }
+    this.setToolStatus(
+      appStateEntity,
+      resolveOpenBrushPanelFocusStatus(activeTool),
+    );
+  }
+
+  private clearPanelFocusStatus(
+    appStateEntity: Entity | undefined,
+    activeTool: OpenBrushToolDescriptor,
+  ): void {
+    if (!appStateEntity) {
+      return;
+    }
+    const currentStatus = String(
+      appStateEntity.getValue(OpenBrushAppState, "toolStatus"),
+    );
+    if (isOpenBrushPanelFocusStatus(currentStatus)) {
+      this.setToolStatus(appStateEntity, activeTool.status);
+    }
   }
 
   private touchToolState(appStateEntity: Entity): void {

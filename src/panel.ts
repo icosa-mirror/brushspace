@@ -53,6 +53,7 @@ import {
 } from "./openbrush/selection.js";
 import {
   OPEN_BRUSH_ERASER_SIZE_BUTTON_STEP01,
+  isOpenBrushPanelFocusStatus,
   openBrushEraserRadiusToSize01,
   resolveOpenBrushPickerToolSpec,
   resolveOpenBrushTool,
@@ -1099,6 +1100,10 @@ export class PanelSystem extends createSystem({
     const activeTool = resolveOpenBrushTool(
       appState ? String(appState.getValue(OpenBrushAppState, "activeTool")) : "",
     );
+    const toolStatus = appState
+      ? String(appState.getValue(OpenBrushAppState, "toolStatus"))
+      : activeTool.status;
+    const panelFocusBlocked = isOpenBrushPanelFocusStatus(toolStatus);
     const activeBrushGuid = settingsEntity
       ? String(settingsEntity.getValue(BrushSettings, "brushGuid"))
       : "";
@@ -1135,9 +1140,13 @@ export class PanelSystem extends createSystem({
       ? `${brushMeta} / ${sizeLabel.toLowerCase()}`
       : brushMeta;
     const wandBrushMeta = activeTool.erases
-      ? "contact radius"
+      ? panelFocusBlocked
+        ? "panel focus"
+        : "contact radius"
       : activeBrush
-        ? `${activeBrush.geometryFamily} / ${catalogPosition}`
+        ? panelFocusBlocked
+          ? `${activeBrush.geometryFamily} / panel focus`
+          : `${activeBrush.geometryFamily} / ${catalogPosition}`
         : "unavailable";
 
     this.setText(document, "active-brush-name", activeBrush?.name ?? "No brush");

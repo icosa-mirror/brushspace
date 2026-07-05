@@ -101,6 +101,17 @@ export interface OpenBrushToolDescriptor {
   stencilMode: OpenBrushToolStencilMode;
 }
 
+export type OpenBrushPanelFocusStatus =
+  | "draw-panel-focus"
+  | "erase-panel-focus"
+  | "pick-panel-focus";
+
+const OPEN_BRUSH_PANEL_FOCUS_STATUSES = new Set<string>([
+  "draw-panel-focus",
+  "erase-panel-focus",
+  "pick-panel-focus",
+]);
+
 export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
   {
     id: "free-paint",
@@ -270,6 +281,22 @@ export function resolveOpenBrushTool(toolId: string): OpenBrushToolDescriptor {
   return (
     openBrushTools.find((tool) => tool.id === toolId) ?? openBrushTools[0]
   );
+}
+
+export function resolveOpenBrushPanelFocusStatus(
+  tool: OpenBrushToolDescriptor,
+): OpenBrushPanelFocusStatus {
+  if (tool.erases) {
+    return "erase-panel-focus";
+  }
+  if (resolveOpenBrushPickerToolSpec(tool.id)) {
+    return "pick-panel-focus";
+  }
+  return "draw-panel-focus";
+}
+
+export function isOpenBrushPanelFocusStatus(status: string): boolean {
+  return OPEN_BRUSH_PANEL_FOCUS_STATUSES.has(status);
 }
 
 export function isOpenBrushToolId(toolId: string): toolId is OpenBrushToolId {
