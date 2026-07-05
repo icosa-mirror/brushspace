@@ -72,6 +72,36 @@ describe("brush geometry generation", () => {
     expect(geometry.bounds.max[2]).toBeCloseTo(0.1);
   });
 
+  it("uses brush pressure-size minimum for low-pressure ribbon width", () => {
+    const stroke = createTwoPointStroke({
+      guid: "low-pressure-light",
+      brushSize: 0.2,
+      pressure: 0,
+    });
+
+    const geometry = generateBrushGeometry(stroke, "emissive", {
+      pressureSizeRange: [0.15, 1],
+    });
+
+    expect(geometry.bounds.min[2]).toBeCloseTo(-0.015);
+    expect(geometry.bounds.max[2]).toBeCloseTo(0.015);
+  });
+
+  it("uses full width for brushes with fixed pressure size", () => {
+    const stroke = createTwoPointStroke({
+      guid: "fixed-pressure-flat",
+      brushSize: 0.2,
+      pressure: 0,
+    });
+
+    const geometry = generateBrushGeometry(stroke, "ribbon", {
+      pressureSizeRange: [1, 1],
+    });
+
+    expect(geometry.bounds.min[2]).toBeCloseTo(-0.1);
+    expect(geometry.bounds.max[2]).toBeCloseTo(0.1);
+  });
+
   it("generates stable tube geometry", () => {
     const stroke = withBrushGuid(fixtureStroke, "8e58ceea-7830-49b4-aba9-6215104ab52a");
     const family = findBrushByGuid(inventory, stroke.brushGuid)?.geometryFamily;
@@ -120,5 +150,41 @@ function withBrushGuid(stroke: StrokeData, brushGuid: string): StrokeData {
     ...stroke,
     brushGuid,
     guid: `${stroke.guid}-${brushGuid.slice(0, 8)}`,
+  };
+}
+
+function createTwoPointStroke({
+  guid,
+  brushSize,
+  pressure,
+}: {
+  guid: string;
+  brushSize: number;
+  pressure: number;
+}): StrokeData {
+  return {
+    guid,
+    brushGuid: "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62",
+    brushSize,
+    brushScale: 1,
+    color: [1, 1, 1, 1],
+    layerIndex: 0,
+    flags: 0,
+    seed: 1,
+    groupId: 1,
+    controlPoints: [
+      {
+        position: [0, 0, 0],
+        orientation: [0, 0, 0, 1],
+        pressure,
+        timestampMs: 0,
+      },
+      {
+        position: [1, 0, 0],
+        orientation: [0, 0, 0, 1],
+        pressure,
+        timestampMs: 16,
+      },
+    ],
   };
 }

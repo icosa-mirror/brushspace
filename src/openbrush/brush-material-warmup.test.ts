@@ -100,6 +100,7 @@ function createBrush(
     geometryFamily: overrides.geometryFamily ?? "ribbon",
     materialFamily: overrides.materialFamily ?? "standard",
     brushSizeRange: overrides.brushSizeRange ?? [0.05, 3],
+    pressureSizeRange: overrides.pressureSizeRange ?? [0.1, 1],
     unsupportedReason: overrides.unsupportedReason,
   };
 }

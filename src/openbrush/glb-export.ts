@@ -145,7 +145,9 @@ export function exportSketchDocumentToGlb(
     const brush = findBrushByGuid(openBrushInventory, stroke.brushGuid);
     const geometryFamily = brush?.geometryFamily ?? "unsupported";
     const materialSpec = createBrushMaterialSpec(brush, stroke.color);
-    const geometry = generateBrushGeometry(stroke, geometryFamily);
+    const geometry = generateBrushGeometry(stroke, geometryFamily, {
+      pressureSizeRange: brush?.pressureSizeRange,
+    });
     const vertexCount = geometry.positions.length / 3;
     if (vertexCount === 0 || geometry.indices.length === 0) {
       warnings.push(`Skipped stroke ${stroke.guid}: no generated triangles.`);

@@ -28,6 +28,7 @@ import { openBrushInventory } from "../openbrush/brush-catalog.js";
 import {
   findBrushByGuid,
   type BrushGeometryFamily,
+  type BrushPressureSizeRange,
 } from "../openbrush/brush-inventory.js";
 import { generateBrushGeometry } from "../openbrush/brush-geometry.js";
 import { createBrushMaterialSpec } from "../openbrush/brush-materials.js";
@@ -82,6 +83,7 @@ interface RuntimeStroke {
   mesh: Mesh;
   geometry: BufferGeometry;
   geometryFamily: BrushGeometryFamily;
+  pressureSizeRange: BrushPressureSizeRange | undefined;
   toolId: OpenBrushToolId;
   groupId: number;
   samplingMode: OpenBrushToolSamplingMode;
@@ -422,6 +424,7 @@ export class StrokeAuthoringSystem extends createSystem({
       mesh,
       geometry,
       geometryFamily,
+      pressureSizeRange: brushEntry?.pressureSizeRange,
       toolId: activeTool.id,
       groupId,
       samplingMode: activeTool.samplingMode,
@@ -554,6 +557,7 @@ export class StrokeAuthoringSystem extends createSystem({
     const generated = generateBrushGeometry(
       stroke.strokeData,
       stroke.geometryFamily,
+      { pressureSizeRange: stroke.pressureSizeRange },
     );
     stroke.geometry.setAttribute(
       "position",
@@ -983,6 +987,7 @@ export class StrokeAuthoringSystem extends createSystem({
       mesh,
       geometry,
       geometryFamily: source.geometryFamily,
+      pressureSizeRange: brushEntry?.pressureSizeRange,
       toolId: source.toolId,
       groupId: source.groupId,
       samplingMode: source.samplingMode,

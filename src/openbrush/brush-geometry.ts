@@ -1,4 +1,7 @@
-import type { BrushGeometryFamily } from "./brush-inventory.js";
+import type {
+  BrushGeometryFamily,
+  BrushPressureSizeRange,
+} from "./brush-inventory.js";
 import type { Rgba, StrokeData, Vec3 } from "./types.js";
 
 export interface BrushGeometryBounds {
@@ -17,21 +20,28 @@ export interface GeneratedBrushGeometry {
   warning?: string;
 }
 
+export interface BrushGeometryOptions {
+  pressureSizeRange?: BrushPressureSizeRange;
+}
+
+const DEFAULT_PRESSURE_SIZE_MIN = 0.1;
+
 export function generateBrushGeometry(
   stroke: StrokeData,
   family: BrushGeometryFamily,
+  options: BrushGeometryOptions = {},
 ): GeneratedBrushGeometry {
   switch (family) {
     case "ribbon":
-      return generateRibbonGeometry(stroke, "ribbon");
+      return generateRibbonGeometry(stroke, "ribbon", options);
     case "emissive":
-      return generateRibbonGeometry(stroke, "emissive");
+      return generateRibbonGeometry(stroke, "emissive", options);
     case "tube":
-      return generateTubeGeometry(stroke);
+      return generateTubeGeometry(stroke, options);
     case "particle":
-      return generateParticleGeometry(stroke);
+      return generateParticleGeometry(stroke, options);
     case "unsupported": {
-      const fallback = generateRibbonGeometry(stroke, "unsupported");
+      const fallback = generateRibbonGeometry(stroke, "unsupported", options);
       fallback.warning = "Unsupported brush geometry family; generated fallback ribbon.";
       return fallback;
     }
@@ -49,6 +59,7 @@ export function getGeneratedIndexCount(geometry: GeneratedBrushGeometry): number
 function generateRibbonGeometry(
   stroke: StrokeData,
   family: BrushGeometryFamily,
+  options: BrushGeometryOptions,
 ): GeneratedBrushGeometry {
   const pointCount = stroke.controlPoints.length;
   const vertexCount = pointCount * 2;
@@ -62,7 +73,8 @@ function generateRibbonGeometry(
 
   for (let index = 0; index < pointCount; index += 1) {
     const point = stroke.controlPoints[index];
-    const width = stroke.brushSize * Math.max(0.05, point.pressure) * 0.5;
+    const width =
+      stroke.brushSize * getPressureSizeMultiplier(point.pressure, options) * 0.5;
     const offset = getRibbonOffset(stroke, index, width);
     const leftVertex = index * 2;
     const rightVertex = leftVertex + 1;
@@ -101,7 +113,10 @@ function generateRibbonGeometry(
   return { family, positions, normals, colors, uvs, indices, bounds };
 }
 
-function generateTubeGeometry(stroke: StrokeData): GeneratedBrushGeometry {
+function generateTubeGeometry(
+  stroke: StrokeData,
+  options: BrushGeometryOptions,
+): GeneratedBrushGeometry {
   const pointCount = stroke.controlPoints.length;
   const ringSize = 4;
   const vertexCount = pointCount * ringSize;
@@ -115,7 +130,8 @@ function generateTubeGeometry(stroke: StrokeData): GeneratedBrushGeometry {
 
   for (let pointIndex = 0; pointIndex < pointCount; pointIndex += 1) {
     const point = stroke.controlPoints[pointIndex];
-    const radius = stroke.brushSize * Math.max(0.05, point.pressure) * 0.5;
+    const radius =
+      stroke.brushSize * getPressureSizeMultiplier(point.pressure, options) * 0.5;
     for (let ringIndex = 0; ringIndex < ringSize; ringIndex += 1) {
       const vertex = pointIndex * ringSize + ringIndex;
       const normal = getTubeNormal(ringIndex);
@@ -152,7 +168,10 @@ function generateTubeGeometry(stroke: StrokeData): GeneratedBrushGeometry {
   return { family: "tube", positions, normals, colors, uvs, indices, bounds };
 }
 
-function generateParticleGeometry(stroke: StrokeData): GeneratedBrushGeometry {
+function generateParticleGeometry(
+  stroke: StrokeData,
+  options: BrushGeometryOptions,
+): GeneratedBrushGeometry {
   const pointCount = stroke.controlPoints.length;
   const vertexCount = pointCount * 4;
   const positions = new Float32Array(vertexCount * 3);
@@ -164,7 +183,8 @@ function generateParticleGeometry(stroke: StrokeData): GeneratedBrushGeometry {
 
   for (let pointIndex = 0; pointIndex < pointCount; pointIndex += 1) {
     const point = stroke.controlPoints[pointIndex];
-    const radius = stroke.brushSize * Math.max(0.05, point.pressure) * 0.5;
+    const radius =
+      stroke.brushSize * getPressureSizeMultiplier(point.pressure, options) * 0.5;
     const vertex = pointIndex * 4;
     writeParticleVertex(
       positions,
@@ -233,6 +253,35 @@ function generateParticleGeometry(stroke: StrokeData): GeneratedBrushGeometry {
   }
 
   return { family: "particle", positions, normals, colors, uvs, indices, bounds };
+}
+
+function getPressureSizeMultiplier(
+  pressure: number,
+  options: BrushGeometryOptions,
+): number {
+  const min = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
+  const clampedPressure = clamp01(pressure);
+  return min + (1 - min) * clampedPressure;
+}
+
+function normalizePressureSizeMin(value: number | undefined): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return DEFAULT_PRESSURE_SIZE_MIN;
+  }
+  return clamp01(value);
+}
+
+function clamp01(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+  if (value < 0) {
+    return 0;
+  }
+  if (value > 1) {
+    return 1;
+  }
+  return value;
 }
 
 function writeParticleVertex(
