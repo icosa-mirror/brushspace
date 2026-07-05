@@ -18,10 +18,19 @@ export const OPEN_BRUSH_IWSDK_BRUSH_SIZE_SCALE =
     OPEN_BRUSH_DEFAULT_SIZE01,
     OPEN_BRUSH_DEFAULT_BRUSH_SIZE_RANGE,
   );
+export const OPEN_BRUSH_DEFAULT_STARTUP_BRUSH_SIZE_RANGE: BrushSizeRange = [
+  0.05,
+  0.2,
+];
+export const OPEN_BRUSH_DEFAULT_STARTUP_LIVE_BRUSH_SIZE =
+  brushSize01ToLiveBrushSize(
+    OPEN_BRUSH_DEFAULT_SIZE01,
+    OPEN_BRUSH_DEFAULT_STARTUP_BRUSH_SIZE_RANGE,
+  );
 
 export function normalizeBrushSize(size: number): number {
   if (!Number.isFinite(size) || size <= 0) {
-    return OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE;
+    return OPEN_BRUSH_DEFAULT_STARTUP_LIVE_BRUSH_SIZE;
   }
   return size;
 }

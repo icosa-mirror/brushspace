@@ -1,8 +1,8 @@
 import { createComponent, Types } from "@iwsdk/core";
 
 import {
-  OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE,
   OPEN_BRUSH_DEFAULT_SIZE01,
+  OPEN_BRUSH_DEFAULT_STARTUP_LIVE_BRUSH_SIZE,
 } from "../openbrush/brush-size.js";
 import {
   OPEN_BRUSH_DEFAULT_ERASER_RADIUS,
@@ -24,7 +24,10 @@ export const OpenBrushAppState = createComponent("OpenBrushAppState", {
 export const BrushSettings = createComponent("BrushSettings", {
   brushGuid: { type: Types.String, default: "" },
   size01: { type: Types.Float32, default: OPEN_BRUSH_DEFAULT_SIZE01 },
-  size: { type: Types.Float32, default: OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE },
+  size: {
+    type: Types.Float32,
+    default: OPEN_BRUSH_DEFAULT_STARTUP_LIVE_BRUSH_SIZE,
+  },
   color: { type: Types.Color, default: [0.1, 0.45, 0.95, 1] },
 });
 

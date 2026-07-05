@@ -4,6 +4,8 @@ import {
   OPEN_BRUSH_DEFAULT_BRUSH_SIZE_RANGE,
   OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE,
   OPEN_BRUSH_DEFAULT_SIZE01,
+  OPEN_BRUSH_DEFAULT_STARTUP_BRUSH_SIZE_RANGE,
+  OPEN_BRUSH_DEFAULT_STARTUP_LIVE_BRUSH_SIZE,
   brushSize01ToLiveBrushSize,
   brushSize01ToOpenBrushSize,
   liveBrushSizeToSize01,
@@ -26,9 +28,24 @@ describe("Open Brush brush size", () => {
     ).toBeCloseTo(OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE);
   });
 
+  it("uses the upstream Light brush for startup and fallback live size", () => {
+    expect(OPEN_BRUSH_DEFAULT_STARTUP_BRUSH_SIZE_RANGE).toEqual([0.05, 0.2]);
+    expect(OPEN_BRUSH_DEFAULT_STARTUP_LIVE_BRUSH_SIZE).toBeCloseTo(0.002353, 6);
+    expect(
+      brushSize01ToLiveBrushSize(
+        OPEN_BRUSH_DEFAULT_SIZE01,
+        OPEN_BRUSH_DEFAULT_STARTUP_BRUSH_SIZE_RANGE,
+      ),
+    ).toBeCloseTo(OPEN_BRUSH_DEFAULT_STARTUP_LIVE_BRUSH_SIZE);
+  });
+
   it("rejects invalid live brush sizes", () => {
-    expect(normalizeBrushSize(Number.NaN)).toBe(OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE);
-    expect(normalizeBrushSize(0)).toBe(OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE);
+    expect(normalizeBrushSize(Number.NaN)).toBe(
+      OPEN_BRUSH_DEFAULT_STARTUP_LIVE_BRUSH_SIZE,
+    );
+    expect(normalizeBrushSize(0)).toBe(
+      OPEN_BRUSH_DEFAULT_STARTUP_LIVE_BRUSH_SIZE,
+    );
     expect(normalizeBrushSize(0.025)).toBe(0.025);
   });
 
