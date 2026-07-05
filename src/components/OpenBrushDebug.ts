@@ -9,6 +9,7 @@ export const OpenBrushDebug = createComponent("OpenBrushDebug", {
   activeTool: { type: Types.String, default: "free-paint" },
   previousTool: { type: Types.String, default: "free-paint" },
   toolStatus: { type: Types.String, default: "draw-ready" },
+  straightEdgeEnabled: { type: Types.Boolean, default: false },
   toolRevision: { type: Types.Int32, default: 0 },
   activeBrushGuid: { type: Types.String, default: "" },
   activeBrushName: { type: Types.String, default: "" },

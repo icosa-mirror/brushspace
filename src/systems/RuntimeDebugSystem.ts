@@ -95,6 +95,11 @@ export class RuntimeDebugSystem extends createSystem({
     );
     entity.setValue(
       OpenBrushDebug,
+      "straightEdgeEnabled",
+      this.getAppBoolean("straightEdgeEnabled", false),
+    );
+    entity.setValue(
+      OpenBrushDebug,
       "toolRevision",
       this.getAppNumber("toolRevision", 0),
     );
@@ -617,6 +622,11 @@ export class RuntimeDebugSystem extends createSystem({
   ): number {
     const entity = this.getFirstEntity("appState");
     return entity ? Number(entity.getValue(OpenBrushAppState, field)) : fallback;
+  }
+
+  private getAppBoolean(field: "straightEdgeEnabled", fallback: boolean): boolean {
+    const entity = this.getFirstEntity("appState");
+    return entity ? Boolean(entity.getValue(OpenBrushAppState, field)) : fallback;
   }
 
   private getBrushString(field: "brushGuid", fallback: string): string {

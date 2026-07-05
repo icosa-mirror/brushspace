@@ -55,6 +55,7 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
       activeTool: "free-paint",
       previousTool: "free-paint",
       toolStatus: "draw-ready",
+      straightEdgeEnabled: false,
       toolRevision: 0,
       activeLayerIndex: 0,
       isDirty: false,

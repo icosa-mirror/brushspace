@@ -52,7 +52,6 @@ import {
 } from "../openbrush/tool-intersections.js";
 import {
   OPEN_BRUSH_DEFAULT_ERASER_RADIUS,
-  resolveOpenBrushTool,
   type OpenBrushToolDescriptor,
   type OpenBrushToolId,
   type OpenBrushToolLazyMode,
@@ -62,6 +61,7 @@ import {
   type OpenBrushToolStencilMode,
 } from "../openbrush/tools.js";
 import { isOpenBrushPanelFocusable } from "../openbrush/panel-focus.js";
+import { resolveEffectiveOpenBrushTool } from "../openbrush/tool-modes.js";
 import {
   createEmptyStrokeData,
   type ControlPoint,
@@ -1092,10 +1092,13 @@ export class StrokeAuthoringSystem extends createSystem({
 
   private getActiveTool(): OpenBrushToolDescriptor {
     const appStateEntity = this.getFirstEntity("appState");
-    return resolveOpenBrushTool(
+    return resolveEffectiveOpenBrushTool(
       appStateEntity
         ? String(appStateEntity.getValue(OpenBrushAppState, "activeTool"))
         : "free-paint",
+      appStateEntity
+        ? Boolean(appStateEntity.getValue(OpenBrushAppState, "straightEdgeEnabled"))
+        : false,
     );
   }
 

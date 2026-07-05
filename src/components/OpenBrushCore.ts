@@ -10,6 +10,7 @@ export const OpenBrushAppState = createComponent("OpenBrushAppState", {
   activeTool: { type: Types.String, default: "free-paint" },
   previousTool: { type: Types.String, default: "free-paint" },
   toolStatus: { type: Types.String, default: "draw-ready" },
+  straightEdgeEnabled: { type: Types.Boolean, default: false },
   toolRevision: { type: Types.Int32, default: 0 },
   activeLayerIndex: { type: Types.Int32, default: 0 },
   isDirty: { type: Types.Boolean, default: false },

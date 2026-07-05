@@ -52,6 +52,10 @@ import {
   type OpenBrushToolId,
 } from "./openbrush/tools.js";
 import {
+  isStraightEdgeModeActive,
+  resolveEffectiveOpenBrushTool,
+} from "./openbrush/tool-modes.js";
+import {
   UiCommandHistory,
   type UiCommand,
 } from "./openbrush/ui-command-history.js";
@@ -292,7 +296,7 @@ export class PanelSystem extends createSystem({
       "tool-straightedge-button",
     ) as TextElement;
     straightedgeToolButton?.addEventListener("click", () => {
-      this.selectTool("straightedge");
+      this.toggleStraightEdgeMode();
     });
 
     const mirrorToolButton = document.getElementById(
@@ -708,18 +712,53 @@ export class PanelSystem extends createSystem({
     if (!appState) {
       return;
     }
+    if (toolId === "straightedge") {
+      this.toggleStraightEdgeMode(appState);
+      return;
+    }
     const currentTool = resolveOpenBrushTool(
       String(appState.getValue(OpenBrushAppState, "activeTool")),
     );
     const nextTool = resolveOpenBrushTool(toolId);
-    if (currentTool.id === nextTool.id) {
+    const straightEdgeEnabled = Boolean(
+      appState.getValue(OpenBrushAppState, "straightEdgeEnabled"),
+    );
+    if (currentTool.id === nextTool.id && !straightEdgeEnabled) {
       this.setToolStatus(appState, nextTool.status);
       return;
     }
 
-    appState.setValue(OpenBrushAppState, "previousTool", currentTool.id);
+    if (currentTool.id !== nextTool.id) {
+      appState.setValue(OpenBrushAppState, "previousTool", currentTool.id);
+    }
     appState.setValue(OpenBrushAppState, "activeTool", nextTool.id);
+    appState.setValue(OpenBrushAppState, "straightEdgeEnabled", false);
     appState.setValue(OpenBrushAppState, "toolStatus", nextTool.status);
+    this.touchToolState(appState);
+  }
+
+  private toggleStraightEdgeMode(appState = this.getAppStateEntity()): void {
+    if (!appState) {
+      return;
+    }
+    const currentTool = resolveOpenBrushTool(
+      String(appState.getValue(OpenBrushAppState, "activeTool")),
+    );
+    const currentlyEnabled = isStraightEdgeModeActive(
+      currentTool.id,
+      Boolean(appState.getValue(OpenBrushAppState, "straightEdgeEnabled")),
+    );
+    const nextEnabled = !currentlyEnabled;
+    if (currentTool.id !== "free-paint") {
+      appState.setValue(OpenBrushAppState, "previousTool", currentTool.id);
+      appState.setValue(OpenBrushAppState, "activeTool", "free-paint");
+    }
+    appState.setValue(OpenBrushAppState, "straightEdgeEnabled", nextEnabled);
+    appState.setValue(
+      OpenBrushAppState,
+      "toolStatus",
+      nextEnabled ? "line-ready" : "draw-ready",
+    );
     this.touchToolState(appState);
   }
 
@@ -931,8 +970,15 @@ export class PanelSystem extends createSystem({
 
   private updateToolLabels(document: UIKitDocument): void {
     const appState = this.getAppStateEntity();
-    const activeTool = resolveOpenBrushTool(
+    const selectedTool = resolveOpenBrushTool(
       appState ? String(appState.getValue(OpenBrushAppState, "activeTool")) : "",
+    );
+    const straightEdgeEnabled = appState
+      ? Boolean(appState.getValue(OpenBrushAppState, "straightEdgeEnabled"))
+      : false;
+    const activeTool = resolveEffectiveOpenBrushTool(
+      selectedTool.id,
+      straightEdgeEnabled,
     );
     const toolStatus = appState
       ? String(appState.getValue(OpenBrushAppState, "toolStatus"))
@@ -943,7 +989,9 @@ export class PanelSystem extends createSystem({
     this.setText(
       document,
       "tool-draw-button",
-      activeTool.id === "free-paint" ? "Draw *" : "Draw",
+      selectedTool.id === "free-paint" && !straightEdgeEnabled
+        ? "Draw *"
+        : "Draw",
     );
     this.setText(
       document,
@@ -1006,10 +1054,13 @@ export class PanelSystem extends createSystem({
     const activeTool = resolveOpenBrushTool(
       appState ? String(appState.getValue(OpenBrushAppState, "activeTool")) : "",
     );
+    const straightEdgeEnabled = appState
+      ? Boolean(appState.getValue(OpenBrushAppState, "straightEdgeEnabled"))
+      : false;
     this.setText(
       document,
       "tool-draw",
-      activeTool.id === "free-paint" ? "Draw *" : "Draw",
+      activeTool.id === "free-paint" && !straightEdgeEnabled ? "Draw *" : "Draw",
     );
     this.setText(
       document,
