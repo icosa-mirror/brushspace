@@ -1,48 +1,65 @@
 <style>
   .panel-container {
     align-items: flex-start;
-    padding: 0.9;
-    width: 24;
+    padding: 1.05;
+    width: 27.8;
     display: flex;
     flex-direction: column;
-    background-color: #0b1016;
-    border-color: #2f4054;
-    border-width: 0.1;
-    border-radius: 0.32;
+    background-color: #111114;
+    border-color: #3f3f46;
+    border-width: 0.14;
+    border-radius: 0.42;
+  }
+
+  .heading-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
   }
 
   .heading {
-    font-size: 1.85;
+    font-size: 2.15;
     font-weight: medium;
-    color: #eaf6ff;
+    color: #f8fafc;
     text-align: left;
+    width: 15.4;
+  }
+
+  .eyebrow {
+    width: 10.4;
+    font-size: 1.0;
+    color: #a7f3d0;
+    text-align: right;
   }
 
   .brush-name {
-    font-size: 1.55;
+    font-size: 1.72;
     font-weight: medium;
-    color: #fafafa;
+    color: #ffffff;
     text-align: left;
-    margin-top: 0.4;
+    margin-top: 0.62;
+    width: 25.8;
   }
 
   .brush-meta {
-    font-size: 1.02;
-    color: #90a4b8;
+    font-size: 1.06;
+    color: #a1a1aa;
     text-align: left;
     margin-top: 0.22;
+    width: 25.8;
   }
 
   .size-readout {
-    width: 22.2;
-    padding: 0.45;
-    margin-top: 0.45;
-    background-color: #111b25;
-    border-color: #2f4054;
-    border-width: 0.08;
-    border-radius: 0.24;
-    font-size: 1.02;
-    color: #dbeafe;
+    width: 24.96;
+    padding: 0.58;
+    margin-top: 0.58;
+    background-color: #18181b;
+    border-color: #3f3f46;
+    border-width: 0.1;
+    border-radius: 0.28;
+    font-size: 1.12;
+    color: #f8fafc;
     text-align: left;
   }
 
@@ -54,14 +71,14 @@
   }
 
   .tool-button {
-    width: 11.35;
-    padding: 0.72;
-    background-color: #1c2631;
+    width: 12.65;
+    padding: 0.88;
+    background-color: #20242c;
     color: #fafafa;
-    border-radius: 0.28;
-    border-width: 0.1;
-    border-color: #465568;
-    font-size: 1.18;
+    border-radius: 0.34;
+    border-width: 0.14;
+    border-color: #52525b;
+    font-size: 1.15;
     font-weight: medium;
     text-align: center;
     cursor: pointer;
@@ -76,12 +93,15 @@
   }
 </style>
 <div class="panel-container">
-  <span class="heading">Brush</span>
+  <div class="heading-row">
+    <span class="heading">Brush</span>
+    <span class="eyebrow">Brush hand</span>
+  </div>
   <span id="wand-brush-name" class="brush-name">Light</span>
   <span id="wand-brush-meta" class="brush-meta">emissive / 3/5</span>
   <span id="wand-brush-size" class="size-readout">Size 50%</span>
   <div class="button-row">
-    <button id="brush-prev" class="tool-button">Previous</button>
+    <button id="brush-prev" class="tool-button">Prev</button>
     <button id="brush-next" class="tool-button">Next</button>
   </div>
   <div class="button-row">

@@ -1,20 +1,42 @@
 <style>
   .panel-container {
     align-items: flex-start;
-    padding: 0.9;
-    width: 24;
+    padding: 1.05;
+    width: 27.8;
     display: flex;
     flex-direction: column;
-    background-color: #0b1016;
-    border-color: #2f4054;
-    border-width: 0.1;
-    border-radius: 0.32;
+    background-color: #111114;
+    border-color: #3f3f46;
+    border-width: 0.14;
+    border-radius: 0.42;
+  }
+
+  .heading-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
   }
 
   .heading {
-    font-size: 1.85;
+    font-size: 2.15;
     font-weight: medium;
-    color: #eaf6ff;
+    color: #f8fafc;
+    text-align: left;
+    width: 15.4;
+  }
+
+  .eyebrow {
+    width: 10.4;
+    font-size: 1.0;
+    color: #a7f3d0;
+    text-align: right;
+  }
+
+  .section-label {
+    margin-top: 0.62;
+    font-size: 0.95;
+    color: #a1a1aa;
     text-align: left;
   }
 
@@ -26,36 +48,55 @@
   }
 
   .tool-button {
-    width: 7.25;
-    padding: 0.72;
-    background-color: #1c2631;
+    width: 8.25;
+    padding: 0.88;
+    background-color: #20242c;
     color: #fafafa;
-    border-radius: 0.28;
-    border-width: 0.1;
-    border-color: #465568;
-    font-size: 1.18;
+    border-radius: 0.34;
+    border-width: 0.14;
+    border-color: #52525b;
+    font-size: 1.22;
     font-weight: medium;
     text-align: center;
     cursor: pointer;
   }
 
-  .wide-button {
-    width: 11.35;
-    font-size: 1.05;
-  }
-
-  .full-button {
-    width: 23.1;
+  .primary-button {
+    background-color: #262b35;
+    border-color: #64748b;
   }
 
   .secondary-button {
-    background-color: #151f2b;
+    background-color: #18181b;
+    border-color: #3f3f46;
+    color: #e4e4e7;
+  }
+
+  .wide-button {
+    width: 12.65;
+    font-size: 1.08;
+  }
+
+  .full-button {
+    width: 25.8;
+    font-size: 1.12;
+  }
+
+  .history-button {
+    background-color: #171717;
+    color: #d4d4d8;
   }
 
   .meta {
-    margin-top: 0.5;
+    margin-top: 0.62;
+    padding: 0.42;
+    width: 24.96;
     font-size: 1.0;
-    color: #90a4b8;
+    color: #d4d4d8;
+    background-color: #18181b;
+    border-color: #3f3f46;
+    border-width: 0.08;
+    border-radius: 0.22;
     text-align: left;
   }
 
@@ -67,12 +108,17 @@
   }
 </style>
 <div class="panel-container">
-  <span class="heading">Tools</span>
-  <div class="button-row">
-    <button id="tool-draw" class="tool-button">Draw</button>
-    <button id="tool-line" class="tool-button">Line</button>
-    <button id="tool-erase" class="tool-button">Eraser</button>
+  <div class="heading-row">
+    <span class="heading">Tools</span>
+    <span class="eyebrow">Wand</span>
   </div>
+  <span class="section-label">Paint</span>
+  <div class="button-row">
+    <button id="tool-draw" class="tool-button primary-button">Draw</button>
+    <button id="tool-line" class="tool-button primary-button">Line</button>
+    <button id="tool-erase" class="tool-button primary-button">Eraser</button>
+  </div>
+  <span class="section-label">Sample</span>
   <div class="button-row">
     <button id="tool-color-picker" class="tool-button wide-button secondary-button">Color Pick</button>
     <button id="tool-brush-picker" class="tool-button wide-button secondary-button">Brush Pick</button>
@@ -80,9 +126,10 @@
   <div class="button-row">
     <button id="tool-dropper" class="tool-button full-button secondary-button">Dropper</button>
   </div>
+  <span class="section-label">History</span>
   <div class="button-row">
-    <button id="stroke-history-undo" class="tool-button wide-button secondary-button">Undo</button>
-    <button id="stroke-history-redo" class="tool-button wide-button secondary-button">Redo</button>
+    <button id="stroke-history-undo" class="tool-button wide-button history-button">Undo</button>
+    <button id="stroke-history-redo" class="tool-button wide-button history-button">Redo</button>
   </div>
   <span id="stroke-history-state" class="meta">0 undo | 0 redo</span>
 </div>

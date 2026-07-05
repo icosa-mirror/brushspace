@@ -7,4 +7,16 @@ describe("wand color panel markup", () => {
     expect(wandColorMarkup).toContain('id="current-color-swatch"');
     expect(wandColorMarkup).toContain("Current");
   });
+
+  it("exposes a compact usable Phase A swatch set", () => {
+    for (const colorId of [
+      "color-blue",
+      "color-red",
+      "color-yellow",
+      "color-green",
+      "color-white",
+    ]) {
+      expect(wandColorMarkup).toContain(`id="${colorId}"`);
+    }
+  });
 });

@@ -99,19 +99,21 @@ describe("Open Brush panel attachment", () => {
       target: "left-ray",
       slotIndex: 0,
       slotAngleDegrees: 0,
-      position: [0.12, 0.32, -0.45],
     });
-    expect(colorPose.scale[0]).toBeCloseTo(0.4464, 4);
-    expect(colorPose.scale[1]).toBeCloseTo(0.4464, 4);
-    expect(colorPose.scale[2]).toBeCloseTo(0.4464, 4);
+    expect(colorPose.position[0]).toBeCloseTo(0.12, 4);
+    expect(colorPose.position[1]).toBeCloseTo(0.34, 4);
+    expect(colorPose.position[2]).toBeCloseTo(-0.45, 4);
+    expect(colorPose.scale[0]).toBeCloseTo(0.4896, 4);
+    expect(colorPose.scale[1]).toBeCloseTo(0.4896, 4);
+    expect(colorPose.scale[2]).toBeCloseTo(0.4896, 4);
     expect(brushPose.slotIndex).toBe(1);
     expect(brushPose.slotAngleDegrees).toBe(120);
-    expect(brushPose.position[0]).toBeCloseTo(0.3105, 4);
-    expect(brushPose.position[1]).toBeCloseTo(-0.01, 4);
+    expect(brushPose.position[0]).toBeCloseTo(0.3278, 4);
+    expect(brushPose.position[1]).toBeCloseTo(-0.02, 4);
     expect(toolsPose.slotIndex).toBe(2);
     expect(toolsPose.slotAngleDegrees).toBe(240);
-    expect(toolsPose.position[0]).toBeCloseTo(-0.0705, 4);
-    expect(toolsPose.position[1]).toBeCloseTo(-0.01, 4);
+    expect(toolsPose.position[0]).toBeCloseTo(-0.0878, 4);
+    expect(toolsPose.position[1]).toBeCloseTo(-0.02, 4);
   });
 
   it("mirrors fixed wand ring panel offsets when handedness swaps", () => {
@@ -125,7 +127,7 @@ describe("Open Brush panel attachment", () => {
 
     expect(pose.hand).toBe("right");
     expect(pose.target).toBe("right-ray");
-    expect(pose.position[0]).toBeCloseTo(-0.3105, 4);
+    expect(pose.position[0]).toBeCloseTo(-0.3278, 4);
   });
 
   it("rotates fixed wand ring panel slots with cached settings steps", () => {

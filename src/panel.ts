@@ -121,25 +121,32 @@ const PANEL_ANCHORS: readonly OpenBrushPanelAnchor[] = [
   "center",
 ];
 const PLAYBACK_MODES = ["quickload", "timestamp", "distance"] as const;
+const WAND_COLOR_SWATCHES = [
+  { id: "color-blue", color: [0.1, 0.45, 0.95, 1] },
+  { id: "color-red", color: [0.95, 0.18, 0.28, 1] },
+  { id: "color-yellow", color: [0.95, 0.82, 0.18, 1] },
+  { id: "color-green", color: [0.2, 0.75, 0.35, 1] },
+  { id: "color-white", color: [0.98, 0.98, 0.96, 1] },
+] as const;
 const WAND_BUTTON_ACTIVE_STYLE = {
-  backgroundColor: 0x0284c7,
-  borderColor: 0xe0f2fe,
+  backgroundColor: 0x0ea5e9,
+  borderColor: 0xf8fafc,
   color: 0xffffff,
 } as const;
 const WAND_BUTTON_PRIMARY_STYLE = {
-  backgroundColor: 0x1c2631,
-  borderColor: 0x465568,
-  color: 0xfafafa,
+  backgroundColor: 0x262b35,
+  borderColor: 0x64748b,
+  color: 0xf8fafc,
 } as const;
 const WAND_BUTTON_SECONDARY_STYLE = {
-  backgroundColor: 0x151f2b,
-  borderColor: 0x334155,
-  color: 0xf3f4f6,
+  backgroundColor: 0x18181b,
+  borderColor: 0x3f3f46,
+  color: 0xe4e4e7,
 } as const;
 const WAND_BUTTON_DISABLED_STYLE = {
-  backgroundColor: 0x0f1720,
-  borderColor: 0x223044,
-  color: 0x64748b,
+  backgroundColor: 0x111114,
+  borderColor: 0x27272a,
+  color: 0x71717a,
 } as const;
 
 export class PanelSystem extends createSystem({
@@ -761,24 +768,13 @@ export class PanelSystem extends createSystem({
     }
     const document = PanelDocument.data.document[entity.index] as UIKitDocument;
     this.nameElement(document, "current-color-swatch");
-    this.nameElement(document, "color-blue");
-    this.nameElement(document, "color-red");
-    this.nameElement(document, "color-white");
-
-    const blueButton = document.getElementById("color-blue") as TextElement;
-    blueButton?.addEventListener("click", () => {
-      this.setBrushColor([0.1, 0.45, 0.95, 1]);
-    });
-
-    const redButton = document.getElementById("color-red") as TextElement;
-    redButton?.addEventListener("click", () => {
-      this.setBrushColor([0.95, 0.18, 0.28, 1]);
-    });
-
-    const whiteButton = document.getElementById("color-white") as TextElement;
-    whiteButton?.addEventListener("click", () => {
-      this.setBrushColor([0.98, 0.98, 0.96, 1]);
-    });
+    for (const swatch of WAND_COLOR_SWATCHES) {
+      this.nameElement(document, swatch.id);
+      const button = document.getElementById(swatch.id) as TextElement;
+      button?.addEventListener("click", () => {
+        this.setBrushColor(swatch.color);
+      });
+    }
     this.updateWandColorLabels(document);
   }
 
@@ -790,11 +786,6 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "tool-draw");
     this.nameElement(document, "tool-line");
     this.nameElement(document, "tool-erase");
-    this.nameElement(document, "tool-mirror");
-    this.nameElement(document, "tool-grid-snap");
-    this.nameElement(document, "tool-lazy-input");
-    this.nameElement(document, "tool-tape");
-    this.nameElement(document, "tool-stencil");
     this.nameElement(document, "tool-color-picker");
     this.nameElement(document, "tool-brush-picker");
     this.nameElement(document, "tool-dropper");
@@ -815,37 +806,6 @@ export class PanelSystem extends createSystem({
     const eraseToolButton = document.getElementById("tool-erase") as TextElement;
     eraseToolButton?.addEventListener("click", () => {
       this.selectTool("eraser");
-    });
-
-    const mirrorToolButton = document.getElementById("tool-mirror") as TextElement;
-    mirrorToolButton?.addEventListener("click", () => {
-      this.selectTool("mirror");
-    });
-
-    const gridSnapToolButton = document.getElementById(
-      "tool-grid-snap",
-    ) as TextElement;
-    gridSnapToolButton?.addEventListener("click", () => {
-      this.selectTool("grid-snap");
-    });
-
-    const lazyInputToolButton = document.getElementById(
-      "tool-lazy-input",
-    ) as TextElement;
-    lazyInputToolButton?.addEventListener("click", () => {
-      this.selectTool("lazy-input");
-    });
-
-    const tapeToolButton = document.getElementById("tool-tape") as TextElement;
-    tapeToolButton?.addEventListener("click", () => {
-      this.selectTool("tape");
-    });
-
-    const stencilToolButton = document.getElementById(
-      "tool-stencil",
-    ) as TextElement;
-    stencilToolButton?.addEventListener("click", () => {
-      this.selectTool("stencil");
     });
 
     const colorPickerToolButton = document.getElementById(
@@ -1278,9 +1238,21 @@ export class PanelSystem extends createSystem({
       BrushSettings,
       "color",
     ) as Float32Array;
+    const activeSwatchId = getNearestWandColorSwatchId(
+      colorView[0],
+      colorView[1],
+      colorView[2],
+    );
     swatch.setProperties({
       backgroundColor: this.packUiRgbColor(colorView[0], colorView[1], colorView[2]),
     });
+    for (const colorSwatch of WAND_COLOR_SWATCHES) {
+      const button = document.getElementById(colorSwatch.id) as StyleElement;
+      button?.setProperties({
+        borderColor:
+          colorSwatch.id === activeSwatchId ? 0xf8fafc : 0x71717a,
+      });
+    }
   }
 
   private packUiRgbColor(red: number, green: number, blue: number): number {
@@ -2845,4 +2817,25 @@ function getPhaseAWandButtonStyle(
   return tone === "primary"
     ? WAND_BUTTON_PRIMARY_STYLE
     : WAND_BUTTON_SECONDARY_STYLE;
+}
+
+function getNearestWandColorSwatchId(
+  red: number,
+  green: number,
+  blue: number,
+): (typeof WAND_COLOR_SWATCHES)[number]["id"] {
+  let nearest: (typeof WAND_COLOR_SWATCHES)[number] = WAND_COLOR_SWATCHES[0];
+  let nearestDistance = Number.POSITIVE_INFINITY;
+  for (const swatch of WAND_COLOR_SWATCHES) {
+    const deltaRed = red - swatch.color[0];
+    const deltaGreen = green - swatch.color[1];
+    const deltaBlue = blue - swatch.color[2];
+    const distance =
+      deltaRed * deltaRed + deltaGreen * deltaGreen + deltaBlue * deltaBlue;
+    if (distance < nearestDistance) {
+      nearest = swatch;
+      nearestDistance = distance;
+    }
+  }
+  return nearest.id;
 }
