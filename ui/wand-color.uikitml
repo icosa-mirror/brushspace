@@ -25,6 +25,21 @@
     margin-top: 0.45;
   }
 
+  .current-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    margin-top: 0.45;
+  }
+
+  .current-label {
+    font-size: 0.98;
+    color: #a1a1aa;
+    text-align: left;
+    width: 7.5;
+  }
+
   .swatch {
     width: 4.2;
     height: 4.2;
@@ -32,6 +47,15 @@
     border-width: 0.12;
     border-color: #e5e7eb;
     cursor: pointer;
+  }
+
+  .current-swatch {
+    width: 10;
+    height: 2.2;
+    border-radius: 0.32;
+    border-width: 0.12;
+    border-color: #e5e7eb;
+    background-color: #38bdf8;
   }
 
   #color-red,
@@ -53,6 +77,10 @@
 </style>
 <div class="panel-container">
   <span class="heading">Color</span>
+  <div class="current-row">
+    <span class="current-label">Current</span>
+    <div id="current-color-swatch" class="current-swatch"></div>
+  </div>
   <div class="swatch-row">
     <button id="color-blue" class="swatch"></button>
     <button id="color-red" class="swatch"></button>

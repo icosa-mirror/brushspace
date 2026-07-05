@@ -79,6 +79,7 @@ import {
 } from "./openbrush/settings.js";
 
 type TextElement = UIKit.Text | null;
+type StyleElement = { setProperties(properties: Record<string, unknown>): void } | null;
 type LayerOrderSnapshot = Array<{ layerIndex: number; order: number }>;
 interface StrokePanelSnapshot {
   entity: Entity;
@@ -203,6 +204,15 @@ export class PanelSystem extends createSystem({
         continue;
       }
       this.updateBrushLabels(document);
+    }
+    for (const entity of this.queries.wandColorPanel.entities) {
+      const document = PanelDocument.data.document[
+        entity.index
+      ] as UIKitDocument;
+      if (!document) {
+        continue;
+      }
+      this.updateWandColorLabels(document);
     }
   }
 
@@ -718,6 +728,7 @@ export class PanelSystem extends createSystem({
       return;
     }
     const document = PanelDocument.data.document[entity.index] as UIKitDocument;
+    this.nameElement(document, "current-color-swatch");
     this.nameElement(document, "color-blue");
     this.nameElement(document, "color-red");
     this.nameElement(document, "color-white");
@@ -736,6 +747,7 @@ export class PanelSystem extends createSystem({
     whiteButton?.addEventListener("click", () => {
       this.setBrushColor([0.98, 0.98, 0.96, 1]);
     });
+    this.updateWandColorLabels(document);
   }
 
   private setupWandToolsPanel(entity: Entity): void {
@@ -1212,6 +1224,36 @@ export class PanelSystem extends createSystem({
       "brush-warning",
       activeBrush?.unsupportedReason ?? "Ready",
     );
+  }
+
+  private updateWandColorLabels(document: UIKitDocument): void {
+    const settingsEntity = this.getBrushSettingsEntity();
+    const swatch = document.getElementById("current-color-swatch") as StyleElement;
+    if (!settingsEntity || !swatch) {
+      return;
+    }
+    const colorView = settingsEntity.getVectorView(
+      BrushSettings,
+      "color",
+    ) as Float32Array;
+    swatch.setProperties({
+      backgroundColor: this.packUiRgbColor(colorView[0], colorView[1], colorView[2]),
+    });
+  }
+
+  private packUiRgbColor(red: number, green: number, blue: number): number {
+    return (
+      (this.packUiColorChannel(red) << 16) |
+      (this.packUiColorChannel(green) << 8) |
+      this.packUiColorChannel(blue)
+    );
+  }
+
+  private packUiColorChannel(value: number): number {
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+    return Math.min(255, Math.max(0, Math.round(value * 255)));
   }
 
   private updateToolLabels(document: UIKitDocument): void {
