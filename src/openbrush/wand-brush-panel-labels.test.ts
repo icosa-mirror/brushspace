@@ -13,6 +13,10 @@ describe("Phase A wand brush panel labels", () => {
   it("labels paint sizing as brush size controls", () => {
     const labels = resolveWandBrushPanelLabels(baseInput());
 
+    expect(labels.activeBrushName).toBe(lightBrush.name);
+    expect(labels.activeBrushMeta).toContain(
+      `${lightBrush.geometryFamily} / ${lightBrush.materialFamily}`,
+    );
     expect(labels.wandBrushName).toBe(lightBrush.name);
     expect(labels.wandBrushMeta).toBe(
       `${lightBrush.geometryFamily} / ${lightBrushIndex + 1}/${selectableOpenBrushes.length}`,
@@ -20,6 +24,7 @@ describe("Phase A wand brush panel labels", () => {
     expect(labels.wandBrushSize).toBe("Size 50% | 2.4 mm");
     expect(labels.sizeDown).toBe("Size -");
     expect(labels.sizeUp).toBe("Size +");
+    expect(labels.warning).toBe("Ready");
   });
 
   it("labels eraser sizing as radius controls", () => {
@@ -36,6 +41,18 @@ describe("Phase A wand brush panel labels", () => {
     expect(labels.sizeDown).toBe("Radius -");
     expect(labels.sizeUp).toBe("Radius +");
     expect(labels.activeBrushMeta).toContain("radius 50% | 0.200 m");
+  });
+
+  it("tracks adjusted eraser radius percentages after hand-panel size changes", () => {
+    const labels = resolveWandBrushPanelLabels(
+      baseInput({
+        eraserActive: true,
+        eraserRadius: 0.21,
+      }),
+    );
+
+    expect(labels.wandBrushSize).toBe("Radius 55% | 0.210 m");
+    expect(labels.activeBrushMeta).toContain("radius 55% | 0.210 m");
   });
 
   it("keeps panel-focus wording visible for paint and eraser modes", () => {
