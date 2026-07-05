@@ -103,6 +103,48 @@ Confirmed source-grounded findings from `reference/Assets/Scripts` and current I
 - Tape/Bimanual: upstream tape is a bimanual FreePaint mode started from the Wand trigger in advanced mode, hides/restores panels, draws guide/intersection visuals, and pulls the brush cursor along the wand/brush line with lazy-rate behavior. The port's `tape` creates two-endpoint strokes from left/right ray spaces; it needs bimanual state, panel visibility gates, guide visuals, and Brush/Wand role semantics.
 - Stencil: upstream stencils are widgets with attract distance, active-stencil hysteresis, pinned/disabled layers, surface normal magnetization, and interaction shaders. The port's `stencil` descriptor projects onto a fixed front z-plane; it needs real stencil widget creation, active stencil tracking, surface projection, visibility controls, and selection/widget interactions.
 
+## Phase A MVP Stop Target
+
+The current execution target is to stop after Phase A unless scope is explicitly promoted. Phase A is not the full Open Brush port; it is a polished local XR painting MVP that feels like an Open Brush-style brush/wand workflow. The cut line is intentionally narrower than the complete roadmap below: no multiplayer, no cloud, no cloud-powered sharing, and no oversized all-in-one XR panel.
+
+Phase A objective:
+
+- A user can enter XR, use hand-attached spatial controls, choose brush/color/size/tool, draw freehand, toggle straightedge line mode, erase, pick color/brush/dropper from strokes, undo/redo, and understand blocked or miss states without falling back to a giant panel.
+- The browser `ScreenSpace` panel remains a fallback/debug surface. The XR experience uses world-space `PanelUI` entities attached to the off-hand/wand role and sized by `PanelUI.maxWidth/maxHeight`.
+- The MVP panel surface exposes only reliable MVP actions. Placeholder Mirror/Grid/Lazy/Tape/Stencil controls must either be hidden from the main Phase A hand panels or visually parked in a clearly non-primary/debug area until their reference semantics are real.
+
+Phase A work breakdown:
+
+- **A0: UX inventory and cut-line cleanup.** Re-audit upstream Open Brush panel/tool interactions that affect Draw, Line/Straightedge, Eraser, Color Picker, Brush Picker, Dropper, brush size, color swatches, undo/redo, and panel focus. Remove or demote non-MVP placeholder controls from the primary XR hand panels.
+- **A1: Hand-panel product pass.** Replace the clunky current wand ring presentation with a compact, polished off-hand control layout: dedicated Tools, Brush, and Color panels; comfortable reach and viewing angle; stable dimensions; readable type in headset; icon/label balance; clear active, hover, pressed, disabled, panel-focus, miss, and hit states; no text overflow; no overlapping controls; and handedness-safe mirroring.
+- **A2: Core tool feel pass.** Make Draw, Straightedge/Line, Eraser, Color Picker, Brush Picker, and Dropper feel trustworthy through the visible UI route first, then use ECS shortcuts for repeated permutations. Keep Draw/Line thickness source-aligned, label full-pressure Line behavior clearly enough that it is not confused with a sizing bug, and keep Eraser feedback visible for panel focus, miss, hot, and hit states.
+- **A3: Brush/color/size essentials.** Keep the initial Light brush and normalized size behavior source-aligned; make brush prev/next, brush name, unit-labeled size, eraser radius, and color swatches available on hand panels; ensure active tool and active brush/color state stay synchronized between panels and ECS.
+- **A4: MVP polish and stability.** Verify no fresh warn/error console logs, no dead-looking panel states, no accidental paint/erase while over visible panels, no hidden fallback panel blocking, and no restart of the managed dev server unless runtime status shows it is actually broken.
+
+Phase A acceptance criteria:
+
+- The first XR view presents a clean workspace and reachable hand-attached controls; the user does not need to use the browser/debug fallback for the core painting loop.
+- The Tools panel shows Draw, Line/Straightedge, Eraser, Color Picker, Brush Picker, Dropper, Undo, and Redo as first-class MVP actions; unfinished advanced tools are not competing with those actions.
+- The Brush panel exposes brush name, prev/next, normalized size controls, and Eraser radius controls when Eraser is active; labels are readable in headset and do not overflow.
+- The Color panel exposes usable swatches and current-color feedback; Color Picker updates color only, Brush Picker updates brush only, and Dropper copies stroke color, brush, and size.
+- Draw and Straightedge strokes use the source-grounded Light startup size and active size changes; Straightedge remains a mode over FreePaint rather than a separate active paint tool.
+- Eraser activation through the visible hand panel shows a visible cursor, correct hot/cold state, clear panel-focus blocking, clear miss feedback, and successful stroke hiding with undo history.
+- Browser fallback remains functional but visually and semantically separate from the XR hand-panel experience.
+- Fresh runtime console warn/error logs are empty after the Phase A interaction suite.
+
+Phase A testing plan:
+
+- Static: run `npx tsc --noEmit` before runtime checks; run targeted unit tests for tool-state, size/radius, eraser hit/miss, picker/dropper, straightedge, and panel routing helpers.
+- Runtime setup: start with `xr_get_session_status`; keep the existing managed dev server alive when connected; enter XR with `xr_accept_session` only if no active session exists.
+- Runtime UI route: use `iwsdk-runtime` tools to ray-select each hand-panel control once, then inspect `OpenBrushAppState`, `BrushSettings`, `StrokeHistoryState`, `OpenBrushPanelAttachment`, and stroke entities through ECS.
+- Runtime interaction route: draw freehand, draw Line/Straightedge, erase a hit, erase a miss, erase while the Brush ray is over a visible panel, pick color, pick brush, use Dropper on a stroke, and use Undo/Redo from the hand panels.
+- Runtime shortcut route: after the UI route is proven, use ECS state changes for repeated handedness, panel anchor, size, and tool permutations, then verify rendered state and ECS state with screenshots and scene inspection.
+- Visual checkpoints: capture managed `browser_screenshot` images from inside XR for the polished hand-panel layout, panel-focus blocked Eraser, and a successful draw/erase workflow.
+
+Deferred after Phase A unless explicitly promoted:
+
+- Full `.tilt` save/load/catalog parity, full layer management, selection/pin/snip/join/repaint/recolor/rebrush, Sketchbook and Settings alternate panels, floating panel attach/detach lifecycle, reference image Dropper sampling if it misses the Phase A timebox, full widget/stencil/tape/grid/lazy/mirror semantics, advanced export formats, playback, cloud, multiplayer, and cloud-powered sharing.
+
 ## Port Principles
 
 1. Preserve the Open Brush data model first. A visually convincing demo is not enough if strokes cannot round-trip through `.tilt` and replay deterministically.
@@ -111,7 +153,8 @@ Confirmed source-grounded findings from `reference/Assets/Scripts` and current I
 4. Preserve Open Brush update ordering: input/actions, active tool, pointer/stroke state machine, geometry generation, then batch/render flush.
 5. Keep hot paths allocation-free. Allocate vectors, arrays, buffers, and temporary objects outside `update()`.
 6. Use IWSDK ECS, interactions, and runtime inspection for user-facing behavior. Do not build parallel raw Three.js scene graphs or raycast systems.
-7. Phase fidelity from simple to complete: unbatched marker strokes first, then geometry families, batching, shaders, persistence, tools, hand-attached UI, and local interchange.
+7. For Phase A, prefer a smaller hand-panel surface with trustworthy controls over exposing placeholder tool buttons that do not yet match reference semantics.
+8. Phase fidelity from simple to complete: unbatched marker strokes first, then geometry families, batching, shaders, persistence, tools, hand-attached UI, and local interchange.
 
 ## Target Architecture
 
@@ -492,6 +535,7 @@ Testing plan:
 
 Scope:
 
+- Phase A pulls a product-quality fixed Tools/Brush/Color hand-panel pass forward as the MVP stop target. Phase 10 remains the full UI parity phase for floating panels, alternate panel modes, layers, settings, save/load surfaces, and the remaining reference panel lifecycle.
 - Treat the current consolidated `welcome` panel as browser/debug fallback only. Phase 10 is incomplete until XR workflows use Open Brush-style spatial panels and controller-role interactions.
 - Build a panel framework before replacing panel contents: `PanelType`, fixed/floating/alternate panel flags, availability modes, popup ownership, cached layout, show/hide transitions, respawn/revive behavior, and API-level open/close/position/attach/detach commands.
 - Implement semantic controller roles. `Brush` and `Wand` roles must map onto physical left/right hands through handedness settings, preserve separate ray/grip/tool/pointer/panel attach points, support touch locator equivalents, and keep geometry stable across swaps.
