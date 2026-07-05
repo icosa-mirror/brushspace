@@ -26,7 +26,7 @@
   }
 
   .tool-button {
-    width: 10.8;
+    width: 7.1;
     padding: 0.75;
     background-color: #27272a;
     color: #fafafa;
@@ -39,6 +39,7 @@
     cursor: pointer;
   }
 
+  #tool-line,
   #tool-erase {
     margin-left: 0.5;
   }
@@ -47,6 +48,7 @@
   <span class="heading">Tools</span>
   <div class="button-row">
     <button id="tool-draw" class="tool-button">Draw</button>
+    <button id="tool-line" class="tool-button">Line</button>
     <button id="tool-erase" class="tool-button">Erase</button>
   </div>
 </div>

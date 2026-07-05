@@ -678,11 +678,17 @@ export class PanelSystem extends createSystem({
     }
     const document = PanelDocument.data.document[entity.index] as UIKitDocument;
     this.nameElement(document, "tool-draw");
+    this.nameElement(document, "tool-line");
     this.nameElement(document, "tool-erase");
 
     const drawToolButton = document.getElementById("tool-draw") as TextElement;
     drawToolButton?.addEventListener("click", () => {
       this.selectTool("free-paint");
+    });
+
+    const lineToolButton = document.getElementById("tool-line") as TextElement;
+    lineToolButton?.addEventListener("click", () => {
+      this.toggleStraightEdgeMode();
     });
 
     const eraseToolButton = document.getElementById("tool-erase") as TextElement;
@@ -1062,6 +1068,7 @@ export class PanelSystem extends createSystem({
       "tool-draw",
       activeTool.id === "free-paint" && !straightEdgeEnabled ? "Draw *" : "Draw",
     );
+    this.setText(document, "tool-line", straightEdgeEnabled ? "Line *" : "Line");
     this.setText(
       document,
       "tool-erase",

@@ -5,6 +5,7 @@ import {
   createMirroredStrokeDataX,
   createStrokeAuthoringState,
   shouldSampleControlPoint,
+  STRAIGHTEDGE_LINE_CONTROL_POINT_COUNT,
   upsertStraightedgeEndpoint,
   upsertTapeMeasureEndpoints,
   writeGridSnappedPosition,
@@ -115,7 +116,7 @@ describe("stroke authoring state", () => {
     expect(target).toEqual([0.25, 1.1, -0.7]);
   });
 
-  it("keeps straightedge strokes to a start point and moving endpoint", () => {
+  it("writes straightedge lines as upstream-style parametric samples", () => {
     const controlPoints: ControlPoint[] = [];
 
     expect(upsertStraightedgeEndpoint(controlPoints, frame(true, 0), 0.02)).toBe(
@@ -130,15 +131,24 @@ describe("stroke authoring state", () => {
     expect(upsertStraightedgeEndpoint(controlPoints, frame(true, 0.1), 0.02)).toBe(
       "created",
     );
-    const endpoint = controlPoints[1];
-    expect(endpoint.position).toEqual([0.1, 0, 0]);
+    expect(controlPoints).toHaveLength(STRAIGHTEDGE_LINE_CONTROL_POINT_COUNT);
+    expect(controlPoints[0].position).toEqual([0, 0, 0]);
+    expect(controlPoints[15].position).toEqual([0.05, 0, 0]);
+    expect(controlPoints[30].position).toEqual([0.1, 0, 0]);
+    expect(controlPoints.map((point) => point.pressure)).toEqual(
+      Array.from({ length: STRAIGHTEDGE_LINE_CONTROL_POINT_COUNT }, () => 1),
+    );
 
+    const midpoint = controlPoints[15];
+    const endpoint = controlPoints[30];
     expect(upsertStraightedgeEndpoint(controlPoints, frame(true, 0.3), 0.02)).toBe(
       "updated",
     );
-    expect(controlPoints).toHaveLength(2);
-    expect(controlPoints[1]).toBe(endpoint);
-    expect(controlPoints[1].position).toEqual([0.3, 0, 0]);
+    expect(controlPoints).toHaveLength(STRAIGHTEDGE_LINE_CONTROL_POINT_COUNT);
+    expect(controlPoints[15]).toBe(midpoint);
+    expect(controlPoints[30]).toBe(endpoint);
+    expect(controlPoints[15].position).toEqual([0.15, 0, 0]);
+    expect(controlPoints[30].position).toEqual([0.3, 0, 0]);
   });
 
   it("keeps tape measure strokes to bimanual anchor and endpoint pairs", () => {

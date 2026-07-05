@@ -113,6 +113,7 @@ export function writeLazyInputPosition(
 }
 
 export type StencilPlaneAxis = "x" | "y" | "z";
+export const STRAIGHTEDGE_LINE_CONTROL_POINT_COUNT = 31;
 
 export function writeStencilPlaneProjectedPosition(
   target: Vec3,
@@ -138,6 +139,7 @@ export function upsertStraightedgeEndpoint(
   controlPoints: ControlPoint[],
   frame: StrokePointerFrame,
   minDistance: number,
+  sampleCount = STRAIGHTEDGE_LINE_CONTROL_POINT_COUNT,
 ): StraightedgeSampleResult {
   if (controlPoints.length === 0) {
     controlPoints.push(createControlPointFromFrame(frame));
@@ -154,14 +156,9 @@ export function upsertStraightedgeEndpoint(
     return "ignored";
   }
 
-  if (controlPoints.length === 1) {
-    controlPoints.push(createControlPointFromFrame(frame));
-    return "created";
-  }
-
-  writeControlPointFromFrame(controlPoints[1], frame);
-  controlPoints.length = 2;
-  return "updated";
+  const previousCount = controlPoints.length;
+  writeStraightedgeLineControlPoints(controlPoints, controlPoints[0], frame, sampleCount);
+  return previousCount === controlPoints.length ? "updated" : "created";
 }
 
 export function upsertTapeMeasureEndpoints(
@@ -226,6 +223,57 @@ export function writeControlPointFromFrame(
   controlPoint.orientation[3] = frame.orientation[3];
   controlPoint.pressure = frame.pressure;
   controlPoint.timestampMs = frame.timestampMs;
+}
+
+function writeStraightedgeLineControlPoints(
+  controlPoints: ControlPoint[],
+  anchor: ControlPoint,
+  endpointFrame: StrokePointerFrame,
+  sampleCount: number,
+): void {
+  const resolvedSampleCount = Math.max(2, Math.floor(sampleCount));
+  const startPosition: Vec3 = [
+    anchor.position[0],
+    anchor.position[1],
+    anchor.position[2],
+  ];
+  const startTimestampMs = anchor.timestampMs;
+  for (let index = 0; index < resolvedSampleCount; index += 1) {
+    const amount = index / (resolvedSampleCount - 1);
+    const controlPoint =
+      controlPoints[index] ?? createControlPointFromFrame(endpointFrame);
+    controlPoint.position[0] = lerp(
+      startPosition[0],
+      endpointFrame.position[0],
+      amount,
+    );
+    controlPoint.position[1] = lerp(
+      startPosition[1],
+      endpointFrame.position[1],
+      amount,
+    );
+    controlPoint.position[2] = lerp(
+      startPosition[2],
+      endpointFrame.position[2],
+      amount,
+    );
+    controlPoint.orientation[0] = endpointFrame.orientation[0];
+    controlPoint.orientation[1] = endpointFrame.orientation[1];
+    controlPoint.orientation[2] = endpointFrame.orientation[2];
+    controlPoint.orientation[3] = endpointFrame.orientation[3];
+    controlPoint.pressure = 1;
+    controlPoint.timestampMs = lerp(
+      startTimestampMs,
+      endpointFrame.timestampMs,
+      amount,
+    );
+    controlPoints[index] = controlPoint;
+  }
+  controlPoints.length = resolvedSampleCount;
+}
+
+function lerp(start: number, end: number, amount: number): number {
+  return start + (end - start) * amount;
 }
 
 export function mirrorControlPointX(controlPoint: ControlPoint): ControlPoint {
