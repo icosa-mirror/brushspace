@@ -23,7 +23,57 @@ export type OpenBrushToolStencilMode = "none" | "front-plane";
 export const OPEN_BRUSH_ERASER_SIZE_RANGE = [0.1, 0.3] as const;
 export const OPEN_BRUSH_DEFAULT_ERASER_RADIUS =
   (OPEN_BRUSH_ERASER_SIZE_RANGE[0] + OPEN_BRUSH_ERASER_SIZE_RANGE[1]) * 0.5;
+export const OPEN_BRUSH_ERASER_SIZE_BUTTON_STEP01 = 0.05;
 export const OPEN_BRUSH_ERASER_FORWARD_OFFSET = 0.05;
+
+export interface OpenBrushEraserSize {
+  size01: number;
+  radius: number;
+}
+
+export function normalizeOpenBrushEraserRadius(radius: number): number {
+  if (!Number.isFinite(radius)) {
+    return OPEN_BRUSH_DEFAULT_ERASER_RADIUS;
+  }
+  return Math.min(
+    OPEN_BRUSH_ERASER_SIZE_RANGE[1],
+    Math.max(OPEN_BRUSH_ERASER_SIZE_RANGE[0], radius),
+  );
+}
+
+export function openBrushEraserSize01ToRadius(size01: number): number {
+  const normalized = normalize01(size01);
+  return (
+    OPEN_BRUSH_ERASER_SIZE_RANGE[0] +
+    (OPEN_BRUSH_ERASER_SIZE_RANGE[1] - OPEN_BRUSH_ERASER_SIZE_RANGE[0]) *
+      normalized
+  );
+}
+
+export function openBrushEraserRadiusToSize01(radius: number): number {
+  const range =
+    OPEN_BRUSH_ERASER_SIZE_RANGE[1] - OPEN_BRUSH_ERASER_SIZE_RANGE[0];
+  if (range <= 0) {
+    return 1;
+  }
+  return normalize01(
+    (normalizeOpenBrushEraserRadius(radius) - OPEN_BRUSH_ERASER_SIZE_RANGE[0]) /
+      range,
+  );
+}
+
+export function resolveOpenBrushEraserSizeAdjustment(
+  currentRadius: number,
+  delta01: number,
+): OpenBrushEraserSize {
+  const size01 = normalize01(
+    openBrushEraserRadiusToSize01(currentRadius) + delta01,
+  );
+  return {
+    size01,
+    radius: openBrushEraserSize01ToRadius(size01),
+  };
+}
 
 export interface OpenBrushToolDescriptor {
   id: OpenBrushToolId;
@@ -182,4 +232,17 @@ export function getNextOpenBrushTool(
   const nextIndex =
     (currentIndex + offset + openBrushTools.length) % openBrushTools.length;
   return openBrushTools[nextIndex];
+}
+
+function normalize01(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0.5;
+  }
+  if (value < 0) {
+    return 0;
+  }
+  if (value > 1) {
+    return 1;
+  }
+  return value;
 }

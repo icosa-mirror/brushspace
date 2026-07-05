@@ -4,6 +4,10 @@ import {
   OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE,
   OPEN_BRUSH_DEFAULT_SIZE01,
 } from "../openbrush/brush-size.js";
+import {
+  OPEN_BRUSH_DEFAULT_ERASER_RADIUS,
+  OPEN_BRUSH_ERASER_FORWARD_OFFSET,
+} from "../openbrush/tools.js";
 
 export const OpenBrushAppState = createComponent("OpenBrushAppState", {
   mode: { type: Types.String, default: "ready" },
@@ -200,8 +204,11 @@ export const BrushPointer = createComponent("BrushPointer", {
 
 export const OpenBrushEraserCursor = createComponent("OpenBrushEraserCursor", {
   hand: { type: Types.String, default: "right" },
-  radius: { type: Types.Float32, default: 0.2 },
-  forwardOffset: { type: Types.Float32, default: 0.05 },
+  radius: { type: Types.Float32, default: OPEN_BRUSH_DEFAULT_ERASER_RADIUS },
+  forwardOffset: {
+    type: Types.Float32,
+    default: OPEN_BRUSH_ERASER_FORWARD_OFFSET,
+  },
   hot: { type: Types.Boolean, default: false },
   visible: { type: Types.Boolean, default: false },
 });

@@ -21,6 +21,7 @@ import {
   isOpenBrushEraserCursorVisible,
   writeOpenBrushEraserCursorLocalPosition,
 } from "../openbrush/eraser-cursor.js";
+import { normalizeOpenBrushEraserRadius } from "../openbrush/tools.js";
 
 const COLD_COLOR = 0x7dd3fc;
 const HOT_COLOR = 0xff5c7a;
@@ -62,8 +63,7 @@ export class EraserCursorSystem extends createSystem({
     const parent = this.getBrushHandRayEntity();
 
     for (const cursor of this.queries.cursors.entities) {
-      const radius = Math.max(
-        0,
+      const radius = normalizeOpenBrushEraserRadius(
         Number(cursor.getValue(OpenBrushEraserCursor, "radius")),
       );
       const forwardOffset = Math.max(

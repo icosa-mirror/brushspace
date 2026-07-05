@@ -21,6 +21,7 @@ import {
   CanvasLayer,
   InputCommandState,
   OpenBrushAppState,
+  OpenBrushEraserCursor,
   OpenBrushPanelAttachment,
   StrokeHistoryState,
 } from "../components/OpenBrushCore.js";
@@ -52,8 +53,8 @@ import {
   strokeIntersectsTool,
 } from "../openbrush/tool-intersections.js";
 import {
-  OPEN_BRUSH_DEFAULT_ERASER_RADIUS,
   OPEN_BRUSH_ERASER_FORWARD_OFFSET,
+  normalizeOpenBrushEraserRadius,
   type OpenBrushToolDescriptor,
   type OpenBrushToolId,
   type OpenBrushToolLazyMode,
@@ -109,6 +110,7 @@ export class StrokeAuthoringSystem extends createSystem({
   strokes: { required: [BrushStroke] },
   hoveredPanels: { required: [PanelUI, OpenBrushPanelAttachment, Hovered] },
   panels: { required: [PanelUI, OpenBrushPanelAttachment] },
+  eraserCursors: { required: [OpenBrushEraserCursor] },
 }) {
   private readonly samplePosition = new Vector3();
   private readonly sampleQuaternion = new Quaternion();
@@ -720,7 +722,8 @@ export class StrokeAuthoringSystem extends createSystem({
     const activeLayerIndex = appStateEntity
       ? Number(appStateEntity.getValue(OpenBrushAppState, "activeLayerIndex"))
       : 0;
-    this.writeToolCenter(this.eraserCenter, OPEN_BRUSH_ERASER_FORWARD_OFFSET);
+    this.writeToolCenter(this.eraserCenter, this.getEraserForwardOffset());
+    const eraserRadius = this.getEraserRadius();
 
     const erasedStrokes: Entity[] = [];
     for (const entity of this.queries.strokes.entities) {
@@ -751,7 +754,7 @@ export class StrokeAuthoringSystem extends createSystem({
           },
           activeLayerIndex,
           this.eraserCenter,
-          OPEN_BRUSH_DEFAULT_ERASER_RADIUS,
+          eraserRadius,
         )
       ) {
         erasedStrokes.push(entity);
@@ -765,6 +768,24 @@ export class StrokeAuthoringSystem extends createSystem({
       this.setStrokeVisible(entity, false);
     }
     this.strokeHistory.commitErased(erasedStrokes);
+  }
+
+  private getEraserRadius(): number {
+    const cursor = this.getFirstEntity("eraserCursors");
+    return normalizeOpenBrushEraserRadius(
+      cursor ? Number(cursor.getValue(OpenBrushEraserCursor, "radius")) : NaN,
+    );
+  }
+
+  private getEraserForwardOffset(): number {
+    const cursor = this.getFirstEntity("eraserCursors");
+    if (!cursor) {
+      return OPEN_BRUSH_ERASER_FORWARD_OFFSET;
+    }
+    return Math.max(
+      0,
+      Number(cursor.getValue(OpenBrushEraserCursor, "forwardOffset")),
+    );
   }
 
   private pickIntersectingStroke(activeTool: OpenBrushToolDescriptor): void {
@@ -1222,7 +1243,7 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private getFirstEntity(
-    queryName: "commands" | "appState" | "brushSettings",
+    queryName: "commands" | "appState" | "brushSettings" | "eraserCursors",
   ): Entity | undefined {
     const next = this.queries[queryName].entities.values().next();
     return next.done ? undefined : next.value;

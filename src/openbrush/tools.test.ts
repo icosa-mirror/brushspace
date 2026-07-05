@@ -5,7 +5,11 @@ import {
   OPEN_BRUSH_ERASER_SIZE_RANGE,
   getNextOpenBrushTool,
   isOpenBrushToolId,
+  normalizeOpenBrushEraserRadius,
+  openBrushEraserRadiusToSize01,
+  openBrushEraserSize01ToRadius,
   openBrushTools,
+  resolveOpenBrushEraserSizeAdjustment,
   resolveOpenBrushTool,
 } from "./tools.js";
 
@@ -35,6 +39,29 @@ describe("Open Brush tools", () => {
     expect(eraser.lazyMode).toBe("none");
     expect(OPEN_BRUSH_ERASER_SIZE_RANGE).toEqual([0.1, 0.3]);
     expect(OPEN_BRUSH_DEFAULT_ERASER_RADIUS).toBeCloseTo(0.2);
+  });
+
+  it("maps eraser radius through the reference linear size range", () => {
+    expect(openBrushEraserSize01ToRadius(0)).toBeCloseTo(0.1);
+    expect(openBrushEraserSize01ToRadius(0.5)).toBeCloseTo(0.2);
+    expect(openBrushEraserSize01ToRadius(1)).toBeCloseTo(0.3);
+    expect(openBrushEraserRadiusToSize01(0.2)).toBeCloseTo(0.5);
+    expect(normalizeOpenBrushEraserRadius(Number.NaN)).toBeCloseTo(0.2);
+    expect(normalizeOpenBrushEraserRadius(0.01)).toBeCloseTo(0.1);
+    expect(normalizeOpenBrushEraserRadius(1)).toBeCloseTo(0.3);
+  });
+
+  it("resolves eraser size nudges as clamped normalized adjustments", () => {
+    const increased = resolveOpenBrushEraserSizeAdjustment(0.2, 0.05);
+    const clampedLow = resolveOpenBrushEraserSizeAdjustment(0.11, -0.5);
+    const clampedHigh = resolveOpenBrushEraserSizeAdjustment(0.29, 0.5);
+
+    expect(increased.size01).toBeCloseTo(0.55);
+    expect(increased.radius).toBeCloseTo(0.21);
+    expect(clampedLow.size01).toBe(0);
+    expect(clampedLow.radius).toBeCloseTo(0.1);
+    expect(clampedHigh.size01).toBe(1);
+    expect(clampedHigh.radius).toBeCloseTo(0.3);
   });
 
   it("marks straightedge as a painting line-sampling tool", () => {

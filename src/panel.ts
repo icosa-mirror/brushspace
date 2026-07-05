@@ -14,6 +14,7 @@ import {
   BrushStroke,
   CanvasLayer,
   OpenBrushAppState,
+  OpenBrushEraserCursor,
   PlaybackState,
   PersistenceState,
   SelectionState,
@@ -50,7 +51,10 @@ import {
   type RuntimeStrokeSelectionState,
 } from "./openbrush/selection.js";
 import {
+  OPEN_BRUSH_ERASER_SIZE_BUTTON_STEP01,
+  openBrushEraserRadiusToSize01,
   resolveOpenBrushTool,
+  resolveOpenBrushEraserSizeAdjustment,
   type OpenBrushToolId,
 } from "./openbrush/tools.js";
 import {
@@ -125,6 +129,7 @@ export class PanelSystem extends createSystem({
   persistenceState: { required: [PersistenceState] },
   playbackState: { required: [PlaybackState] },
   uiHistory: { required: [UiCommandHistoryState] },
+  eraserCursors: { required: [OpenBrushEraserCursor] },
   layers: { required: [CanvasLayer] },
   strokes: { required: [BrushStroke] },
 }) {
@@ -391,14 +396,14 @@ export class PanelSystem extends createSystem({
       "brush-size-down-button",
     ) as TextElement;
     brushSizeDownButton?.addEventListener("click", () => {
-      this.adjustBrushSize01(-OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP);
+      this.adjustActiveToolSize(-OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP);
     });
 
     const brushSizeUpButton = document.getElementById(
       "brush-size-up-button",
     ) as TextElement;
     brushSizeUpButton?.addEventListener("click", () => {
-      this.adjustBrushSize01(OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP);
+      this.adjustActiveToolSize(OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP);
     });
 
     const newLayerButton = document.getElementById(
@@ -682,14 +687,14 @@ export class PanelSystem extends createSystem({
       "brush-size-down",
     ) as TextElement;
     brushSizeDownButton?.addEventListener("click", () => {
-      this.adjustBrushSize01(-OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP);
+      this.adjustActiveToolSize(-OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP);
     });
 
     const brushSizeUpButton = document.getElementById(
       "brush-size-up",
     ) as TextElement;
     brushSizeUpButton?.addEventListener("click", () => {
-      this.adjustBrushSize01(OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP);
+      this.adjustActiveToolSize(OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP);
     });
 
     this.updateBrushLabels(document);
@@ -931,6 +936,22 @@ export class PanelSystem extends createSystem({
     this.syncBrushSettingsSize(settingsEntity, nextBrush.guid);
   }
 
+  private adjustActiveToolSize(delta01: number): void {
+    const appState = this.getAppStateEntity();
+    const activeTool = resolveOpenBrushTool(
+      appState ? String(appState.getValue(OpenBrushAppState, "activeTool")) : "",
+    );
+    if (activeTool.erases) {
+      const step =
+        delta01 < 0
+          ? -OPEN_BRUSH_ERASER_SIZE_BUTTON_STEP01
+          : OPEN_BRUSH_ERASER_SIZE_BUTTON_STEP01;
+      this.adjustEraserSize01(step);
+      return;
+    }
+    this.adjustBrushSize01(delta01);
+  }
+
   private adjustBrushSize01(delta: number): void {
     const settingsEntity = this.getBrushSettingsEntity();
     if (!settingsEntity) {
@@ -945,6 +966,19 @@ export class PanelSystem extends createSystem({
     );
     settingsEntity.setValue(BrushSettings, "size01", next.size01);
     settingsEntity.setValue(BrushSettings, "size", next.size);
+    this.touchAppState();
+  }
+
+  private adjustEraserSize01(delta01: number): void {
+    const cursor = this.getEraserCursorEntity();
+    if (!cursor) {
+      return;
+    }
+    const next = resolveOpenBrushEraserSizeAdjustment(
+      Number(cursor.getValue(OpenBrushEraserCursor, "radius")),
+      delta01,
+    );
+    cursor.setValue(OpenBrushEraserCursor, "radius", next.radius);
     this.touchAppState();
   }
 
@@ -1002,6 +1036,10 @@ export class PanelSystem extends createSystem({
 
   private updateBrushLabels(document: UIKitDocument): void {
     const settingsEntity = this.getBrushSettingsEntity();
+    const appState = this.getAppStateEntity();
+    const activeTool = resolveOpenBrushTool(
+      appState ? String(appState.getValue(OpenBrushAppState, "activeTool")) : "",
+    );
     const activeBrushGuid = settingsEntity
       ? String(settingsEntity.getValue(BrushSettings, "brushGuid"))
       : "";
@@ -1024,10 +1062,25 @@ export class PanelSystem extends createSystem({
           `size ${Math.round(size01 * 100)}% (${size.toFixed(3)})`,
         ].join(" / ")
       : "unavailable";
+    const eraserCursor = this.getEraserCursorEntity();
+    const eraserRadius = eraserCursor
+      ? Number(eraserCursor.getValue(OpenBrushEraserCursor, "radius"))
+      : 0;
+    const eraserSize01 = openBrushEraserRadiusToSize01(eraserRadius);
+    const sizeLabel = activeTool.erases
+      ? `Eraser ${Math.round(eraserSize01 * 100)}% (${eraserRadius.toFixed(3)})`
+      : `Size ${Math.round(size01 * 100)}% (${size.toFixed(3)})`;
+    const displayedBrushMeta = activeTool.erases
+      ? `${brushMeta} / ${sizeLabel.toLowerCase()}`
+      : brushMeta;
 
     this.setText(document, "active-brush-name", activeBrush?.name ?? "No brush");
-    this.setText(document, "active-brush-meta", brushMeta);
-    this.setText(document, "wand-brush-name", activeBrush?.name ?? "No brush");
+    this.setText(document, "active-brush-meta", displayedBrushMeta);
+    this.setText(
+      document,
+      "wand-brush-name",
+      activeTool.erases ? "Eraser" : activeBrush?.name ?? "No brush",
+    );
     this.setText(
       document,
       "wand-brush-meta",
@@ -1038,7 +1091,7 @@ export class PanelSystem extends createSystem({
     this.setText(
       document,
       "wand-brush-size",
-      `Size ${Math.round(size01 * 100)}% (${size.toFixed(3)})`,
+      sizeLabel,
     );
     this.setText(
       document,
@@ -2047,6 +2100,11 @@ export class PanelSystem extends createSystem({
 
   private getBrushSettingsEntity(): Entity | undefined {
     const next = this.queries.brushSettings.entities.values().next();
+    return next.done ? undefined : next.value;
+  }
+
+  private getEraserCursorEntity(): Entity | undefined {
+    const next = this.queries.eraserCursors.entities.values().next();
     return next.done ? undefined : next.value;
   }
 
