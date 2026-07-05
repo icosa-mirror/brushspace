@@ -25,6 +25,16 @@ function frame(paintPressed: boolean, x: number): StrokePointerFrame {
   };
 }
 
+function pressuredFrame(x: number, pressure: number): StrokePointerFrame {
+  return {
+    paintPressed: pressure > 0,
+    pressure,
+    position: [x, 0, 0],
+    orientation: [0, 0, 0, 1],
+    timestampMs: x * 1000,
+  };
+}
+
 describe("stroke authoring state", () => {
   it("starts exactly one stroke when paint becomes pressed", () => {
     const state = createStrokeAuthoringState();
@@ -149,6 +159,21 @@ describe("stroke authoring state", () => {
     expect(controlPoints[30]).toBe(endpoint);
     expect(controlPoints[15].position).toEqual([0.15, 0, 0]);
     expect(controlPoints[30].position).toEqual([0.3, 0, 0]);
+  });
+
+  it("forces straightedge pressure to the upstream constant", () => {
+    const controlPoints: ControlPoint[] = [];
+
+    expect(
+      upsertStraightedgeEndpoint(controlPoints, pressuredFrame(0, 0.2), 0.02),
+    ).toBe("created");
+    expect(controlPoints[0].pressure).toBe(1);
+
+    expect(
+      upsertStraightedgeEndpoint(controlPoints, pressuredFrame(0.1, 0.2), 0.02),
+    ).toBe("created");
+    expect(controlPoints).toHaveLength(STRAIGHTEDGE_LINE_CONTROL_POINT_COUNT);
+    expect(controlPoints.every((point) => point.pressure === 1)).toBe(true);
   });
 
   it("keeps tape measure strokes to bimanual anchor and endpoint pairs", () => {

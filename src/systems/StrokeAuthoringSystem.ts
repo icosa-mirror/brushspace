@@ -126,6 +126,8 @@ export class StrokeAuthoringSystem extends createSystem({
   private readonly panelNormal = new Vector3();
   private readonly panelDelta = new Vector3();
   private readonly panelHit = new Vector3();
+  private readonly panelRayPosition = new Vector3();
+  private readonly panelRayQuaternion = new Quaternion();
   private readonly rayDirection = new Vector3();
   private readonly tapeAnchorPosition = new Vector3();
   private readonly tapeAnchorQuaternion = new Quaternion();
@@ -295,7 +297,7 @@ export class StrokeAuthoringSystem extends createSystem({
   private isPointerRayIntersectingPanel(): boolean {
     this.rayDirection
       .set(0, 0, -1)
-      .applyQuaternion(this.sampleQuaternion)
+      .applyQuaternion(this.panelRayQuaternion)
       .normalize();
 
     for (const entity of this.queries.panels.entities) {
@@ -318,14 +320,14 @@ export class StrokeAuthoringSystem extends createSystem({
         continue;
       }
 
-      this.panelDelta.copy(this.panelPosition).sub(this.samplePosition);
+      this.panelDelta.copy(this.panelPosition).sub(this.panelRayPosition);
       const distance = this.panelDelta.dot(this.panelNormal) / denominator;
       if (distance < 0) {
         continue;
       }
 
       this.panelHit
-        .copy(this.samplePosition)
+        .copy(this.panelRayPosition)
         .addScaledVector(this.rayDirection, distance);
       this.panelDelta.copy(this.panelHit).sub(this.panelPosition);
 
@@ -1166,13 +1168,17 @@ export class StrokeAuthoringSystem extends createSystem({
     const hand = String(commandEntity.getValue(InputCommandState, "primaryHand"));
     const source = String(commandEntity.getValue(InputCommandState, "source"));
     if (source === "xr-left" || hand === "left") {
-      this.world.player.raySpaces.left.getWorldPosition(this.samplePosition);
-      this.world.player.raySpaces.left.getWorldQuaternion(this.sampleQuaternion);
+      this.world.player.gripSpaces.left.getWorldPosition(this.samplePosition);
+      this.world.player.gripSpaces.left.getWorldQuaternion(this.sampleQuaternion);
+      this.world.player.raySpaces.left.getWorldPosition(this.panelRayPosition);
+      this.world.player.raySpaces.left.getWorldQuaternion(this.panelRayQuaternion);
       return;
     }
     if (source === "xr-right" || hand === "right") {
-      this.world.player.raySpaces.right.getWorldPosition(this.samplePosition);
-      this.world.player.raySpaces.right.getWorldQuaternion(this.sampleQuaternion);
+      this.world.player.gripSpaces.right.getWorldPosition(this.samplePosition);
+      this.world.player.gripSpaces.right.getWorldQuaternion(this.sampleQuaternion);
+      this.world.player.raySpaces.right.getWorldPosition(this.panelRayPosition);
+      this.world.player.raySpaces.right.getWorldQuaternion(this.panelRayQuaternion);
       return;
     }
 
@@ -1200,6 +1206,8 @@ export class StrokeAuthoringSystem extends createSystem({
       .copy(this.cameraPosition)
       .addScaledVector(this.sampleDirection, 1.5);
     this.world.camera.getWorldQuaternion(this.sampleQuaternion);
+    this.panelRayPosition.copy(this.cameraPosition);
+    this.panelRayQuaternion.copy(this.sampleQuaternion);
   }
 
   private getBrushColor(settingsEntity: Entity | undefined): Rgba {
@@ -1257,8 +1265,8 @@ export class StrokeAuthoringSystem extends createSystem({
     time: number,
     pressure: number,
   ): StrokePointerFrame {
-    this.world.player.raySpaces.left.getWorldPosition(this.tapeAnchorPosition);
-    this.world.player.raySpaces.left.getWorldQuaternion(
+    this.world.player.gripSpaces.left.getWorldPosition(this.tapeAnchorPosition);
+    this.world.player.gripSpaces.left.getWorldQuaternion(
       this.tapeAnchorQuaternion,
     );
     this.tapeAnchorFrame.pressure = pressure;

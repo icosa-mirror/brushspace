@@ -8,6 +8,7 @@ import {
 
 export type StrokeAuthoringPhase = "idle" | "drawing";
 export type StrokeAuthoringEvent = "none" | "start" | "sample" | "finalize";
+const STRAIGHTEDGE_PRESSURE = 1;
 
 export interface StrokeAuthoringState {
   phase: StrokeAuthoringPhase;
@@ -142,7 +143,7 @@ export function upsertStraightedgeEndpoint(
   sampleCount = STRAIGHTEDGE_LINE_CONTROL_POINT_COUNT,
 ): StraightedgeSampleResult {
   if (controlPoints.length === 0) {
-    controlPoints.push(createControlPointFromFrame(frame));
+    controlPoints.push(createStraightedgeControlPointFromFrame(frame));
     return "created";
   }
 
@@ -241,7 +242,7 @@ function writeStraightedgeLineControlPoints(
   for (let index = 0; index < resolvedSampleCount; index += 1) {
     const amount = index / (resolvedSampleCount - 1);
     const controlPoint =
-      controlPoints[index] ?? createControlPointFromFrame(endpointFrame);
+      controlPoints[index] ?? createStraightedgeControlPointFromFrame(endpointFrame);
     controlPoint.position[0] = lerp(
       startPosition[0],
       endpointFrame.position[0],
@@ -261,7 +262,7 @@ function writeStraightedgeLineControlPoints(
     controlPoint.orientation[1] = endpointFrame.orientation[1];
     controlPoint.orientation[2] = endpointFrame.orientation[2];
     controlPoint.orientation[3] = endpointFrame.orientation[3];
-    controlPoint.pressure = 1;
+    controlPoint.pressure = STRAIGHTEDGE_PRESSURE;
     controlPoint.timestampMs = lerp(
       startTimestampMs,
       endpointFrame.timestampMs,
@@ -270,6 +271,14 @@ function writeStraightedgeLineControlPoints(
     controlPoints[index] = controlPoint;
   }
   controlPoints.length = resolvedSampleCount;
+}
+
+function createStraightedgeControlPointFromFrame(
+  frame: StrokePointerFrame,
+): ControlPoint {
+  const controlPoint = createControlPointFromFrame(frame);
+  controlPoint.pressure = STRAIGHTEDGE_PRESSURE;
+  return controlPoint;
 }
 
 function lerp(start: number, end: number, amount: number): number {

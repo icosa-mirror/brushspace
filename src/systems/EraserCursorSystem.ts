@@ -60,7 +60,7 @@ export class EraserCursorSystem extends createSystem({
     );
     const hot =
       visible && Boolean(commandState.getValue(InputCommandState, "paintPressed"));
-    const parent = this.getBrushHandRayEntity();
+    const parent = this.getBrushHandGripEntity();
 
     for (const cursor of this.queries.cursors.entities) {
       const radius = normalizeOpenBrushEraserRadius(
@@ -86,10 +86,10 @@ export class EraserCursorSystem extends createSystem({
       : "visible";
   }
 
-  private getBrushHandRayEntity(): Entity {
+  private getBrushHandGripEntity(): Entity {
     return this.commandRouting.brushHand === "left"
-      ? this.world.playerSpaceEntities.raySpaces.left
-      : this.world.playerSpaceEntities.raySpaces.right;
+      ? this.world.playerSpaceEntities.gripSpaces.left
+      : this.world.playerSpaceEntities.gripSpaces.right;
   }
 
   private writeCursorTransform(
