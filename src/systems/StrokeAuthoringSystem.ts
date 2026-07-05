@@ -53,6 +53,7 @@ import {
 } from "../openbrush/tool-intersections.js";
 import {
   OPEN_BRUSH_DEFAULT_ERASER_RADIUS,
+  OPEN_BRUSH_ERASER_FORWARD_OFFSET,
   type OpenBrushToolDescriptor,
   type OpenBrushToolId,
   type OpenBrushToolLazyMode,
@@ -719,9 +720,7 @@ export class StrokeAuthoringSystem extends createSystem({
     const activeLayerIndex = appStateEntity
       ? Number(appStateEntity.getValue(OpenBrushAppState, "activeLayerIndex"))
       : 0;
-    this.eraserCenter[0] = this.samplePosition.x;
-    this.eraserCenter[1] = this.samplePosition.y;
-    this.eraserCenter[2] = this.samplePosition.z;
+    this.writeToolCenter(this.eraserCenter, OPEN_BRUSH_ERASER_FORWARD_OFFSET);
 
     const erasedStrokes: Entity[] = [];
     for (const entity of this.queries.strokes.entities) {
@@ -867,6 +866,24 @@ export class StrokeAuthoringSystem extends createSystem({
     target[0] = this.strokeWorldPosition.x;
     target[1] = this.strokeWorldPosition.y;
     target[2] = this.strokeWorldPosition.z;
+    return target;
+  }
+
+  private writeToolCenter(target: Vec3, forwardOffset: number): Vec3 {
+    target[0] = this.samplePosition.x;
+    target[1] = this.samplePosition.y;
+    target[2] = this.samplePosition.z;
+    if (forwardOffset <= 0) {
+      return target;
+    }
+
+    this.rayDirection
+      .set(0, 0, -1)
+      .applyQuaternion(this.sampleQuaternion)
+      .normalize();
+    target[0] += this.rayDirection.x * forwardOffset;
+    target[1] += this.rayDirection.y * forwardOffset;
+    target[2] += this.rayDirection.z * forwardOffset;
     return target;
   }
 

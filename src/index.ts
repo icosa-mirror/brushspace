@@ -18,6 +18,7 @@ import { setupOpenBrushShell } from "./openbrush/setup-shell.js";
 
 import { AudioFeedbackSystem } from "./systems/AudioFeedbackSystem.js";
 import { BrushCatalogSystem } from "./systems/BrushCatalogSystem.js";
+import { EraserCursorSystem } from "./systems/EraserCursorSystem.js";
 import { InputCommandSystem } from "./systems/InputCommandSystem.js";
 import { LayerCanvasSystem } from "./systems/LayerCanvasSystem.js";
 import { PanelAttachmentSystem } from "./systems/PanelAttachmentSystem.js";
@@ -113,6 +114,7 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .registerSystem(InputCommandSystem)
     .registerSystem(AudioFeedbackSystem)
     .registerSystem(BrushCatalogSystem)
+    .registerSystem(EraserCursorSystem)
     .registerSystem(LayerCanvasSystem)
     .registerSystem(StrokeAuthoringSystem)
     .registerSystem(SelectionSystem)

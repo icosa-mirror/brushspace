@@ -14,6 +14,7 @@ import {
   BrushSettings,
   CanvasLayer,
   InputCommandState,
+  OpenBrushEraserCursor,
   OpenBrushAppState,
   PerformanceState,
   PlaybackState,
@@ -33,12 +34,17 @@ import {
   OPEN_BRUSH_DEFAULT_BRUSH_GUID,
   openBrushInventory,
 } from "./brush-catalog.js";
+import {
+  OPEN_BRUSH_DEFAULT_ERASER_RADIUS,
+  OPEN_BRUSH_ERASER_FORWARD_OFFSET,
+} from "./tools.js";
 
 export interface OpenBrushShellEntities {
   appState: Entity;
   mainCanvas: Entity;
   selectionCanvas: Entity;
   selectionWidget: Entity;
+  eraserCursor: Entity;
   leftPointer: Entity;
   rightPointer: Entity;
 }
@@ -124,6 +130,29 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
     });
   selectionWidget.object3D!.name = "OpenBrushSelectionWidget";
 
+  const eraserCursorMesh = new Mesh(
+    new SphereGeometry(1, 24, 16),
+    new MeshBasicMaterial({
+      color: 0x7dd3fc,
+      transparent: true,
+      opacity: 0.24,
+      wireframe: true,
+      depthWrite: false,
+    }),
+  );
+  eraserCursorMesh.name = "OpenBrushEraserCursorMesh";
+  eraserCursorMesh.visible = false;
+  const eraserCursor = world
+    .createTransformEntity(eraserCursorMesh)
+    .addComponent(OpenBrushEraserCursor, {
+      hand: "right",
+      radius: OPEN_BRUSH_DEFAULT_ERASER_RADIUS,
+      forwardOffset: OPEN_BRUSH_ERASER_FORWARD_OFFSET,
+      hot: false,
+      visible: false,
+    });
+  eraserCursor.object3D!.name = "OpenBrushEraserCursor";
+
   const leftPointer = createBrushPointer(world, "left");
   leftPointer.object3D!.position.set(-0.25, 1.1, -0.6);
 
@@ -135,6 +164,7 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
     mainCanvas,
     selectionCanvas,
     selectionWidget,
+    eraserCursor,
     leftPointer,
     rightPointer,
   };

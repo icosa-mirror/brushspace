@@ -198,6 +198,14 @@ export const BrushPointer = createComponent("BrushPointer", {
   sampleCount: { type: Types.Int32, default: 0 },
 });
 
+export const OpenBrushEraserCursor = createComponent("OpenBrushEraserCursor", {
+  hand: { type: Types.String, default: "right" },
+  radius: { type: Types.Float32, default: 0.2 },
+  forwardOffset: { type: Types.Float32, default: 0.05 },
+  hot: { type: Types.Boolean, default: false },
+  visible: { type: Types.Boolean, default: false },
+});
+
 export const BrushStroke = createComponent("BrushStroke", {
   guid: { type: Types.String, default: "" },
   brushGuid: { type: Types.String, default: "" },

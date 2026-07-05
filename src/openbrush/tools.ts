@@ -23,6 +23,7 @@ export type OpenBrushToolStencilMode = "none" | "front-plane";
 export const OPEN_BRUSH_ERASER_SIZE_RANGE = [0.1, 0.3] as const;
 export const OPEN_BRUSH_DEFAULT_ERASER_RADIUS =
   (OPEN_BRUSH_ERASER_SIZE_RANGE[0] + OPEN_BRUSH_ERASER_SIZE_RANGE[1]) * 0.5;
+export const OPEN_BRUSH_ERASER_FORWARD_OFFSET = 0.05;
 
 export interface OpenBrushToolDescriptor {
   id: OpenBrushToolId;
