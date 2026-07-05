@@ -29,8 +29,10 @@ import {
   brushSize01ToLiveBrushSize,
 } from "./brush-size.js";
 import { findBrushByGuid } from "./brush-inventory.js";
-import { openBrushInventory } from "./brush-catalog.js";
-import { PHASE1_FIXTURE_BRUSH_GUID } from "./fixtures.js";
+import {
+  OPEN_BRUSH_DEFAULT_BRUSH_GUID,
+  openBrushInventory,
+} from "./brush-catalog.js";
 
 export interface OpenBrushShellEntities {
   appState: Entity;
@@ -44,7 +46,7 @@ export interface OpenBrushShellEntities {
 export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
   const initialBrush = findBrushByGuid(
     openBrushInventory,
-    PHASE1_FIXTURE_BRUSH_GUID,
+    OPEN_BRUSH_DEFAULT_BRUSH_GUID,
   );
   const appState = world
     .createTransformEntity()
@@ -59,7 +61,7 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
       commandRevision: 0,
     })
     .addComponent(BrushSettings, {
-      brushGuid: PHASE1_FIXTURE_BRUSH_GUID,
+      brushGuid: OPEN_BRUSH_DEFAULT_BRUSH_GUID,
       size01: OPEN_BRUSH_DEFAULT_SIZE01,
       size: brushSize01ToLiveBrushSize(
         OPEN_BRUSH_DEFAULT_SIZE01,

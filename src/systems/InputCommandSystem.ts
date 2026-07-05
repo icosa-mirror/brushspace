@@ -8,6 +8,7 @@ import {
   SettingsState,
 } from "../components/OpenBrushCore.js";
 import {
+  clearOpenBrushCommandActivity,
   createOpenBrushCommandInput,
   createOpenBrushCommandSnapshot,
   resetOpenBrushCommandInput,
@@ -52,19 +53,43 @@ export class InputCommandSystem extends createSystem({
   private commandRouting: OpenBrushCommandRouting =
     resolveOpenBrushCommandRouting("right");
   private commandRevision = 0;
+  private browserPointerEnabled = true;
+  private xrRayEnabled = true;
 
   init() {
     this.attachBrowserPointerEvents();
   }
 
   update() {
+    const settings = this.getSettingsEntity();
     resolveOpenBrushCommandRouting(
-      this.getDominantHandSetting(),
+      this.getStringSetting(settings, "dominantHand", "right"),
       this.commandRouting,
     );
+    this.browserPointerEnabled = this.getBooleanSetting(
+      settings,
+      "browserPointerEnabled",
+      true,
+    );
+    this.xrRayEnabled = this.getBooleanSetting(settings, "xrRayEnabled", true);
+
     this.browserPointerInput.hand = this.commandRouting.brushHand;
-    this.updateXrInput(this.xrRightInput, "right", this.commandRouting);
-    this.updateXrInput(this.xrLeftInput, "left", this.commandRouting);
+    if (!this.browserPointerEnabled) {
+      resetOpenBrushCommandInput(this.browserPointerInput);
+      this.browserPointerInput.hand = this.commandRouting.brushHand;
+    }
+    this.updateXrInput(
+      this.xrRightInput,
+      "right",
+      this.commandRouting,
+      this.xrRayEnabled,
+    );
+    this.updateXrInput(
+      this.xrLeftInput,
+      "left",
+      this.commandRouting,
+      this.xrRayEnabled,
+    );
     this.updateKeyboardInput(this.keyboardInput);
 
     resolveOpenBrushCommandFrame(
@@ -93,13 +118,14 @@ export class InputCommandSystem extends createSystem({
     target: OpenBrushCommandInput,
     handedness: Handedness,
     routing: OpenBrushCommandRouting,
+    rayEnabled: boolean,
   ): void {
     resetOpenBrushCommandInput(target);
     const gamepad = this.world.input.xr.gamepads[handedness] as
       | CommandGamepad
       | undefined;
     target.connected = !!gamepad;
-    if (!gamepad) {
+    if (!gamepad || !rayEnabled) {
       return;
     }
 
@@ -161,7 +187,7 @@ export class InputCommandSystem extends createSystem({
   private attachBrowserPointerEvents(): void {
     const canvas = this.world.renderer.domElement;
     const onPointerDown = (event: PointerEvent) => {
-      if (!event.isPrimary || event.button !== 0) {
+      if (!this.browserPointerEnabled || !event.isPrimary || event.button !== 0) {
         return;
       }
       event.preventDefault();
@@ -175,7 +201,7 @@ export class InputCommandSystem extends createSystem({
       } catch {}
     };
     const onPointerMove = (event: PointerEvent) => {
-      if (!event.isPrimary) {
+      if (!this.browserPointerEnabled || !event.isPrimary) {
         return;
       }
       this.updateBrowserPointerPosition(event);
@@ -187,6 +213,13 @@ export class InputCommandSystem extends createSystem({
     };
     const onPointerUp = (event: PointerEvent) => {
       if (!event.isPrimary) {
+        return;
+      }
+      if (!this.browserPointerEnabled) {
+        clearOpenBrushCommandActivity(this.browserPointerInput);
+        try {
+          canvas.releasePointerCapture(event.pointerId);
+        } catch {}
         return;
       }
       event.preventDefault();
@@ -310,11 +343,33 @@ export class InputCommandSystem extends createSystem({
     this.browserPointerInput.brushPreviousDown = false;
   }
 
-  private getDominantHandSetting(): string {
+  private getSettingsEntity(): Entity | undefined {
     const next = this.queries.settings.entities.values().next();
     if (next.done) {
-      return "right";
+      return undefined;
     }
-    return String(next.value.getValue(SettingsState, "dominantHand"));
+    return next.value;
+  }
+
+  private getStringSetting(
+    entity: Entity | undefined,
+    field: "dominantHand",
+    fallback: string,
+  ): string {
+    if (!entity) {
+      return fallback;
+    }
+    return String(entity.getValue(SettingsState, field));
+  }
+
+  private getBooleanSetting(
+    entity: Entity | undefined,
+    field: "browserPointerEnabled" | "xrRayEnabled",
+    fallback: boolean,
+  ): boolean {
+    if (!entity) {
+      return fallback;
+    }
+    return Boolean(entity.getValue(SettingsState, field));
   }
 }

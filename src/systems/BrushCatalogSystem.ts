@@ -7,6 +7,7 @@ import {
   InputCommandState,
 } from "../components/OpenBrushCore.js";
 import {
+  OPEN_BRUSH_DEFAULT_BRUSH_GUID,
   initialOpenBrushIndex,
   openBrushInventory,
   openBrushInventorySummary,
@@ -21,7 +22,6 @@ import {
   brushSize01ToLiveBrushSize,
   normalizeBrushSize01,
 } from "../openbrush/brush-size.js";
-import { PHASE1_FIXTURE_BRUSH_GUID } from "../openbrush/fixtures.js";
 
 export class BrushCatalogSystem extends createSystem({
   commands: { required: [InputCommandState] },
@@ -94,7 +94,7 @@ export class BrushCatalogSystem extends createSystem({
     activeBrush: BrushInventoryEntry | undefined,
   ): void {
     const brush =
-      activeBrush ?? findBrushByGuid(openBrushInventory, PHASE1_FIXTURE_BRUSH_GUID);
+      activeBrush ?? findBrushByGuid(openBrushInventory, OPEN_BRUSH_DEFAULT_BRUSH_GUID);
     entity.setValue(BrushCatalogState, "activeBrushIndex", this.activeIndex);
     entity.setValue(BrushCatalogState, "brushCount", openBrushInventory.length);
     entity.setValue(

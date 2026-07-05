@@ -36,16 +36,17 @@ Planning-time runtime status:
 Implementation-time runtime status:
 
 - Managed `iwsdk-runtime` E2E has since been used against the live app. Do not use direct Playwright for IWSDK UI/XR checks; the runtime-managed browser owns scene, console, screenshot, XR, and ECS inspection.
-- Phase 7 live checks confirmed default Draw creates finalized strokes, live Color Picker copies stroke color, Brush Picker copies stroke brush and size, and live Eraser hides intersected visible strokes with undo history. The eraser regression was traced to global `Hovered` panel blocking in XR; XR painting/erasing/picking should block only when the active pointer ray intersects a panel.
-- Default Draw/Line thickness was confirmed to be controlled by `OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE`; the IWSDK calibration now treats Open Brush `BrushSize01=0.5` as a 0.02m live stroke width while keeping brush-specific range interpolation.
+- Phase 7 live checks previously confirmed Draw creates finalized strokes, live Color Picker copies stroke color, Brush Picker copies stroke brush and size, and live Eraser hides intersected visible strokes with undo history. A later tool-spec audit plus user testing reopened eraser as a parity risk: fixed-radius AABB intersection can still make erasing feel broken compared with the upstream physical eraser tool, especially after transforms or when the controller is near but not intersecting generated geometry.
+- Default Draw/Line thickness was re-audited against upstream Open Brush. The app must start on the upstream Light brush (`2241cd32-8ba2-48a5-9ee7-2caef7e9ed62`, range `[0.05, 0.2]`) at `BrushSize01=0.5`; with the current IWSDK live-scale calibration this produces an initial live stroke size of about `0.002353`. The previous Marker fixture startup brush made Draw and Line about 8.5x thicker than that target.
 - Phase 10 foundation has begun: the consolidated `welcome` panel is now tagged with `OpenBrushPanelAttachment`, named `OpenBrushMainPanel`, and driven by `PanelAttachmentSystem`. In browser/non-immersive mode it remains the fallback `ScreenSpace` panel; in XR it consumes `SettingsState` (`dominantHand`, `panelAnchor`, `panelDistance`, `panelHeight`, `panelScale`), attaches to the requested hand ray or XR-origin anchor, and applies panel scale through `PanelUI.maxWidth/maxHeight` rather than object scale. This is a placement foundation only; it does not yet replace the fallback panel with the Open Brush wand-ring panel set.
 - Phase 10 role routing has begun: `InputCommandSystem` now derives Brush/Wand hands from `SettingsState.dominantHand`; only the Brush hand maps trigger/squeeze into paint/alternate, only the Wand hand maps controller undo/redo, idle XR input prioritizes the Brush hand, and both left/right `BrushPointer` entities exist for pointer ownership/debug state. This is not full controller parity yet; panel rotation, controller hints/materials, bimanual visibility, and direct-touch panel affordances remain pending.
+- Phase 10 settings consumption has begun: `InputCommandSystem` now consumes `SettingsState.browserPointerEnabled` and `SettingsState.xrRayEnabled`. Disabled browser pointer input is cleared and ignored as a command source; disabled XR rays/controllers keep connection state visible for diagnostics while suppressing paint/alternate/undo/redo command activity.
 
 ## UI and Interaction Audit Addendum
 
 The port must preserve Open Brush interaction semantics, not just expose equivalent command names.
 
-- Draw/freehand: painting is the brush-controller Activate action. Trigger ratio feeds pressure every frame; pointer pose is processed through stencil magnetization, bimanual/lazy input, then grid snap. Default brush size starts from `BrushSize01=0.5` unless a brush-specific last size exists.
+- Draw/freehand: painting is the brush-controller Activate action. Trigger ratio feeds pressure every frame; pointer pose is processed through stencil magnetization, bimanual/lazy input, then grid snap. Default brush selection is upstream Light at `BrushSize01=0.5` unless a brush-specific last size exists.
 - Straightedge/line: straightedge is a pointer mode with guide/meter feedback and parametric line/circle/sphere creators, not merely a separate flat UI button. It must use the same active brush, color, size, pressure, and stroke metadata as freehand.
 - Eraser: eraser is a live brush-controller stroke-modification tool. It is hot only while Activate is held, has its own visible/resizable tool radius, intersects actual visible stroke/widget geometry, deletes whole strokes/widgets, and participates in undo/redo.
 - Color/brush/dropper tools: reference one-shot pickers copy color, brush, or both. The VR Dropper samples image widgets first, then strokes, and copied stroke size is room/canvas-scale aware.
@@ -56,7 +57,7 @@ The port must preserve Open Brush interaction semantics, not just expose equival
 - Tape/measure: tape is a bimanual mode that hides panels, uses wand/brush controller roles, pulls the lazy cursor along the controller line, and blocks incompatible transforms while active.
 - Stencils: stencils magnetize free-paint before lazy/grid processing, maintain previous active stencil while painting, use attract/hysteresis, and need visible stencil widget state.
 - Hand-attached UI: core brush/color/tool controls belong on off-hand/wand-attached spatial panels with brush/wand role semantics. The consolidated panel remains a browser/debug fallback, not the target XR UX.
-- Tool-spec audit queue: recheck every tool's source spec before declaring parity. The current priority checks are Draw and Straightedge/Line default thickness, per-brush size range metadata, eraser radius/intersection behavior, picker/dropper size copying, and any panel-focus conditions that can make eraser appear broken.
+- Tool-spec audit queue: recheck every tool's source spec before declaring parity. Draw and Straightedge/Line startup thickness now has a concrete target and regression test via the upstream Light brush; remaining priority checks are brush-size controls, eraser radius/intersection behavior, picker/dropper size copying, straightedge guide/parametric behavior, and any panel-focus conditions that can make eraser appear broken.
 
 ## Port Principles
 
@@ -358,9 +359,9 @@ Acceptance criteria:
 
 - Tools operate through a common `ActiveTool` lifecycle with enable/disable/update/late-update equivalents.
 - Symmetry and straightedge generate expected grouped strokes with correct metadata.
-- Default draw and straightedge strokes use the Open Brush default normalized brush size, calibrated to a 0.02m IWSDK live stroke width unless the user changes the brush size; they must not inherit fixture stroke size or raw Open Brush meter-like values.
+- Default draw and straightedge strokes start from the upstream Light brush at `BrushSize01=0.5` and derive absolute stroke size from that brush's range; they must not inherit Marker fixture size or raw Open Brush meter-like values.
 - Brush size controls persist normalized size and derive absolute stroke size from the active brush range; saved strokes still store absolute `brushSize` and `brushScale`.
-- Eraser deletes only intersected visible/unlocked strokes or widgets through live brush-controller interaction; screen-space or hand-attached panel hover cannot globally block XR erasing unless the active pointer ray is actually over the panel. Eraser and selection operations are undoable and do not leak geometry.
+- Eraser deletes only intersected visible/unlocked strokes or widgets through live brush-controller interaction; it has visible/resizable tool radius behavior equivalent to Open Brush `StrokeModificationTool`, and screen-space or hand-attached panel hover cannot globally block XR erasing unless the active pointer ray is actually over the panel. Eraser and selection operations are undoable and do not leak geometry.
 - Color/brush picker update app state and UI state consistently, including picked stroke size when the reference tool does.
 - Live Color/Brush Picker paths work from controller pose, not only from fallback panel buttons, and copy color/brush/size through IWSDK vector/component APIs without runtime errors.
 - Tool transitions leave no stuck trigger, `Pressed`, grabbed, or recording state.
@@ -368,10 +369,10 @@ Acceptance criteria:
 Testing plan:
 
 - Unit: tool state machine tests and deterministic symmetry/straightedge fixtures.
-- Unit: brush-size range conversion, default size, picked-size propagation, straightedge thickness parity, and eraser hit/miss tests.
+- Unit: brush-size range conversion, upstream Light default size, picked-size propagation, straightedge thickness parity, eraser hit/miss tests, and transformed-stroke eraser regressions.
 - Unit: command merge/group continuation tests.
 - Browser: exercise each tool through UI controls and pointer fallback.
-- Runtime E2E: use controller path scripts for draw, straightedge, symmetry, eraser, and picker flows; compare `ecs_snapshot`/`ecs_diff` before/after each operation when available; query for expected default stroke size, picked color/brush/size, hidden/deleted stroke counts, undo/redo state, and no active recording state after release.
+- Runtime E2E: use controller path scripts for draw, straightedge, symmetry, eraser, and picker flows; compare `ecs_snapshot`/`ecs_diff` before/after each operation when available; query for expected Light brush GUID/default stroke size, picked color/brush/size, hidden/deleted stroke counts, undo/redo state, and no active recording state after release.
 - Runtime E2E: include a regression where a screen-space or hand-attached panel is hovered by some pointer while the active XR brush ray is not over the panel; Draw, Eraser, and Picker must still work from the active brush controller.
 
 ## Phase 8: `.tilt` Save/Load, Catalog, and Playback
@@ -460,6 +461,7 @@ Testing plan:
 - Runtime E2E: verify the fixed wand ring, attach/detach, respawn, handedness swap, panel focus suppression, and bimanual hide/restore with `ecs_snapshot`/`ecs_diff`.
 - Runtime E2E foundation check: query `OpenBrushPanelAttachment`, `SettingsState`, `PanelUI`, and `Transform`; change `dominantHand`/`panelAnchor` through ECS shortcuts after the UI route is proven; verify the panel reattaches to left ray, right ray, or XR origin and remains visible in screenshots without restarting the managed server.
 - Runtime E2E role-routing check: query `InputCommandState` and both `BrushPointer` entities; set `SettingsState.dominantHand` through ECS shortcuts, drive physical controller triggers/buttons with managed XR tools, and verify Brush-hand trigger paints while Wand-hand trigger does not paint, Wand-hand undo/redo remains available, and `primaryHand`/pointer drawing state follows the configured Brush hand.
+- Runtime E2E settings-gating check: toggle `browserPointerEnabled` and `xrRayEnabled` through the proven UI route or ECS shortcuts; verify browser pointer input is ignored when disabled, XR command activity is suppressed while controller connection fields remain true, and re-enabling restores normal Draw/Eraser behavior without reload.
 - Runtime E2E shortcuts: after each interaction route is proven once, use ECS state injection for repeated permutations such as handedness, panel placement, and tool state, then verify rendered/UI state with screenshots and scene/ECS inspection.
 
 ## Phase 11: Performance, Memory, and Quest Hardening
@@ -491,7 +493,7 @@ Testing plan:
 Scope:
 
 - Complete local/offline interchange after the local app is stable: local sketch sets, browser file picker/download workflows, packaged media references, cached thumbnails, remix/source metadata, source sketch IDs, import/export progress, cancellation, and recoverable error handling.
-- Keep all interchange workflows account-free and network-independent. Provider-backed storage, service catalogs, and multi-user/networked editing are out of scope for this port.
+- Keep all interchange workflows account-free and network-independent. Multiplayer, cloud storage, cloud-powered sharing, provider-backed storage, service catalogs, and multi-user/networked editing are out of scope for this port.
 - Add advanced exports and Open Brush parity features: full shader generation, legacy glTF compatibility, FBX/OBJ/USD/STL/LATK/WRL, camera paths, video/GIF tooling, text-to-strokes, tutorials, APIs, and scripting.
 
 Acceptance criteria:
@@ -500,7 +502,7 @@ Acceptance criteria:
 - Exported packages include strokes, layers, metadata, managed media references, thumbnails, remix/source metadata, and warnings needed for an offline round trip.
 - Import/export progress, cancellation, cache invalidation, and recoverable error behavior are explicit and testable.
 - Advanced export formats are validated independently and do not regress GLB or `.tilt`.
-- No networked, account-backed, or multi-user behavior is required for complete status.
+- No multiplayer, cloud, cloud-powered sharing, networked, account-backed, or multi-user behavior is required for complete status.
 
 Testing plan:
 

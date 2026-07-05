@@ -93,6 +93,10 @@ export function resolveOpenBrushCommandRouting(
 
 export function resetOpenBrushCommandInput(input: OpenBrushCommandInput): void {
   input.connected = false;
+  clearOpenBrushCommandActivity(input);
+}
+
+export function clearOpenBrushCommandActivity(input: OpenBrushCommandInput): void {
   input.paintPressed = false;
   input.paintDown = false;
   input.paintUp = false;

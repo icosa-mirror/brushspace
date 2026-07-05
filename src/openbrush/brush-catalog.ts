@@ -6,7 +6,9 @@ import {
   type BrushInventoryEntry,
   type OpenBrushExportManifest,
 } from "./brush-inventory.js";
-import { PHASE1_FIXTURE_BRUSH_GUID } from "./fixtures.js";
+
+export const OPEN_BRUSH_DEFAULT_BRUSH_GUID =
+  "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62";
 
 export const openBrushInventory = buildBrushInventoryFromExportManifest(
   referenceManifest as unknown as OpenBrushExportManifest,
@@ -22,7 +24,7 @@ export const selectableOpenBrushes = openBrushInventory.filter(
 export const initialOpenBrushIndex = Math.max(
   0,
   selectableOpenBrushes.findIndex(
-    (entry) => entry.guid === PHASE1_FIXTURE_BRUSH_GUID,
+    (entry) => entry.guid === OPEN_BRUSH_DEFAULT_BRUSH_GUID,
   ),
 );
 

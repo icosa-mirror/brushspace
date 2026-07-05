@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  clearOpenBrushCommandActivity,
   createOpenBrushCommandInput,
   createOpenBrushCommandSnapshot,
   resolveOpenBrushCommandRouting,
@@ -104,6 +105,52 @@ describe("Open Brush command mapper", () => {
     expect(snapshot.leftControllerConnected).toBe(true);
     expect(snapshot.rightControllerConnected).toBe(true);
     expect(snapshot.hasCommandEdge).toBe(false);
+  });
+
+  it("clears disabled XR command activity while preserving controller connection", () => {
+    const inputs = createInputs();
+    inputs.xrRight.connected = true;
+    inputs.xrRight.paintPressed = true;
+    inputs.xrRight.paintDown = true;
+    inputs.xrRight.undoDown = true;
+    inputs.xrRight.pressure = 1;
+
+    clearOpenBrushCommandActivity(inputs.xrRight);
+
+    const snapshot = resolveOpenBrushCommandFrame(
+      inputs,
+      createOpenBrushCommandSnapshot(),
+    );
+
+    expect(snapshot.source).toBe("xr-right");
+    expect(snapshot.rightControllerConnected).toBe(true);
+    expect(snapshot.paintPressed).toBe(false);
+    expect(snapshot.undoDown).toBe(false);
+    expect(snapshot.pressure).toBe(0);
+    expect(snapshot.hasCommandEdge).toBe(false);
+  });
+
+  it("lets keyboard commands win after browser pointer input is disabled", () => {
+    const inputs = createInputs();
+    inputs.browserPointer.connected = true;
+    inputs.browserPointer.paintPressed = true;
+    inputs.browserPointer.paintDown = true;
+    inputs.browserPointer.pressure = 1;
+    inputs.keyboard.connected = true;
+    inputs.keyboard.undoDown = true;
+
+    clearOpenBrushCommandActivity(inputs.browserPointer);
+    inputs.browserPointer.connected = false;
+
+    const snapshot = resolveOpenBrushCommandFrame(
+      inputs,
+      createOpenBrushCommandSnapshot(),
+    );
+
+    expect(snapshot.source).toBe("keyboard");
+    expect(snapshot.paintPressed).toBe(false);
+    expect(snapshot.undoDown).toBe(true);
+    expect(snapshot.hasCommandEdge).toBe(true);
   });
 
   it("prioritizes the configured brush hand when XR controllers are idle", () => {
