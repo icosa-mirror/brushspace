@@ -3,16 +3,11 @@ import { describe, expect, it } from "vitest";
 import wandToolsMarkup from "../../ui/wand-tools.uikitml?raw";
 
 describe("wand tools panel markup", () => {
-  it("exposes all implemented tool selectors on the hand-attached panel", () => {
+  it("exposes the Phase A primary tool selectors on the hand-attached panel", () => {
     const toolIds = [
       "tool-draw",
       "tool-line",
       "tool-erase",
-      "tool-mirror",
-      "tool-grid-snap",
-      "tool-lazy-input",
-      "tool-tape",
-      "tool-stencil",
       "tool-color-picker",
       "tool-brush-picker",
       "tool-dropper",
@@ -20,6 +15,20 @@ describe("wand tools panel markup", () => {
 
     for (const toolId of toolIds) {
       expect(wandToolsMarkup).toContain(`id="${toolId}"`);
+    }
+  });
+
+  it("keeps placeholder advanced tools out of the primary Phase A panel", () => {
+    const deferredToolIds = [
+      "tool-mirror",
+      "tool-grid-snap",
+      "tool-lazy-input",
+      "tool-tape",
+      "tool-stencil",
+    ];
+
+    for (const toolId of deferredToolIds) {
+      expect(wandToolsMarkup).not.toContain(`id="${toolId}"`);
     }
   });
 
