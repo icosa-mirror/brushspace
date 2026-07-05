@@ -63,6 +63,7 @@ import {
   isStraightEdgeModeActive,
   resolveEffectiveOpenBrushTool,
 } from "./openbrush/tool-modes.js";
+import { formatOpenBrushSizeMeters } from "./openbrush/size-labels.js";
 import {
   UiCommandHistory,
   type UiCommand,
@@ -1112,12 +1113,13 @@ export class PanelSystem extends createSystem({
     const size = settingsEntity
       ? Number(settingsEntity.getValue(BrushSettings, "size"))
       : brushSize01ToLiveBrushSize(size01, activeBrush?.brushSizeRange);
+    const brushSizeReadout = formatOpenBrushSizeMeters(size);
     const brushMeta = activeBrush
       ? [
           activeBrush.geometryFamily,
           activeBrush.materialFamily,
           catalogPosition,
-          `size ${Math.round(size01 * 100)}% (${size.toFixed(3)})`,
+          `size ${Math.round(size01 * 100)}% (${brushSizeReadout})`,
         ].join(" / ")
       : "unavailable";
     const eraserCursor = this.getEraserCursorEntity();
@@ -1125,12 +1127,18 @@ export class PanelSystem extends createSystem({
       ? Number(eraserCursor.getValue(OpenBrushEraserCursor, "radius"))
       : 0;
     const eraserSize01 = openBrushEraserRadiusToSize01(eraserRadius);
+    const eraserRadiusReadout = formatOpenBrushSizeMeters(eraserRadius);
     const sizeLabel = activeTool.erases
-      ? `Eraser ${Math.round(eraserSize01 * 100)}% (${eraserRadius.toFixed(3)})`
-      : `Size ${Math.round(size01 * 100)}% (${size.toFixed(3)})`;
+      ? `Radius ${Math.round(eraserSize01 * 100)}% | ${eraserRadiusReadout}`
+      : `Size ${Math.round(size01 * 100)}% | ${brushSizeReadout}`;
     const displayedBrushMeta = activeTool.erases
       ? `${brushMeta} / ${sizeLabel.toLowerCase()}`
       : brushMeta;
+    const wandBrushMeta = activeTool.erases
+      ? "contact radius"
+      : activeBrush
+        ? `${activeBrush.geometryFamily} / ${catalogPosition}`
+        : "unavailable";
 
     this.setText(document, "active-brush-name", activeBrush?.name ?? "No brush");
     this.setText(document, "active-brush-meta", displayedBrushMeta);
@@ -1142,9 +1150,7 @@ export class PanelSystem extends createSystem({
     this.setText(
       document,
       "wand-brush-meta",
-      activeBrush
-        ? `${activeBrush.geometryFamily} / ${catalogPosition}`
-        : "unavailable",
+      wandBrushMeta,
     );
     this.setText(
       document,

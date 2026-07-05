@@ -30,6 +30,12 @@ describe("Open Brush brush size", () => {
 
   it("uses the upstream Light brush for startup and fallback live size", () => {
     expect(OPEN_BRUSH_DEFAULT_STARTUP_BRUSH_SIZE_RANGE).toEqual([0.05, 0.2]);
+    expect(
+      brushSize01ToOpenBrushSize(
+        OPEN_BRUSH_DEFAULT_SIZE01,
+        OPEN_BRUSH_DEFAULT_STARTUP_BRUSH_SIZE_RANGE,
+      ),
+    ).toBeCloseTo(0.1125);
     expect(OPEN_BRUSH_DEFAULT_STARTUP_LIVE_BRUSH_SIZE).toBeCloseTo(0.002353, 6);
     expect(
       brushSize01ToLiveBrushSize(
