@@ -47,6 +47,7 @@ import {
   brushSize01ToLiveBrushSize,
   liveBrushSizeToSize01,
   normalizeBrushSize,
+  normalizeBrushSize01,
 } from "../openbrush/brush-size.js";
 import { indexedTriangleGeometryIntersectsSphere } from "../openbrush/geometry-intersections.js";
 import {
@@ -57,6 +58,7 @@ import {
 import {
   OPEN_BRUSH_ERASER_FORWARD_OFFSET,
   normalizeOpenBrushEraserRadius,
+  resolveOpenBrushPickerToolSpec,
   type OpenBrushToolDescriptor,
   type OpenBrushToolId,
   type OpenBrushToolLazyMode,
@@ -80,7 +82,6 @@ const MIN_SAMPLE_DISTANCE = 0.015;
 const GRID_SNAP_SIZE = 0.1;
 const LAZY_INPUT_RADIUS = 0.08;
 const STENCIL_FRONT_PLANE_Z = -1.2;
-const PICKER_RADIUS = 0.025;
 
 interface RuntimeStroke {
   entity: Entity;
@@ -244,7 +245,7 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private isPickerTool(tool: OpenBrushToolDescriptor): boolean {
-    return tool.id === "color-picker" || tool.id === "brush-picker";
+    return resolveOpenBrushPickerToolSpec(tool.id) !== undefined;
   }
 
   private isEraseBlocked(commandSource: string): boolean {
@@ -854,31 +855,41 @@ export class StrokeAuthoringSystem extends createSystem({
       return;
     }
 
-    this.pickerCenter[0] = this.samplePosition.x;
-    this.pickerCenter[1] = this.samplePosition.y;
-    this.pickerCenter[2] = this.samplePosition.z;
+    const pickerSpec = resolveOpenBrushPickerToolSpec(activeTool.id);
+    if (!pickerSpec) {
+      return;
+    }
 
-    const target = this.findIntersectingStroke(this.pickerCenter, PICKER_RADIUS);
+    this.writeToolCenter(this.pickerCenter, pickerSpec.forwardOffset);
+
+    const target = this.findIntersectingStroke(this.pickerCenter, pickerSpec.radius);
     if (!target) {
       this.setToolStatus(appStateEntity, "nothing-to-pick");
       return;
     }
 
     const commandIndex = Number(target.getValue(BrushStroke, "commandIndex"));
-    if (activeTool.id === "color-picker") {
+    if (pickerSpec.picksColor) {
       this.copyStrokeColorToBrushSettings(target, settingsEntity);
-      this.setToolStatus(appStateEntity, `picked color #${commandIndex}`, true);
-      return;
     }
-
-    const brushGuid = String(target.getValue(BrushStroke, "brushGuid"));
-    settingsEntity.setValue(BrushSettings, "brushGuid", brushGuid);
-    this.applyPickedBrushSize(
-      settingsEntity,
-      brushGuid,
-      Number(target.getValue(BrushStroke, "brushSize")),
+    if (pickerSpec.picksBrush) {
+      const brushGuid = String(target.getValue(BrushStroke, "brushGuid"));
+      settingsEntity.setValue(BrushSettings, "brushGuid", brushGuid);
+      if (pickerSpec.picksSize) {
+        this.applyPickedBrushSize(
+          settingsEntity,
+          brushGuid,
+          Number(target.getValue(BrushStroke, "brushSize")),
+        );
+      } else {
+        this.syncBrushSettingsSize(settingsEntity, brushGuid);
+      }
+    }
+    this.setToolStatus(
+      appStateEntity,
+      `picked ${pickerSpec.pickedStatusLabel} #${commandIndex}`,
+      true,
     );
-    this.setToolStatus(appStateEntity, `picked brush #${commandIndex}`, true);
   }
 
   private findIntersectingStroke(center: Vec3, radius: number): Entity | undefined {
@@ -992,6 +1003,19 @@ export class StrokeAuthoringSystem extends createSystem({
   ): void {
     const brush = findBrushByGuid(openBrushInventory, brushGuid);
     const size01 = liveBrushSizeToSize01(pickedLiveSize, brush?.brushSizeRange);
+    settingsEntity.setValue(BrushSettings, "size01", size01);
+    settingsEntity.setValue(
+      BrushSettings,
+      "size",
+      brushSize01ToLiveBrushSize(size01, brush?.brushSizeRange),
+    );
+  }
+
+  private syncBrushSettingsSize(settingsEntity: Entity, brushGuid: string): void {
+    const brush = findBrushByGuid(openBrushInventory, brushGuid);
+    const size01 = normalizeBrushSize01(
+      Number(settingsEntity.getValue(BrushSettings, "size01")),
+    );
     settingsEntity.setValue(BrushSettings, "size01", size01);
     settingsEntity.setValue(
       BrushSettings,

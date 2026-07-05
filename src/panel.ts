@@ -54,6 +54,7 @@ import {
 import {
   OPEN_BRUSH_ERASER_SIZE_BUTTON_STEP01,
   openBrushEraserRadiusToSize01,
+  resolveOpenBrushPickerToolSpec,
   resolveOpenBrushTool,
   resolveOpenBrushEraserSizeAdjustment,
   type OpenBrushToolId,
@@ -228,6 +229,7 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "tool-stencil-button");
     this.nameElement(document, "tool-color-picker-button");
     this.nameElement(document, "tool-brush-picker-button");
+    this.nameElement(document, "tool-dropper-button");
     this.nameElement(document, "tool-pick-button");
     this.nameElement(document, "tool-erase-button");
     this.nameElement(document, "brush-previous-button");
@@ -366,6 +368,13 @@ export class PanelSystem extends createSystem({
     ) as TextElement;
     brushPickerToolButton?.addEventListener("click", () => {
       this.selectTool("brush-picker");
+    });
+
+    const dropperToolButton = document.getElementById(
+      "tool-dropper-button",
+    ) as TextElement;
+    dropperToolButton?.addEventListener("click", () => {
+      this.selectTool("dropper");
     });
 
     const pickButton = document.getElementById("tool-pick-button") as TextElement;
@@ -737,6 +746,7 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "tool-erase");
     this.nameElement(document, "tool-color-picker");
     this.nameElement(document, "tool-brush-picker");
+    this.nameElement(document, "tool-dropper");
     this.nameElement(document, "stroke-history-undo");
     this.nameElement(document, "stroke-history-redo");
     this.nameElement(document, "stroke-history-state");
@@ -768,6 +778,13 @@ export class PanelSystem extends createSystem({
     ) as TextElement;
     brushPickerToolButton?.addEventListener("click", () => {
       this.selectTool("brush-picker");
+    });
+
+    const dropperToolButton = document.getElementById(
+      "tool-dropper",
+    ) as TextElement;
+    dropperToolButton?.addEventListener("click", () => {
+      this.selectTool("dropper");
     });
 
     const undoButton = document.getElementById(
@@ -916,7 +933,8 @@ export class PanelSystem extends createSystem({
     const activeTool = resolveOpenBrushTool(
       String(appState.getValue(OpenBrushAppState, "activeTool")),
     );
-    if (activeTool.id !== "color-picker" && activeTool.id !== "brush-picker") {
+    const pickerSpec = resolveOpenBrushPickerToolSpec(activeTool.id);
+    if (!pickerSpec) {
       this.setToolStatus(appState, "choose-picker");
       return;
     }
@@ -928,7 +946,7 @@ export class PanelSystem extends createSystem({
     }
 
     const commandIndex = Number(target.getValue(BrushStroke, "commandIndex"));
-    if (activeTool.id === "color-picker") {
+    if (pickerSpec.picksColor) {
       const sourceColor = target.getVectorView(
         BrushStroke,
         "color",
@@ -941,21 +959,26 @@ export class PanelSystem extends createSystem({
       settingsColor[1] = sourceColor[1];
       settingsColor[2] = sourceColor[2];
       settingsColor[3] = sourceColor[3];
-      this.setToolStatus(appState, `picked color #${commandIndex}`, true);
-      return;
     }
 
-    settingsEntity.setValue(
-      BrushSettings,
-      "brushGuid",
-      String(target.getValue(BrushStroke, "brushGuid")),
+    if (pickerSpec.picksBrush) {
+      const brushGuid = String(target.getValue(BrushStroke, "brushGuid"));
+      settingsEntity.setValue(BrushSettings, "brushGuid", brushGuid);
+      if (pickerSpec.picksSize) {
+        this.applyPickedBrushSize(
+          settingsEntity,
+          brushGuid,
+          Number(target.getValue(BrushStroke, "brushSize")),
+        );
+      } else {
+        this.syncBrushSettingsSize(settingsEntity, brushGuid);
+      }
+    }
+    this.setToolStatus(
+      appState,
+      `picked ${pickerSpec.pickedStatusLabel} #${commandIndex}`,
+      true,
     );
-    this.applyPickedBrushSize(
-      settingsEntity,
-      String(target.getValue(BrushStroke, "brushGuid")),
-      Number(target.getValue(BrushStroke, "brushSize")),
-    );
-    this.setToolStatus(appState, `picked brush #${commandIndex}`, true);
   }
 
   private selectBrushOffset(offset: number): void {
@@ -1212,12 +1235,19 @@ export class PanelSystem extends createSystem({
     );
     this.setText(
       document,
+      "tool-dropper-button",
+      activeTool.id === "dropper" ? "Dropper *" : "Dropper",
+    );
+    this.setText(
+      document,
       "tool-pick-button",
       activeTool.id === "color-picker"
         ? "Pick Color"
         : activeTool.id === "brush-picker"
           ? "Pick Brush"
-          : "Pick Target",
+          : activeTool.id === "dropper"
+            ? "Pick Dropper"
+            : "Pick Target",
     );
   }
 
@@ -1249,6 +1279,11 @@ export class PanelSystem extends createSystem({
       document,
       "tool-brush-picker",
       activeTool.id === "brush-picker" ? "Brush *" : "Brush",
+    );
+    this.setText(
+      document,
+      "tool-dropper",
+      activeTool.id === "dropper" ? "Dropper *" : "Dropper",
     );
     const strokeHistory = this.getStrokeHistoryEntity();
     const undoDepth = strokeHistory

@@ -2,13 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import {
   OPEN_BRUSH_DEFAULT_ERASER_RADIUS,
+  OPEN_BRUSH_DROPPER_FORWARD_OFFSET,
+  OPEN_BRUSH_DROPPER_PICK_RADIUS,
   OPEN_BRUSH_ERASER_SIZE_RANGE,
+  OPEN_BRUSH_SIMPLE_PICKER_RADIUS,
   getNextOpenBrushTool,
   isOpenBrushToolId,
   normalizeOpenBrushEraserRadius,
   openBrushEraserRadiusToSize01,
   openBrushEraserSize01ToRadius,
   openBrushTools,
+  resolveOpenBrushPickerToolSpec,
   resolveOpenBrushEraserSizeAdjustment,
   resolveOpenBrushTool,
 } from "./tools.js";
@@ -127,9 +131,8 @@ describe("Open Brush tools", () => {
   });
 
   it("marks pickers as state-only tools", () => {
-    for (const toolId of ["color-picker", "brush-picker"]) {
+    for (const toolId of ["color-picker", "brush-picker", "dropper"]) {
       const picker = resolveOpenBrushTool(toolId);
-      expect(picker.status).toBe("picker-pending");
       expect(picker.paints).toBe(false);
       expect(picker.erases).toBe(false);
       expect(picker.samplingMode).toBe("none");
@@ -138,5 +141,33 @@ describe("Open Brush tools", () => {
       expect(picker.lazyMode).toBe("none");
       expect(picker.stencilMode).toBe("none");
     }
+  });
+
+  it("keeps picker semantics source-grounded per tool", () => {
+    expect(resolveOpenBrushPickerToolSpec("free-paint")).toBeUndefined();
+    expect(resolveOpenBrushPickerToolSpec("color-picker")).toMatchObject({
+      picksColor: true,
+      picksBrush: false,
+      picksSize: false,
+      radius: OPEN_BRUSH_SIMPLE_PICKER_RADIUS,
+      forwardOffset: 0,
+      pickedStatusLabel: "color",
+    });
+    expect(resolveOpenBrushPickerToolSpec("brush-picker")).toMatchObject({
+      picksColor: false,
+      picksBrush: true,
+      picksSize: false,
+      radius: OPEN_BRUSH_SIMPLE_PICKER_RADIUS,
+      forwardOffset: 0,
+      pickedStatusLabel: "brush",
+    });
+    expect(resolveOpenBrushPickerToolSpec("dropper")).toMatchObject({
+      picksColor: true,
+      picksBrush: true,
+      picksSize: true,
+      radius: OPEN_BRUSH_DROPPER_PICK_RADIUS,
+      forwardOffset: OPEN_BRUSH_DROPPER_FORWARD_OFFSET,
+      pickedStatusLabel: "dropper",
+    });
   });
 });

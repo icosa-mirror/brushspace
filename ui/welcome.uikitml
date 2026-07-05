@@ -105,6 +105,7 @@
   #tool-eraser-button,
   #tool-mirror-button,
   #tool-brush-picker-button,
+  #tool-dropper-button,
   #tool-lazy-input-button,
   #tool-stencil-button,
   #layer-next-button,
@@ -170,6 +171,7 @@
         <button id="tool-color-picker-button" class="brush-button">Color</button>
         <button id="tool-brush-picker-button" class="brush-button">Brush</button>
       </div>
+      <button id="tool-dropper-button" class="wide-button">Dropper</button>
       <div class="button-row">
         <button id="tool-grid-snap-button" class="brush-button">Grid</button>
         <button id="tool-lazy-input-button" class="brush-button">Lazy</button>

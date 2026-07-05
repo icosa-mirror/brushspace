@@ -8,7 +8,8 @@ export type OpenBrushToolId =
   | "tape"
   | "stencil"
   | "color-picker"
-  | "brush-picker";
+  | "brush-picker"
+  | "dropper";
 
 export type OpenBrushToolSamplingMode =
   | "none"
@@ -25,6 +26,18 @@ export const OPEN_BRUSH_DEFAULT_ERASER_RADIUS =
   (OPEN_BRUSH_ERASER_SIZE_RANGE[0] + OPEN_BRUSH_ERASER_SIZE_RANGE[1]) * 0.5;
 export const OPEN_BRUSH_ERASER_SIZE_BUTTON_STEP01 = 0.05;
 export const OPEN_BRUSH_ERASER_FORWARD_OFFSET = 0.05;
+export const OPEN_BRUSH_SIMPLE_PICKER_RADIUS = 0.025;
+export const OPEN_BRUSH_DROPPER_PICK_RADIUS = 0.1;
+export const OPEN_BRUSH_DROPPER_FORWARD_OFFSET = 0.22;
+
+export interface OpenBrushPickerToolSpec {
+  picksColor: boolean;
+  picksBrush: boolean;
+  picksSize: boolean;
+  radius: number;
+  forwardOffset: number;
+  pickedStatusLabel: string;
+}
 
 export interface OpenBrushEraserSize {
   size01: number;
@@ -209,7 +222,49 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     lazyMode: "none",
     stencilMode: "none",
   },
+  {
+    id: "dropper",
+    label: "Dropper",
+    status: "dropper-pending",
+    paints: false,
+    erases: false,
+    samplingMode: "none",
+    mirrorMode: "none",
+    snapMode: "none",
+    lazyMode: "none",
+    stencilMode: "none",
+  },
 ];
+
+const pickerToolSpecs: Readonly<Record<
+  "color-picker" | "brush-picker" | "dropper",
+  OpenBrushPickerToolSpec
+>> = {
+  "color-picker": {
+    picksColor: true,
+    picksBrush: false,
+    picksSize: false,
+    radius: OPEN_BRUSH_SIMPLE_PICKER_RADIUS,
+    forwardOffset: 0,
+    pickedStatusLabel: "color",
+  },
+  "brush-picker": {
+    picksColor: false,
+    picksBrush: true,
+    picksSize: false,
+    radius: OPEN_BRUSH_SIMPLE_PICKER_RADIUS,
+    forwardOffset: 0,
+    pickedStatusLabel: "brush",
+  },
+  dropper: {
+    picksColor: true,
+    picksBrush: true,
+    picksSize: true,
+    radius: OPEN_BRUSH_DROPPER_PICK_RADIUS,
+    forwardOffset: OPEN_BRUSH_DROPPER_FORWARD_OFFSET,
+    pickedStatusLabel: "dropper",
+  },
+};
 
 export function resolveOpenBrushTool(toolId: string): OpenBrushToolDescriptor {
   return (
@@ -219,6 +274,19 @@ export function resolveOpenBrushTool(toolId: string): OpenBrushToolDescriptor {
 
 export function isOpenBrushToolId(toolId: string): toolId is OpenBrushToolId {
   return openBrushTools.some((tool) => tool.id === toolId);
+}
+
+export function resolveOpenBrushPickerToolSpec(
+  toolId: string,
+): OpenBrushPickerToolSpec | undefined {
+  if (
+    toolId === "color-picker" ||
+    toolId === "brush-picker" ||
+    toolId === "dropper"
+  ) {
+    return pickerToolSpecs[toolId];
+  }
+  return undefined;
 }
 
 export function getNextOpenBrushTool(

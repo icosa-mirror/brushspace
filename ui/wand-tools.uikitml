@@ -43,6 +43,10 @@
     width: 10.95;
   }
 
+  .full-button {
+    width: 22.4;
+  }
+
   .meta {
     margin-top: 0.45;
     font-size: 1.05;
@@ -67,6 +71,9 @@
   <div class="button-row">
     <button id="tool-color-picker" class="tool-button wide-button">Color</button>
     <button id="tool-brush-picker" class="tool-button wide-button">Brush</button>
+  </div>
+  <div class="button-row">
+    <button id="tool-dropper" class="tool-button full-button">Dropper</button>
   </div>
   <div class="button-row">
     <button id="stroke-history-undo" class="tool-button wide-button">Undo</button>
