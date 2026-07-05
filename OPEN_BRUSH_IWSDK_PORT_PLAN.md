@@ -1,6 +1,7 @@
 # Open Brush to IWSDK Port Plan
 
 Generated: 2026-07-04
+Updated: 2026-07-05
 
 This plan ports Open Brush from its Unity runtime into an IWSDK/WebXR application. It is based on the Open Brush source under `reference/`, the current IWSDK starter in `src/`, and IWSDK API/reference lookups for world setup, ECS, interaction, assets, PanelUI, rendering, and runtime test tooling.
 
@@ -114,29 +115,52 @@ Phase A objective:
 - The browser `ScreenSpace` panel remains a fallback/debug surface. The XR experience uses world-space `PanelUI` entities attached to the off-hand/wand role and sized by `PanelUI.maxWidth/maxHeight`.
 - The MVP panel surface exposes only reliable MVP actions. Placeholder Mirror/Grid/Lazy/Tape/Stencil controls must either be hidden from the main Phase A hand panels or visually parked in a clearly non-primary/debug area until their reference semantics are real.
 
-Phase A work breakdown:
+Phase A execution plan:
 
-- **A0: UX inventory and cut-line cleanup.** Re-audit upstream Open Brush panel/tool interactions that affect Draw, Line/Straightedge, Eraser, Color Picker, Brush Picker, Dropper, brush size, color swatches, undo/redo, and panel focus. Remove or demote non-MVP placeholder controls from the primary XR hand panels.
-- **A1: Hand-panel product pass.** Replace the clunky current wand ring presentation with a compact, polished off-hand control layout: dedicated Tools, Brush, and Color panels; comfortable reach and viewing angle; stable dimensions; readable type in headset; icon/label balance; clear active, hover, pressed, disabled, panel-focus, miss, and hit states; no text overflow; no overlapping controls; and handedness-safe mirroring.
-- **A2: Core tool feel pass.** Make Draw, Straightedge/Line, Eraser, Color Picker, Brush Picker, and Dropper feel trustworthy through the visible UI route first, then use ECS shortcuts for repeated permutations. Keep Draw/Line thickness source-aligned, label full-pressure Line behavior clearly enough that it is not confused with a sizing bug, and keep Eraser feedback visible for panel focus, miss, hot, and hit states.
-- **A3: Brush/color/size essentials.** Keep the initial Light brush and normalized size behavior source-aligned; make brush prev/next, brush name, unit-labeled size, eraser radius, and color swatches available on hand panels; ensure active tool and active brush/color state stay synchronized between panels and ECS.
-- **A4: MVP polish and stability.** Verify no fresh warn/error console logs, no dead-looking panel states, no accidental paint/erase while over visible panels, no hidden fallback panel blocking, and no restart of the managed dev server unless runtime status shows it is actually broken.
+- **A0: Lock the MVP cut line and remove panel clutter.**
+  Scope: Re-audit the upstream Open Brush interactions that directly affect Draw, Line/Straightedge, Eraser, Color Picker, Brush Picker, Dropper, brush size, color swatches, undo/redo, and panel focus. Keep Mirror/Grid/Lazy/Tape/Stencil and other unfinished advanced tools out of the primary hand panels unless their reference interaction semantics are complete enough to test.
+  Acceptance: The primary XR hand panels expose only MVP actions; no placeholder control competes visually with Draw, Line, Eraser, pickers, Dropper, Undo/Redo, brush size, or color. Later-phase tools can remain in code or debug surfaces but are not presented as Phase A-ready UX.
+  Testing: Unit-check the tool/panel descriptor lists; use managed `iwsdk-runtime` scene/ECS inspection to confirm the visible Tools panel contains only the MVP buttons and that the browser fallback remains separate.
 
-Phase A hand-panel stop plan:
+- **A1: Redesign the hand-panel surface until it is the product, not a debug panel.**
+  Scope: Replace the clunky wand-ring feel with a compact, readable off-hand control surface made of three small world-space `PanelUI` panels: Tools, Brush, and Color. Use `PanelUI.maxWidth/maxHeight` for stable dimensions, `OpenBrushPanelAttachment` for runtime-inspectable role/slot/visibility state, and hand/wand role settings for handedness-safe mirroring. The panels should sit at a comfortable reach and viewing angle, avoid overlap, and stay readable in headset without relying on the browser `ScreenSpace` fallback.
+  Acceptance: The first XR view has a clean workspace plus reachable hand-attached Tools/Brush/Color panels. Controls are visibly grouped, text does not overflow, buttons have stable dimensions, and the layout still works after dominant-hand swaps or panel-anchor changes. The browser fallback is still functional but is clearly a fallback/debug surface.
+  Testing: Use `xr_get_session_status` first and keep the managed dev server alive if connected. Enter XR only as needed, query `PanelUI`, `PanelDocument`, `Transform`, and `OpenBrushPanelAttachment`, then capture managed `browser_screenshot` views of the default layout, handedness mirror, and each panel close enough to inspect readability.
 
-- The stop target is a three-panel off-hand/wand surface, not a full Open Brush panel system: Tools for MVP tool/mode/undo actions, Brush for brush identity and size/radius, and Color for swatches plus current-color state.
-- The Tools panel must stay small enough to read in headset. It should show only Draw, Line, Eraser, Color Pick, Brush Pick, Dropper, Undo, and Redo. Line is highlighted as a Straightedge mode over Draw/FreePaint, not as an unrelated active tool.
-- The Brush panel must explain the active sizing context without extra instructions: when painting it shows brush size controls and a millimeter readout; when Eraser is active the same controls relabel to Radius -/+ and the readout reports Eraser radius.
-- The Color panel must make the current color obvious at a glance through a swatch and must keep color changes synchronized with stroke metadata and picker/dropper results.
-- Button visual states are Phase A acceptance surface, not polish debt: active, primary, secondary, and disabled states need to be visible in managed XR screenshots and reflected in unit-tested state-resolution helpers.
-- Advanced placeholder tools may still exist in code for later parity work, but they must not crowd the Phase A primary hand panels or confuse the MVP workflow.
+- **A2: Make panel states and labels trustworthy.**
+  Scope: Unit-test state-resolution helpers for active tool, straightedge mode, undo/redo disabled state, current brush/color, brush-size labels, and eraser-radius labels. The Tools panel highlights Draw/Eraser/Picker/Dropper, highlights Line as `straightEdgeEnabled` over FreePaint, and dims Undo/Redo when history is empty. The Brush panel switches between Size -/+ and Radius -/+ based on active tool. The Color panel always shows the current color.
+  Acceptance: Panel state matches ECS state after every relevant action. Line is not presented as a separate paint tool; it is a mode. Eraser size context is unambiguous. Panel-focus, miss, and ready statuses are visible enough that blocked drawing or erasing does not look broken.
+  Testing: Run targeted Vitest coverage for panel label/style/state helpers, then use the visible hand-panel route once for each button class and inspect `OpenBrushAppState`, `BrushSettings`, `StrokeHistoryState`, and panel element state through ECS. After the route is proven, ECS shortcuts are acceptable for repeated permutations.
+
+- **A3: Finish the Phase A tool feel through the visible hand-panel route.**
+  Scope: Verify the whole local painting loop from hand panels: Draw, Line/Straightedge, Eraser, Color Picker, Brush Picker, Dropper, brush prev/next, brush size/radius changes, color swatches, Undo, and Redo. Draw/Line/Eraser/Pickers continue to use Brush-hand grip/tool contact for action and Brush-hand ray focus for panel blocking. Keep the source-grounded Light startup size and the upstream Eraser radius/offset behavior.
+  Acceptance: Draw creates finalized Light strokes at the expected startup size; Line creates reference-style Straightedge strokes with 31 samples and active brush size; Eraser selected from the hand panel shows a visible grip-parented cursor, hot/cold state, panel-focus blocking, miss feedback, successful stroke hiding, and undo history; Color Picker copies color only; Brush Picker copies brush only; Dropper copies color, brush, and size.
+  Testing: With managed `iwsdk-runtime`, ray-select each hand-panel control once, draw freehand, draw Line, erase a hit, erase a miss, erase while the Brush ray is over a visible panel, pick color, pick brush, use Dropper on a stroke, and use Undo/Redo from hand panels. Inspect stroke entities, `BrushSettings`, cursor state, and history state with ECS tools, and capture screenshots of key states.
+
+- **A4: Polish interaction feedback and failure states.**
+  Scope: Make the MVP feel deliberate in headset. Hover, pressed, active, disabled, panel-focus, miss, hit, and current-selection states must be visible. The eraser should never feel dead: when blocked by panel focus it says so, when missing it indicates miss/ready state, and when hot it shows the cursor state. Hidden fallback panels and zero-size panels must not block Draw/Eraser/Picker. Audio/haptics remain later polish unless they are cheap and already wired through IWSDK primitives.
+  Acceptance: There are no dead-looking controls, no hidden fallback panel blocks, no accidental paint/erase while over a visible panel, and no ambiguous Eraser state. Fresh runtime console warn/error logs are empty after the interaction suite.
+  Testing: Run panel-focus regressions for Draw, Eraser, and Picker; query visible/hidden panel attachment fields; compare before/after ECS snapshots where useful; capture screenshots of ready, panel-focus, miss, and hit states.
+
+- **A5: Phase A signoff and stop.**
+  Scope: Stop after Phase A unless scope is explicitly promoted. Later phases remain roadmap context only. Do not begin full layer/save/load/export/cloud-adjacent work as part of the Phase A push.
+  Acceptance: Typecheck, focused unit tests, build, managed XR E2E, console-log checks, and visual checkpoints pass. The user can complete the local XR MVP loop with hand panels and does not need the browser fallback for core painting.
+  Testing: Run `npx tsc --noEmit`, targeted unit tests for panel/tool/size/eraser/picker/straightedge helpers, `npm run build`, managed XR hand-panel E2E, `browser_get_console_logs` without level filtering for fresh logs, and final managed `browser_screenshot` checkpoints.
+
+Phase A hand-panel design target:
+
+- **Tools panel:** Small, readable, and focused. It contains Draw, Line/Straightedge, Eraser, Color Picker, Brush Picker, Dropper, Undo, and Redo. It does not include unfinished advanced placeholder tools in the primary grid. Draw is the default active paint tool; Line appears as a Straightedge toggle state over Draw/FreePaint.
+- **Brush panel:** Shows current brush name, previous/next brush controls, normalized brush-size controls, and a unit-labeled readout. When Eraser is active, the same sizing controls relabel to Radius -/+ and the readout reports Eraser radius.
+- **Color panel:** Shows the current color as a first-glance swatch and offers a small usable swatch set. Color changes, Color Picker, Brush Picker, and Dropper results stay synchronized with `BrushSettings` and stroke metadata.
+- **Panel placement:** The three-panel surface is attached to the off-hand/wand role, mirrors across handedness, keeps a stable viewing angle, and avoids a big flat all-in-one panel. The browser `ScreenSpace` panel remains a fallback/debug tool only.
+- **Visual quality bar:** Button states are Phase A acceptance surface, not polish debt. Active, hover, pressed, disabled, panel-focus, miss, and hit states must be visible in managed XR screenshots and backed by unit-tested state-resolution helpers.
 
 Phase A acceptance criteria:
 
 - The first XR view presents a clean workspace and reachable hand-attached controls; the user does not need to use the browser/debug fallback for the core painting loop.
-- The Tools panel shows Draw, Line/Straightedge, Eraser, Color Picker, Brush Picker, Dropper, Undo, and Redo as first-class MVP actions; unfinished advanced tools are not competing with those actions.
-- The Tools panel visibly highlights the active Draw/Eraser/Picker/Dropper state, highlights Line while `straightEdgeEnabled=true`, and dims Undo/Redo when the corresponding history stack is empty.
-- The Brush panel exposes brush name, prev/next, normalized size controls, and Eraser radius controls when Eraser is active; labels switch to Size -/+ or Radius -/+ as appropriate, are readable in headset, and do not overflow.
+- The Tools, Brush, and Color panels are compact, readable in headset, stable under hot reload, and safe under handedness/anchor changes.
+- The Tools panel visibly highlights active Draw/Eraser/Picker/Dropper state, highlights Line while `straightEdgeEnabled=true`, and dims Undo/Redo when the corresponding history stack is empty.
+- The Brush panel exposes brush name, prev/next, normalized size controls, and Eraser radius controls when Eraser is active; labels switch to Size -/+ or Radius -/+ as appropriate and do not overflow.
 - The Color panel exposes usable swatches and current-color feedback; Color Picker updates color only, Brush Picker updates brush only, and Dropper copies stroke color, brush, and size.
 - Draw and Straightedge strokes use the source-grounded Light startup size and active size changes; Straightedge remains a mode over FreePaint rather than a separate active paint tool.
 - Eraser activation through the visible hand panel shows a visible cursor, correct hot/cold state, clear panel-focus blocking, clear miss feedback, and successful stroke hiding with undo history.
@@ -145,9 +169,10 @@ Phase A acceptance criteria:
 
 Phase A testing plan:
 
-- Static: run `npx tsc --noEmit` before runtime checks; run targeted unit tests for tool-state, size/radius, eraser hit/miss, picker/dropper, straightedge, and panel routing helpers.
+- Static: run `npx tsc --noEmit` before runtime checks; run targeted unit tests for tool-state, panel state, size/radius, eraser hit/miss, picker/dropper, straightedge, and panel routing helpers.
+- Build: run `npm run build` before Phase A signoff.
 - Runtime setup: start with `xr_get_session_status`; keep the existing managed dev server alive when connected; enter XR with `xr_accept_session` only if no active session exists.
-- Runtime UI route: use `iwsdk-runtime` tools to ray-select each hand-panel control once, then inspect `OpenBrushAppState`, `BrushSettings`, `StrokeHistoryState`, `OpenBrushPanelAttachment`, and stroke entities through ECS.
+- Runtime UI route: use `iwsdk-runtime` tools to ray-select each hand-panel control once, then inspect `OpenBrushAppState`, `BrushSettings`, `StrokeHistoryState`, `OpenBrushPanelAttachment`, `PanelUI`, `PanelDocument`, and stroke entities through ECS.
 - Runtime interaction route: draw freehand, draw Line/Straightedge, erase a hit, erase a miss, erase while the Brush ray is over a visible panel, pick color, pick brush, use Dropper on a stroke, and use Undo/Redo from the hand panels.
 - Runtime shortcut route: after the UI route is proven, use ECS state changes for repeated handedness, panel anchor, size, and tool permutations, then verify rendered state and ECS state with screenshots and scene inspection.
 - Visual checkpoints: capture managed `browser_screenshot` images from inside XR for the polished Tools/Brush/Color hand panels, Brush panel Eraser radius mode, panel-focus blocked Eraser, and a successful draw/erase workflow.
