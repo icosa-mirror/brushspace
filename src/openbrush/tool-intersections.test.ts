@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  strokeIntersectsTool,
   strokeIntersectsEraser,
-  type EraserStrokeCandidate,
+  type ToolStrokeIntersectionCandidate,
 } from "./tool-intersections.js";
 
-const baseStroke: EraserStrokeCandidate = {
+const baseStroke: ToolStrokeIntersectionCandidate = {
   layerIndex: 0,
   finalized: true,
   visible: true,
@@ -23,6 +24,11 @@ describe("tool intersections", () => {
   it("inflates bounds by stroke radius and eraser radius", () => {
     expect(strokeIntersectsEraser(baseStroke, 0, [0.14, 1, -1], 0.03)).toBe(true);
     expect(strokeIntersectsEraser(baseStroke, 0, [0.16, 1, -1], 0.03)).toBe(false);
+  });
+
+  it("shares the same visible finalized stroke filtering for picker tools", () => {
+    expect(strokeIntersectsTool(baseStroke, 0, [0.1, 1, -1], 0.005)).toBe(true);
+    expect(strokeIntersectsTool(baseStroke, 0, [0.13, 1, -1], 0.005)).toBe(false);
   });
 
   it("ignores hidden, unfinished, and inactive-layer strokes", () => {

@@ -1,6 +1,6 @@
 import type { Vec3 } from "./types.js";
 
-export interface EraserStrokeCandidate {
+export interface ToolStrokeIntersectionCandidate {
   layerIndex: number;
   finalized: boolean;
   visible: boolean;
@@ -11,10 +11,19 @@ export interface EraserStrokeCandidate {
 }
 
 export function strokeIntersectsEraser(
-  stroke: EraserStrokeCandidate,
+  stroke: ToolStrokeIntersectionCandidate,
   activeLayerIndex: number,
   eraserCenter: Vec3,
   eraserRadius: number,
+): boolean {
+  return strokeIntersectsTool(stroke, activeLayerIndex, eraserCenter, eraserRadius);
+}
+
+export function strokeIntersectsTool(
+  stroke: ToolStrokeIntersectionCandidate,
+  activeLayerIndex: number,
+  toolCenter: Vec3,
+  toolRadius: number,
 ): boolean {
   if (
     stroke.layerIndex !== activeLayerIndex ||
@@ -26,9 +35,9 @@ export function strokeIntersectsEraser(
   }
 
   const strokeRadius = Math.max(0, stroke.brushSize) * 0.5;
-  const radius = Math.max(0, eraserRadius) + strokeRadius;
+  const radius = Math.max(0, toolRadius) + strokeRadius;
   return (
-    distanceSqToAabb(eraserCenter, stroke.minBounds, stroke.maxBounds) <=
+    distanceSqToAabb(toolCenter, stroke.minBounds, stroke.maxBounds) <=
     radius * radius
   );
 }

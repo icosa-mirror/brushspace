@@ -40,8 +40,15 @@ import {
   writeStencilPlaneProjectedPosition,
   type StrokePointerFrame,
 } from "../openbrush/stroke-authoring.js";
-import { normalizeBrushSize } from "../openbrush/brush-size.js";
-import { strokeIntersectsEraser } from "../openbrush/tool-intersections.js";
+import {
+  brushSize01ToLiveBrushSize,
+  liveBrushSizeToSize01,
+  normalizeBrushSize,
+} from "../openbrush/brush-size.js";
+import {
+  strokeIntersectsEraser,
+  strokeIntersectsTool,
+} from "../openbrush/tool-intersections.js";
 import {
   resolveOpenBrushTool,
   type OpenBrushToolDescriptor,
@@ -66,6 +73,7 @@ const GRID_SNAP_SIZE = 0.1;
 const LAZY_INPUT_RADIUS = 0.08;
 const STENCIL_FRONT_PLANE_Z = -1.2;
 const ERASER_RADIUS = 0.08;
+const PICKER_RADIUS = 0.025;
 
 interface RuntimeStroke {
   entity: Entity;
@@ -113,6 +121,7 @@ export class StrokeAuthoringSystem extends createSystem({
   private readonly tapeAnchorPosition = new Vector3();
   private readonly tapeAnchorQuaternion = new Quaternion();
   private readonly eraserCenter: Vec3 = [0, 0, 0];
+  private readonly pickerCenter: Vec3 = [0, 0, 0];
   private readonly sampleFrame: StrokePointerFrame = {
     paintPressed: true,
     pressure: 0,
@@ -163,6 +172,17 @@ export class StrokeAuthoringSystem extends createSystem({
       return;
     }
 
+    if (rawPaintPressed && this.isPickerTool(activeTool)) {
+      if (this.activeStroke) {
+        this.finalizeActiveStroke();
+      }
+      if (!this.isPickerBlocked(commandSource)) {
+        this.pickIntersectingStroke(activeTool);
+      }
+      this.updateHistoryState();
+      return;
+    }
+
     const paintPressed =
       rawPaintPressed &&
       (!!this.activeStroke || !this.isPaintStartBlocked(commandSource));
@@ -195,17 +215,15 @@ export class StrokeAuthoringSystem extends createSystem({
     if (!this.isActiveLayerPaintable()) {
       return true;
     }
-    if (this.isHoveringPanel()) {
-      return true;
-    }
-    if (commandSource !== "xr-right" && commandSource !== "xr-left") {
-      return false;
-    }
-    return this.isPointerRayIntersectingPanel();
+    return this.isPanelInteractionBlocked(commandSource);
   }
 
   private isActiveToolPaintTool(): boolean {
     return this.getActiveTool().paints;
+  }
+
+  private isPickerTool(tool: OpenBrushToolDescriptor): boolean {
+    return tool.id === "color-picker" || tool.id === "brush-picker";
   }
 
   private isEraseBlocked(commandSource: string): boolean {
@@ -215,13 +233,24 @@ export class StrokeAuthoringSystem extends createSystem({
     if (!this.isActiveLayerPaintable()) {
       return true;
     }
-    if (this.isHoveringPanel()) {
+    return this.isPanelInteractionBlocked(commandSource);
+  }
+
+  private isPickerBlocked(commandSource: string): boolean {
+    if (!this.isPickerTool(this.getActiveTool())) {
       return true;
     }
-    if (commandSource !== "xr-right" && commandSource !== "xr-left") {
-      return false;
+    if (!this.isActiveLayerPaintable()) {
+      return true;
     }
-    return this.isPointerRayIntersectingPanel();
+    return this.isPanelInteractionBlocked(commandSource);
+  }
+
+  private isPanelInteractionBlocked(commandSource: string): boolean {
+    if (commandSource === "xr-right" || commandSource === "xr-left") {
+      return this.isPointerRayIntersectingPanel();
+    }
+    return this.isHoveringPanel();
   }
 
   private isActiveLayerPaintable(): boolean {
@@ -679,6 +708,149 @@ export class StrokeAuthoringSystem extends createSystem({
       this.setStrokeVisible(entity, false);
     }
     this.strokeHistory.commitErased(erasedStrokes);
+  }
+
+  private pickIntersectingStroke(activeTool: OpenBrushToolDescriptor): void {
+    const appStateEntity = this.getFirstEntity("appState");
+    const settingsEntity = this.getFirstEntity("brushSettings");
+    if (!appStateEntity || !settingsEntity) {
+      return;
+    }
+
+    this.pickerCenter[0] = this.samplePosition.x;
+    this.pickerCenter[1] = this.samplePosition.y;
+    this.pickerCenter[2] = this.samplePosition.z;
+
+    const target = this.findIntersectingStroke(this.pickerCenter, PICKER_RADIUS);
+    if (!target) {
+      this.setToolStatus(appStateEntity, "nothing-to-pick");
+      return;
+    }
+
+    const commandIndex = Number(target.getValue(BrushStroke, "commandIndex"));
+    if (activeTool.id === "color-picker") {
+      this.copyStrokeColorToBrushSettings(target, settingsEntity);
+      this.setToolStatus(appStateEntity, `picked color #${commandIndex}`, true);
+      return;
+    }
+
+    const brushGuid = String(target.getValue(BrushStroke, "brushGuid"));
+    settingsEntity.setValue(BrushSettings, "brushGuid", brushGuid);
+    this.applyPickedBrushSize(
+      settingsEntity,
+      brushGuid,
+      Number(target.getValue(BrushStroke, "brushSize")),
+    );
+    this.setToolStatus(appStateEntity, `picked brush #${commandIndex}`, true);
+  }
+
+  private findIntersectingStroke(center: Vec3, radius: number): Entity | undefined {
+    const appStateEntity = this.getFirstEntity("appState");
+    const activeLayerIndex = appStateEntity
+      ? Number(appStateEntity.getValue(OpenBrushAppState, "activeLayerIndex"))
+      : 0;
+    let target: Entity | undefined;
+    let newestCommandIndex = -1;
+
+    for (const entity of this.queries.strokes.entities) {
+      const minBounds = entity.getVectorView(
+        BrushStroke,
+        "minBounds",
+      ) as unknown as Vec3;
+      const maxBounds = entity.getVectorView(
+        BrushStroke,
+        "maxBounds",
+      ) as unknown as Vec3;
+      if (
+        !strokeIntersectsTool(
+          {
+            layerIndex: Number(entity.getValue(BrushStroke, "layerIndex")),
+            finalized: Boolean(entity.getValue(BrushStroke, "finalized")),
+            visible: Boolean(entity.getValue(BrushStroke, "visible")),
+            renderVisible: Boolean(entity.getValue(BrushStroke, "renderVisible")),
+            brushSize: Number(entity.getValue(BrushStroke, "brushSize")),
+            minBounds,
+            maxBounds,
+          },
+          activeLayerIndex,
+          center,
+          radius,
+        )
+      ) {
+        continue;
+      }
+
+      const commandIndex = Number(entity.getValue(BrushStroke, "commandIndex"));
+      if (commandIndex > newestCommandIndex) {
+        newestCommandIndex = commandIndex;
+        target = entity;
+      }
+    }
+
+    return target;
+  }
+
+  private copyStrokeColorToBrushSettings(
+    strokeEntity: Entity,
+    settingsEntity: Entity,
+  ): void {
+    const sourceColor = strokeEntity.getVectorView(
+      BrushStroke,
+      "color",
+    ) as Float32Array;
+    const settingsColor = settingsEntity.getVectorView(
+      BrushSettings,
+      "color",
+    ) as Float32Array;
+    settingsColor[0] = sourceColor[0];
+    settingsColor[1] = sourceColor[1];
+    settingsColor[2] = sourceColor[2];
+    settingsColor[3] = sourceColor[3];
+  }
+
+  private applyPickedBrushSize(
+    settingsEntity: Entity,
+    brushGuid: string,
+    pickedLiveSize: number,
+  ): void {
+    const brush = findBrushByGuid(openBrushInventory, brushGuid);
+    const size01 = liveBrushSizeToSize01(pickedLiveSize, brush?.brushSizeRange);
+    settingsEntity.setValue(BrushSettings, "size01", size01);
+    settingsEntity.setValue(
+      BrushSettings,
+      "size",
+      brushSize01ToLiveBrushSize(size01, brush?.brushSizeRange),
+    );
+  }
+
+  private setToolStatus(
+    appStateEntity: Entity,
+    status: string,
+    forceRevision = false,
+  ): void {
+    if (
+      String(appStateEntity.getValue(OpenBrushAppState, "toolStatus")) === status
+    ) {
+      if (forceRevision) {
+        this.touchToolState(appStateEntity);
+      }
+      return;
+    }
+    appStateEntity.setValue(OpenBrushAppState, "toolStatus", status);
+    this.touchToolState(appStateEntity);
+  }
+
+  private touchToolState(appStateEntity: Entity): void {
+    appStateEntity.setValue(
+      OpenBrushAppState,
+      "toolRevision",
+      Number(appStateEntity.getValue(OpenBrushAppState, "toolRevision")) + 1,
+    );
+    appStateEntity.setValue(
+      OpenBrushAppState,
+      "commandRevision",
+      Number(appStateEntity.getValue(OpenBrushAppState, "commandRevision")) + 1,
+    );
   }
 
   private createMirroredStroke(source: RuntimeStroke): Entity {

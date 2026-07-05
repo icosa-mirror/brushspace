@@ -12,6 +12,7 @@ Open Brush source areas inspected:
 - Scene, canvases, and layers: `reference/Assets/Scripts/SceneScript.cs`, `reference/Assets/Scripts/CanvasScript.cs`
 - Input and command routing: `reference/Assets/Scripts/InputManager.cs`, `reference/Assets/Scripts/Input/VrInput.cs`, `reference/Assets/Scripts/Input/ControllerInfo.cs`
 - Painting flow: `reference/Assets/Scripts/Tools/FreePaintTool.cs`, `reference/Assets/Scripts/PointerManager.cs`, `reference/Assets/Scripts/PointerScript.cs`
+- Tool interaction parity: `reference/Assets/Scripts/Tools/StrokeModificationTool.cs`, `reference/Assets/Scripts/Tools/EraserTool.cs`, `reference/Assets/Scripts/Tools/BaseStrokeIntersectionTool.cs`, `reference/Assets/Scripts/Tools/ColorSelectionTool.cs`, `reference/Assets/Scripts/Tools/BrushSelectionTool.cs`, `reference/Assets/Scripts/Tools/BrushNColorTool.cs`, `reference/Assets/Scripts/Tools/DropperTool.cs`, `reference/Assets/Scripts/Tools/SelectionTool.cs`, `reference/Assets/Scripts/Tools/FreePaintTool.GridSnap.cs`, `reference/Assets/Scripts/Tools/FreePaintTool.LazyInput.cs`, `reference/Assets/Scripts/Tools/FreePaintTool.BimanualInput.cs`, `reference/Assets/Scripts/StraightEdgeGuideScript.cs`, `reference/Assets/Scripts/WidgetManager.cs`, `reference/Assets/Scripts/Widgets/StencilWidget.cs`
 - Stroke memory and undo: `reference/Assets/Scripts/Stroke.cs`, `reference/Assets/Scripts/StrokeData.cs`, `reference/Assets/Scripts/SketchMemoryScript.cs`, `reference/Assets/Scripts/Commands/BaseCommand.cs`, `reference/Assets/Scripts/Commands/BrushStrokeCommand.cs`
 - Brush rendering and batching: `reference/Assets/Scripts/Brushes/BaseBrushScript.cs`, `reference/Assets/Scripts/Brushes/GeometryBrush.cs`, `reference/Assets/Scripts/Brushes/TubeBrush.cs`, `reference/Assets/Scripts/Brushes/GeometryPool.cs`, `reference/Assets/Scripts/Batching/BatchManager.cs`, `reference/Assets/Scripts/Batching/Batch.cs`
 - Brush catalog and shaders: `reference/Assets/Resources/Brushes/`, `reference/Support/exportManifest.json`, `reference/Support/GlTFShaders/`, `reference/Assets/Shaders/Include/Brush.cginc`
@@ -31,6 +32,28 @@ Planning-time runtime status:
 
 - `xr_get_session_status` reported no running IWSDK runtime during planning, so live XR E2E could not be executed yet.
 - Every implementation phase below includes IWSDK runtime E2E gates that must be run once the dev server and runtime are available.
+
+Implementation-time runtime status:
+
+- Managed `iwsdk-runtime` E2E has since been used against the live app. Do not use direct Playwright for IWSDK UI/XR checks; the runtime-managed browser owns scene, console, screenshot, XR, and ECS inspection.
+- Phase 7 live checks confirmed default Draw creates finalized strokes, live Color Picker copies stroke color, Brush Picker copies stroke brush and size, and live Eraser hides intersected visible strokes with undo history. The eraser regression was traced to global `Hovered` panel blocking in XR; XR painting/erasing/picking should block only when the active pointer ray intersects a panel.
+- Default Draw/Line thickness was confirmed to be controlled by `OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE`; the IWSDK calibration now treats Open Brush `BrushSize01=0.5` as a 0.02m live stroke width while keeping brush-specific range interpolation.
+
+## UI and Interaction Audit Addendum
+
+The port must preserve Open Brush interaction semantics, not just expose equivalent command names.
+
+- Draw/freehand: painting is the brush-controller Activate action. Trigger ratio feeds pressure every frame; pointer pose is processed through stencil magnetization, bimanual/lazy input, then grid snap. Default brush size starts from `BrushSize01=0.5` unless a brush-specific last size exists.
+- Straightedge/line: straightedge is a pointer mode with guide/meter feedback and parametric line/circle/sphere creators, not merely a separate flat UI button. It must use the same active brush, color, size, pressure, and stroke metadata as freehand.
+- Eraser: eraser is a live brush-controller stroke-modification tool. It is hot only while Activate is held, has its own visible/resizable tool radius, intersects actual visible stroke/widget geometry, deletes whole strokes/widgets, and participates in undo/redo.
+- Color/brush/dropper tools: reference one-shot pickers copy color, brush, or both. The VR Dropper samples image widgets first, then strokes, and copied stroke size is room/canvas-scale aware.
+- Selection: selection is an active tool with add/remove selection state, active-layer rules, pinned-widget exclusions, duplicate-on-hold behavior, selection canvas movement, and controller UI affordances. A "select last stroke" fallback is not parity.
+- Mirror/symmetry: symmetry is pointer duplication with mode-dependent active pointer counts and transforms. It is not just post-finalize mirroring.
+- Grid/snap: snap is canvas-aware, can preserve degrees of freedom through stickiness, and should have separate selection/widget transform helpers.
+- Lazy input: lazy mode is toggled by undo, changes behavior while painting, is disabled when grid snap is active, depends on pressure/delta time, and needs guide/ghost feedback.
+- Tape/measure: tape is a bimanual mode that hides panels, uses wand/brush controller roles, pulls the lazy cursor along the controller line, and blocks incompatible transforms while active.
+- Stencils: stencils magnetize free-paint before lazy/grid processing, maintain previous active stencil while painting, use attract/hysteresis, and need visible stencil widget state.
+- Hand-attached UI: core brush/color/tool controls belong on off-hand/wand-attached spatial panels with brush/wand role semantics. The consolidated panel remains a browser/debug fallback, not the target XR UX.
 
 ## Port Principles
 
@@ -332,10 +355,11 @@ Acceptance criteria:
 
 - Tools operate through a common `ActiveTool` lifecycle with enable/disable/update/late-update equivalents.
 - Symmetry and straightedge generate expected grouped strokes with correct metadata.
-- Default draw and straightedge strokes use the Open Brush default normalized brush size, not fixture stroke size or raw meter width.
+- Default draw and straightedge strokes use the Open Brush default normalized brush size, calibrated to a 0.02m IWSDK live stroke width unless the user changes the brush size; they must not inherit fixture stroke size or raw Open Brush meter-like values.
 - Brush size controls persist normalized size and derive absolute stroke size from the active brush range; saved strokes still store absolute `brushSize` and `brushScale`.
-- Eraser deletes only intersected visible/unlocked strokes or widgets through live brush-controller interaction; eraser and selection operations are undoable and do not leak geometry.
+- Eraser deletes only intersected visible/unlocked strokes or widgets through live brush-controller interaction; screen-space or hand-attached panel hover cannot globally block XR erasing unless the active pointer ray is actually over the panel. Eraser and selection operations are undoable and do not leak geometry.
 - Color/brush picker update app state and UI state consistently, including picked stroke size when the reference tool does.
+- Live Color/Brush Picker paths work from controller pose, not only from fallback panel buttons, and copy color/brush/size through IWSDK vector/component APIs without runtime errors.
 - Tool transitions leave no stuck trigger, `Pressed`, grabbed, or recording state.
 
 Testing plan:
@@ -344,7 +368,8 @@ Testing plan:
 - Unit: brush-size range conversion, default size, picked-size propagation, straightedge thickness parity, and eraser hit/miss tests.
 - Unit: command merge/group continuation tests.
 - Browser: exercise each tool through UI controls and pointer fallback.
-- Runtime E2E: use controller path scripts for straightedge, symmetry, eraser, and picker flows; compare `ecs_snapshot`/`ecs_diff` before/after each operation; query for expected stroke size, hidden/deleted stroke counts, undo/redo state, and no active recording state after release.
+- Runtime E2E: use controller path scripts for draw, straightedge, symmetry, eraser, and picker flows; compare `ecs_snapshot`/`ecs_diff` before/after each operation when available; query for expected default stroke size, picked color/brush/size, hidden/deleted stroke counts, undo/redo state, and no active recording state after release.
+- Runtime E2E: include a regression where a screen-space or hand-attached panel is hovered by some pointer while the active XR brush ray is not over the panel; Draw, Eraser, and Picker must still work from the active brush controller.
 
 ## Phase 8: `.tilt` Save/Load, Catalog, and Playback
 

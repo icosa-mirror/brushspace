@@ -16,7 +16,7 @@ import {
 describe("Open Brush brush size", () => {
   it("tracks normalized default separately from live absolute stroke size", () => {
     expect(OPEN_BRUSH_DEFAULT_SIZE01).toBe(0.5);
-    expect(OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE).toBeLessThan(0.1);
+    expect(OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE).toBeCloseTo(0.02);
     expect(
       brushSize01ToLiveBrushSize(
         OPEN_BRUSH_DEFAULT_SIZE01,

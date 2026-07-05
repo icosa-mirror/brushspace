@@ -6,7 +6,7 @@ export const OPEN_BRUSH_DEFAULT_BRUSH_SIZE_RANGE: BrushSizeRange = [0.05, 3];
 // Open Brush stores normalized BrushSize01 in UI state and absolute brushSize on
 // strokes. The IWSDK live scale keeps current renderer units usable while range
 // metadata is still sourced from Open Brush descriptors.
-export const OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE = 0.05;
+export const OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE = 0.02;
 export const OPEN_BRUSH_IWSDK_BRUSH_SIZE_SCALE =
   OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE /
   brushSize01ToOpenBrushSize(
