@@ -56,7 +56,10 @@
 
   #tool-line,
   #tool-erase,
+  #tool-grid-snap,
+  #tool-lazy-input,
   #tool-brush-picker,
+  #tool-stencil,
   #stroke-history-redo {
     margin-left: 0.5;
   }
@@ -66,7 +69,16 @@
   <div class="button-row">
     <button id="tool-draw" class="tool-button">Draw</button>
     <button id="tool-line" class="tool-button">Line</button>
-    <button id="tool-erase" class="tool-button">Erase</button>
+    <button id="tool-erase" class="tool-button">Eraser</button>
+  </div>
+  <div class="button-row">
+    <button id="tool-mirror" class="tool-button">Mirror</button>
+    <button id="tool-grid-snap" class="tool-button">Grid</button>
+    <button id="tool-lazy-input" class="tool-button">Lazy</button>
+  </div>
+  <div class="button-row">
+    <button id="tool-tape" class="tool-button wide-button">Tape</button>
+    <button id="tool-stencil" class="tool-button wide-button">Stencil</button>
   </div>
   <div class="button-row">
     <button id="tool-color-picker" class="tool-button wide-button">Color</button>

@@ -746,6 +746,11 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "tool-draw");
     this.nameElement(document, "tool-line");
     this.nameElement(document, "tool-erase");
+    this.nameElement(document, "tool-mirror");
+    this.nameElement(document, "tool-grid-snap");
+    this.nameElement(document, "tool-lazy-input");
+    this.nameElement(document, "tool-tape");
+    this.nameElement(document, "tool-stencil");
     this.nameElement(document, "tool-color-picker");
     this.nameElement(document, "tool-brush-picker");
     this.nameElement(document, "tool-dropper");
@@ -766,6 +771,37 @@ export class PanelSystem extends createSystem({
     const eraseToolButton = document.getElementById("tool-erase") as TextElement;
     eraseToolButton?.addEventListener("click", () => {
       this.selectTool("eraser");
+    });
+
+    const mirrorToolButton = document.getElementById("tool-mirror") as TextElement;
+    mirrorToolButton?.addEventListener("click", () => {
+      this.selectTool("mirror");
+    });
+
+    const gridSnapToolButton = document.getElementById(
+      "tool-grid-snap",
+    ) as TextElement;
+    gridSnapToolButton?.addEventListener("click", () => {
+      this.selectTool("grid-snap");
+    });
+
+    const lazyInputToolButton = document.getElementById(
+      "tool-lazy-input",
+    ) as TextElement;
+    lazyInputToolButton?.addEventListener("click", () => {
+      this.selectTool("lazy-input");
+    });
+
+    const tapeToolButton = document.getElementById("tool-tape") as TextElement;
+    tapeToolButton?.addEventListener("click", () => {
+      this.selectTool("tape");
+    });
+
+    const stencilToolButton = document.getElementById(
+      "tool-stencil",
+    ) as TextElement;
+    stencilToolButton?.addEventListener("click", () => {
+      this.selectTool("stencil");
     });
 
     const colorPickerToolButton = document.getElementById(
@@ -1283,7 +1319,32 @@ export class PanelSystem extends createSystem({
     this.setText(
       document,
       "tool-erase",
-      activeTool.id === "eraser" ? "Erase *" : "Erase",
+      activeTool.id === "eraser" ? "Eraser *" : "Eraser",
+    );
+    this.setText(
+      document,
+      "tool-mirror",
+      activeTool.id === "mirror" ? "Mirror *" : "Mirror",
+    );
+    this.setText(
+      document,
+      "tool-grid-snap",
+      activeTool.id === "grid-snap" ? "Grid *" : "Grid",
+    );
+    this.setText(
+      document,
+      "tool-lazy-input",
+      activeTool.id === "lazy-input" ? "Lazy *" : "Lazy",
+    );
+    this.setText(
+      document,
+      "tool-tape",
+      activeTool.id === "tape" ? "Tape *" : "Tape",
+    );
+    this.setText(
+      document,
+      "tool-stencil",
+      activeTool.id === "stencil" ? "Stencil *" : "Stencil",
     );
     this.setText(
       document,
