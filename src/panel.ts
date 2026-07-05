@@ -1643,6 +1643,9 @@ export class PanelSystem extends createSystem({
       panelDistance: Number(entity.getValue(SettingsState, "panelDistance")),
       panelHeight: Number(entity.getValue(SettingsState, "panelHeight")),
       panelAnchor: String(entity.getValue(SettingsState, "panelAnchor")),
+      wandPanelRotationSteps: Number(
+        entity.getValue(SettingsState, "wandPanelRotationSteps"),
+      ),
       turnMode: String(entity.getValue(SettingsState, "turnMode")),
       snapTurnDegrees: Number(entity.getValue(SettingsState, "snapTurnDegrees")),
       continuousTurnDegreesPerSecond: Number(
@@ -1679,6 +1682,11 @@ export class PanelSystem extends createSystem({
     entity.setValue(SettingsState, "panelDistance", settings.panelDistance);
     entity.setValue(SettingsState, "panelHeight", settings.panelHeight);
     entity.setValue(SettingsState, "panelAnchor", settings.panelAnchor);
+    entity.setValue(
+      SettingsState,
+      "wandPanelRotationSteps",
+      settings.wandPanelRotationSteps,
+    );
     entity.setValue(SettingsState, "turnMode", settings.turnMode);
     entity.setValue(SettingsState, "snapTurnDegrees", settings.snapTurnDegrees);
     entity.setValue(

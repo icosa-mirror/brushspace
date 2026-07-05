@@ -1,0 +1,61 @@
+<style>
+  .panel-container {
+    align-items: flex-start;
+    padding: 0.8;
+    width: 24;
+    display: flex;
+    flex-direction: column;
+    background-color: #101113;
+    border-color: #3a3f46;
+    border-width: 0.12;
+    border-radius: 0.7;
+  }
+
+  .heading {
+    font-size: 1.8;
+    font-weight: medium;
+    color: #fafafa;
+    text-align: left;
+  }
+
+  .swatch-row {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    margin-top: 0.55;
+  }
+
+  .swatch {
+    width: 4.4;
+    height: 4.4;
+    border-radius: 0.4;
+    border-width: 0.12;
+    border-color: #e5e7eb;
+    cursor: pointer;
+  }
+
+  #color-red,
+  #color-white {
+    margin-left: 0.5;
+  }
+
+  #color-blue {
+    background-color: #38bdf8;
+  }
+
+  #color-red {
+    background-color: #fb7185;
+  }
+
+  #color-white {
+    background-color: #f8fafc;
+  }
+</style>
+<div class="panel-container">
+  <span class="heading">Color</span>
+  <div class="swatch-row">
+    <button id="color-blue" class="swatch"></button>
+    <button id="color-red" class="swatch"></button>
+    <button id="color-white" class="swatch"></button>
+  </div>
+</div>

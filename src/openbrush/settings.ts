@@ -9,6 +9,7 @@ export interface OpenBrushSettings {
   panelDistance: number;
   panelHeight: number;
   panelAnchor: OpenBrushPanelAnchor;
+  wandPanelRotationSteps: number;
   turnMode: OpenBrushTurnMode;
   snapTurnDegrees: number;
   continuousTurnDegreesPerSecond: number;
@@ -32,6 +33,8 @@ export type OpenBrushSettingsCommand =
   | { type: "nudge-panel-distance"; delta: number }
   | { type: "set-panel-height"; height: number }
   | { type: "set-panel-anchor"; anchor: OpenBrushPanelAnchor }
+  | { type: "set-wand-panel-rotation"; steps: number }
+  | { type: "rotate-wand-panel-ring"; direction?: 1 | -1 }
   | { type: "set-turn-mode"; mode: OpenBrushTurnMode }
   | { type: "cycle-turn-mode"; direction?: 1 | -1 }
   | { type: "set-snap-turn-degrees"; degrees: number }
@@ -79,6 +82,7 @@ const defaultOpenBrushSettings: OpenBrushSettings = {
   panelDistance: 0.9,
   panelHeight: 1.15,
   panelAnchor: "off-hand",
+  wandPanelRotationSteps: 0,
   turnMode: "snap",
   snapTurnDegrees: 30,
   continuousTurnDegreesPerSecond: 90,
@@ -136,6 +140,9 @@ export function normalizeOpenBrushSettings(
       record.panelAnchor,
       ["off-hand", "dominant-hand", "center"],
       defaults.panelAnchor,
+    ),
+    wandPanelRotationSteps: Math.floor(
+      pickFinite(record.wandPanelRotationSteps, defaults.wandPanelRotationSteps),
     ),
     turnMode: pickEnum(
       record.turnMode,
@@ -239,6 +246,13 @@ export function resolveOpenBrushSettingsCommand(
       break;
     case "set-panel-anchor":
       next.panelAnchor = command.anchor;
+      break;
+    case "set-wand-panel-rotation":
+      next.wandPanelRotationSteps = command.steps;
+      break;
+    case "rotate-wand-panel-ring":
+      next.wandPanelRotationSteps =
+        before.wandPanelRotationSteps + (command.direction ?? 1);
       break;
     case "set-turn-mode":
       next.turnMode = command.mode;
@@ -359,6 +373,7 @@ function areSettingsBehaviorEqual(
     left.panelDistance === right.panelDistance &&
     left.panelHeight === right.panelHeight &&
     left.panelAnchor === right.panelAnchor &&
+    left.wandPanelRotationSteps === right.wandPanelRotationSteps &&
     left.turnMode === right.turnMode &&
     left.snapTurnDegrees === right.snapTurnDegrees &&
     left.continuousTurnDegreesPerSecond ===

@@ -74,6 +74,7 @@ export const SettingsState = createComponent("SettingsState", {
   panelDistance: { type: Types.Float32, default: 0.9 },
   panelHeight: { type: Types.Float32, default: 1.15 },
   panelAnchor: { type: Types.String, default: "off-hand" },
+  wandPanelRotationSteps: { type: Types.Int32, default: 0 },
   turnMode: { type: Types.String, default: "snap" },
   snapTurnDegrees: { type: Types.Float32, default: 30 },
   continuousTurnDegreesPerSecond: { type: Types.Float32, default: 90 },
@@ -92,10 +93,15 @@ export const OpenBrushPanelAttachment = createComponent(
   "OpenBrushPanelAttachment",
   {
     role: { type: Types.String, default: "main" },
+    mode: { type: Types.String, default: "fallback" },
     anchor: { type: Types.String, default: "off-hand" },
     hand: { type: Types.String, default: "left" },
     status: { type: Types.String, default: "browser" },
+    slotIndex: { type: Types.Int32, default: -1 },
+    slotAngleDegrees: { type: Types.Float32, default: 0 },
+    visible: { type: Types.Boolean, default: true },
     appliedSettingsRevision: { type: Types.Int32, default: -1 },
+    appliedRingRotationSteps: { type: Types.Int32, default: 0 },
   },
 );
 

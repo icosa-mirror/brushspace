@@ -70,6 +70,39 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
   panelEntity.object3D!.name = "OpenBrushMainPanel";
   panelEntity.object3D!.position.set(0, 2.05, -1.9);
 
+  for (const panel of [
+    {
+      role: "color",
+      config: "./ui/wand-color.json",
+      name: "OpenBrushWandColorPanel",
+    },
+    {
+      role: "brush",
+      config: "./ui/wand-brush.json",
+      name: "OpenBrushWandBrushPanel",
+    },
+    {
+      role: "tools",
+      config: "./ui/wand-tools.json",
+      name: "OpenBrushWandToolsPanel",
+    },
+  ] as const) {
+    const wandPanel = world
+      .createTransformEntity()
+      .addComponent(PanelUI, {
+        config: panel.config,
+        maxHeight: 0.9,
+        maxWidth: 0.72,
+      })
+      .addComponent(OpenBrushPanelAttachment, {
+        role: panel.role,
+        mode: "fixed-ring",
+      })
+      .addComponent(Interactable);
+    wandPanel.object3D!.name = panel.name;
+    wandPanel.object3D!.visible = false;
+  }
+
   const debugEntity = world.createTransformEntity();
   debugEntity.object3D!.name = "OpenBrushRuntimeDebug";
   debugEntity.addComponent(OpenBrushDebug);

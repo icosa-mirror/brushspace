@@ -15,10 +15,14 @@ import {
   resolveOpenBrushPanelAttachmentPoseInto,
   type OpenBrushPanelAttachmentSettings,
   type OpenBrushPanelAttachmentTarget,
+  type OpenBrushPanelMode,
+  type OpenBrushPanelRole,
 } from "../openbrush/panel-attachment.js";
 
 const BASE_PANEL_MAX_WIDTH = 1.6;
 const BASE_PANEL_MAX_HEIGHT = 5;
+const RING_PANEL_MAX_WIDTH = 0.72;
+const RING_PANEL_MAX_HEIGHT = 0.9;
 const UNIT_SCALE = [1, 1, 1] as const;
 
 export class PanelAttachmentSystem extends createSystem({
@@ -32,6 +36,7 @@ export class PanelAttachmentSystem extends createSystem({
     panelScale: 1,
     panelDistance: 0.9,
     panelHeight: 1.15,
+    wandPanelRotationSteps: 0,
   };
 
   update(): void {
@@ -50,10 +55,44 @@ export class PanelAttachmentSystem extends createSystem({
   }
 
   private applyBrowserFallback(panel: Entity): void {
-    this.writeAttachmentStatus(panel, "off-hand", "none", "browser");
+    const role = this.getPanelRole(panel);
+    const visible = role === "main";
+    this.setObjectVisible(panel, visible);
+    this.writeAttachmentStatus(
+      panel,
+      role,
+      role === "main" ? "fallback" : "fixed-ring",
+      "off-hand",
+      "none",
+      visible ? "browser" : "browser-hidden",
+      -1,
+      0,
+      visible,
+      -1,
+      0,
+    );
   }
 
   private applyXrAttachment(panel: Entity, settings: Entity): void {
+    const role = this.getPanelRole(panel);
+    if (role === "main") {
+      this.setObjectVisible(panel, false);
+      this.writeAttachmentStatus(
+        panel,
+        role,
+        "fallback",
+        "off-hand",
+        "none",
+        "xr-hidden",
+        -1,
+        0,
+        false,
+        Number(settings.getValue(SettingsState, "settingsRevision")),
+        Number(settings.getValue(SettingsState, "wandPanelRotationSteps")),
+      );
+      return;
+    }
+
     this.settingsSnapshot.dominantHand = String(
       settings.getValue(SettingsState, "dominantHand"),
     );
@@ -69,19 +108,30 @@ export class PanelAttachmentSystem extends createSystem({
     this.settingsSnapshot.panelHeight = Number(
       settings.getValue(SettingsState, "panelHeight"),
     );
+    this.settingsSnapshot.wandPanelRotationSteps = Number(
+      settings.getValue(SettingsState, "wandPanelRotationSteps"),
+    );
     const pose = resolveOpenBrushPanelAttachmentPoseInto(
       this.settingsSnapshot,
+      role,
       this.pose,
     );
+    this.setObjectVisible(panel, pose.visible);
     this.setParent(panel, this.resolveParentEntity(pose.target));
     this.writeTransform(panel, pose.position, pose.orientation);
-    this.writePanelSize(panel, pose.scale[0]);
+    this.writePanelSize(panel, pose.scale[0], pose.mode);
     this.writeAttachmentStatus(
       panel,
+      pose.role,
+      pose.mode,
       pose.anchor,
       pose.hand,
       pose.status,
+      pose.slotIndex,
+      pose.slotAngleDegrees,
+      pose.visible,
       Number(settings.getValue(SettingsState, "settingsRevision")),
+      Number(settings.getValue(SettingsState, "wandPanelRotationSteps")),
     );
   }
 
@@ -131,12 +181,20 @@ export class PanelAttachmentSystem extends createSystem({
     }
   }
 
-  private writePanelSize(entity: Entity, scale: number): void {
-    const maxWidth = BASE_PANEL_MAX_WIDTH * scale;
+  private writePanelSize(
+    entity: Entity,
+    scale: number,
+    mode: OpenBrushPanelMode,
+  ): void {
+    const baseWidth =
+      mode === "fixed-ring" ? RING_PANEL_MAX_WIDTH : BASE_PANEL_MAX_WIDTH;
+    const baseHeight =
+      mode === "fixed-ring" ? RING_PANEL_MAX_HEIGHT : BASE_PANEL_MAX_HEIGHT;
+    const maxWidth = baseWidth * scale;
     if (Number(entity.getValue(PanelUI, "maxWidth")) !== maxWidth) {
       entity.setValue(PanelUI, "maxWidth", maxWidth);
     }
-    const maxHeight = BASE_PANEL_MAX_HEIGHT * scale;
+    const maxHeight = baseHeight * scale;
     if (Number(entity.getValue(PanelUI, "maxHeight")) !== maxHeight) {
       entity.setValue(PanelUI, "maxHeight", maxHeight);
     }
@@ -144,11 +202,23 @@ export class PanelAttachmentSystem extends createSystem({
 
   private writeAttachmentStatus(
     entity: Entity,
+    role: string,
+    mode: string,
     anchor: string,
     hand: string,
     status: string,
+    slotIndex: number,
+    slotAngleDegrees: number,
+    visible: boolean,
     settingsRevision = -1,
+    ringRotationSteps = 0,
   ): void {
+    if (String(entity.getValue(OpenBrushPanelAttachment, "role")) !== role) {
+      entity.setValue(OpenBrushPanelAttachment, "role", role);
+    }
+    if (String(entity.getValue(OpenBrushPanelAttachment, "mode")) !== mode) {
+      entity.setValue(OpenBrushPanelAttachment, "mode", mode);
+    }
     if (String(entity.getValue(OpenBrushPanelAttachment, "anchor")) !== anchor) {
       entity.setValue(OpenBrushPanelAttachment, "anchor", anchor);
     }
@@ -157,6 +227,26 @@ export class PanelAttachmentSystem extends createSystem({
     }
     if (String(entity.getValue(OpenBrushPanelAttachment, "status")) !== status) {
       entity.setValue(OpenBrushPanelAttachment, "status", status);
+    }
+    if (
+      Number(entity.getValue(OpenBrushPanelAttachment, "slotIndex")) !== slotIndex
+    ) {
+      entity.setValue(OpenBrushPanelAttachment, "slotIndex", slotIndex);
+    }
+    if (
+      Number(entity.getValue(OpenBrushPanelAttachment, "slotAngleDegrees")) !==
+      slotAngleDegrees
+    ) {
+      entity.setValue(
+        OpenBrushPanelAttachment,
+        "slotAngleDegrees",
+        slotAngleDegrees,
+      );
+    }
+    if (
+      Boolean(entity.getValue(OpenBrushPanelAttachment, "visible")) !== visible
+    ) {
+      entity.setValue(OpenBrushPanelAttachment, "visible", visible);
     }
     if (
       Number(
@@ -168,6 +258,31 @@ export class PanelAttachmentSystem extends createSystem({
         "appliedSettingsRevision",
         settingsRevision,
       );
+    }
+    if (
+      Number(
+        entity.getValue(OpenBrushPanelAttachment, "appliedRingRotationSteps"),
+      ) !== ringRotationSteps
+    ) {
+      entity.setValue(
+        OpenBrushPanelAttachment,
+        "appliedRingRotationSteps",
+        ringRotationSteps,
+      );
+    }
+  }
+
+  private getPanelRole(entity: Entity): OpenBrushPanelRole {
+    const role = String(entity.getValue(OpenBrushPanelAttachment, "role"));
+    if (role === "color" || role === "brush" || role === "tools") {
+      return role;
+    }
+    return "main";
+  }
+
+  private setObjectVisible(entity: Entity, visible: boolean): void {
+    if (entity.object3D && entity.object3D.visible !== visible) {
+      entity.object3D.visible = visible;
     }
   }
 

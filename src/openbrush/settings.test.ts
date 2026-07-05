@@ -29,6 +29,7 @@ describe("Open Brush settings", () => {
       comfortVignetteEnabled: true,
       helpVisible: true,
       controllerHintsVisible: false,
+      wandPanelRotationSteps: 2.9,
       settingsRevision: 4.9,
     });
 
@@ -48,6 +49,7 @@ describe("Open Brush settings", () => {
       comfortVignetteEnabled: true,
       helpVisible: true,
       controllerHintsVisible: false,
+      wandPanelRotationSteps: 2,
       settingsRevision: 4,
     });
   });
@@ -118,6 +120,28 @@ describe("Open Brush settings", () => {
       type: "toggle-help",
     }).settings;
     expect(settings.helpVisible).toBe(true);
+  });
+
+  it("persists wand panel ring rotation as a behavior-changing setting", () => {
+    const initial = createDefaultOpenBrushSettings();
+
+    const rotated = resolveOpenBrushSettingsCommand(initial, {
+      type: "rotate-wand-panel-ring",
+    });
+    expect(rotated.changed).toBe(true);
+    expect(rotated.settings.wandPanelRotationSteps).toBe(1);
+    expect(rotated.settings.settingsRevision).toBe(1);
+    expect(rotated.settings.lastSettingsCommand).toBe("rotate-wand-panel-ring");
+
+    const setBack = resolveOpenBrushSettingsCommand(rotated.settings, {
+      type: "set-wand-panel-rotation",
+      steps: 0,
+    });
+    expect(setBack.changed).toBe(true);
+    expect(setBack.settings.wandPanelRotationSteps).toBe(0);
+    expect(parseOpenBrushSettings(serializeOpenBrushSettings(setBack.settings))).toEqual(
+      setBack.settings,
+    );
   });
 
   it("loads, saves, and resets via injected storage", () => {
