@@ -31,7 +31,6 @@ import {
 } from "./openbrush/brush-catalog.js";
 import {
   OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP,
-  OPEN_BRUSH_DEFAULT_SIZE01,
   brushSize01ToLiveBrushSize,
   liveBrushSizeToSize01,
   normalizeBrushSize01,
@@ -54,7 +53,6 @@ import {
 import {
   OPEN_BRUSH_ERASER_SIZE_BUTTON_STEP01,
   isOpenBrushPanelFocusStatus,
-  openBrushEraserRadiusToSize01,
   resolveOpenBrushPickerToolSpec,
   resolveOpenBrushTool,
   resolveOpenBrushEraserSizeAdjustment,
@@ -64,11 +62,11 @@ import {
   isStraightEdgeModeActive,
   resolveEffectiveOpenBrushTool,
 } from "./openbrush/tool-modes.js";
-import { formatOpenBrushSizeMeters } from "./openbrush/size-labels.js";
 import {
   UiCommandHistory,
   type UiCommand,
 } from "./openbrush/ui-command-history.js";
+import { resolveWandBrushPanelLabels } from "./openbrush/wand-brush-panel-labels.js";
 import {
   PHASE_A_WAND_BUTTON_IDS,
   resolvePhaseAWandButtonTone,
@@ -1187,72 +1185,55 @@ export class PanelSystem extends createSystem({
       : "";
     const activeIndex = resolveSelectableBrushIndex(activeBrushGuid);
     const activeBrush = selectableOpenBrushes[activeIndex];
-    const catalogPosition = `${activeIndex + 1}/${selectableOpenBrushes.length}`;
     const size01 = settingsEntity
       ? normalizeBrushSize01(
           Number(settingsEntity.getValue(BrushSettings, "size01")),
         )
-      : OPEN_BRUSH_DEFAULT_SIZE01;
+      : Number.NaN;
     const size = settingsEntity
       ? Number(settingsEntity.getValue(BrushSettings, "size"))
-      : brushSize01ToLiveBrushSize(size01, activeBrush?.brushSizeRange);
-    const brushSizeReadout = formatOpenBrushSizeMeters(size);
-    const brushMeta = activeBrush
-      ? [
-          activeBrush.geometryFamily,
-          activeBrush.materialFamily,
-          catalogPosition,
-          `size ${Math.round(size01 * 100)}% (${brushSizeReadout})`,
-        ].join(" / ")
-      : "unavailable";
+      : undefined;
     const eraserCursor = this.getEraserCursorEntity();
     const eraserRadius = eraserCursor
       ? Number(eraserCursor.getValue(OpenBrushEraserCursor, "radius"))
       : 0;
-    const eraserSize01 = openBrushEraserRadiusToSize01(eraserRadius);
-    const eraserRadiusReadout = formatOpenBrushSizeMeters(eraserRadius);
-    const sizeLabel = activeTool.erases
-      ? `Radius ${Math.round(eraserSize01 * 100)}% | ${eraserRadiusReadout}`
-      : `Size ${Math.round(size01 * 100)}% | ${brushSizeReadout}`;
-    const displayedBrushMeta = activeTool.erases
-      ? `${brushMeta} / ${sizeLabel.toLowerCase()}`
-      : brushMeta;
-    const wandBrushMeta = activeTool.erases
-      ? panelFocusBlocked
-        ? "panel focus"
-        : "contact radius"
-      : activeBrush
-        ? panelFocusBlocked
-          ? `${activeBrush.geometryFamily} / panel focus`
-          : `${activeBrush.geometryFamily} / ${catalogPosition}`
-        : "unavailable";
+    const labels = resolveWandBrushPanelLabels({
+      activeBrush,
+      activeBrushIndex: activeIndex,
+      brushCount: selectableOpenBrushes.length,
+      brushSize01: size01,
+      brushSize: size,
+      eraserRadius,
+      eraserActive: activeTool.erases,
+      panelFocusBlocked,
+    });
 
-    this.setText(document, "active-brush-name", activeBrush?.name ?? "No brush");
-    this.setText(document, "active-brush-meta", displayedBrushMeta);
+    this.setText(document, "active-brush-name", labels.activeBrushName);
+    this.setText(document, "active-brush-meta", labels.activeBrushMeta);
     this.setText(
       document,
       "wand-brush-name",
-      activeTool.erases ? "Eraser" : activeBrush?.name ?? "No brush",
+      labels.wandBrushName,
     );
     this.setText(
       document,
       "wand-brush-meta",
-      wandBrushMeta,
+      labels.wandBrushMeta,
     );
     this.setText(
       document,
       "wand-brush-size",
-      sizeLabel,
+      labels.wandBrushSize,
     );
     this.setText(
       document,
       "brush-size-down",
-      activeTool.erases ? "Radius -" : "Size -",
+      labels.sizeDown,
     );
     this.setText(
       document,
       "brush-size-up",
-      activeTool.erases ? "Radius +" : "Size +",
+      labels.sizeUp,
     );
     this.setText(
       document,
@@ -1262,7 +1243,7 @@ export class PanelSystem extends createSystem({
     this.setText(
       document,
       "brush-warning",
-      activeBrush?.unsupportedReason ?? "Ready",
+      labels.warning,
     );
   }
 
