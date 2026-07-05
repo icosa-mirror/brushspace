@@ -122,24 +122,24 @@ const PANEL_ANCHORS: readonly OpenBrushPanelAnchor[] = [
 ];
 const PLAYBACK_MODES = ["quickload", "timestamp", "distance"] as const;
 const WAND_BUTTON_ACTIVE_STYLE = {
-  backgroundColor: 0x0ea5e9,
+  backgroundColor: 0x0284c7,
   borderColor: 0xe0f2fe,
   color: 0xffffff,
 } as const;
 const WAND_BUTTON_PRIMARY_STYLE = {
-  backgroundColor: 0x24272d,
-  borderColor: 0x5b6472,
+  backgroundColor: 0x1c2631,
+  borderColor: 0x465568,
   color: 0xfafafa,
 } as const;
 const WAND_BUTTON_SECONDARY_STYLE = {
-  backgroundColor: 0x1f2937,
-  borderColor: 0x4b5563,
+  backgroundColor: 0x151f2b,
+  borderColor: 0x334155,
   color: 0xf3f4f6,
 } as const;
 const WAND_BUTTON_DISABLED_STYLE = {
-  backgroundColor: 0x17191d,
-  borderColor: 0x2f3540,
-  color: 0x6b7280,
+  backgroundColor: 0x0f1720,
+  borderColor: 0x223044,
+  color: 0x64748b,
 } as const;
 
 export class PanelSystem extends createSystem({
