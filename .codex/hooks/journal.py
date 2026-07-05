@@ -120,7 +120,7 @@ def shrink_input(tool_name, value):
     if not isinstance(value, dict):
         return value
 
-    redact_fields = set(FILE_OP_REDACT.get(tool_name, ()))
+    redact_fields = set(FILE_OP_REDACT.get(tool_name if isinstance(tool_name, str) else "", ()))
     out = {}
     for k, v in value.items():
         if k in redact_fields:
@@ -156,6 +156,16 @@ def first_present(obj, keys):
     return None
 
 
+def normalize_tool_name(value, fallback):
+    if isinstance(value, str) and value:
+        return value
+    if isinstance(value, dict):
+        action_type = value.get("type")
+        if isinstance(action_type, str) and action_type:
+            return "%s:%s" % (fallback, action_type)
+    return fallback
+
+
 def collect_text(value):
     parts = []
 
@@ -189,11 +199,11 @@ def is_hidden_journal_event(event):
 
 
 def is_screenshot_tool(name):
-    return bool(name) and "screenshot" in name.lower()
+    return isinstance(name, str) and "screenshot" in name.lower()
 
 
 def is_shell_tool(name):
-    return name in {"exec_command", "write_stdin", "local_shell", "shell", "Bash"}
+    return isinstance(name, str) and name in {"exec_command", "write_stdin", "local_shell", "shell", "Bash"}
 
 
 def command_from_input(value):
@@ -215,6 +225,8 @@ def shell_command_is_work(command):
 def tool_event_is_work(event):
     tool = event.get("tool")
     if not tool or is_screenshot_tool(tool):
+        return False
+    if not isinstance(tool, str):
         return False
     if tool in WORK_TOOLS:
         return True
@@ -444,9 +456,9 @@ def save_screenshots(entries, checkpoint_dir, session_id, cwd_path):
 
 def build_tool_call_event(ts, turn, payload):
     ptype = payload.get("type")
-    tool_name = first_present(payload, ("name", "tool_name", "action")) or ptype
+    tool_name = normalize_tool_name(first_present(payload, ("name", "tool_name", "action")), ptype)
     tool_use_id = first_present(payload, ("call_id", "id"))
-    raw_input = first_present(payload, ("arguments", "input", "params", "query")) or {}
+    raw_input = first_present(payload, ("arguments", "input", "params", "query", "action")) or {}
     parsed_input = parse_json_string(raw_input) if isinstance(raw_input, str) else raw_input
     if parsed_input is None:
         parsed_input = {"value": raw_input}
