@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createOpenBrushCommandInput,
   createOpenBrushCommandSnapshot,
+  resolveOpenBrushCommandRouting,
   resolveOpenBrushCommandFrame,
   type OpenBrushCommandInputs,
 } from "./command-mapper.js";
@@ -103,6 +104,42 @@ describe("Open Brush command mapper", () => {
     expect(snapshot.leftControllerConnected).toBe(true);
     expect(snapshot.rightControllerConnected).toBe(true);
     expect(snapshot.hasCommandEdge).toBe(false);
+  });
+
+  it("prioritizes the configured brush hand when XR controllers are idle", () => {
+    const inputs = createInputs();
+    inputs.xrRight.connected = true;
+    inputs.xrLeft.connected = true;
+
+    const snapshot = resolveOpenBrushCommandFrame(
+      inputs,
+      createOpenBrushCommandSnapshot(),
+      resolveOpenBrushCommandRouting("left"),
+    );
+
+    expect(snapshot.source).toBe("xr-left");
+    expect(snapshot.hand).toBe("left");
+    expect(snapshot.leftControllerConnected).toBe(true);
+    expect(snapshot.rightControllerConnected).toBe(true);
+    expect(snapshot.hasCommandEdge).toBe(false);
+  });
+
+  it("keeps wand command edges available with left-hand brush routing", () => {
+    const inputs = createInputs();
+    inputs.xrRight.connected = true;
+    inputs.xrRight.undoDown = true;
+    inputs.xrLeft.connected = true;
+
+    const snapshot = resolveOpenBrushCommandFrame(
+      inputs,
+      createOpenBrushCommandSnapshot(),
+      resolveOpenBrushCommandRouting("left"),
+    );
+
+    expect(snapshot.source).toBe("xr-right");
+    expect(snapshot.hand).toBe("right");
+    expect(snapshot.undoDown).toBe(true);
+    expect(snapshot.hasCommandEdge).toBe(true);
   });
 
   it("maps brush cycling commands as command edges", () => {

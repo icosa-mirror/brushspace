@@ -5,12 +5,15 @@ import {
   BrushPointer,
   InputCommandState,
   OpenBrushAppState,
+  SettingsState,
 } from "../components/OpenBrushCore.js";
 import {
   createOpenBrushCommandInput,
   createOpenBrushCommandSnapshot,
   resetOpenBrushCommandInput,
+  resolveOpenBrushCommandRouting,
   resolveOpenBrushCommandFrame,
+  type OpenBrushCommandRouting,
   type OpenBrushCommandInput,
   type OpenBrushCommandInputs,
   type OpenBrushCommandSnapshot,
@@ -28,6 +31,7 @@ type Handedness = "left" | "right";
 export class InputCommandSystem extends createSystem({
   commands: { required: [InputCommandState] },
   appState: { required: [OpenBrushAppState] },
+  settings: { required: [SettingsState] },
   pointers: { required: [BrushPointer] },
 }) {
   private readonly xrRightInput = createOpenBrushCommandInput("xr-right", "right");
@@ -45,6 +49,8 @@ export class InputCommandSystem extends createSystem({
   };
   private readonly commandSnapshot: OpenBrushCommandSnapshot =
     createOpenBrushCommandSnapshot();
+  private commandRouting: OpenBrushCommandRouting =
+    resolveOpenBrushCommandRouting("right");
   private commandRevision = 0;
 
   init() {
@@ -52,11 +58,20 @@ export class InputCommandSystem extends createSystem({
   }
 
   update() {
-    this.updateXrInput(this.xrRightInput, "right");
-    this.updateXrInput(this.xrLeftInput, "left");
+    resolveOpenBrushCommandRouting(
+      this.getDominantHandSetting(),
+      this.commandRouting,
+    );
+    this.browserPointerInput.hand = this.commandRouting.brushHand;
+    this.updateXrInput(this.xrRightInput, "right", this.commandRouting);
+    this.updateXrInput(this.xrLeftInput, "left", this.commandRouting);
     this.updateKeyboardInput(this.keyboardInput);
 
-    resolveOpenBrushCommandFrame(this.commandInputs, this.commandSnapshot);
+    resolveOpenBrushCommandFrame(
+      this.commandInputs,
+      this.commandSnapshot,
+      this.commandRouting,
+    );
     if (this.commandSnapshot.hasCommandEdge) {
       this.commandRevision += 1;
     }
@@ -77,6 +92,7 @@ export class InputCommandSystem extends createSystem({
   private updateXrInput(
     target: OpenBrushCommandInput,
     handedness: Handedness,
+    routing: OpenBrushCommandRouting,
   ): void {
     resetOpenBrushCommandInput(target);
     const gamepad = this.world.input.xr.gamepads[handedness] as
@@ -87,22 +103,26 @@ export class InputCommandSystem extends createSystem({
       return;
     }
 
-    target.paintPressed = gamepad.getButtonPressed(InputComponent.Trigger);
-    target.paintDown = gamepad.getButtonDown(InputComponent.Trigger);
-    target.paintUp = gamepad.getButtonUp(InputComponent.Trigger);
-    target.alternatePressed = gamepad.getButtonPressed(InputComponent.Squeeze);
-    target.alternateDown = gamepad.getButtonDown(InputComponent.Squeeze);
-    target.alternateUp = gamepad.getButtonUp(InputComponent.Squeeze);
-    target.pressure = target.paintPressed
-      ? gamepad.getButtonValue(InputComponent.Trigger) || 1
-      : 0;
+    if (handedness === routing.brushHand) {
+      target.paintPressed = gamepad.getButtonPressed(InputComponent.Trigger);
+      target.paintDown = gamepad.getButtonDown(InputComponent.Trigger);
+      target.paintUp = gamepad.getButtonUp(InputComponent.Trigger);
+      target.alternatePressed = gamepad.getButtonPressed(InputComponent.Squeeze);
+      target.alternateDown = gamepad.getButtonDown(InputComponent.Squeeze);
+      target.alternateUp = gamepad.getButtonUp(InputComponent.Squeeze);
+      target.pressure = target.paintPressed
+        ? gamepad.getButtonValue(InputComponent.Trigger) || 1
+        : 0;
+    }
 
-    if (handedness === "right") {
-      target.undoDown = gamepad.getButtonDown(InputComponent.A_Button);
-      target.redoDown = gamepad.getButtonDown(InputComponent.B_Button);
-    } else {
-      target.undoDown = gamepad.getButtonDown(InputComponent.X_Button);
-      target.redoDown = gamepad.getButtonDown(InputComponent.Y_Button);
+    if (handedness === routing.wandHand) {
+      if (handedness === "right") {
+        target.undoDown = gamepad.getButtonDown(InputComponent.A_Button);
+        target.redoDown = gamepad.getButtonDown(InputComponent.B_Button);
+      } else {
+        target.undoDown = gamepad.getButtonDown(InputComponent.X_Button);
+        target.redoDown = gamepad.getButtonDown(InputComponent.Y_Button);
+      }
     }
   }
 
@@ -265,7 +285,8 @@ export class InputCommandSystem extends createSystem({
     const hand = String(entity.getValue(BrushPointer, "hand"));
     const shouldApply =
       hand === this.commandSnapshot.hand ||
-      (this.commandSnapshot.hand === "none" && hand === "right");
+      (this.commandSnapshot.hand === "none" &&
+        hand === this.commandRouting.brushHand);
     entity.setValue(
       BrushPointer,
       "isDrawing",
@@ -287,5 +308,13 @@ export class InputCommandSystem extends createSystem({
     this.browserPointerInput.redoDown = false;
     this.browserPointerInput.brushNextDown = false;
     this.browserPointerInput.brushPreviousDown = false;
+  }
+
+  private getDominantHandSetting(): string {
+    const next = this.queries.settings.entities.values().next();
+    if (next.done) {
+      return "right";
+    }
+    return String(next.value.getValue(SettingsState, "dominantHand"));
   }
 }

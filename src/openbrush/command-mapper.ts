@@ -6,6 +6,12 @@ export type OpenBrushCommandSource =
   | "keyboard";
 
 export type OpenBrushCommandHand = "none" | "left" | "right";
+export type OpenBrushControllerHand = "left" | "right";
+
+export interface OpenBrushCommandRouting {
+  brushHand: OpenBrushControllerHand;
+  wandHand: OpenBrushControllerHand;
+}
 
 export interface OpenBrushCommandInput {
   source: OpenBrushCommandSource;
@@ -72,6 +78,19 @@ export function createOpenBrushCommandSnapshot(): OpenBrushCommandSnapshot {
   };
 }
 
+export function resolveOpenBrushCommandRouting(
+  dominantHand: string,
+  out: OpenBrushCommandRouting = {
+    brushHand: "right",
+    wandHand: "left",
+  },
+): OpenBrushCommandRouting {
+  const brushHand = dominantHand === "left" ? "left" : "right";
+  out.brushHand = brushHand;
+  out.wandHand = brushHand === "left" ? "right" : "left";
+  return out;
+}
+
 export function resetOpenBrushCommandInput(input: OpenBrushCommandInput): void {
   input.connected = false;
   input.paintPressed = false;
@@ -92,8 +111,9 @@ export function resetOpenBrushCommandInput(input: OpenBrushCommandInput): void {
 export function resolveOpenBrushCommandFrame(
   inputs: OpenBrushCommandInputs,
   out: OpenBrushCommandSnapshot,
+  routing: OpenBrushCommandRouting = defaultRouting,
 ): OpenBrushCommandSnapshot {
-  const selected = selectPrimaryInput(inputs);
+  const selected = selectPrimaryInput(inputs, routing);
   out.source = selected.source;
   out.hand = selected.hand;
   out.connected = selected.connected;
@@ -142,12 +162,15 @@ export function resolveOpenBrushCommandFrame(
 
 function selectPrimaryInput(
   inputs: OpenBrushCommandInputs,
+  routing: OpenBrushCommandRouting,
 ): OpenBrushCommandInput {
-  if (hasInputActivity(inputs.xrRight)) {
-    return inputs.xrRight;
+  const brushInput = getXrInputForHand(inputs, routing.brushHand);
+  const wandInput = getXrInputForHand(inputs, routing.wandHand);
+  if (hasInputActivity(brushInput)) {
+    return brushInput;
   }
-  if (hasInputActivity(inputs.xrLeft)) {
-    return inputs.xrLeft;
+  if (hasInputActivity(wandInput)) {
+    return wandInput;
   }
   if (hasInputActivity(inputs.browserPointer)) {
     return inputs.browserPointer;
@@ -155,11 +178,11 @@ function selectPrimaryInput(
   if (hasInputActivity(inputs.keyboard)) {
     return inputs.keyboard;
   }
-  if (inputs.xrRight.connected) {
-    return inputs.xrRight;
+  if (brushInput.connected) {
+    return brushInput;
   }
-  if (inputs.xrLeft.connected) {
-    return inputs.xrLeft;
+  if (wandInput.connected) {
+    return wandInput;
   }
   if (inputs.browserPointer.connected) {
     return inputs.browserPointer;
@@ -168,6 +191,13 @@ function selectPrimaryInput(
     return inputs.keyboard;
   }
   return idleInput;
+}
+
+function getXrInputForHand(
+  inputs: OpenBrushCommandInputs,
+  hand: OpenBrushControllerHand,
+): OpenBrushCommandInput {
+  return hand === "left" ? inputs.xrLeft : inputs.xrRight;
 }
 
 function hasInputActivity(input: OpenBrushCommandInput): boolean {
@@ -213,3 +243,5 @@ const idleInput: OpenBrushCommandInput = {
   pointerX: 0,
   pointerY: 0,
 };
+
+const defaultRouting = resolveOpenBrushCommandRouting("right");

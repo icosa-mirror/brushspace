@@ -37,6 +37,7 @@ export interface OpenBrushShellEntities {
   mainCanvas: Entity;
   selectionCanvas: Entity;
   selectionWidget: Entity;
+  leftPointer: Entity;
   rightPointer: Entity;
 }
 
@@ -120,15 +121,31 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
     });
   selectionWidget.object3D!.name = "OpenBrushSelectionWidget";
 
-  const rightPointer = world.createTransformEntity().addComponent(BrushPointer, {
-    hand: "right",
+  const leftPointer = createBrushPointer(world, "left");
+  leftPointer.object3D!.position.set(-0.25, 1.1, -0.6);
+
+  const rightPointer = createBrushPointer(world, "right");
+  rightPointer.object3D!.position.set(0.25, 1.1, -0.6);
+
+  return {
+    appState,
+    mainCanvas,
+    selectionCanvas,
+    selectionWidget,
+    leftPointer,
+    rightPointer,
+  };
+}
+
+function createBrushPointer(world: World, hand: "left" | "right"): Entity {
+  const pointer = world.createTransformEntity().addComponent(BrushPointer, {
+    hand,
     tool: "free-paint",
     isDrawing: false,
     pressure: 0,
     sampleCount: 0,
   });
-  rightPointer.object3D!.name = "OpenBrushRightBrushPointer";
-  rightPointer.object3D!.position.set(0.25, 1.1, -0.6);
-
-  return { appState, mainCanvas, selectionCanvas, selectionWidget, rightPointer };
+  pointer.object3D!.name =
+    hand === "left" ? "OpenBrushLeftBrushPointer" : "OpenBrushRightBrushPointer";
+  return pointer;
 }
