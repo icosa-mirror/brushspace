@@ -70,6 +70,14 @@ import {
   type UiCommand,
 } from "./openbrush/ui-command-history.js";
 import {
+  PHASE_A_WAND_BUTTON_IDS,
+  resolvePhaseAWandButtonTone,
+  resolvePhaseAWandButtonVisualState,
+  type PhaseAWandButtonId,
+  type PhaseAWandButtonTone,
+  type PhaseAWandButtonVisualState,
+} from "./openbrush/wand-panel-styles.js";
+import {
   normalizeOpenBrushSettings,
   resolveOpenBrushSettingsCommand,
   type OpenBrushLocomotionMode,
@@ -79,7 +87,9 @@ import {
 } from "./openbrush/settings.js";
 
 type TextElement = UIKit.Text | null;
-type StyleElement = { setProperties(properties: Record<string, unknown>): void } | null;
+type StyleElement =
+  | { setProperties(properties: Record<string, unknown>): void }
+  | null;
 type LayerOrderSnapshot = Array<{ layerIndex: number; order: number }>;
 interface StrokePanelSnapshot {
   entity: Entity;
@@ -109,6 +119,26 @@ const PANEL_ANCHORS: readonly OpenBrushPanelAnchor[] = [
   "center",
 ];
 const PLAYBACK_MODES = ["quickload", "timestamp", "distance"] as const;
+const WAND_BUTTON_ACTIVE_STYLE = {
+  backgroundColor: 0x0ea5e9,
+  borderColor: 0xe0f2fe,
+  color: 0xffffff,
+} as const;
+const WAND_BUTTON_PRIMARY_STYLE = {
+  backgroundColor: 0x24272d,
+  borderColor: 0x5b6472,
+  color: 0xfafafa,
+} as const;
+const WAND_BUTTON_SECONDARY_STYLE = {
+  backgroundColor: 0x1f2937,
+  borderColor: 0x4b5563,
+  color: 0xf3f4f6,
+} as const;
+const WAND_BUTTON_DISABLED_STYLE = {
+  backgroundColor: 0x17191d,
+  borderColor: 0x2f3540,
+  color: 0x6b7280,
+} as const;
 
 export class PanelSystem extends createSystem({
   welcomePanel: {
@@ -1365,31 +1395,6 @@ export class PanelSystem extends createSystem({
     );
     this.setText(
       document,
-      "tool-mirror",
-      activeTool.id === "mirror" ? "Mirror *" : "Mirror",
-    );
-    this.setText(
-      document,
-      "tool-grid-snap",
-      activeTool.id === "grid-snap" ? "Grid *" : "Grid",
-    );
-    this.setText(
-      document,
-      "tool-lazy-input",
-      activeTool.id === "lazy-input" ? "Lazy *" : "Lazy",
-    );
-    this.setText(
-      document,
-      "tool-tape",
-      activeTool.id === "tape" ? "Tape *" : "Tape",
-    );
-    this.setText(
-      document,
-      "tool-stencil",
-      activeTool.id === "stencil" ? "Stencil *" : "Stencil",
-    );
-    this.setText(
-      document,
       "tool-color-picker",
       activeTool.id === "color-picker" ? "Color *" : "Color",
     );
@@ -1410,10 +1415,39 @@ export class PanelSystem extends createSystem({
     const redoDepth = strokeHistory
       ? Number(strokeHistory.getValue(StrokeHistoryState, "redoDepth"))
       : 0;
+    for (const buttonId of PHASE_A_WAND_BUTTON_IDS) {
+      this.applyPhaseAWandButtonStyle(
+        document,
+        buttonId,
+        resolvePhaseAWandButtonVisualState(buttonId, {
+          activeToolId: activeTool.id,
+          straightEdgeEnabled,
+          undoDepth,
+          redoDepth,
+        }),
+      );
+    }
     this.setText(
       document,
       "stroke-history-state",
       `${undoDepth} undo | ${redoDepth} redo`,
+    );
+  }
+
+  private applyPhaseAWandButtonStyle(
+    document: UIKitDocument,
+    buttonId: PhaseAWandButtonId,
+    visualState: PhaseAWandButtonVisualState,
+  ): void {
+    const button = document.getElementById(buttonId) as StyleElement;
+    if (!button) {
+      return;
+    }
+    button.setProperties(
+      getPhaseAWandButtonStyle(
+        visualState,
+        resolvePhaseAWandButtonTone(buttonId),
+      ),
     );
   }
 
@@ -2784,4 +2818,19 @@ function formatBytes(byteLength: number): string {
     return `${Math.max(0, Math.round(byteLength))} B`;
   }
   return `${(byteLength / 1024).toFixed(1)} KB`;
+}
+
+function getPhaseAWandButtonStyle(
+  visualState: PhaseAWandButtonVisualState,
+  tone: PhaseAWandButtonTone,
+): Record<string, unknown> {
+  if (visualState === "active") {
+    return WAND_BUTTON_ACTIVE_STYLE;
+  }
+  if (visualState === "disabled") {
+    return WAND_BUTTON_DISABLED_STYLE;
+  }
+  return tone === "primary"
+    ? WAND_BUTTON_PRIMARY_STYLE
+    : WAND_BUTTON_SECONDARY_STYLE;
 }
