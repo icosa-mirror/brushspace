@@ -21,6 +21,7 @@ import {
   CanvasLayer,
   InputCommandState,
   OpenBrushAppState,
+  OpenBrushPanelAttachment,
   StrokeHistoryState,
 } from "../components/OpenBrushCore.js";
 import { openBrushInventory } from "../openbrush/brush-catalog.js";
@@ -60,6 +61,7 @@ import {
   type OpenBrushToolSnapMode,
   type OpenBrushToolStencilMode,
 } from "../openbrush/tools.js";
+import { isOpenBrushPanelFocusable } from "../openbrush/panel-focus.js";
 import {
   createEmptyStrokeData,
   type ControlPoint,
@@ -102,8 +104,8 @@ export class StrokeAuthoringSystem extends createSystem({
   history: { required: [StrokeHistoryState] },
   layers: { required: [CanvasLayer] },
   strokes: { required: [BrushStroke] },
-  hoveredPanels: { required: [PanelUI, Hovered] },
-  panels: { required: [PanelUI] },
+  hoveredPanels: { required: [PanelUI, OpenBrushPanelAttachment, Hovered] },
+  panels: { required: [PanelUI, OpenBrushPanelAttachment] },
 }) {
   private readonly samplePosition = new Vector3();
   private readonly sampleQuaternion = new Quaternion();
@@ -205,7 +207,12 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private isHoveringPanel(): boolean {
-    return this.queries.hoveredPanels.entities.size > 0;
+    for (const entity of this.queries.hoveredPanels.entities) {
+      if (this.isFocusablePanel(entity)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private isPaintStartBlocked(commandSource: string): boolean {
@@ -280,6 +287,9 @@ export class StrokeAuthoringSystem extends createSystem({
       .normalize();
 
     for (const entity of this.queries.panels.entities) {
+      if (!this.isFocusablePanel(entity)) {
+        continue;
+      }
       const panelObject = entity.object3D;
       if (!panelObject) {
         continue;
@@ -317,6 +327,17 @@ export class StrokeAuthoringSystem extends createSystem({
     }
 
     return false;
+  }
+
+  private isFocusablePanel(entity: Entity): boolean {
+    return isOpenBrushPanelFocusable({
+      objectVisible: entity.object3D?.visible !== false,
+      attachmentVisible: Boolean(
+        entity.getValue(OpenBrushPanelAttachment, "visible"),
+      ),
+      maxWidth: Number(entity.getValue(PanelUI, "maxWidth")),
+      maxHeight: Number(entity.getValue(PanelUI, "maxHeight")),
+    });
   }
 
   private startStroke(
