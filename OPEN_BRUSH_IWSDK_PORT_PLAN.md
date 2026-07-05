@@ -123,6 +123,13 @@ Phase A objective:
 - The browser `ScreenSpace` panel remains a fallback/debug surface. The XR experience uses world-space `PanelUI` entities attached to the off-hand/wand role and sized by `PanelUI.maxWidth/maxHeight`.
 - The MVP panel surface exposes only reliable MVP actions. Placeholder Mirror/Grid/Lazy/Tape/Stencil controls must either be hidden from the main Phase A hand panels or visually parked in a clearly non-primary/debug area until their reference semantics are real.
 
+Phase A stop definition:
+
+- Stop after Phase A when the local XR painting loop is complete through the hand-attached panels: Draw, Line/Straightedge, Eraser, Color Picker, Brush Picker, Dropper, brush prev/next, size/radius, swatches, Undo, and Redo.
+- Treat hand-panel feel as a release blocker. Phase A is not complete if the controls technically work but still read as a cramped debug ring, obscure the hand/controller, overlap each other, have ambiguous active states, or require the browser fallback for normal painting.
+- Require managed `iwsdk-runtime` evidence, not direct Playwright: ECS/scene inspection, console-log checks without level filtering, and XR screenshots that frame the default panel cluster, close-up readability, Eraser radius mode, panel-focus blocking, miss feedback, and a successful draw/erase workflow.
+- Do not start multiplayer, cloud storage, cloud-powered sharing, account-backed services, or networked collaboration. Those are out of scope for this port plan, not Phase A backlog.
+
 Phase A execution plan, replanned for a Phase A stop:
 
 - **A0: Lock the MVP cut line and remove panel clutter.**
@@ -131,9 +138,9 @@ Phase A execution plan, replanned for a Phase A stop:
   Testing: Unit-check the tool/panel descriptor lists; use managed `iwsdk-runtime` scene/ECS inspection to confirm the visible Tools panel contains only the MVP buttons and that the browser fallback remains separate.
 
 - **A1: Redesign the hand-panel surface until it is the product, not a debug panel.**
-  Scope: Make the hand panels the first-class Phase A product surface. Follow the Open Brush/Tilt Brush brush-and-wand model: the Brush hand paints, erases, and picks from the grip/tool pose, while the off-hand/wand role carries compact reachable controls. Replace the current clunky ring/debug-panel feel with a composed set of small world-space `PanelUI` panels: Tools, Brush, and Color. Use `PanelUI.maxWidth/maxHeight` for stable dimensions, `OpenBrushPanelAttachment` for runtime-inspectable role/slot/visibility state, and hand/wand role settings for handedness-safe mirroring. The panels should sit at a comfortable reach and viewing angle, avoid overlap, and stay readable in headset without relying on the browser `ScreenSpace` fallback.
-  Acceptance: The first XR view has a clean workspace plus reachable hand-attached Tools/Brush/Color panels. Controls are visibly grouped, target sizes are comfortable for ray selection, text does not overflow, button states are readable, and the layout still works after dominant-hand swaps or panel-anchor changes. There is no giant all-in-one panel, no cramped placeholder grid, and no primary control surface that reads as a debug overlay. The browser fallback is still functional but is clearly a fallback/debug surface.
-  Testing: Use `xr_get_session_status` first and keep the managed dev server alive if connected. Enter XR only as needed, query `PanelUI`, `PanelDocument`, `Transform`, and `OpenBrushPanelAttachment`, then capture managed `browser_screenshot` views of the default layout, handedness mirror, and each panel close enough to inspect readability. Do not sign off Phase A until these screenshots show the hand panels are readable and comfortable.
+  Scope: Make the hand panels the first-class Phase A product surface. Follow the Open Brush/Tilt Brush brush-and-wand model: the Brush hand paints, erases, and picks from the grip/tool pose, while the off-hand/wand role carries compact reachable controls. Replace the current clunky ring/debug-panel feel with a composed set of small world-space `PanelUI` panels: Tools, Brush, and Color. Use `PanelUI.maxWidth/maxHeight` for stable dimensions, `OpenBrushPanelAttachment` for runtime-inspectable role/slot/visibility state, and hand/wand role settings for handedness-safe mirroring. Tune panel distance, height, scale, slot lift, button density, text size, and panel ordering together so the controls sit in a comfortable reachable cluster instead of a flat crowded board.
+  Acceptance: The first XR view has a clean workspace plus reachable hand-attached Tools/Brush/Color panels. Controls are visibly grouped, target sizes are comfortable for ray selection, text does not overflow, button states are readable, and the layout still works after dominant-hand swaps or panel-anchor changes. The panels do not obscure the Brush hand, sit clear of the controller/hand model, avoid vertical stacking that buries lower buttons, and leave enough negative space that Tools, Brush, and Color read as separate control surfaces. There is no giant all-in-one panel, no cramped placeholder grid, and no primary control surface that reads as a debug overlay. The browser fallback is still functional but is clearly a fallback/debug surface.
+  Testing: Use `xr_get_session_status` first and keep the managed dev server alive if connected. Enter XR only as needed, query `PanelUI`, `PanelDocument`, `Transform`, and `OpenBrushPanelAttachment`, then capture managed `browser_screenshot` views of the default layout, handedness mirror, and each panel close enough to inspect readability. Query panel transforms to confirm the lower Tools/Brush slots are lifted clear of the hand/controller. Do not sign off Phase A until these screenshots show the hand panels are readable and comfortable.
 
 - **A2: Make panel states and labels trustworthy.**
   Scope: Unit-test state-resolution helpers for active tool, straightedge mode, undo/redo disabled state, current brush/color, brush-size labels, and eraser-radius labels. The Tools panel highlights Draw/Eraser/Picker/Dropper, highlights Line as `straightEdgeEnabled` over FreePaint, and dims Undo/Redo when history is empty. The Brush panel switches between Size -/+ and Radius -/+ based on active tool. The Color panel always shows the current color.
@@ -151,7 +158,7 @@ Phase A execution plan, replanned for a Phase A stop:
   Testing: Run panel-focus regressions for Draw, Eraser, and Picker; query visible/hidden panel attachment fields; compare before/after ECS snapshots where useful; capture screenshots of ready, panel-focus, miss, and hit states.
 
 - **A5: Phase A signoff and stop.**
-  Scope: Stop after Phase A unless scope is explicitly promoted. Later phases remain roadmap context only. Do not begin full layer/save/load/export/cloud-adjacent work as part of the Phase A push.
+  Scope: Stop after Phase A unless scope is explicitly promoted. Later phases remain roadmap context only. Do not begin full layer/save/load/export, account-backed, cloud-adjacent, or networked work as part of the Phase A push.
   Acceptance: Typecheck, focused unit tests, build, managed XR E2E, console-log checks, and visual checkpoints pass. The user can complete the local XR MVP loop with hand panels and does not need the browser fallback for core painting. The hand panels pass the Phase A quality gate below; otherwise Phase A remains open even if the stroke/tool logic is working.
   Testing: Run `npx tsc --noEmit`, targeted unit tests for panel/tool/size/eraser/picker/straightedge helpers, `npm run build`, managed XR hand-panel E2E, `browser_get_console_logs` without level filtering for fresh logs, and final managed `browser_screenshot` checkpoints.
 
@@ -196,7 +203,11 @@ Phase A testing plan:
 
 Deferred after Phase A unless explicitly promoted:
 
-- Full `.tilt` save/load/catalog parity, full layer management, selection/pin/snip/join/repaint/recolor/rebrush, Sketchbook and Settings alternate panels, floating panel attach/detach lifecycle, reference image Dropper sampling if it misses the Phase A timebox, full widget/stencil/tape/grid/lazy/mirror semantics, advanced export formats, playback, cloud, multiplayer, and cloud-powered sharing.
+- Full `.tilt` save/load/catalog parity, full layer management, selection/pin/snip/join/repaint/recolor/rebrush, Sketchbook and Settings alternate panels, floating panel attach/detach lifecycle, reference image Dropper sampling if it misses the Phase A timebox, full widget/stencil/tape/grid/lazy/mirror semantics, advanced local export formats, and local playback.
+
+Out of scope for this port plan:
+
+- Multiplayer, cloud storage, cloud-powered sharing, account-backed services, provider-hosted catalogs, networked collaboration, and multi-user editing.
 
 ## Port Principles
 
