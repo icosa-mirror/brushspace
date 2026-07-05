@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  canToolAffectStroke,
   strokeIntersectsTool,
   strokeIntersectsEraser,
   type ToolStrokeIntersectionCandidate,
@@ -65,5 +66,13 @@ describe("tool intersections", () => {
       strokeIntersectsEraser({ ...baseStroke, finalized: false }, 0, [0, 1, -1], 1),
     ).toBe(false);
     expect(strokeIntersectsEraser(baseStroke, 1, [0, 1, -1], 1)).toBe(false);
+  });
+
+  it("exposes layer and visibility gates separately from hit testing", () => {
+    expect(canToolAffectStroke(baseStroke, 0)).toBe(true);
+    expect(canToolAffectStroke({ ...baseStroke, renderVisible: false }, 0)).toBe(
+      false,
+    );
+    expect(canToolAffectStroke(baseStroke, 1)).toBe(false);
   });
 });

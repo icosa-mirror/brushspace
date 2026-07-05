@@ -48,7 +48,9 @@ import {
   liveBrushSizeToSize01,
   normalizeBrushSize,
 } from "../openbrush/brush-size.js";
+import { indexedTriangleGeometryIntersectsSphere } from "../openbrush/geometry-intersections.js";
 import {
+  canToolAffectStroke,
   strokeIntersectsEraser,
   strokeIntersectsTool,
 } from "../openbrush/tool-intersections.js";
@@ -739,19 +741,30 @@ export class StrokeAuthoringSystem extends createSystem({
         entity,
         this.strokeBoundsOffset,
       );
+      const candidate = {
+        layerIndex: Number(entity.getValue(BrushStroke, "layerIndex")),
+        finalized: Boolean(entity.getValue(BrushStroke, "finalized")),
+        visible: Boolean(entity.getValue(BrushStroke, "visible")),
+        renderVisible: Boolean(entity.getValue(BrushStroke, "renderVisible")),
+        brushSize: Number(entity.getValue(BrushStroke, "brushSize")),
+        minBounds,
+        maxBounds,
+        boundsOffset,
+        boundsIncludeBrushWidth: true,
+      };
+      if (!canToolAffectStroke(candidate, activeLayerIndex)) {
+        continue;
+      }
+
+      const geometryHit = this.strokeGeometryIntersectsSphere(
+        entity,
+        this.eraserCenter,
+        eraserRadius,
+      );
       if (
+        geometryHit ??
         strokeIntersectsEraser(
-          {
-            layerIndex: Number(entity.getValue(BrushStroke, "layerIndex")),
-            finalized: Boolean(entity.getValue(BrushStroke, "finalized")),
-            visible: Boolean(entity.getValue(BrushStroke, "visible")),
-            renderVisible: Boolean(entity.getValue(BrushStroke, "renderVisible")),
-            brushSize: Number(entity.getValue(BrushStroke, "brushSize")),
-            minBounds,
-            maxBounds,
-            boundsOffset,
-            boundsIncludeBrushWidth: true,
-          },
+          candidate,
           activeLayerIndex,
           this.eraserCenter,
           eraserRadius,
@@ -785,6 +798,47 @@ export class StrokeAuthoringSystem extends createSystem({
     return Math.max(
       0,
       Number(cursor.getValue(OpenBrushEraserCursor, "forwardOffset")),
+    );
+  }
+
+  private strokeGeometryIntersectsSphere(
+    entity: Entity,
+    center: Vec3,
+    radius: number,
+  ): boolean | undefined {
+    const object = entity.object3D;
+    if (
+      !(object instanceof Mesh) ||
+      !(object.geometry instanceof BufferGeometry)
+    ) {
+      return undefined;
+    }
+
+    const position = object.geometry.getAttribute("position");
+    if (!position || position.count < 3) {
+      return undefined;
+    }
+    const index = object.geometry.getIndex();
+    const drawRange = object.geometry.drawRange;
+    const sourceCount = index ? index.count : position.count;
+    const drawCount = Number.isFinite(drawRange.count)
+      ? Math.min(Math.max(0, drawRange.count), sourceCount)
+      : sourceCount;
+    if (drawCount < 3) {
+      return undefined;
+    }
+
+    object.updateWorldMatrix(true, false);
+    return indexedTriangleGeometryIntersectsSphere(
+      {
+        positions: position.array as ArrayLike<number>,
+        indices: index?.array as ArrayLike<number> | undefined,
+        drawStart: Math.max(0, Math.floor(drawRange.start)),
+        drawCount,
+        matrixElements: object.matrixWorld.elements,
+      },
+      center,
+      radius,
     );
   }
 

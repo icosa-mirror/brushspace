@@ -27,12 +27,7 @@ export function strokeIntersectsTool(
   toolCenter: Vec3,
   toolRadius: number,
 ): boolean {
-  if (
-    stroke.layerIndex !== activeLayerIndex ||
-    !stroke.finalized ||
-    !stroke.visible ||
-    !stroke.renderVisible
-  ) {
+  if (!canToolAffectStroke(stroke, activeLayerIndex)) {
     return false;
   }
 
@@ -48,6 +43,18 @@ export function strokeIntersectsTool(
       stroke.boundsOffset,
     ) <=
     radius * radius
+  );
+}
+
+export function canToolAffectStroke(
+  stroke: ToolStrokeIntersectionCandidate,
+  activeLayerIndex: number,
+): boolean {
+  return (
+    stroke.layerIndex === activeLayerIndex &&
+    stroke.finalized &&
+    stroke.visible &&
+    stroke.renderVisible
   );
 }
 
