@@ -24,6 +24,10 @@ import {
   StrokeHistoryState,
   UiCommandHistoryState,
 } from "../components/OpenBrushCore.js";
+import {
+  OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE,
+  OPEN_BRUSH_DEFAULT_SIZE01,
+} from "./brush-size.js";
 import { PHASE1_FIXTURE_BRUSH_GUID } from "./fixtures.js";
 
 export interface OpenBrushShellEntities {
@@ -49,7 +53,8 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
     })
     .addComponent(BrushSettings, {
       brushGuid: PHASE1_FIXTURE_BRUSH_GUID,
-      size: 0.42,
+      size01: OPEN_BRUSH_DEFAULT_SIZE01,
+      size: OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE,
       color: [0.1, 0.45, 0.95, 1],
     })
     .addComponent(InputCommandState)

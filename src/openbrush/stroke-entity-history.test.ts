@@ -43,6 +43,43 @@ describe("StrokeEntityHistory", () => {
     expect(history.redoDepth).toBe(0);
   });
 
+  it("tracks erased groups as reversible operations without disposing them", () => {
+    const history = new StrokeEntityHistory<TestStrokeEntity>();
+    const stroke = createStrokeEntity("erased-stroke");
+
+    history.commitErased([stroke]);
+    const undone = history.undoOperation();
+
+    expect(undone?.kind).toBe("erase");
+    expect(undone?.group).toEqual([stroke]);
+    expect(history.undoDepth).toBe(0);
+    expect(history.redoDepth).toBe(1);
+    expect(stroke.dispose).not.toHaveBeenCalled();
+
+    const redone = history.redoOperation();
+
+    expect(redone?.kind).toBe("erase");
+    expect(redone?.group).toEqual([stroke]);
+    expect(history.undoDepth).toBe(1);
+    expect(history.redoDepth).toBe(0);
+    expect(stroke.dispose).not.toHaveBeenCalled();
+  });
+
+  it("does not dispose erased redo groups when a new commit invalidates redo history", () => {
+    const history = new StrokeEntityHistory<TestStrokeEntity>();
+    const erasedStroke = createStrokeEntity("erased-stroke");
+    const newStroke = createStrokeEntity("new-stroke");
+
+    history.commitErased([erasedStroke]);
+    history.undo();
+    history.commit([newStroke]);
+
+    expect(erasedStroke.dispose).not.toHaveBeenCalled();
+    expect(newStroke.dispose).not.toHaveBeenCalled();
+    expect(history.undoDepth).toBe(1);
+    expect(history.redoDepth).toBe(0);
+  });
+
   it("clears all groups without double-disposing entities", () => {
     const history = new StrokeEntityHistory<TestStrokeEntity>();
     const undoStroke = createStrokeEntity("undo-stroke");

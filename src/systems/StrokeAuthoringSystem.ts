@@ -40,6 +40,8 @@ import {
   writeStencilPlaneProjectedPosition,
   type StrokePointerFrame,
 } from "../openbrush/stroke-authoring.js";
+import { normalizeBrushSize } from "../openbrush/brush-size.js";
+import { strokeIntersectsEraser } from "../openbrush/tool-intersections.js";
 import {
   resolveOpenBrushTool,
   type OpenBrushToolDescriptor,
@@ -63,6 +65,7 @@ const MIN_SAMPLE_DISTANCE = 0.015;
 const GRID_SNAP_SIZE = 0.1;
 const LAZY_INPUT_RADIUS = 0.08;
 const STENCIL_FRONT_PLANE_Z = -1.2;
+const ERASER_RADIUS = 0.08;
 
 interface RuntimeStroke {
   entity: Entity;
@@ -90,6 +93,7 @@ export class StrokeAuthoringSystem extends createSystem({
   pointers: { required: [BrushPointer] },
   history: { required: [StrokeHistoryState] },
   layers: { required: [CanvasLayer] },
+  strokes: { required: [BrushStroke] },
   hoveredPanels: { required: [PanelUI, Hovered] },
   panels: { required: [PanelUI] },
 }) {
@@ -108,6 +112,7 @@ export class StrokeAuthoringSystem extends createSystem({
   private readonly rayDirection = new Vector3();
   private readonly tapeAnchorPosition = new Vector3();
   private readonly tapeAnchorQuaternion = new Quaternion();
+  private readonly eraserCenter: Vec3 = [0, 0, 0];
   private readonly sampleFrame: StrokePointerFrame = {
     paintPressed: true,
     pressure: 0,
@@ -146,6 +151,18 @@ export class StrokeAuthoringSystem extends createSystem({
       this.samplePointerPose(commandEntity);
     }
     const commandSource = String(commandEntity.getValue(InputCommandState, "source"));
+    const activeTool = this.getActiveTool();
+    if (rawPaintPressed && activeTool.erases) {
+      if (this.activeStroke) {
+        this.finalizeActiveStroke();
+      }
+      if (!this.isEraseBlocked(commandSource)) {
+        this.eraseIntersectingStrokes();
+      }
+      this.updateHistoryState();
+      return;
+    }
+
     const paintPressed =
       rawPaintPressed &&
       (!!this.activeStroke || !this.isPaintStartBlocked(commandSource));
@@ -189,6 +206,22 @@ export class StrokeAuthoringSystem extends createSystem({
 
   private isActiveToolPaintTool(): boolean {
     return this.getActiveTool().paints;
+  }
+
+  private isEraseBlocked(commandSource: string): boolean {
+    if (!this.getActiveTool().erases) {
+      return true;
+    }
+    if (!this.isActiveLayerPaintable()) {
+      return true;
+    }
+    if (this.isHoveringPanel()) {
+      return true;
+    }
+    if (commandSource !== "xr-right" && commandSource !== "xr-left") {
+      return false;
+    }
+    return this.isPointerRayIntersectingPanel();
   }
 
   private isActiveLayerPaintable(): boolean {
@@ -268,8 +301,8 @@ export class StrokeAuthoringSystem extends createSystem({
       ? String(settingsEntity.getValue(BrushSettings, "brushGuid"))
       : "";
     const brushSize = settingsEntity
-      ? Number(settingsEntity.getValue(BrushSettings, "size"))
-      : 0.42;
+      ? normalizeBrushSize(Number(settingsEntity.getValue(BrushSettings, "size")))
+      : normalizeBrushSize(0);
     const color = this.getBrushColor(settingsEntity);
     const layerIndex = appStateEntity
       ? Number(appStateEntity.getValue(OpenBrushAppState, "activeLayerIndex"))
@@ -600,6 +633,54 @@ export class StrokeAuthoringSystem extends createSystem({
     this.activeStroke = undefined;
   }
 
+  private eraseIntersectingStrokes(): void {
+    const appStateEntity = this.getFirstEntity("appState");
+    const activeLayerIndex = appStateEntity
+      ? Number(appStateEntity.getValue(OpenBrushAppState, "activeLayerIndex"))
+      : 0;
+    this.eraserCenter[0] = this.samplePosition.x;
+    this.eraserCenter[1] = this.samplePosition.y;
+    this.eraserCenter[2] = this.samplePosition.z;
+
+    const erasedStrokes: Entity[] = [];
+    for (const entity of this.queries.strokes.entities) {
+      const minBounds = entity.getVectorView(
+        BrushStroke,
+        "minBounds",
+      ) as unknown as Vec3;
+      const maxBounds = entity.getVectorView(
+        BrushStroke,
+        "maxBounds",
+      ) as unknown as Vec3;
+      if (
+        strokeIntersectsEraser(
+          {
+            layerIndex: Number(entity.getValue(BrushStroke, "layerIndex")),
+            finalized: Boolean(entity.getValue(BrushStroke, "finalized")),
+            visible: Boolean(entity.getValue(BrushStroke, "visible")),
+            renderVisible: Boolean(entity.getValue(BrushStroke, "renderVisible")),
+            brushSize: Number(entity.getValue(BrushStroke, "brushSize")),
+            minBounds,
+            maxBounds,
+          },
+          activeLayerIndex,
+          this.eraserCenter,
+          ERASER_RADIUS,
+        )
+      ) {
+        erasedStrokes.push(entity);
+      }
+    }
+
+    if (erasedStrokes.length === 0) {
+      return;
+    }
+    for (const entity of erasedStrokes) {
+      this.setStrokeVisible(entity, false);
+    }
+    this.strokeHistory.commitErased(erasedStrokes);
+  }
+
   private createMirroredStroke(source: RuntimeStroke): Entity {
     this.strokeCounter += 1;
     const guid = `runtime-stroke-${this.strokeCounter}`;
@@ -673,31 +754,35 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private undoLastStroke(): void {
-    const group = this.strokeHistory.undo();
-    if (!group) {
+    const operation = this.strokeHistory.undoOperation();
+    if (!operation) {
       return;
     }
-    for (const entity of group) {
-      entity.setValue(BrushStroke, "visible", false);
-      entity.setValue(BrushStroke, "renderVisible", false);
-      entity.setValue(BrushStroke, "selected", false);
-      if (entity.object3D) {
-        entity.object3D.visible = false;
-      }
+    const visible = operation.kind === "erase";
+    for (const entity of operation.group) {
+      this.setStrokeVisible(entity, visible);
     }
   }
 
   private redoLastStroke(): void {
-    const group = this.strokeHistory.redo();
-    if (!group) {
+    const operation = this.strokeHistory.redoOperation();
+    if (!operation) {
       return;
     }
-    for (const entity of group) {
-      entity.setValue(BrushStroke, "visible", true);
-      entity.setValue(BrushStroke, "renderVisible", true);
-      if (entity.object3D) {
-        entity.object3D.visible = true;
-      }
+    const visible = operation.kind === "create";
+    for (const entity of operation.group) {
+      this.setStrokeVisible(entity, visible);
+    }
+  }
+
+  private setStrokeVisible(entity: Entity, visible: boolean): void {
+    entity.setValue(BrushStroke, "visible", visible);
+    entity.setValue(BrushStroke, "renderVisible", visible);
+    if (!visible) {
+      entity.setValue(BrushStroke, "selected", false);
+    }
+    if (entity.object3D) {
+      entity.object3D.visible = visible;
     }
   }
 

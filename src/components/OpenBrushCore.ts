@@ -1,5 +1,10 @@
 import { createComponent, Types } from "@iwsdk/core";
 
+import {
+  OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE,
+  OPEN_BRUSH_DEFAULT_SIZE01,
+} from "../openbrush/brush-size.js";
+
 export const OpenBrushAppState = createComponent("OpenBrushAppState", {
   mode: { type: Types.String, default: "ready" },
   activeTool: { type: Types.String, default: "free-paint" },
@@ -13,7 +18,8 @@ export const OpenBrushAppState = createComponent("OpenBrushAppState", {
 
 export const BrushSettings = createComponent("BrushSettings", {
   brushGuid: { type: Types.String, default: "" },
-  size: { type: Types.Float32, default: 0.42 },
+  size01: { type: Types.Float32, default: OPEN_BRUSH_DEFAULT_SIZE01 },
+  size: { type: Types.Float32, default: OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE },
   color: { type: Types.Color, default: [0.1, 0.45, 0.95, 1] },
 });
 

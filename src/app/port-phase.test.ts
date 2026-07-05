@@ -7,9 +7,9 @@ import {
 } from "./port-phase.js";
 
 describe("Open Brush port phase metadata", () => {
-  it("identifies the active Phase 11 performance counter workflow", () => {
+  it("identifies the active Phase 7 tool spec parity workflow", () => {
     expect(OPEN_BRUSH_PLAN_FILE).toBe("OPEN_BRUSH_IWSDK_PORT_PLAN.md");
-    expect(OPEN_BRUSH_PORT_PHASE).toBe("phase-11");
-    expect(OPEN_BRUSH_PORT_STATUS).toBe("performance-counters");
+    expect(OPEN_BRUSH_PORT_PHASE).toBe("phase-7");
+    expect(OPEN_BRUSH_PORT_STATUS).toBe("tool-spec-parity");
   });
 });
