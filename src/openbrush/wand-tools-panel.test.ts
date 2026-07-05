@@ -34,13 +34,16 @@ describe("wand tools panel markup", () => {
 
   it("labels eraser as a held tool instead of a one-shot erase command", () => {
     expect(wandToolsMarkup).toContain('id="tool-erase"');
-    expect(wandToolsMarkup).toContain(">Eraser</button>");
+    expect(wandToolsMarkup).toContain("<EraserIcon");
+    expect(wandToolsMarkup).toContain("Eraser");
     expect(wandToolsMarkup).not.toContain("Erase Target");
   });
 
-  it("groups the Phase A panel around paint, sampling, and history", () => {
-    expect(wandToolsMarkup).toContain("Paint");
-    expect(wandToolsMarkup).toContain("Sample");
-    expect(wandToolsMarkup).toContain("History");
+  it("uses icon-forward controls for tools, sampling, and history", () => {
+    expect(wandToolsMarkup).toContain("<PaintbrushIcon");
+    expect(wandToolsMarkup).toContain("<PaletteIcon");
+    expect(wandToolsMarkup).toContain("<PipetteIcon");
+    expect(wandToolsMarkup).toContain("<Undo2Icon");
+    expect(wandToolsMarkup).toContain("<Redo2Icon");
   });
 });

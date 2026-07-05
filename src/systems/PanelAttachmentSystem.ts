@@ -11,6 +11,7 @@ import {
   SettingsState,
 } from "../components/OpenBrushCore.js";
 import {
+  advanceWandPanelRotationSteps,
   createOpenBrushPanelAttachmentPose,
   resolveOpenBrushPanelAttachmentPoseInto,
   type OpenBrushPanelAttachmentSettings,
@@ -21,8 +22,8 @@ import {
 
 const BASE_PANEL_MAX_WIDTH = 1.6;
 const BASE_PANEL_MAX_HEIGHT = 5;
-const RING_PANEL_MAX_WIDTH = 0.72;
-const RING_PANEL_MAX_HEIGHT = 0.9;
+const RING_PANEL_MAX_WIDTH = 0.84;
+const RING_PANEL_MAX_HEIGHT = 0.84;
 const UNIT_SCALE = [1, 1, 1] as const;
 
 export class PanelAttachmentSystem extends createSystem({
@@ -38,15 +39,23 @@ export class PanelAttachmentSystem extends createSystem({
     panelHeight: 1.15,
     wandPanelRotationSteps: 0,
   };
+  private animatedWandPanelRotationSteps = 0;
+  private hasAnimatedWandPanelRotationSteps = false;
 
-  update(): void {
+  update(deltaSeconds = 1 / 60): void {
     const settings = this.getSettingsEntity();
     if (!settings) {
       return;
     }
 
+    const isBrowser =
+      this.world.visibilityState.peek() === VisibilityState.NonImmersive;
+    if (!isBrowser) {
+      this.advanceWandPanelRotation(settings, deltaSeconds);
+    }
+
     for (const panel of this.queries.panels.entities) {
-      if (this.world.visibilityState.peek() === VisibilityState.NonImmersive) {
+      if (isBrowser) {
         this.applyBrowserFallback(panel);
       } else {
         this.applyXrAttachment(panel, settings);
@@ -108,9 +117,8 @@ export class PanelAttachmentSystem extends createSystem({
     this.settingsSnapshot.panelHeight = Number(
       settings.getValue(SettingsState, "panelHeight"),
     );
-    this.settingsSnapshot.wandPanelRotationSteps = Number(
-      settings.getValue(SettingsState, "wandPanelRotationSteps"),
-    );
+    this.settingsSnapshot.wandPanelRotationSteps =
+      this.animatedWandPanelRotationSteps;
     const pose = resolveOpenBrushPanelAttachmentPoseInto(
       this.settingsSnapshot,
       role,
@@ -131,7 +139,28 @@ export class PanelAttachmentSystem extends createSystem({
       pose.slotAngleDegrees,
       pose.visible,
       Number(settings.getValue(SettingsState, "settingsRevision")),
-      Number(settings.getValue(SettingsState, "wandPanelRotationSteps")),
+      this.animatedWandPanelRotationSteps,
+    );
+  }
+
+  private advanceWandPanelRotation(
+    settings: Entity,
+    deltaSeconds: number,
+  ): void {
+    const targetSteps = Number(
+      settings.getValue(SettingsState, "wandPanelRotationSteps"),
+    );
+    if (!this.hasAnimatedWandPanelRotationSteps) {
+      this.animatedWandPanelRotationSteps = Number.isFinite(targetSteps)
+        ? targetSteps
+        : 0;
+      this.hasAnimatedWandPanelRotationSteps = true;
+      return;
+    }
+    this.animatedWandPanelRotationSteps = advanceWandPanelRotationSteps(
+      this.animatedWandPanelRotationSteps,
+      targetSteps,
+      deltaSeconds,
     );
   }
 

@@ -2,6 +2,22 @@ import {
   SessionMode,
   World,
 } from "@iwsdk/core";
+import * as horizonKit from "@pmndrs/uikit-horizon";
+import {
+  BrushIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  EraserIcon,
+  MinusIcon,
+  PaintbrushIcon,
+  PaletteIcon,
+  PipetteIcon,
+  PlusIcon,
+  Redo2Icon,
+  RulerIcon,
+  SwatchBookIcon,
+  Undo2Icon,
+} from "@pmndrs/uikit-lucide";
 
 import {
   Interactable,
@@ -42,6 +58,24 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     spatialUI: {
       forwardHtmlEvents: true,
       preferredColorScheme: "dark",
+      kits: [
+        horizonKit,
+        {
+          BrushIcon,
+          ChevronLeftIcon,
+          ChevronRightIcon,
+          EraserIcon,
+          MinusIcon,
+          PaintbrushIcon,
+          PaletteIcon,
+          PipetteIcon,
+          PlusIcon,
+          Redo2Icon,
+          RulerIcon,
+          SwatchBookIcon,
+          Undo2Icon,
+        },
+      ],
     },
   },
 }).then((world) => {
@@ -92,8 +126,8 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
       .createTransformEntity()
       .addComponent(PanelUI, {
         config: panel.config,
-        maxHeight: 0.9,
-        maxWidth: 0.72,
+        maxHeight: 0.84,
+        maxWidth: 0.84,
       })
       .addComponent(OpenBrushPanelAttachment, {
         role: panel.role,

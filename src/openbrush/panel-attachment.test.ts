@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   OPEN_BRUSH_FIXED_WAND_PANEL_ROLES,
+  advanceWandPanelRotationSteps,
   resolveOpenBrushPanelAttachmentPose,
   type OpenBrushPanelAttachmentSettings,
 } from "./panel-attachment.js";
@@ -82,7 +83,7 @@ describe("Open Brush panel attachment", () => {
     expect(pose.scale).toEqual([1.08, 1.08, 1.08]);
   });
 
-  it("places fixed Color, Brush, and Tools panels into 120 degree wand slots", () => {
+  it("places fixed Color, Brush, and Tools panels onto triangular prism faces", () => {
     const colorPose = resolveOpenBrushPanelAttachmentPose(baseSettings, "color");
     const brushPose = resolveOpenBrushPanelAttachmentPose(baseSettings, "brush");
     const toolsPose = resolveOpenBrushPanelAttachmentPose(baseSettings, "tools");
@@ -101,23 +102,29 @@ describe("Open Brush panel attachment", () => {
       slotAngleDegrees: 0,
     });
     expect(colorPose.position[0]).toBeCloseTo(0.12, 4);
-    expect(colorPose.position[1]).toBeCloseTo(0.34, 4);
+    expect(colorPose.position[1]).toBeCloseTo(0.1, 4);
     expect(colorPose.position[2]).toBeCloseTo(-0.45, 4);
-    expect(colorPose.scale[0]).toBeCloseTo(0.4896, 4);
-    expect(colorPose.scale[1]).toBeCloseTo(0.4896, 4);
-    expect(colorPose.scale[2]).toBeCloseTo(0.4896, 4);
+    expect(colorPose.orientation).toEqual([0, 0, 0, 1]);
+    expect(colorPose.scale[0]).toBeCloseTo(0.5328, 4);
+    expect(colorPose.scale[1]).toBeCloseTo(0.5328, 4);
+    expect(colorPose.scale[2]).toBeCloseTo(0.5328, 4);
     expect(brushPose.slotIndex).toBe(1);
     expect(brushPose.slotAngleDegrees).toBe(120);
-    expect(brushPose.position[0]).toBeCloseTo(0.3278, 4);
+    expect(brushPose.position[0]).toBeCloseTo(0.3105, 4);
     expect(brushPose.position[1]).toBeCloseTo(0.1, 4);
+    expect(brushPose.position[2]).toBeCloseTo(-0.615, 4);
+    expect(brushPose.orientation[1]).toBeCloseTo(-0.5, 3);
+    expect(brushPose.orientation[3]).toBeCloseTo(0.866, 3);
     expect(toolsPose.slotIndex).toBe(2);
     expect(toolsPose.slotAngleDegrees).toBe(240);
-    expect(toolsPose.position[0]).toBeCloseTo(-0.0878, 4);
+    expect(toolsPose.position[0]).toBeCloseTo(-0.0705, 4);
     expect(toolsPose.position[1]).toBeCloseTo(0.1, 4);
-    expect(toolsPose.position[1]).toBeGreaterThan(0);
+    expect(toolsPose.position[2]).toBeCloseTo(-0.615, 4);
+    expect(toolsPose.orientation[1]).toBeCloseTo(0.5, 3);
+    expect(toolsPose.orientation[3]).toBeCloseTo(0.866, 3);
   });
 
-  it("mirrors fixed wand ring panel offsets when handedness swaps", () => {
+  it("mirrors fixed wand prism panel offsets when handedness swaps", () => {
     const pose = resolveOpenBrushPanelAttachmentPose(
       {
         ...baseSettings,
@@ -128,10 +135,11 @@ describe("Open Brush panel attachment", () => {
 
     expect(pose.hand).toBe("right");
     expect(pose.target).toBe("right-ray");
-    expect(pose.position[0]).toBeCloseTo(-0.3278, 4);
+    expect(pose.position[0]).toBeCloseTo(-0.3105, 4);
+    expect(pose.orientation[1]).toBeCloseTo(0.5, 3);
   });
 
-  it("rotates fixed wand ring panel slots with cached settings steps", () => {
+  it("rotates fixed wand prism panel slots with cached settings steps", () => {
     const colorPose = resolveOpenBrushPanelAttachmentPose(
       {
         ...baseSettings,
@@ -151,5 +159,29 @@ describe("Open Brush panel attachment", () => {
     expect(colorPose.slotAngleDegrees).toBe(120);
     expect(toolsPose.slotIndex).toBe(1);
     expect(toolsPose.slotAngleDegrees).toBe(120);
+  });
+
+  it("supports fractional wand panel rotation steps for prism animation", () => {
+    const pose = resolveOpenBrushPanelAttachmentPose(
+      {
+        ...baseSettings,
+        wandPanelRotationSteps: 0.5,
+      },
+      "color",
+    );
+
+    expect(pose.slotAngleDegrees).toBe(60);
+    expect(pose.position[0]).toBeCloseTo(0.3105, 4);
+    expect(pose.position[1]).toBeCloseTo(0.1, 4);
+    expect(pose.position[2]).toBeCloseTo(-0.505, 4);
+    expect(pose.orientation[1]).toBeCloseTo(-0.2588, 4);
+    expect(pose.orientation[3]).toBeCloseTo(0.9659, 4);
+  });
+
+  it("advances wand panel rotation along the shortest wrapped path", () => {
+    expect(advanceWandPanelRotationSteps(0, 1, 1 / 60, 3)).toBeCloseTo(0.05, 4);
+    expect(advanceWandPanelRotationSteps(0.95, 1, 1 / 60, 7.5)).toBe(1);
+    expect(advanceWandPanelRotationSteps(2.9, 0, 1 / 60, 7.5)).toBe(3);
+    expect(advanceWandPanelRotationSteps(0.1, 2, 1 / 60, 6)).toBeCloseTo(0, 4);
   });
 });

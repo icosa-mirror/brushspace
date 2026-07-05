@@ -129,24 +129,24 @@ const WAND_COLOR_SWATCHES = [
   { id: "color-white", color: [0.98, 0.98, 0.96, 1] },
 ] as const;
 const WAND_BUTTON_ACTIVE_STYLE = {
-  backgroundColor: 0x0ea5e9,
+  backgroundColor: 0xf8fafc,
   borderColor: 0xf8fafc,
-  color: 0xffffff,
+  color: 0x020204,
 } as const;
 const WAND_BUTTON_PRIMARY_STYLE = {
-  backgroundColor: 0x262b35,
-  borderColor: 0x64748b,
+  backgroundColor: 0x020204,
+  borderColor: 0xf8fafc,
   color: 0xf8fafc,
 } as const;
 const WAND_BUTTON_SECONDARY_STYLE = {
-  backgroundColor: 0x18181b,
-  borderColor: 0x3f3f46,
+  backgroundColor: 0x08080c,
+  borderColor: 0xb8bcc7,
   color: 0xe4e4e7,
 } as const;
 const WAND_BUTTON_DISABLED_STYLE = {
-  backgroundColor: 0x111114,
-  borderColor: 0x27272a,
-  color: 0x71717a,
+  backgroundColor: 0x010102,
+  borderColor: 0x4b5563,
+  color: 0x6b7280,
 } as const;
 
 export class PanelSystem extends createSystem({
@@ -1366,32 +1366,6 @@ export class PanelSystem extends createSystem({
     const straightEdgeEnabled = appState
       ? Boolean(appState.getValue(OpenBrushAppState, "straightEdgeEnabled"))
       : false;
-    this.setText(
-      document,
-      "tool-draw",
-      activeTool.id === "free-paint" && !straightEdgeEnabled ? "Draw *" : "Draw",
-    );
-    this.setText(document, "tool-line", straightEdgeEnabled ? "Line *" : "Line");
-    this.setText(
-      document,
-      "tool-erase",
-      activeTool.id === "eraser" ? "Eraser *" : "Eraser",
-    );
-    this.setText(
-      document,
-      "tool-color-picker",
-      activeTool.id === "color-picker" ? "Color *" : "Color",
-    );
-    this.setText(
-      document,
-      "tool-brush-picker",
-      activeTool.id === "brush-picker" ? "Brush *" : "Brush",
-    );
-    this.setText(
-      document,
-      "tool-dropper",
-      activeTool.id === "dropper" ? "Dropper *" : "Dropper",
-    );
     const strokeHistory = this.getStrokeHistoryEntity();
     const undoDepth = strokeHistory
       ? Number(strokeHistory.getValue(StrokeHistoryState, "undoDepth"))

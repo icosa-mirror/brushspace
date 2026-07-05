@@ -1,14 +1,15 @@
 <style>
   .panel-container {
     align-items: flex-start;
-    padding: 1.05;
+    padding: 1.0;
     width: 27.8;
+    height: 27.8;
     display: flex;
     flex-direction: column;
-    background-color: #111114;
-    border-color: #3f3f46;
-    border-width: 0.14;
-    border-radius: 0.42;
+    background-color: rgba(0, 0, 0, 0.86);
+    border-color: #f8fafc;
+    border-width: 0.16;
+    border-radius: 0.34;
   }
 
   .heading-row {
@@ -18,66 +19,92 @@
     width: 100%;
   }
 
+  .heading-lockup {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 15.6;
+  }
+
+  .heading-icon {
+    width: 1.7;
+    height: 1.7;
+    color: #f8fafc;
+  }
+
   .heading {
-    font-size: 2.15;
+    font-size: 1.9;
     font-weight: medium;
     color: #f8fafc;
     text-align: left;
-    width: 15.4;
+    margin-left: 0.42;
   }
 
   .eyebrow {
-    width: 10.4;
-    font-size: 1.0;
-    color: #a7f3d0;
+    width: 10.2;
+    font-size: 0.86;
+    color: #aab2c3;
     text-align: right;
+  }
+
+  .divider {
+    width: 25.8;
+    height: 0.08;
+    margin-top: 0.55;
+    background-color: #e5e7eb;
+  }
+
+  .current-label {
+    margin-top: 0.92;
+    font-size: 0.95;
+    color: #aab2c3;
+    text-align: left;
+  }
+
+  .current-swatch {
+    width: 25.8;
+    height: 7.1;
+    margin-top: 0.42;
+    border-radius: 0.3;
+    border-width: 0.16;
+    border-color: #f8fafc;
+    background-color: #38bdf8;
   }
 
   .swatch-row {
     display: flex;
     flex-direction: row;
     width: 100%;
-    margin-top: 0.6;
-  }
-
-  .current-row {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    width: 100%;
-    margin-top: 0.62;
-  }
-
-  .current-label {
-    font-size: 1.06;
-    color: #a1a1aa;
-    text-align: left;
-    width: 7.8;
+    margin-top: 0.78;
   }
 
   .swatch {
-    width: 4.55;
-    height: 4.55;
-    border-radius: 0.34;
+    width: 4.78;
+    height: 4.78;
+    border-radius: 0.3;
     border-width: 0.16;
-    border-color: #71717a;
+    border-color: #8b95a8;
     cursor: pointer;
   }
 
-  .current-swatch {
-    width: 17.6;
-    height: 3.2;
-    border-radius: 0.3;
-    border-width: 0.14;
-    border-color: #f8fafc;
-    background-color: #38bdf8;
+  .hint {
+    margin-top: 0.88;
+    padding: 0.38;
+    width: 24.96;
+    font-size: 0.9;
+    color: #d1d5db;
+    background-color: #030306;
+    border-color: #8b95a8;
+    border-width: 0.08;
+    border-radius: 0.2;
+    text-align: center;
   }
 
   #color-red,
   #color-yellow,
   #color-green,
   #color-white {
-    margin-left: 0.45;
+    margin-left: 0.48;
   }
 
   #color-blue {
@@ -102,13 +129,15 @@
 </style>
 <div class="panel-container">
   <div class="heading-row">
-    <span class="heading">Color</span>
+    <div class="heading-lockup">
+      <PaletteIcon class="heading-icon"></PaletteIcon>
+      <span class="heading">Color</span>
+    </div>
     <span class="eyebrow">Swatches</span>
   </div>
-  <div class="current-row">
-    <span class="current-label">Current</span>
-    <div id="current-color-swatch" class="current-swatch"></div>
-  </div>
+  <div class="divider"></div>
+  <span class="current-label">Current</span>
+  <div id="current-color-swatch" class="current-swatch"></div>
   <div class="swatch-row">
     <button id="color-blue" class="swatch"></button>
     <button id="color-red" class="swatch"></button>
@@ -116,4 +145,5 @@
     <button id="color-green" class="swatch"></button>
     <button id="color-white" class="swatch"></button>
   </div>
+  <span class="hint">Choose a painting color</span>
 </div>

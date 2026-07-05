@@ -1,4 +1,6 @@
 import {
+  DomeGradient,
+  IBLGradient,
   Interactable,
   Mesh,
   MeshBasicMaterial,
@@ -39,6 +41,27 @@ import {
   OPEN_BRUSH_ERASER_FORWARD_OFFSET,
 } from "./tools.js";
 
+const OPEN_BRUSH_DARK_SKY: [number, number, number, number] = [
+  0.005,
+  0.008,
+  0.016,
+  1,
+];
+const OPEN_BRUSH_DARK_EQUATOR: [number, number, number, number] = [
+  0.012,
+  0.018,
+  0.035,
+  1,
+];
+const OPEN_BRUSH_DARK_GROUND: [number, number, number, number] = [
+  0.001,
+  0.001,
+  0.003,
+  1,
+];
+const OPEN_BRUSH_DARK_DOME_INTENSITY = 0.9;
+const OPEN_BRUSH_DARK_IBL_INTENSITY = 0.35;
+
 export interface OpenBrushShellEntities {
   appState: Entity;
   mainCanvas: Entity;
@@ -50,6 +73,8 @@ export interface OpenBrushShellEntities {
 }
 
 export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
+  applyOpenBrushDarkEnvironment(world);
+
   const initialBrush = findBrushByGuid(
     openBrushInventory,
     OPEN_BRUSH_DEFAULT_BRUSH_GUID,
@@ -181,4 +206,53 @@ function createBrushPointer(world: World, hand: "left" | "right"): Entity {
   pointer.object3D!.name =
     hand === "left" ? "OpenBrushLeftBrushPointer" : "OpenBrushRightBrushPointer";
   return pointer;
+}
+
+function applyOpenBrushDarkEnvironment(world: World): void {
+  const levelRoot = world.activeLevel.value;
+  if (!levelRoot) {
+    return;
+  }
+  if (!levelRoot.hasComponent(DomeGradient)) {
+    levelRoot.addComponent(DomeGradient);
+  }
+  writeEnvironmentGradient(
+    levelRoot,
+    DomeGradient,
+    OPEN_BRUSH_DARK_DOME_INTENSITY,
+  );
+  if (!levelRoot.hasComponent(IBLGradient)) {
+    levelRoot.addComponent(IBLGradient);
+  }
+  writeEnvironmentGradient(levelRoot, IBLGradient, OPEN_BRUSH_DARK_IBL_INTENSITY);
+}
+
+function writeEnvironmentGradient(
+  entity: Entity,
+  component: typeof DomeGradient | typeof IBLGradient,
+  intensity: number,
+): void {
+  writeColor(
+    entity.getVectorView(component, "sky") as Float32Array,
+    OPEN_BRUSH_DARK_SKY,
+  );
+  writeColor(
+    entity.getVectorView(component, "equator") as Float32Array,
+    OPEN_BRUSH_DARK_EQUATOR,
+  );
+  writeColor(
+    entity.getVectorView(component, "ground") as Float32Array,
+    OPEN_BRUSH_DARK_GROUND,
+  );
+  entity.setValue(component, "intensity", intensity);
+  entity.setValue(component, "_needsUpdate", true);
+}
+
+function writeColor(
+  target: Float32Array,
+  color: readonly [number, number, number, number],
+): void {
+  for (let i = 0; i < 4; i += 1) {
+    target[i] = color[i];
+  }
 }
