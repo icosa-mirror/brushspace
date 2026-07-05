@@ -76,6 +76,7 @@ import {
   type Vec3,
 } from "../openbrush/types.js";
 import { StrokeEntityHistory } from "../openbrush/stroke-entity-history.js";
+import { writeOpenBrushToolOffsetPosition } from "../openbrush/tool-pose.js";
 
 const MIN_SAMPLE_DISTANCE = 0.015;
 const GRID_SNAP_SIZE = 0.1;
@@ -985,21 +986,12 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private writeToolCenter(target: Vec3, forwardOffset: number): Vec3 {
-    target[0] = this.samplePosition.x;
-    target[1] = this.samplePosition.y;
-    target[2] = this.samplePosition.z;
-    if (forwardOffset <= 0) {
-      return target;
-    }
-
-    this.rayDirection
-      .set(0, 0, -1)
-      .applyQuaternion(this.sampleQuaternion)
-      .normalize();
-    target[0] += this.rayDirection.x * forwardOffset;
-    target[1] += this.rayDirection.y * forwardOffset;
-    target[2] += this.rayDirection.z * forwardOffset;
-    return target;
+    return writeOpenBrushToolOffsetPosition(
+      target,
+      this.samplePosition,
+      this.sampleQuaternion,
+      forwardOffset,
+    );
   }
 
   private copyStrokeColorToBrushSettings(
