@@ -50,6 +50,7 @@ import {
   strokeIntersectsTool,
 } from "../openbrush/tool-intersections.js";
 import {
+  OPEN_BRUSH_DEFAULT_ERASER_RADIUS,
   resolveOpenBrushTool,
   type OpenBrushToolDescriptor,
   type OpenBrushToolId,
@@ -72,7 +73,6 @@ const MIN_SAMPLE_DISTANCE = 0.015;
 const GRID_SNAP_SIZE = 0.1;
 const LAZY_INPUT_RADIUS = 0.08;
 const STENCIL_FRONT_PLANE_Z = -1.2;
-const ERASER_RADIUS = 0.08;
 const PICKER_RADIUS = 0.025;
 
 interface RuntimeStroke {
@@ -694,7 +694,7 @@ export class StrokeAuthoringSystem extends createSystem({
           },
           activeLayerIndex,
           this.eraserCenter,
-          ERASER_RADIUS,
+          OPEN_BRUSH_DEFAULT_ERASER_RADIUS,
         )
       ) {
         erasedStrokes.push(entity);

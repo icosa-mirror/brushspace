@@ -20,6 +20,10 @@ export type OpenBrushToolSnapMode = "none" | "grid";
 export type OpenBrushToolLazyMode = "none" | "position";
 export type OpenBrushToolStencilMode = "none" | "front-plane";
 
+export const OPEN_BRUSH_ERASER_SIZE_RANGE = [0.1, 0.3] as const;
+export const OPEN_BRUSH_DEFAULT_ERASER_RADIUS =
+  (OPEN_BRUSH_ERASER_SIZE_RANGE[0] + OPEN_BRUSH_ERASER_SIZE_RANGE[1]) * 0.5;
+
 export interface OpenBrushToolDescriptor {
   id: OpenBrushToolId;
   label: string;

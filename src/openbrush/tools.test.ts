@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  OPEN_BRUSH_DEFAULT_ERASER_RADIUS,
+  OPEN_BRUSH_ERASER_SIZE_RANGE,
   getNextOpenBrushTool,
   isOpenBrushToolId,
   openBrushTools,
@@ -31,6 +33,8 @@ describe("Open Brush tools", () => {
     expect(eraser.samplingMode).toBe("none");
     expect(eraser.snapMode).toBe("none");
     expect(eraser.lazyMode).toBe("none");
+    expect(OPEN_BRUSH_ERASER_SIZE_RANGE).toEqual([0.1, 0.3]);
+    expect(OPEN_BRUSH_DEFAULT_ERASER_RADIUS).toBeCloseTo(0.2);
   });
 
   it("marks straightedge as a painting line-sampling tool", () => {
