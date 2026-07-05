@@ -50,11 +50,8 @@ import {
   normalizeBrushSize01,
 } from "../openbrush/brush-size.js";
 import { indexedTriangleGeometryIntersectsSphere } from "../openbrush/geometry-intersections.js";
-import {
-  canToolAffectStroke,
-  strokeIntersectsEraser,
-  strokeIntersectsTool,
-} from "../openbrush/tool-intersections.js";
+import { isOpenBrushEraserHit } from "../openbrush/stroke-eraser.js";
+import { strokeIntersectsTool } from "../openbrush/tool-intersections.js";
 import {
   OPEN_BRUSH_ERASER_FORWARD_OFFSET,
   isOpenBrushPanelFocusStatus,
@@ -788,24 +785,21 @@ export class StrokeAuthoringSystem extends createSystem({
         boundsOffset,
         boundsIncludeBrushWidth: true,
       };
-      if (!canToolAffectStroke(candidate, activeLayerIndex)) {
-        continue;
-      }
-
       const geometryHit = this.strokeGeometryIntersectsSphere(
         entity,
         this.eraserCenter,
         eraserRadius,
       );
-      if (
-        geometryHit ??
-        strokeIntersectsEraser(
+      if (isOpenBrushEraserHit(
+        {
+          value: entity,
           candidate,
-          activeLayerIndex,
-          this.eraserCenter,
-          eraserRadius,
-        )
-      ) {
+          geometryHit,
+        },
+        activeLayerIndex,
+        this.eraserCenter,
+        eraserRadius,
+      )) {
         erasedStrokes.push(entity);
       }
     }
