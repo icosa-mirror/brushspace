@@ -1,7 +1,12 @@
 export const OPEN_BRUSH_DEFAULT_SIZE01 = 0.5;
 export type BrushSizeRange = readonly [number, number];
+export interface ResolvedBrushSize {
+  size01: number;
+  size: number;
+}
 
 export const OPEN_BRUSH_DEFAULT_BRUSH_SIZE_RANGE: BrushSizeRange = [0.05, 3];
+export const OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP = 0.05;
 
 // Open Brush stores normalized BrushSize01 in UI state and absolute brushSize on
 // strokes. The IWSDK live scale keeps current renderer units usable while range
@@ -58,6 +63,20 @@ export function brushSize01ToLiveBrushSize(
     brushSize01ToOpenBrushSize(size01, normalizeBrushSizeRange(range)) *
     OPEN_BRUSH_IWSDK_BRUSH_SIZE_SCALE
   );
+}
+
+export function resolveBrushSize01Adjustment(
+  currentSize01: number,
+  delta: number,
+  range?: BrushSizeRange,
+): ResolvedBrushSize {
+  const size01 = normalizeBrushSize01(
+    normalizeBrushSize01(currentSize01) + delta,
+  );
+  return {
+    size01,
+    size: brushSize01ToLiveBrushSize(size01, range),
+  };
 }
 
 export function liveBrushSizeToSize01(

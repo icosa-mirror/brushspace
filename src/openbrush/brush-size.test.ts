@@ -11,6 +11,7 @@ import {
   normalizeBrushSize01,
   normalizeBrushSizeRange,
   openBrushSizeToBrushSize01,
+  resolveBrushSize01Adjustment,
 } from "./brush-size.js";
 
 describe("Open Brush brush size", () => {
@@ -65,5 +66,19 @@ describe("Open Brush brush size", () => {
 
     expect(liveSize).toBeGreaterThan(0);
     expect(liveBrushSizeToSize01(liveSize, lightRange)).toBeCloseTo(0.65);
+  });
+
+  it("resolves normalized UI size nudges into live brush sizes", () => {
+    const lightRange = [0.05, 0.2] as const;
+    const increased = resolveBrushSize01Adjustment(0.5, 0.05, lightRange);
+    const clampedLow = resolveBrushSize01Adjustment(0.01, -0.1, lightRange);
+    const clampedHigh = resolveBrushSize01Adjustment(0.98, 0.1, lightRange);
+
+    expect(increased.size01).toBeCloseTo(0.55);
+    expect(increased.size).toBeCloseTo(
+      brushSize01ToLiveBrushSize(0.55, lightRange),
+    );
+    expect(clampedLow.size01).toBe(0);
+    expect(clampedHigh.size01).toBe(1);
   });
 });

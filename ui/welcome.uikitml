@@ -100,6 +100,7 @@
   }
 
   #brush-next-button,
+  #brush-size-up-button,
   #history-redo-button,
   #tool-eraser-button,
   #tool-mirror-button,
@@ -187,6 +188,10 @@
       <div class="button-row">
         <button id="brush-previous-button" class="brush-button">Prev</button>
         <button id="brush-next-button" class="brush-button">Next</button>
+      </div>
+      <div class="button-row">
+        <button id="brush-size-down-button" class="brush-button">Size -</button>
+        <button id="brush-size-up-button" class="brush-button">Size +</button>
       </div>
       <span class="section-label">Layer</span>
       <span id="active-layer-name" class="brush-name">Sketch</span>

@@ -28,10 +28,12 @@ import {
   selectableOpenBrushes,
 } from "./openbrush/brush-catalog.js";
 import {
+  OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP,
   OPEN_BRUSH_DEFAULT_SIZE01,
   brushSize01ToLiveBrushSize,
   liveBrushSizeToSize01,
   normalizeBrushSize01,
+  resolveBrushSize01Adjustment,
 } from "./openbrush/brush-size.js";
 import { findBrushByGuid } from "./openbrush/brush-inventory.js";
 import {
@@ -183,6 +185,15 @@ export class PanelSystem extends createSystem({
       }
       this.updateWandToolLabels(document);
     }
+    for (const entity of this.queries.wandBrushPanel.entities) {
+      const document = PanelDocument.data.document[
+        entity.index
+      ] as UIKitDocument;
+      if (!document) {
+        continue;
+      }
+      this.updateBrushLabels(document);
+    }
   }
 
   private setupPanel(entity: Entity): void {
@@ -214,6 +225,8 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "tool-erase-button");
     this.nameElement(document, "brush-previous-button");
     this.nameElement(document, "brush-next-button");
+    this.nameElement(document, "brush-size-down-button");
+    this.nameElement(document, "brush-size-up-button");
     this.nameElement(document, "layer-new-button");
     this.nameElement(document, "layer-next-button");
     this.nameElement(document, "layer-toggle-visible-button");
@@ -372,6 +385,20 @@ export class PanelSystem extends createSystem({
     ) as TextElement;
     nextBrushButton?.addEventListener("click", () => {
       this.selectBrushOffset(1);
+    });
+
+    const brushSizeDownButton = document.getElementById(
+      "brush-size-down-button",
+    ) as TextElement;
+    brushSizeDownButton?.addEventListener("click", () => {
+      this.adjustBrushSize01(-OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP);
+    });
+
+    const brushSizeUpButton = document.getElementById(
+      "brush-size-up-button",
+    ) as TextElement;
+    brushSizeUpButton?.addEventListener("click", () => {
+      this.adjustBrushSize01(OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP);
     });
 
     const newLayerButton = document.getElementById(
@@ -633,6 +660,11 @@ export class PanelSystem extends createSystem({
     const document = PanelDocument.data.document[entity.index] as UIKitDocument;
     this.nameElement(document, "brush-prev");
     this.nameElement(document, "brush-next");
+    this.nameElement(document, "brush-size-down");
+    this.nameElement(document, "brush-size-up");
+    this.nameElement(document, "wand-brush-name");
+    this.nameElement(document, "wand-brush-meta");
+    this.nameElement(document, "wand-brush-size");
 
     const previousBrushButton = document.getElementById(
       "brush-prev",
@@ -645,6 +677,22 @@ export class PanelSystem extends createSystem({
     nextBrushButton?.addEventListener("click", () => {
       this.selectBrushOffset(1);
     });
+
+    const brushSizeDownButton = document.getElementById(
+      "brush-size-down",
+    ) as TextElement;
+    brushSizeDownButton?.addEventListener("click", () => {
+      this.adjustBrushSize01(-OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP);
+    });
+
+    const brushSizeUpButton = document.getElementById(
+      "brush-size-up",
+    ) as TextElement;
+    brushSizeUpButton?.addEventListener("click", () => {
+      this.adjustBrushSize01(OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP);
+    });
+
+    this.updateBrushLabels(document);
   }
 
   private setupWandColorPanel(entity: Entity): void {
@@ -883,6 +931,23 @@ export class PanelSystem extends createSystem({
     this.syncBrushSettingsSize(settingsEntity, nextBrush.guid);
   }
 
+  private adjustBrushSize01(delta: number): void {
+    const settingsEntity = this.getBrushSettingsEntity();
+    if (!settingsEntity) {
+      return;
+    }
+    const brushGuid = String(settingsEntity.getValue(BrushSettings, "brushGuid"));
+    const brush = findBrushByGuid(openBrushInventory, brushGuid);
+    const next = resolveBrushSize01Adjustment(
+      Number(settingsEntity.getValue(BrushSettings, "size01")),
+      delta,
+      brush?.brushSizeRange,
+    );
+    settingsEntity.setValue(BrushSettings, "size01", next.size01);
+    settingsEntity.setValue(BrushSettings, "size", next.size);
+    this.touchAppState();
+  }
+
   private setBrushColor(color: readonly [number, number, number, number]): void {
     const settingsEntity = this.getBrushSettingsEntity();
     if (!settingsEntity) {
@@ -962,6 +1027,19 @@ export class PanelSystem extends createSystem({
 
     this.setText(document, "active-brush-name", activeBrush?.name ?? "No brush");
     this.setText(document, "active-brush-meta", brushMeta);
+    this.setText(document, "wand-brush-name", activeBrush?.name ?? "No brush");
+    this.setText(
+      document,
+      "wand-brush-meta",
+      activeBrush
+        ? `${activeBrush.geometryFamily} / ${catalogPosition}`
+        : "unavailable",
+    );
+    this.setText(
+      document,
+      "wand-brush-size",
+      `Size ${Math.round(size01 * 100)}% (${size.toFixed(3)})`,
+    );
     this.setText(
       document,
       "brush-catalog-counts",
