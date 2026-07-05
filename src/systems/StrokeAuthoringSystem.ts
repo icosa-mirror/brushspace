@@ -9,6 +9,7 @@ import {
   NormalBlending,
   PanelUI,
   Quaternion,
+  Transform,
   Vector3,
   createSystem,
 } from "@iwsdk/core";
@@ -49,7 +50,7 @@ import {
 } from "../openbrush/brush-size.js";
 import { indexedTriangleGeometryIntersectsSphere } from "../openbrush/geometry-intersections.js";
 import { isOpenBrushEraserHit } from "../openbrush/stroke-eraser.js";
-import { strokeIntersectsTool } from "../openbrush/tool-intersections.js";
+import { isOpenBrushPickerHit } from "../openbrush/stroke-picker.js";
 import {
   OPEN_BRUSH_ERASER_FORWARD_OFFSET,
   isOpenBrushPanelFocusStatus,
@@ -178,12 +179,12 @@ export class StrokeAuthoringSystem extends createSystem({
     const rawPaintPressed = Boolean(
       commandEntity.getValue(InputCommandState, "paintPressed"),
     );
-    if (rawPaintPressed) {
-      this.samplePointerPose(commandEntity);
-    }
     const commandSource = String(commandEntity.getValue(InputCommandState, "source"));
     const activeTool = this.getActiveTool();
     const appStateEntity = this.getFirstEntity("appState");
+    if (rawPaintPressed) {
+      this.samplePointerPose(commandEntity, activeTool);
+    }
     if (!rawPaintPressed || !activeTool.erases) {
       this.eraseHoldErasedCount = 0;
     }
@@ -955,18 +956,29 @@ export class StrokeAuthoringSystem extends createSystem({
         entity,
         this.strokeBoundsOffset,
       );
+      const commandIndex = Number(entity.getValue(BrushStroke, "commandIndex"));
+      const geometryHit = this.strokeGeometryIntersectsSphere(
+        entity,
+        center,
+        radius,
+      );
       if (
-        !strokeIntersectsTool(
+        !isOpenBrushPickerHit(
           {
-            layerIndex: Number(entity.getValue(BrushStroke, "layerIndex")),
-            finalized: Boolean(entity.getValue(BrushStroke, "finalized")),
-            visible: Boolean(entity.getValue(BrushStroke, "visible")),
-            renderVisible: Boolean(entity.getValue(BrushStroke, "renderVisible")),
-            brushSize: Number(entity.getValue(BrushStroke, "brushSize")),
-            minBounds,
-            maxBounds,
-            boundsOffset,
-            boundsIncludeBrushWidth: true,
+            value: entity,
+            commandIndex,
+            candidate: {
+              layerIndex: Number(entity.getValue(BrushStroke, "layerIndex")),
+              finalized: Boolean(entity.getValue(BrushStroke, "finalized")),
+              visible: Boolean(entity.getValue(BrushStroke, "visible")),
+              renderVisible: Boolean(entity.getValue(BrushStroke, "renderVisible")),
+              brushSize: Number(entity.getValue(BrushStroke, "brushSize")),
+              minBounds,
+              maxBounds,
+              boundsOffset,
+              boundsIncludeBrushWidth: true,
+            },
+            geometryHit,
           },
           activeLayerIndex,
           center,
@@ -976,7 +988,6 @@ export class StrokeAuthoringSystem extends createSystem({
         continue;
       }
 
-      const commandIndex = Number(entity.getValue(BrushStroke, "commandIndex"));
       if (commandIndex > newestCommandIndex) {
         newestCommandIndex = commandIndex;
         target = entity;
@@ -1254,7 +1265,10 @@ export class StrokeAuthoringSystem extends createSystem({
     }
   }
 
-  private samplePointerPose(commandEntity: Entity): void {
+  private samplePointerPose(
+    commandEntity: Entity,
+    activeTool: OpenBrushToolDescriptor,
+  ): void {
     const hand = String(commandEntity.getValue(InputCommandState, "primaryHand"));
     const source = String(commandEntity.getValue(InputCommandState, "source"));
     if (source === "xr-left" || hand === "left") {
@@ -1262,17 +1276,16 @@ export class StrokeAuthoringSystem extends createSystem({
       this.world.player.gripSpaces.left.getWorldQuaternion(this.sampleQuaternion);
       this.world.player.raySpaces.left.getWorldPosition(this.panelRayPosition);
       this.world.player.raySpaces.left.getWorldQuaternion(this.panelRayQuaternion);
-      return;
-    }
-    if (source === "xr-right" || hand === "right") {
+    } else if (source === "xr-right" || hand === "right") {
       this.world.player.gripSpaces.right.getWorldPosition(this.samplePosition);
       this.world.player.gripSpaces.right.getWorldQuaternion(this.sampleQuaternion);
       this.world.player.raySpaces.right.getWorldPosition(this.panelRayPosition);
       this.world.player.raySpaces.right.getWorldQuaternion(this.panelRayQuaternion);
-      return;
+    } else {
+      this.sampleBrowserPointerPose(commandEntity);
     }
 
-    this.sampleBrowserPointerPose(commandEntity);
+    this.writeSampledBrushPointerState(commandEntity, activeTool);
   }
 
   private sampleBrowserPointerPose(commandEntity: Entity): void {
@@ -1397,6 +1410,31 @@ export class StrokeAuthoringSystem extends createSystem({
       if (entity.getValue(BrushPointer, "isDrawing")) {
         entity.setValue(BrushPointer, "sampleCount", sampleCount);
       }
+    }
+  }
+
+  private writeSampledBrushPointerState(
+    commandEntity: Entity,
+    activeTool: OpenBrushToolDescriptor,
+  ): void {
+    const hand = String(commandEntity.getValue(InputCommandState, "primaryHand"));
+    for (const entity of this.queries.pointers.entities) {
+      if (String(entity.getValue(BrushPointer, "hand")) !== hand) {
+        continue;
+      }
+      entity.setValue(BrushPointer, "tool", activeTool.id);
+      const position = entity.getVectorView(Transform, "position") as Float32Array;
+      position[0] = this.samplePosition.x;
+      position[1] = this.samplePosition.y;
+      position[2] = this.samplePosition.z;
+      const orientation = entity.getVectorView(
+        Transform,
+        "orientation",
+      ) as Float32Array;
+      orientation[0] = this.sampleQuaternion.x;
+      orientation[1] = this.sampleQuaternion.y;
+      orientation[2] = this.sampleQuaternion.z;
+      orientation[3] = this.sampleQuaternion.w;
     }
   }
 
