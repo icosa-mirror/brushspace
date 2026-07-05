@@ -25,9 +25,11 @@ import {
   UiCommandHistoryState,
 } from "../components/OpenBrushCore.js";
 import {
-  OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE,
   OPEN_BRUSH_DEFAULT_SIZE01,
+  brushSize01ToLiveBrushSize,
 } from "./brush-size.js";
+import { findBrushByGuid } from "./brush-inventory.js";
+import { openBrushInventory } from "./brush-catalog.js";
 import { PHASE1_FIXTURE_BRUSH_GUID } from "./fixtures.js";
 
 export interface OpenBrushShellEntities {
@@ -39,6 +41,10 @@ export interface OpenBrushShellEntities {
 }
 
 export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
+  const initialBrush = findBrushByGuid(
+    openBrushInventory,
+    PHASE1_FIXTURE_BRUSH_GUID,
+  );
   const appState = world
     .createTransformEntity()
     .addComponent(OpenBrushAppState, {
@@ -54,7 +60,10 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
     .addComponent(BrushSettings, {
       brushGuid: PHASE1_FIXTURE_BRUSH_GUID,
       size01: OPEN_BRUSH_DEFAULT_SIZE01,
-      size: OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE,
+      size: brushSize01ToLiveBrushSize(
+        OPEN_BRUSH_DEFAULT_SIZE01,
+        initialBrush?.brushSizeRange,
+      ),
       color: [0.1, 0.45, 0.95, 1],
     })
     .addComponent(InputCommandState)

@@ -22,10 +22,18 @@ import {
 } from "./components/OpenBrushCore.js";
 import {
   cycleSelectableBrush,
+  openBrushInventory,
   openBrushInventorySummary,
   resolveSelectableBrushIndex,
   selectableOpenBrushes,
 } from "./openbrush/brush-catalog.js";
+import {
+  OPEN_BRUSH_DEFAULT_SIZE01,
+  brushSize01ToLiveBrushSize,
+  liveBrushSizeToSize01,
+  normalizeBrushSize01,
+} from "./openbrush/brush-size.js";
+import { findBrushByGuid } from "./openbrush/brush-inventory.js";
 import {
   createNextLayerState,
   cycleLayerIndex,
@@ -689,6 +697,11 @@ export class PanelSystem extends createSystem({
       "brushGuid",
       String(target.getValue(BrushStroke, "brushGuid")),
     );
+    this.applyPickedBrushSize(
+      settingsEntity,
+      String(target.getValue(BrushStroke, "brushGuid")),
+      Number(target.getValue(BrushStroke, "brushSize")),
+    );
     this.setToolStatus(appState, `picked brush #${commandIndex}`, true);
   }
 
@@ -702,6 +715,35 @@ export class PanelSystem extends createSystem({
     );
     const nextBrush = cycleSelectableBrush(currentBrushGuid, offset);
     settingsEntity.setValue(BrushSettings, "brushGuid", nextBrush.guid);
+    this.syncBrushSettingsSize(settingsEntity, nextBrush.guid);
+  }
+
+  private applyPickedBrushSize(
+    settingsEntity: Entity,
+    brushGuid: string,
+    pickedLiveSize: number,
+  ): void {
+    const brush = findBrushByGuid(openBrushInventory, brushGuid);
+    const size01 = liveBrushSizeToSize01(pickedLiveSize, brush?.brushSizeRange);
+    settingsEntity.setValue(BrushSettings, "size01", size01);
+    settingsEntity.setValue(
+      BrushSettings,
+      "size",
+      brushSize01ToLiveBrushSize(size01, brush?.brushSizeRange),
+    );
+  }
+
+  private syncBrushSettingsSize(settingsEntity: Entity, brushGuid: string): void {
+    const brush = findBrushByGuid(openBrushInventory, brushGuid);
+    const size01 = normalizeBrushSize01(
+      Number(settingsEntity.getValue(BrushSettings, "size01")),
+    );
+    settingsEntity.setValue(BrushSettings, "size01", size01);
+    settingsEntity.setValue(
+      BrushSettings,
+      "size",
+      brushSize01ToLiveBrushSize(size01, brush?.brushSizeRange),
+    );
   }
 
   private updateBrushLabels(document: UIKitDocument): void {
@@ -712,15 +754,25 @@ export class PanelSystem extends createSystem({
     const activeIndex = resolveSelectableBrushIndex(activeBrushGuid);
     const activeBrush = selectableOpenBrushes[activeIndex];
     const catalogPosition = `${activeIndex + 1}/${selectableOpenBrushes.length}`;
+    const size01 = settingsEntity
+      ? normalizeBrushSize01(
+          Number(settingsEntity.getValue(BrushSettings, "size01")),
+        )
+      : OPEN_BRUSH_DEFAULT_SIZE01;
+    const size = settingsEntity
+      ? Number(settingsEntity.getValue(BrushSettings, "size"))
+      : brushSize01ToLiveBrushSize(size01, activeBrush?.brushSizeRange);
+    const brushMeta = activeBrush
+      ? [
+          activeBrush.geometryFamily,
+          activeBrush.materialFamily,
+          catalogPosition,
+          `size ${Math.round(size01 * 100)}% (${size.toFixed(3)})`,
+        ].join(" / ")
+      : "unavailable";
 
     this.setText(document, "active-brush-name", activeBrush?.name ?? "No brush");
-    this.setText(
-      document,
-      "active-brush-meta",
-      activeBrush
-        ? `${activeBrush.geometryFamily} / ${activeBrush.materialFamily} / ${catalogPosition}`
-        : "unavailable",
-    );
+    this.setText(document, "active-brush-meta", brushMeta);
     this.setText(
       document,
       "brush-catalog-counts",

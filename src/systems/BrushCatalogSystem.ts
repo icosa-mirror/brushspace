@@ -17,6 +17,10 @@ import {
   findBrushByGuid,
   type BrushInventoryEntry,
 } from "../openbrush/brush-inventory.js";
+import {
+  brushSize01ToLiveBrushSize,
+  normalizeBrushSize01,
+} from "../openbrush/brush-size.js";
 import { PHASE1_FIXTURE_BRUSH_GUID } from "../openbrush/fixtures.js";
 
 export class BrushCatalogSystem extends createSystem({
@@ -58,6 +62,7 @@ export class BrushCatalogSystem extends createSystem({
     }
 
     const activeBrush = selectableOpenBrushes[this.activeIndex];
+    this.syncBrushSize(settingsEntity, activeBrush);
     for (const entity of this.queries.catalog.entities) {
       this.applyCatalogState(entity, activeBrush);
     }
@@ -66,6 +71,22 @@ export class BrushCatalogSystem extends createSystem({
   private applyActiveBrush(settingsEntity: Entity): void {
     const activeBrush = selectableOpenBrushes[this.activeIndex];
     settingsEntity.setValue(BrushSettings, "brushGuid", activeBrush.guid);
+    this.syncBrushSize(settingsEntity, activeBrush);
+  }
+
+  private syncBrushSize(
+    settingsEntity: Entity,
+    activeBrush: BrushInventoryEntry | undefined,
+  ): void {
+    const size01 = normalizeBrushSize01(
+      Number(settingsEntity.getValue(BrushSettings, "size01")),
+    );
+    const liveSize = brushSize01ToLiveBrushSize(
+      size01,
+      activeBrush?.brushSizeRange,
+    );
+    settingsEntity.setValue(BrushSettings, "size01", size01);
+    settingsEntity.setValue(BrushSettings, "size", liveSize);
   }
 
   private applyCatalogState(

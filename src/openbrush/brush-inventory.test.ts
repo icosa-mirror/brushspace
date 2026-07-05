@@ -33,6 +33,7 @@ describe("Open Brush brush inventory", () => {
       supportStatus: "supported",
       geometryFamily: "ribbon",
       materialFamily: "standard",
+      brushSizeRange: [0.05, 3],
     });
     expect(
       findBrushByGuid(inventory, "2d35bcf0-e4d8-452c-97b1-3311be063130"),
@@ -40,6 +41,7 @@ describe("Open Brush brush inventory", () => {
       name: "Flat",
       supportStatus: "supported",
       geometryFamily: "ribbon",
+      brushSizeRange: [0.025, 3],
     });
     expect(
       findBrushByGuid(inventory, "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62"),
@@ -48,6 +50,7 @@ describe("Open Brush brush inventory", () => {
       supportStatus: "supported",
       geometryFamily: "emissive",
       materialFamily: "additive",
+      brushSizeRange: [0.05, 0.2],
     });
     expect(
       findBrushByGuid(inventory, "8e58ceea-7830-49b4-aba9-6215104ab52a"),
@@ -55,6 +58,7 @@ describe("Open Brush brush inventory", () => {
       name: "MylarTube",
       supportStatus: "supported",
       geometryFamily: "tube",
+      brushSizeRange: [0.08, 1],
     });
     expect(
       findBrushByGuid(inventory, "70d79cca-b159-4f35-990c-f02193947fe8"),
@@ -62,6 +66,7 @@ describe("Open Brush brush inventory", () => {
       name: "Smoke",
       supportStatus: "fallback",
       geometryFamily: "particle",
+      brushSizeRange: [1, 2],
     });
   });
 

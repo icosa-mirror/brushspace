@@ -99,6 +99,7 @@ function createBrush(
     supportStatus: overrides.supportStatus ?? "supported",
     geometryFamily: overrides.geometryFamily ?? "ribbon",
     materialFamily: overrides.materialFamily ?? "standard",
+    brushSizeRange: overrides.brushSizeRange ?? [0.05, 3],
     unsupportedReason: overrides.unsupportedReason,
   };
 }

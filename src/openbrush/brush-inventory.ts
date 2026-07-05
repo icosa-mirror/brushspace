@@ -1,4 +1,5 @@
 import { normalizeGuid } from "./binary.js";
+import type { BrushSizeRange } from "./brush-size.js";
 
 export type BrushSupportStatus = "supported" | "fallback" | "unsupported";
 
@@ -42,6 +43,7 @@ export interface BrushInventoryEntry extends OpenBrushExportBrush {
   supportStatus: BrushSupportStatus;
   geometryFamily: BrushGeometryFamily;
   materialFamily: BrushMaterialFamily;
+  brushSizeRange: BrushSizeRange;
   unsupportedReason?: string;
 }
 
@@ -54,7 +56,11 @@ export interface BrushInventorySummary {
 
 type BrushSupportDecision = Pick<
   BrushInventoryEntry,
-  "supportStatus" | "geometryFamily" | "materialFamily" | "unsupportedReason"
+  | "supportStatus"
+  | "geometryFamily"
+  | "materialFamily"
+  | "brushSizeRange"
+  | "unsupportedReason"
 >;
 
 const MVP_BRUSH_SUPPORT: Record<string, BrushSupportDecision> = {
@@ -62,26 +68,31 @@ const MVP_BRUSH_SUPPORT: Record<string, BrushSupportDecision> = {
     supportStatus: "supported",
     geometryFamily: "ribbon",
     materialFamily: "standard",
+    brushSizeRange: [0.05, 3],
   },
   "2d35bcf0-e4d8-452c-97b1-3311be063130": {
     supportStatus: "supported",
     geometryFamily: "ribbon",
     materialFamily: "unlit",
+    brushSizeRange: [0.025, 3],
   },
   "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62": {
     supportStatus: "supported",
     geometryFamily: "emissive",
     materialFamily: "additive",
+    brushSizeRange: [0.05, 0.2],
   },
   "8e58ceea-7830-49b4-aba9-6215104ab52a": {
     supportStatus: "supported",
     geometryFamily: "tube",
     materialFamily: "standard",
+    brushSizeRange: [0.08, 1],
   },
   "70d79cca-b159-4f35-990c-f02193947fe8": {
     supportStatus: "fallback",
     geometryFamily: "particle",
     materialFamily: "particle",
+    brushSizeRange: [1, 2],
     unsupportedReason: "Particle brush geometry and shader semantics are deferred until batching is stable.",
   },
 };
@@ -90,6 +101,7 @@ const DEFAULT_UNSUPPORTED: BrushSupportDecision = {
   supportStatus: "unsupported",
   geometryFamily: "unsupported",
   materialFamily: "fallback",
+  brushSizeRange: [0.05, 3],
   unsupportedReason: "Brush has not been mapped to an IWSDK geometry/material family yet.",
 };
 
@@ -109,6 +121,7 @@ export function buildBrushInventoryFromExportManifest(
       supportStatus: support.supportStatus,
       geometryFamily: support.geometryFamily,
       materialFamily: support.materialFamily,
+      brushSizeRange: support.brushSizeRange,
       unsupportedReason: support.unsupportedReason,
     };
   });
