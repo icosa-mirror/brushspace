@@ -570,6 +570,7 @@ export class StrokeAuthoringSystem extends createSystem({
     stroke.geometry.setAttribute("uv", new BufferAttribute(generated.uvs, 2));
     stroke.geometry.setIndex(new BufferAttribute(generated.indices, 1));
     stroke.geometry.setDrawRange(0, generated.indices.length);
+    this.copyGeneratedBounds(stroke, generated.bounds.min, generated.bounds.max);
     stroke.entity.setValue(
       BrushStroke,
       "vertexCount",
@@ -579,6 +580,30 @@ export class StrokeAuthoringSystem extends createSystem({
     if (generated.warning) {
       stroke.entity.setValue(BrushStroke, "renderWarning", generated.warning);
     }
+  }
+
+  private copyGeneratedBounds(
+    stroke: RuntimeStroke,
+    minBounds: Vec3,
+    maxBounds: Vec3,
+  ): void {
+    if (
+      !Number.isFinite(minBounds[0]) ||
+      !Number.isFinite(minBounds[1]) ||
+      !Number.isFinite(minBounds[2]) ||
+      !Number.isFinite(maxBounds[0]) ||
+      !Number.isFinite(maxBounds[1]) ||
+      !Number.isFinite(maxBounds[2])
+    ) {
+      return;
+    }
+
+    stroke.minBounds[0] = minBounds[0];
+    stroke.minBounds[1] = minBounds[1];
+    stroke.minBounds[2] = minBounds[2];
+    stroke.maxBounds[0] = maxBounds[0];
+    stroke.maxBounds[1] = maxBounds[1];
+    stroke.maxBounds[2] = maxBounds[2];
   }
 
   private recalculateBounds(stroke: RuntimeStroke): void {
@@ -719,6 +744,7 @@ export class StrokeAuthoringSystem extends createSystem({
             minBounds,
             maxBounds,
             boundsOffset,
+            boundsIncludeBrushWidth: true,
           },
           activeLayerIndex,
           this.eraserCenter,
@@ -804,6 +830,7 @@ export class StrokeAuthoringSystem extends createSystem({
             minBounds,
             maxBounds,
             boundsOffset,
+            boundsIncludeBrushWidth: true,
           },
           activeLayerIndex,
           center,

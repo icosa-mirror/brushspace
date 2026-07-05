@@ -35,6 +35,43 @@ describe("brush geometry generation", () => {
     expect(geometry.bounds.max[0]).toBeGreaterThan(0.2);
   });
 
+  it("expands generated bounds by visible ribbon width", () => {
+    const stroke: StrokeData = {
+      guid: "wide-ribbon",
+      brushGuid: "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62",
+      brushSize: 0.2,
+      brushScale: 1,
+      color: [1, 1, 1, 1],
+      layerIndex: 0,
+      flags: 0,
+      seed: 1,
+      groupId: 1,
+      controlPoints: [
+        {
+          position: [0, 0, 0],
+          orientation: [0, 0, 0, 1],
+          pressure: 1,
+          timestampMs: 0,
+        },
+        {
+          position: [1, 0, 0],
+          orientation: [0, 0, 0, 1],
+          pressure: 1,
+          timestampMs: 16,
+        },
+      ],
+    };
+
+    const geometry = generateBrushGeometry(stroke, "ribbon");
+
+    expect(geometry.bounds.min[0]).toBeCloseTo(0);
+    expect(geometry.bounds.min[1]).toBeCloseTo(0);
+    expect(geometry.bounds.min[2]).toBeCloseTo(-0.1);
+    expect(geometry.bounds.max[0]).toBeCloseTo(1);
+    expect(geometry.bounds.max[1]).toBeCloseTo(0);
+    expect(geometry.bounds.max[2]).toBeCloseTo(0.1);
+  });
+
   it("generates stable tube geometry", () => {
     const stroke = withBrushGuid(fixtureStroke, "8e58ceea-7830-49b4-aba9-6215104ab52a");
     const family = findBrushByGuid(inventory, stroke.brushGuid)?.geometryFamily;

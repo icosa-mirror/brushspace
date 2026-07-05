@@ -26,6 +26,20 @@ describe("tool intersections", () => {
     expect(strokeIntersectsEraser(baseStroke, 0, [0.16, 1, -1], 0.03)).toBe(false);
   });
 
+  it("does not double inflate bounds that already include brush width", () => {
+    const geometryBoundStroke: ToolStrokeIntersectionCandidate = {
+      ...baseStroke,
+      boundsIncludeBrushWidth: true,
+    };
+
+    expect(strokeIntersectsEraser(geometryBoundStroke, 0, [0.13, 1, -1], 0.03)).toBe(
+      true,
+    );
+    expect(
+      strokeIntersectsEraser(geometryBoundStroke, 0, [0.14, 1, -1], 0.03),
+    ).toBe(false);
+  });
+
   it("shares the same visible finalized stroke filtering for picker tools", () => {
     expect(strokeIntersectsTool(baseStroke, 0, [0.1, 1, -1], 0.005)).toBe(true);
     expect(strokeIntersectsTool(baseStroke, 0, [0.13, 1, -1], 0.005)).toBe(false);

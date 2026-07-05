@@ -9,6 +9,7 @@ export interface ToolStrokeIntersectionCandidate {
   minBounds: Vec3;
   maxBounds: Vec3;
   boundsOffset?: Vec3;
+  boundsIncludeBrushWidth?: boolean;
 }
 
 export function strokeIntersectsEraser(
@@ -35,7 +36,9 @@ export function strokeIntersectsTool(
     return false;
   }
 
-  const strokeRadius = Math.max(0, stroke.brushSize) * 0.5;
+  const strokeRadius = stroke.boundsIncludeBrushWidth
+    ? 0
+    : Math.max(0, stroke.brushSize) * 0.5;
   const radius = Math.max(0, toolRadius) + strokeRadius;
   return (
     distanceSqToAabb(
