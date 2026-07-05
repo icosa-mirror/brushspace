@@ -19,12 +19,23 @@ import {
   type OpenBrushCommandInputs,
   type OpenBrushCommandSnapshot,
 } from "../openbrush/command-mapper.js";
+import {
+  resolveWandPanelThumbstickDirection,
+  shouldApplyWandPanelRotation,
+  type WandPanelThumbstickDirection,
+} from "../openbrush/wand-panel-controls.js";
 
 interface CommandGamepad {
   getButtonPressed(id: string): boolean;
   getButtonDown(id: string): boolean;
   getButtonUp(id: string): boolean;
   getButtonValue(id: string): number;
+  getAxesValues(id: string): Axis2D | undefined;
+}
+
+interface Axis2D {
+  x: number;
+  y: number;
 }
 
 type Handedness = "left" | "right";
@@ -55,6 +66,7 @@ export class InputCommandSystem extends createSystem({
   private commandRevision = 0;
   private browserPointerEnabled = true;
   private xrRayEnabled = true;
+  private wandPanelThumbstickDirection: WandPanelThumbstickDirection = 0;
 
   init() {
     this.attachBrowserPointerEvents();
@@ -90,6 +102,7 @@ export class InputCommandSystem extends createSystem({
       this.commandRouting,
       this.xrRayEnabled,
     );
+    this.updateWandPanelRotation(settings);
     this.updateKeyboardInput(this.keyboardInput);
 
     resolveOpenBrushCommandFrame(
@@ -150,6 +163,59 @@ export class InputCommandSystem extends createSystem({
         target.redoDown = gamepad.getButtonDown(InputComponent.Y_Button);
       }
     }
+  }
+
+  private updateWandPanelRotation(settings: Entity | undefined): void {
+    if (!settings || !this.xrRayEnabled) {
+      this.wandPanelThumbstickDirection = 0;
+      return;
+    }
+
+    const gamepad = this.world.input.xr.gamepads[this.commandRouting.wandHand] as
+      | CommandGamepad
+      | undefined;
+    if (!gamepad) {
+      this.wandPanelThumbstickDirection = 0;
+      return;
+    }
+
+    const axes = gamepad.getAxesValues(InputComponent.Thumbstick);
+    const nextDirection = resolveWandPanelThumbstickDirection(axes?.x ?? 0);
+    if (
+      shouldApplyWandPanelRotation(
+        this.wandPanelThumbstickDirection,
+        nextDirection,
+      )
+    ) {
+      this.applyWandPanelRotation(settings, nextDirection);
+    }
+    this.wandPanelThumbstickDirection = nextDirection;
+  }
+
+  private applyWandPanelRotation(
+    settings: Entity,
+    direction: WandPanelThumbstickDirection,
+  ): void {
+    if (direction === 0) {
+      return;
+    }
+    settings.setValue(
+      SettingsState,
+      "wandPanelRotationSteps",
+      Number(settings.getValue(SettingsState, "wandPanelRotationSteps")) +
+        direction,
+    );
+    settings.setValue(
+      SettingsState,
+      "settingsRevision",
+      Number(settings.getValue(SettingsState, "settingsRevision")) + 1,
+    );
+    settings.setValue(
+      SettingsState,
+      "lastSettingsCommand",
+      "rotate-wand-panel-ring",
+    );
+    settings.setValue(SettingsState, "settingsStatus", "applied");
   }
 
   private updateKeyboardInput(target: OpenBrushCommandInput): void {
