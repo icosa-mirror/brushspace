@@ -323,6 +323,7 @@ Testing plan:
 Scope:
 
 - Port high-value Open Brush creation tools: eraser, color picker, brush picker, straightedge, lazy input, bimanual/tape mode, mirror/symmetry modes, grid snap, stencils, and basic transform tools.
+- Port each tool's Open Brush spec, not only its label: brush size uses normalized `BrushSize01` mapped through brush-specific size ranges, straightedge/line uses the active pointer brush size, brush/color pickers copy the picked stroke's brush, color, and size where Open Brush does, and eraser is a live brush-controller intersection tool.
 - Preserve deterministic brush seeds and group-continuation flags for multi-stroke tools.
 - Add audio feedback for drawing and tool actions through IWSDK audio components.
 - Keep tool logic separate from rendering and persistence.
@@ -331,16 +332,19 @@ Acceptance criteria:
 
 - Tools operate through a common `ActiveTool` lifecycle with enable/disable/update/late-update equivalents.
 - Symmetry and straightedge generate expected grouped strokes with correct metadata.
-- Eraser and selection operations are undoable and do not leak geometry.
-- Color/brush picker update app state and UI state consistently.
+- Default draw and straightedge strokes use the Open Brush default normalized brush size, not fixture stroke size or raw meter width.
+- Brush size controls persist normalized size and derive absolute stroke size from the active brush range; saved strokes still store absolute `brushSize` and `brushScale`.
+- Eraser deletes only intersected visible/unlocked strokes or widgets through live brush-controller interaction; eraser and selection operations are undoable and do not leak geometry.
+- Color/brush picker update app state and UI state consistently, including picked stroke size when the reference tool does.
 - Tool transitions leave no stuck trigger, `Pressed`, grabbed, or recording state.
 
 Testing plan:
 
 - Unit: tool state machine tests and deterministic symmetry/straightedge fixtures.
+- Unit: brush-size range conversion, default size, picked-size propagation, straightedge thickness parity, and eraser hit/miss tests.
 - Unit: command merge/group continuation tests.
 - Browser: exercise each tool through UI controls and pointer fallback.
-- Runtime E2E: use controller path scripts for straightedge, symmetry, eraser, and picker flows; compare `ecs_snapshot`/`ecs_diff` before/after each operation; query for no active recording state after release.
+- Runtime E2E: use controller path scripts for straightedge, symmetry, eraser, and picker flows; compare `ecs_snapshot`/`ecs_diff` before/after each operation; query for expected stroke size, hidden/deleted stroke counts, undo/redo state, and no active recording state after release.
 
 ## Phase 8: `.tilt` Save/Load, Catalog, and Playback
 
@@ -395,18 +399,26 @@ Testing plan:
 
 Scope:
 
-- Replace placeholder UI with Open Brush/Tilt Brush-style hand-attached controls, not a single large XR panel. Split brush palette, color picker, layers, tools, sketch catalog, settings, save/load/export, and help/status into workflow-specific panels that can attach to the wand/off-hand, detach, respawn, page, scroll, and hide/show like the original interaction model.
-- Preserve controller role behavior: brush hand paints, wand/off-hand manages panels and tool state, handedness swaps controller roles, and bimanual tools can temporarily hide panels or reserve both controller attach points when needed.
-- Port interaction semantics as well as functionality: controller rays, direct panel touch targets, thumbstick/trackpad paging, panel show/hide, wand rotation/placement, hover/press feedback, haptics, and XR visibility/session transitions.
-- Keep browser and desktop parity for core workflows with a consolidated fallback/debug surface where useful, but do not treat that fallback panel as XR UI parity.
+- Treat the current consolidated `welcome` panel as browser/debug fallback only. Phase 10 is incomplete until XR workflows use Open Brush-style spatial panels and controller-role interactions.
+- Build a panel framework before replacing panel contents: `PanelType`, fixed/floating/alternate panel flags, availability modes, popup ownership, cached layout, show/hide transitions, respawn/revive behavior, and API-level open/close/position/attach/detach commands.
+- Implement semantic controller roles. `Brush` and `Wand` roles must map onto physical left/right hands through handedness settings, preserve separate ray/grip/tool/pointer/panel attach points, support touch locator equivalents, and keep geometry stable across swaps.
+- Implement the core off-hand wand ring as spatial UI, not a flat menu: fixed Color, Brush, and Tools panels at 0/120/240 degree slots, wand scroll/snap rotation, panel attach hysteresis, overlap avoidance, error tint, audio, and haptics.
+- Implement floating and alternate panels after the core ring: Layers as floating/attachable, Sketchbook and Settings as wand-attached alternate modes, plus Reference/Camera/Guide/Environment-style surfaces as later panel types.
+- Preserve panel input ownership and interaction semantics: brush ray/head gaze arbitration, direct poke targets, hover/press reticle behavior, component ownership, paging/popups, panel focus suppressing brush preview/painting, and controller material or equivalent affordances.
+- Preserve tool-driven panel visibility. Bimanual/tape/world-grab/loading states request panels hidden, restore them afterward, and keep undo/redo or panel commands gated while drawing, grabbing, or blocked by panel focus.
 - Add accessibility and comfort options: scale, handedness, controller mapping, panel placement, locomotion decision, snap/continuous turn if locomotion is later enabled, and session visibility handling.
 - Add robust error/reporting surfaces for unsupported brushes, invalid files, failed saves, asset load failures, and runtime state.
 
 Acceptance criteria:
 
 - A user can complete the main workflow entirely in XR using hand-attached Open Brush-style controls: choose brush/color, draw, undo/redo, use layers, save, reload, and export without opening one oversized panel.
+- The fixed wand ring has three reachable core panels, rotates by wand scroll/snap controls, and survives `xr_end_session`/re-enter with the same cached layout.
+- Floating panels can open, close, respawn, attach to wand slots, detach into world space, and reject invalid attach positions without losing state.
+- Sketchbook and Settings use alternate wand-attached panel modes with expected dismissal/return behavior; browser/debug fallback remains separate.
 - Handedness swaps preserve brush/wand roles, panel attachment points, haptics, and controller command routing.
+- Controller command routing is role-based: brush trigger paints/selects, wand commands handle panel rotation/undo/redo, and keyboard/browser fallbacks preserve core workflows.
 - Bimanual tools and panel visibility behave like Open Brush references: panels can hide during two-hand operations, return afterward, and respawn to a reachable controller-relative position.
+- Panel focus, direct touch, and ray hover suppress painting/preview when appropriate and restore pointer/tool visuals after leaving the panel.
 - The same core workflow works with browser pointer/keyboard fallback.
 - UI state and ECS state remain synchronized after reloads and XR session transitions.
 - No visible UI text overlaps or overflows at supported desktop and Quest browser resolutions.
@@ -414,9 +426,10 @@ Acceptance criteria:
 
 Testing plan:
 
-- Unit: settings persistence, command routing, handedness swaps, panel attachment state, panel show/hide state, and bimanual tool visibility tests.
+- Unit: settings persistence, role-based command routing, handedness swaps, attach point resolution, panel lifecycle state, fixed/floating/alternate mode transitions, paging ownership, panel show/hide gates, haptic event routing, and bimanual tool visibility tests.
 - Browser: visual regression screenshots for the consolidated fallback/debug surface and individual panel layouts at desktop and mobile-like sizes.
-- Runtime E2E: run the complete user journey using `xr_accept_session`, controller transforms/selects, direct panel touch/ray interactions, ECS queries, screenshots, and console log checks; repeat after `xr_end_session` and re-enter.
+- Runtime E2E: run the complete user journey using `xr_accept_session`, controller transforms/selects, direct panel touch/ray interactions, `xr_set_gamepad_state` for wand scroll/paging, ECS queries, screenshots, and console log checks; repeat after `xr_end_session` and re-enter.
+- Runtime E2E: verify the fixed wand ring, attach/detach, respawn, handedness swap, panel focus suppression, and bimanual hide/restore with `ecs_snapshot`/`ecs_diff`.
 - Runtime E2E shortcuts: after each interaction route is proven once, use ECS state injection for repeated permutations such as handedness, panel placement, and tool state, then verify rendered/UI state with screenshots and scene/ECS inspection.
 
 ## Phase 11: Performance, Memory, and Quest Hardening
@@ -473,7 +486,7 @@ The port is complete when:
 - The IWSDK app can create, edit, save, load, and export Open Brush sketches in XR and browser fallback.
 - `.tilt` compatibility is proven against known Open Brush fixtures, including strokes, layers, metadata, thumbnails, pressure, timestamps, groups, seeds, and core media references.
 - The brush catalog has explicit supported/fallback/unsupported status, and launch-target brushes render with acceptable visual fidelity.
-- Undo/redo, selection, layers, core tools, palette, settings, and catalog workflows work end to end through hand-attached XR controls, with browser fallback kept separate.
+- Brush size, straightedge thickness, eraser, picker, undo/redo, selection, layers, core tools, palette, settings, and catalog workflows work end to end through hand-attached XR controls, with browser fallback kept separate.
 - GLB export produces valid files with expected geometry, materials, layers, and metadata.
 - IWSDK runtime E2E tests cover drawing, brush switching, tools, layers, save/load, import/export, and session transitions.
 - Quest hardware performance is acceptable for representative real sketches.
@@ -483,6 +496,7 @@ The port is complete when:
 
 - Brush fidelity is the largest technical risk. Unity CG/surface shaders, command buffers, bloom behavior, geometry shaders, and shader keyword systems do not map directly to WebGL/WebXR.
 - Open Brush coordinate spaces are subtle: scene, canvas, room, pointer, local stroke space, and brush scale all affect density and replay.
+- Tool spec parity is easy to fake accidentally: normalized brush size, per-brush ranges, pressure, eraser radius/intersection, picker size copying, and line/straightedge behavior need source-grounded tests.
 - `.tilt` compatibility requires exact binary behavior, including .NET GUID byte order and extension skipping.
 - Transparent and additive brushes can overload mobile stereo rendering.
 - Selection and intersection behavior may need different algorithms; Unity GPU ID readback can stall badly in WebXR.
