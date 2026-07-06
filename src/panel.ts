@@ -1,5 +1,6 @@
 import {
   createSystem,
+  Hovered,
   PanelUI,
   PanelDocument,
   eq,
@@ -90,8 +91,15 @@ import {
 
 type TextElement = UIKit.Text | null;
 type StyleElement =
-  | { setProperties(properties: Record<string, unknown>): void }
+  | (UIKitInteractionElement & {
+      setProperties(properties: Record<string, unknown>): void;
+    })
   | null;
+type UIKitInteractionElement = {
+  hoveredList?: { value: number[] };
+  activeList?: { value: number[] };
+  children?: readonly unknown[];
+};
 type LayerOrderSnapshot = Array<{ layerIndex: number; order: number }>;
 interface StrokePanelSnapshot {
   entity: Entity;
@@ -128,25 +136,83 @@ const WAND_COLOR_SWATCHES = [
   { id: "color-green", color: [0.2, 0.75, 0.35, 1] },
   { id: "color-white", color: [0.98, 0.98, 0.96, 1] },
 ] as const;
+const WAND_COLOR_SWATCH_IDS = WAND_COLOR_SWATCHES.map((swatch) => swatch.id);
+const WAND_BRUSH_BUTTON_IDS = [
+  "brush-prev",
+  "brush-next",
+  "brush-size-down",
+  "brush-size-up",
+] as const;
+const WAND_BUTTON_BACKGROUND = "rgba(0, 0, 0, 0.02)";
 const WAND_BUTTON_ACTIVE_STYLE = {
-  backgroundColor: 0xf8fafc,
+  backgroundColor: WAND_BUTTON_BACKGROUND,
+  borderColor: 0xf8fafc,
+  color: 0xffffff,
+} as const;
+const WAND_BUTTON_PRIMARY_STYLE = {
+  backgroundColor: WAND_BUTTON_BACKGROUND,
+  borderColor: 0xffffff,
+  color: 0xffffff,
+} as const;
+const WAND_BUTTON_SECONDARY_STYLE = {
+  backgroundColor: WAND_BUTTON_BACKGROUND,
+  borderColor: 0xd7dce8,
+  color: 0xffffff,
+} as const;
+const WAND_BUTTON_DISABLED_STYLE = {
+  backgroundColor: WAND_BUTTON_BACKGROUND,
+  borderColor: 0x6b7280,
+  color: 0x8b95a8,
+} as const;
+const WAND_BUTTON_HOVER_STYLE = {
+  backgroundColor: "rgba(248, 250, 252, 0.82)",
   borderColor: 0xf8fafc,
   color: 0x020204,
 } as const;
-const WAND_BUTTON_PRIMARY_STYLE = {
-  backgroundColor: 0x020204,
-  borderColor: 0xf8fafc,
-  color: 0xf8fafc,
+const WAND_BUTTON_ACTIVE_HOVERABLE_STYLE = {
+  ...WAND_BUTTON_ACTIVE_STYLE,
+  hover: WAND_BUTTON_HOVER_STYLE,
+  active: WAND_BUTTON_HOVER_STYLE,
 } as const;
-const WAND_BUTTON_SECONDARY_STYLE = {
-  backgroundColor: 0x08080c,
-  borderColor: 0xb8bcc7,
-  color: 0xe4e4e7,
+const WAND_BUTTON_ACTIVE_IDLE_STYLE = {
+  ...WAND_BUTTON_ACTIVE_STYLE,
+  hover: WAND_BUTTON_ACTIVE_STYLE,
+  active: WAND_BUTTON_ACTIVE_STYLE,
 } as const;
-const WAND_BUTTON_DISABLED_STYLE = {
-  backgroundColor: 0x010102,
-  borderColor: 0x4b5563,
-  color: 0x6b7280,
+const WAND_BUTTON_PRIMARY_HOVERABLE_STYLE = {
+  ...WAND_BUTTON_PRIMARY_STYLE,
+  hover: WAND_BUTTON_HOVER_STYLE,
+  active: WAND_BUTTON_HOVER_STYLE,
+} as const;
+const WAND_BUTTON_PRIMARY_IDLE_STYLE = {
+  ...WAND_BUTTON_PRIMARY_STYLE,
+  hover: WAND_BUTTON_PRIMARY_STYLE,
+  active: WAND_BUTTON_PRIMARY_STYLE,
+} as const;
+const WAND_BUTTON_SECONDARY_HOVERABLE_STYLE = {
+  ...WAND_BUTTON_SECONDARY_STYLE,
+  hover: WAND_BUTTON_HOVER_STYLE,
+  active: WAND_BUTTON_HOVER_STYLE,
+} as const;
+const WAND_BUTTON_SECONDARY_IDLE_STYLE = {
+  ...WAND_BUTTON_SECONDARY_STYLE,
+  hover: WAND_BUTTON_SECONDARY_STYLE,
+  active: WAND_BUTTON_SECONDARY_STYLE,
+} as const;
+const WAND_BUTTON_DISABLED_HOVERABLE_STYLE = {
+  ...WAND_BUTTON_DISABLED_STYLE,
+  hover: WAND_BUTTON_HOVER_STYLE,
+  active: WAND_BUTTON_HOVER_STYLE,
+} as const;
+const WAND_BUTTON_DISABLED_IDLE_STYLE = {
+  ...WAND_BUTTON_DISABLED_STYLE,
+  hover: WAND_BUTTON_DISABLED_STYLE,
+  active: WAND_BUTTON_DISABLED_STYLE,
+} as const;
+const WAND_BRUSH_BUTTON_STYLE = {
+  backgroundColor: WAND_BUTTON_BACKGROUND,
+  borderColor: 0xffffff,
+  color: 0xffffff,
 } as const;
 
 export class PanelSystem extends createSystem({
@@ -233,7 +299,8 @@ export class PanelSystem extends createSystem({
       if (!document) {
         continue;
       }
-      this.updateWandToolLabels(document);
+      this.updateWandToolLabels(document, entity.hasComponent(Hovered));
+      this.clearStaleWandHoverState(entity, document, PHASE_A_WAND_BUTTON_IDS);
     }
     for (const entity of this.queries.wandBrushPanel.entities) {
       const document = PanelDocument.data.document[
@@ -243,6 +310,7 @@ export class PanelSystem extends createSystem({
         continue;
       }
       this.updateBrushLabels(document);
+      this.clearStaleWandHoverState(entity, document, WAND_BRUSH_BUTTON_IDS);
     }
     for (const entity of this.queries.wandColorPanel.entities) {
       const document = PanelDocument.data.document[
@@ -252,6 +320,11 @@ export class PanelSystem extends createSystem({
         continue;
       }
       this.updateWandColorLabels(document);
+      this.clearStaleWandHoverState(
+        entity,
+        document,
+        WAND_COLOR_SWATCH_IDS,
+      );
     }
   }
 
@@ -843,7 +916,7 @@ export class PanelSystem extends createSystem({
       this.requestStrokeRedo();
     });
 
-    this.updateWandToolLabels(document);
+    this.updateWandToolLabels(document, false);
   }
 
   private registerPanelDocument(entity: Entity): boolean {
@@ -1208,16 +1281,6 @@ export class PanelSystem extends createSystem({
     );
     this.setText(
       document,
-      "brush-size-down",
-      labels.sizeDown,
-    );
-    this.setText(
-      document,
-      "brush-size-up",
-      labels.sizeUp,
-    );
-    this.setText(
-      document,
       "brush-catalog-counts",
       `${openBrushInventorySummary.supported} supported | ${openBrushInventorySummary.fallback} fallback | ${openBrushInventorySummary.unsupported} pending`,
     );
@@ -1226,6 +1289,7 @@ export class PanelSystem extends createSystem({
       "brush-warning",
       labels.warning,
     );
+    this.resetWandBrushButtonStyles(document);
   }
 
   private updateWandColorLabels(document: UIKitDocument): void {
@@ -1244,30 +1308,22 @@ export class PanelSystem extends createSystem({
       colorView[2],
     );
     swatch.setProperties({
-      backgroundColor: this.packUiRgbColor(colorView[0], colorView[1], colorView[2]),
+      backgroundColor: formatTranslucentWandColor([
+        colorView[0],
+        colorView[1],
+        colorView[2],
+      ]),
+      borderColor: 0xf8fafc,
     });
     for (const colorSwatch of WAND_COLOR_SWATCHES) {
       const button = document.getElementById(colorSwatch.id) as StyleElement;
       button?.setProperties({
+        backgroundColor: formatTranslucentWandColor(colorSwatch.color),
         borderColor:
           colorSwatch.id === activeSwatchId ? 0xf8fafc : 0x71717a,
+        color: 0xffffff,
       });
     }
-  }
-
-  private packUiRgbColor(red: number, green: number, blue: number): number {
-    return (
-      (this.packUiColorChannel(red) << 16) |
-      (this.packUiColorChannel(green) << 8) |
-      this.packUiColorChannel(blue)
-    );
-  }
-
-  private packUiColorChannel(value: number): number {
-    if (!Number.isFinite(value)) {
-      return 0;
-    }
-    return Math.min(255, Math.max(0, Math.round(value * 255)));
   }
 
   private updateToolLabels(document: UIKitDocument): void {
@@ -1358,7 +1414,10 @@ export class PanelSystem extends createSystem({
     );
   }
 
-  private updateWandToolLabels(document: UIKitDocument): void {
+  private updateWandToolLabels(
+    document: UIKitDocument,
+    panelHovered: boolean,
+  ): void {
     const appState = this.getAppStateEntity();
     const activeTool = resolveOpenBrushTool(
       appState ? String(appState.getValue(OpenBrushAppState, "activeTool")) : "",
@@ -1383,6 +1442,7 @@ export class PanelSystem extends createSystem({
           undoDepth,
           redoDepth,
         }),
+        panelHovered,
       );
     }
     this.setText(
@@ -1396,6 +1456,7 @@ export class PanelSystem extends createSystem({
     document: UIKitDocument,
     buttonId: PhaseAWandButtonId,
     visualState: PhaseAWandButtonVisualState,
+    panelHovered: boolean,
   ): void {
     const button = document.getElementById(buttonId) as StyleElement;
     if (!button) {
@@ -1405,8 +1466,55 @@ export class PanelSystem extends createSystem({
       getPhaseAWandButtonStyle(
         visualState,
         resolvePhaseAWandButtonTone(buttonId),
+        panelHovered,
       ),
     );
+  }
+
+  private resetWandBrushButtonStyles(document: UIKitDocument): void {
+    for (const buttonId of WAND_BRUSH_BUTTON_IDS) {
+      const button = document.getElementById(buttonId) as StyleElement;
+      button?.setProperties(WAND_BRUSH_BUTTON_STYLE);
+    }
+  }
+
+  private clearStaleWandHoverState(
+    panelEntity: Entity,
+    document: UIKitDocument,
+    elementIds: readonly string[],
+  ): void {
+    if (panelEntity.hasComponent(Hovered)) {
+      return;
+    }
+    this.clearUIKitInteractionState(document);
+    for (const elementId of elementIds) {
+      this.clearUIKitInteractionState(document.getElementById(elementId));
+    }
+  }
+
+  private clearUIKitInteractionState(element: unknown): void {
+    if (!element || typeof element !== "object") {
+      return;
+    }
+    const interactionElement = element as UIKitInteractionElement;
+    if (
+      interactionElement.hoveredList &&
+      interactionElement.hoveredList.value.length > 0
+    ) {
+      interactionElement.hoveredList.value = [];
+    }
+    if (
+      interactionElement.activeList &&
+      interactionElement.activeList.value.length > 0
+    ) {
+      interactionElement.activeList.value = [];
+    }
+    if (!interactionElement.children) {
+      return;
+    }
+    for (const child of interactionElement.children) {
+      this.clearUIKitInteractionState(child);
+    }
   }
 
   private createLayer(): void {
@@ -2781,16 +2889,26 @@ function formatBytes(byteLength: number): string {
 function getPhaseAWandButtonStyle(
   visualState: PhaseAWandButtonVisualState,
   tone: PhaseAWandButtonTone,
+  panelHovered: boolean,
 ): Record<string, unknown> {
   if (visualState === "active") {
-    return WAND_BUTTON_ACTIVE_STYLE;
+    return panelHovered
+      ? WAND_BUTTON_ACTIVE_HOVERABLE_STYLE
+      : WAND_BUTTON_ACTIVE_IDLE_STYLE;
   }
   if (visualState === "disabled") {
-    return WAND_BUTTON_DISABLED_STYLE;
+    return panelHovered
+      ? WAND_BUTTON_DISABLED_HOVERABLE_STYLE
+      : WAND_BUTTON_DISABLED_IDLE_STYLE;
   }
-  return tone === "primary"
-    ? WAND_BUTTON_PRIMARY_STYLE
-    : WAND_BUTTON_SECONDARY_STYLE;
+  if (tone === "primary") {
+    return panelHovered
+      ? WAND_BUTTON_PRIMARY_HOVERABLE_STYLE
+      : WAND_BUTTON_PRIMARY_IDLE_STYLE;
+  }
+  return panelHovered
+    ? WAND_BUTTON_SECONDARY_HOVERABLE_STYLE
+    : WAND_BUTTON_SECONDARY_IDLE_STYLE;
 }
 
 function getNearestWandColorSwatchId(
@@ -2812,4 +2930,18 @@ function getNearestWandColorSwatchId(
     }
   }
   return nearest.id;
+}
+
+function formatTranslucentWandColor(color: readonly number[]): string {
+  const red = clampColorByte(color[0] ?? 0);
+  const green = clampColorByte(color[1] ?? 0);
+  const blue = clampColorByte(color[2] ?? 0);
+  return `rgba(${red}, ${green}, ${blue}, 0.18)`;
+}
+
+function clampColorByte(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+  return Math.min(255, Math.max(0, Math.round(value * 255)));
 }

@@ -1,111 +1,176 @@
 <style>
-  .panel-container {
-    align-items: flex-start;
-    padding: 1.1;
-    width: 78;
-    display: flex;
+  .main-panel {
     flex-direction: column;
+    width: 960px;
+    padding: 18px;
     background-color: #09090b;
     border-color: #27272a;
-    border-width: 0.15;
-    border-radius: 1;
+    border-width: 2px;
+    border-radius: 8px;
+  }
+
+  .top-row {
+    flex-direction: row;
+    align-items: center;
+    width: 924px;
+  }
+
+  .title-lockup {
+    flex-direction: column;
+    width: 548px;
   }
 
   .heading {
-    font-size: 2.5;
-    font-weight: medium;
+    font-size: 30px;
+    font-weight: 700;
     color: #fafafa;
     text-align: left;
   }
 
-  .section-label {
-    font-size: 1.4;
+  .subtitle {
+    font-size: 13px;
     color: #a1a1aa;
     text-align: left;
-    margin-top: 0.8;
+    margin-top: 3px;
   }
 
-  .brush-name {
-    font-size: 2.7;
-    font-weight: medium;
+  .xr-button {
+    width: 180px;
+    height: 46px;
+    margin-left: 16px;
+    background-color: #fafafa;
+    color: #09090b;
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: #e4e4e7;
+    font-size: 16px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .history-button {
+    width: 76px;
+    height: 46px;
+    margin-left: 8px;
+    background-color: #18181b;
     color: #fafafa;
-    text-align: left;
-    margin-top: 0.2;
-  }
-
-  .brush-meta {
-    font-size: 1.5;
-    color: #a1a1aa;
-    text-align: left;
-    margin-top: 0.3;
-  }
-
-  .warning {
-    font-size: 1.3;
-    color: #fbbf24;
-    text-align: left;
-    margin-top: 0.8;
-  }
-
-  .button-row {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    margin-top: 0.65;
+    border-radius: 6px;
+    border-width: 1px;
+    border-color: #3f3f46;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
   }
 
   .content-row {
-    display: flex;
     flex-direction: row;
-    width: 100%;
+    width: 924px;
+    margin-top: 14px;
   }
 
   .panel-column {
-    display: flex;
     flex-direction: column;
-    width: 37;
+    width: 453px;
   }
 
   .right-column {
-    margin-left: 1.6;
+    margin-left: 18px;
+  }
+
+  .section {
+    flex-direction: column;
+    width: 453px;
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top-width: 1px;
+    border-top-color: #27272a;
+  }
+
+  .first-section {
+    margin-top: 0px;
+  }
+
+  .section-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #a1a1aa;
+    text-align: left;
+  }
+
+  .brush-name {
+    font-size: 21px;
+    font-weight: 700;
+    color: #fafafa;
+    text-align: left;
+    margin-top: 4px;
+  }
+
+  .brush-meta {
+    font-size: 13px;
+    color: #a1a1aa;
+    text-align: left;
+    margin-top: 3px;
+    width: 453px;
+  }
+
+  .warning {
+    font-size: 13px;
+    color: #fbbf24;
+    text-align: left;
+    margin-top: 4px;
+    width: 453px;
+  }
+
+  .help-text {
+    font-size: 12px;
+    color: #a1a1aa;
+    text-align: left;
+    margin-top: 4px;
+    width: 453px;
+  }
+
+  .button-row {
+    flex-direction: row;
+    width: 453px;
+    margin-top: 8px;
   }
 
   .brush-button {
-    width: 18;
-    padding: 1;
+    width: 221px;
+    height: 36px;
     background-color: #27272a;
     color: #fafafa;
-    border-radius: 0.8;
-    border-width: 0.1;
+    border-radius: 6px;
+    border-width: 1px;
     border-color: #3f3f46;
-    font-size: 1.6;
-    font-weight: medium;
+    font-size: 13px;
+    font-weight: 600;
     text-align: center;
     cursor: pointer;
   }
 
   .wide-button {
-    width: 100%;
-    padding: 1;
+    width: 453px;
+    height: 36px;
+    margin-top: 8px;
     background-color: #27272a;
     color: #fafafa;
-    border-radius: 0.8;
-    border-width: 0.1;
+    border-radius: 6px;
+    border-width: 1px;
     border-color: #3f3f46;
-    font-size: 1.6;
-    font-weight: medium;
+    font-size: 13px;
+    font-weight: 600;
     text-align: center;
     cursor: pointer;
-    margin-top: 0.65;
   }
 
   #brush-next-button,
   #brush-size-up-button,
-  #history-redo-button,
   #tool-eraser-button,
   #tool-mirror-button,
   #tool-brush-picker-button,
-  #tool-dropper-button,
   #tool-lazy-input-button,
   #tool-stencil-button,
   #layer-next-button,
@@ -121,158 +186,154 @@
   #sketch-save-as-button,
   #sketch-export-tilt-button,
   #playback-step-button {
-    margin-left: 1;
-  }
-
-  .help-text {
-    font-size: 1.2;
-    color: #a1a1aa;
-    text-align: left;
-    margin-top: 0.5;
-  }
-
-  .xr-button {
-    width: 100%;
-    padding: 1.1;
-    margin-top: 0.8;
-    background-color: #fafafa;
-    color: #09090b;
-    border-radius: 0.8;
-    border-width: 0.1;
-    border-color: #e4e4e7;
-    font-size: 1.8;
-    font-weight: medium;
-    text-align: center;
-    cursor: pointer;
+    margin-left: 11px;
   }
 </style>
-<div class="panel-container">
-  <span class="heading">Open Brush</span>
-  <button id="xr-button" class="xr-button">Enter XR</button>
-  <div class="button-row">
-    <button id="history-undo-button" class="brush-button">Undo</button>
-    <button id="history-redo-button" class="brush-button">Redo</button>
+<Panel class="main-panel">
+  <div class="top-row">
+    <div class="title-lockup">
+      <span class="heading">Open Brush</span>
+      <span id="history-state" class="subtitle">0 undo | 0 redo</span>
+    </div>
+    <button id="xr-button" class="xr-button">Enter XR</button>
+    <button id="history-undo-button" class="history-button">Undo</button>
+    <button id="history-redo-button" class="history-button">Redo</button>
   </div>
-  <span id="history-state" class="brush-meta">0 undo | 0 redo</span>
   <div class="content-row">
     <div class="panel-column">
-      <span class="section-label">Tool</span>
-      <span id="active-tool-name" class="brush-name">Draw</span>
-      <span id="active-tool-state" class="brush-meta">draw-ready</span>
-      <div class="button-row">
-        <button id="tool-draw-button" class="brush-button">Draw *</button>
-        <button id="tool-eraser-button" class="brush-button">Eraser</button>
+      <div class="section first-section">
+        <span class="section-label">Tool</span>
+        <span id="active-tool-name" class="brush-name">Draw</span>
+        <span id="active-tool-state" class="brush-meta">draw-ready</span>
+        <div class="button-row">
+          <button id="tool-draw-button" class="brush-button">Draw *</button>
+          <button id="tool-eraser-button" class="brush-button">Eraser</button>
+        </div>
+        <div class="button-row">
+          <button id="tool-straightedge-button" class="brush-button">Line</button>
+          <button id="tool-mirror-button" class="brush-button">Mirror</button>
+        </div>
+        <div class="button-row">
+          <button id="tool-color-picker-button" class="brush-button">Color</button>
+          <button id="tool-brush-picker-button" class="brush-button">Brush</button>
+        </div>
+        <div class="button-row">
+          <button id="tool-grid-snap-button" class="brush-button">Grid</button>
+          <button id="tool-lazy-input-button" class="brush-button">Lazy</button>
+        </div>
+        <div class="button-row">
+          <button id="tool-tape-button" class="brush-button">Tape</button>
+          <button id="tool-stencil-button" class="brush-button">Stencil</button>
+        </div>
+        <button id="tool-dropper-button" class="wide-button">Dropper</button>
+        <div class="button-row">
+          <button id="tool-pick-button" class="brush-button">Pick Target</button>
+          <button id="tool-erase-button" class="brush-button">Erase Target</button>
+        </div>
       </div>
-      <div class="button-row">
-        <button id="tool-straightedge-button" class="brush-button">Line</button>
-        <button id="tool-mirror-button" class="brush-button">Mirror</button>
+      <div class="section">
+        <span class="section-label">Brush</span>
+        <span id="active-brush-name" class="brush-name">Marker</span>
+        <span id="active-brush-meta" class="brush-meta">ribbon / standard / 3 of 5</span>
+        <span id="brush-catalog-counts" class="brush-meta">4 supported | 1 fallback | 118 pending</span>
+        <span id="brush-warning" class="warning">Ready</span>
+        <div class="button-row">
+          <button id="brush-previous-button" class="brush-button">Prev</button>
+          <button id="brush-next-button" class="brush-button">Next</button>
+        </div>
+        <div class="button-row">
+          <button id="brush-size-down-button" class="brush-button">Size -</button>
+          <button id="brush-size-up-button" class="brush-button">Size +</button>
+        </div>
       </div>
-      <div class="button-row">
-        <button id="tool-color-picker-button" class="brush-button">Color</button>
-        <button id="tool-brush-picker-button" class="brush-button">Brush</button>
+      <div class="section">
+        <span class="section-label">Layer</span>
+        <span id="active-layer-name" class="brush-name">Sketch</span>
+        <span id="active-layer-meta" class="brush-meta">Layer 0 | 1 paint / 1 selection</span>
+        <span id="layer-state" class="brush-meta">Visible | Unlocked</span>
+        <div class="button-row">
+          <button id="layer-new-button" class="brush-button">New</button>
+          <button id="layer-next-button" class="brush-button">Next</button>
+        </div>
+        <div class="button-row">
+          <button id="layer-toggle-visible-button" class="brush-button">Hide</button>
+          <button id="layer-toggle-lock-button" class="brush-button">Lock</button>
+        </div>
+        <div class="button-row">
+          <button id="layer-move-up-button" class="brush-button">Move Up</button>
+          <button id="layer-move-down-button" class="brush-button">Move Down</button>
+        </div>
+        <button id="layer-clear-button" class="wide-button">Clear Layer</button>
       </div>
-      <button id="tool-dropper-button" class="wide-button">Dropper</button>
-      <div class="button-row">
-        <button id="tool-grid-snap-button" class="brush-button">Grid</button>
-        <button id="tool-lazy-input-button" class="brush-button">Lazy</button>
-      </div>
-      <div class="button-row">
-        <button id="tool-tape-button" class="brush-button">Tape</button>
-        <button id="tool-stencil-button" class="brush-button">Stencil</button>
-      </div>
-      <button id="tool-pick-button" class="wide-button">Pick Target</button>
-      <button id="tool-erase-button" class="wide-button">Erase Target</button>
-      <span class="section-label">Brush</span>
-      <span id="active-brush-name" class="brush-name">Marker</span>
-      <span id="active-brush-meta" class="brush-meta">ribbon / standard / 3/5</span>
-      <span id="brush-catalog-counts" class="brush-meta">4 supported | 1 fallback | 118 pending</span>
-      <span id="brush-warning" class="warning">Ready</span>
-      <div class="button-row">
-        <button id="brush-previous-button" class="brush-button">Prev</button>
-        <button id="brush-next-button" class="brush-button">Next</button>
-      </div>
-      <div class="button-row">
-        <button id="brush-size-down-button" class="brush-button">Size -</button>
-        <button id="brush-size-up-button" class="brush-button">Size +</button>
-      </div>
-      <span class="section-label">Layer</span>
-      <span id="active-layer-name" class="brush-name">Sketch</span>
-      <span id="active-layer-meta" class="brush-meta">Layer 0 | 1 paint / 1 selection</span>
-      <span id="layer-state" class="brush-meta">Visible | Unlocked</span>
-      <div class="button-row">
-        <button id="layer-new-button" class="brush-button">New</button>
-        <button id="layer-next-button" class="brush-button">Next</button>
-      </div>
-      <div class="button-row">
-        <button id="layer-toggle-visible-button" class="brush-button">Hide</button>
-        <button id="layer-toggle-lock-button" class="brush-button">Lock</button>
-      </div>
-      <div class="button-row">
-        <button id="layer-move-up-button" class="brush-button">Move Up</button>
-        <button id="layer-move-down-button" class="brush-button">Move Down</button>
-      </div>
-      <button id="layer-clear-button" class="wide-button">Clear Layer</button>
     </div>
     <div class="panel-column right-column">
-      <span class="section-label">Selection</span>
-      <span id="selection-state" class="brush-meta">No selection</span>
-      <div class="button-row">
-        <button id="selection-select-last-button" class="brush-button">Select Last</button>
-        <button id="selection-clear-button" class="brush-button">Deselect</button>
+      <div class="section first-section">
+        <span class="section-label">Selection</span>
+        <span id="selection-state" class="brush-meta">No selection</span>
+        <div class="button-row">
+          <button id="selection-select-last-button" class="brush-button">Select Last</button>
+          <button id="selection-clear-button" class="brush-button">Deselect</button>
+        </div>
+        <div class="button-row">
+          <button id="selection-nudge-left-button" class="brush-button">Move Left</button>
+          <button id="selection-nudge-right-button" class="brush-button">Move Right</button>
+        </div>
       </div>
-      <div class="button-row">
-        <button id="selection-nudge-left-button" class="brush-button">Move Left</button>
-        <button id="selection-nudge-right-button" class="brush-button">Move Right</button>
+      <div class="section">
+        <span class="section-label">Settings</span>
+        <span id="settings-summary" class="brush-name">Right hand</span>
+        <span id="settings-panel-meta" class="brush-meta">Snap turn | Stationary | Panel 1.00x | 0.90m | Off Hand</span>
+        <div class="button-row">
+          <button id="settings-hand-button" class="brush-button">Right Hand</button>
+          <button id="settings-anchor-button" class="brush-button">Off Hand</button>
+        </div>
+        <div class="button-row">
+          <button id="settings-scale-down-button" class="brush-button">Scale -</button>
+          <button id="settings-scale-up-button" class="brush-button">Scale +</button>
+        </div>
+        <div class="button-row">
+          <button id="settings-distance-near-button" class="brush-button">Nearer</button>
+          <button id="settings-distance-far-button" class="brush-button">Farther</button>
+        </div>
+        <div class="button-row">
+          <button id="settings-turn-mode-button" class="brush-button">Snap Turn</button>
+          <button id="settings-locomotion-button" class="brush-button">Stationary Move</button>
+        </div>
+        <div class="button-row">
+          <button id="settings-browser-pointer-button" class="brush-button">Pointer On</button>
+          <button id="settings-vignette-button" class="brush-button">Vignette Off</button>
+        </div>
+        <button id="settings-help-button" class="wide-button">Show Help</button>
+        <span id="settings-status" class="brush-meta">ready r0</span>
+        <span id="settings-help-text" class="help-text"></span>
       </div>
-      <span class="section-label">Settings</span>
-      <span id="settings-summary" class="brush-name">Right hand</span>
-      <span id="settings-panel-meta" class="brush-meta">Snap turn | Stationary | Panel 1.00x | 0.90m | Off Hand</span>
-      <div class="button-row">
-        <button id="settings-hand-button" class="brush-button">Right Hand</button>
-        <button id="settings-anchor-button" class="brush-button">Off Hand</button>
+      <div class="section">
+        <span class="section-label">Sketch</span>
+        <span id="sketch-name" class="brush-name">Untitled Sketch</span>
+        <span id="sketch-status" class="brush-meta">idle | 0 saved</span>
+        <span id="sketch-meta" class="brush-meta">0 layers | 0 strokes | 0 points | 0 B</span>
+        <div class="button-row">
+          <button id="sketch-save-button" class="brush-button">Save</button>
+          <button id="sketch-save-as-button" class="brush-button">Save As</button>
+        </div>
+        <div class="button-row">
+          <button id="sketch-load-button" class="brush-button">Load</button>
+          <button id="sketch-export-tilt-button" class="brush-button">Export Tilt</button>
+        </div>
+        <button id="sketch-export-glb-button" class="wide-button">Export GLB</button>
       </div>
-      <div class="button-row">
-        <button id="settings-scale-down-button" class="brush-button">Scale -</button>
-        <button id="settings-scale-up-button" class="brush-button">Scale +</button>
+      <div class="section">
+        <span class="section-label">Playback</span>
+        <span id="playback-mode" class="brush-name">Quickload playback</span>
+        <span id="playback-status" class="brush-meta">idle | 0/0 visible</span>
+        <span id="playback-meta" class="brush-meta">0.0/0.0 none</span>
+        <button id="playback-mode-button" class="wide-button">Quickload Mode</button>
+        <div class="button-row">
+          <button id="playback-rewind-button" class="brush-button">Rewind</button>
+          <button id="playback-step-button" class="brush-button">Step</button>
+        </div>
+        <button id="playback-complete-button" class="wide-button">Complete</button>
       </div>
-      <div class="button-row">
-        <button id="settings-distance-near-button" class="brush-button">Nearer</button>
-        <button id="settings-distance-far-button" class="brush-button">Farther</button>
-      </div>
-      <div class="button-row">
-        <button id="settings-turn-mode-button" class="brush-button">Snap Turn</button>
-        <button id="settings-locomotion-button" class="brush-button">Stationary Move</button>
-      </div>
-      <div class="button-row">
-        <button id="settings-browser-pointer-button" class="brush-button">Pointer On</button>
-        <button id="settings-vignette-button" class="brush-button">Vignette Off</button>
-      </div>
-      <button id="settings-help-button" class="wide-button">Show Help</button>
-      <span id="settings-status" class="brush-meta">ready r0</span>
-      <span id="settings-help-text" class="help-text"></span>
-      <span class="section-label">Sketch</span>
-      <span id="sketch-name" class="brush-name">Untitled Sketch</span>
-      <span id="sketch-status" class="brush-meta">idle | 0 saved</span>
-      <span id="sketch-meta" class="brush-meta">0 layers | 0 strokes | 0 points | 0 B</span>
-      <div class="button-row">
-        <button id="sketch-save-button" class="brush-button">Save</button>
-        <button id="sketch-save-as-button" class="brush-button">Save As</button>
-      </div>
-      <div class="button-row">
-        <button id="sketch-load-button" class="brush-button">Load</button>
-        <button id="sketch-export-tilt-button" class="brush-button">Export Tilt</button>
-      </div>
-      <button id="sketch-export-glb-button" class="wide-button">Export GLB</button>
-      <span class="section-label">Playback</span>
-      <span id="playback-mode" class="brush-name">Quickload playback</span>
-      <span id="playback-status" class="brush-meta">idle | 0/0 visible</span>
-      <span id="playback-meta" class="brush-meta">0.0/0.0 none</span>
-      <button id="playback-mode-button" class="wide-button">Quickload Mode</button>
-      <div class="button-row">
-        <button id="playback-rewind-button" class="brush-button">Rewind</button>
-        <button id="playback-step-button" class="brush-button">Step</button>
-      </div>
-      <button id="playback-complete-button" class="wide-button">Complete</button>
     </div>
   </div>
-</div>
+</Panel>

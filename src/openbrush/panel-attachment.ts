@@ -6,8 +6,10 @@ import type {
 export type OpenBrushPanelAttachmentTarget =
   | "xr-origin"
   | "left-ray"
-  | "right-ray";
-export type OpenBrushPanelRole = "main" | "color" | "brush" | "tools";
+  | "right-ray"
+  | "left-grip"
+  | "right-grip";
+export type OpenBrushPanelRole = "main" | "color" | "brush" | "tools" | "prism";
 export type OpenBrushPanelMode = "fallback" | "fixed-ring";
 export type OpenBrushPanelAttachmentStatus =
   | "browser"
@@ -21,6 +23,9 @@ export const OPEN_BRUSH_FIXED_WAND_PANEL_ROLES = [
   "brush",
   "tools",
 ] as const satisfies readonly OpenBrushPanelRole[];
+export type OpenBrushFixedWandPanelRole =
+  (typeof OPEN_BRUSH_FIXED_WAND_PANEL_ROLES)[number];
+export const OPEN_BRUSH_WAND_PRISM_ROLE = "prism";
 
 export interface OpenBrushPanelAttachmentSettings {
   dominantHand: string;
@@ -67,9 +72,10 @@ const HAND_PANEL_DISTANCE_MAX = 0.72;
 const HAND_PANEL_VERTICAL_OFFSET = 0.1;
 const HAND_PANEL_INWARD_OFFSET = 0.12;
 const HAND_PANEL_SCALE = 0.72;
-const FIXED_PRISM_FACE_RADIUS = 0.22;
-const FIXED_PRISM_FACE_DEPTH = 0.11;
-const FIXED_PRISM_PANEL_SCALE = 0.74;
+const GRIP_PRISM_AXIS_OFFSET = -0.085;
+const GRIP_PRISM_SCALE = 0.66;
+const FIXED_PRISM_FACE_RADIUS = 0.048;
+const FIXED_PRISM_PANEL_SCALE = 0.2925;
 const FIXED_PRISM_SLOT_DEGREES = 120;
 export const WAND_PANEL_ROTATION_STEPS_PER_SECOND = 4;
 const DEFAULT_PANEL_DISTANCE = 0.9;
@@ -119,8 +125,46 @@ export function resolveOpenBrushPanelAttachmentPoseInto(
 
   resolveBaseOpenBrushPanelAttachmentPoseInto(settings, role, out);
   if (isFixedWandPanelRole(role)) {
-    applyFixedWandPanelSlot(settings, role, out);
+    applyFixedWandPanelSlot(role, out);
   }
+  return out;
+}
+
+export function resolveOpenBrushWandPrismAttachmentPoseInto(
+  settings: OpenBrushPanelAttachmentSettings,
+  out: MutableOpenBrushPanelAttachmentPose,
+): MutableOpenBrushPanelAttachmentPose {
+  resolveBaseOpenBrushPanelAttachmentPoseInto(
+    settings,
+    OPEN_BRUSH_WAND_PRISM_ROLE,
+    out,
+  );
+  out.mode = "fixed-ring";
+  const slotAngleDegrees = normalizeSlotAngleDegrees(
+    (settings.wandPanelRotationSteps ?? 0) * FIXED_PRISM_SLOT_DEGREES,
+  );
+  writeWandPrismSpinOrientation(slotAngleDegrees, out.hand, out.orientation);
+  out.slotIndex = wrapSlotIndex(Math.round(settings.wandPanelRotationSteps ?? 0));
+  out.slotAngleDegrees = slotAngleDegrees;
+  return out;
+}
+
+export function resolveOpenBrushWandPrismPanelSlotPoseInto(
+  role: OpenBrushFixedWandPanelRole,
+  hand: OpenBrushDominantHand | "none",
+  out: MutableOpenBrushPanelAttachmentPose,
+): MutableOpenBrushPanelAttachmentPose {
+  resetPose(out, role);
+  out.mode = "fixed-ring";
+  out.hand = hand;
+  out.target =
+    hand === "right"
+      ? "right-grip"
+      : hand === "left"
+        ? "left-grip"
+        : "xr-origin";
+  out.status = hand === "none" ? "xr-center" : "xr-hand";
+  applyFixedWandPrismPanelLocalSlot(role, out);
   return out;
 }
 
@@ -171,62 +215,88 @@ function resolveBaseOpenBrushPanelAttachmentPoseInto(
   const inwardOffset =
     hand === "left" ? HAND_PANEL_INWARD_OFFSET : -HAND_PANEL_INWARD_OFFSET;
   const handScale = panelScale * HAND_PANEL_SCALE;
+  const isGripPrism = role === OPEN_BRUSH_WAND_PRISM_ROLE;
+  const gripPrismScale = panelScale * GRIP_PRISM_SCALE;
 
   out.role = role;
   out.mode = isFixedWandPanelRole(role) ? "fixed-ring" : "fallback";
   out.anchor = anchor;
   out.hand = hand;
-  out.target = hand === "left" ? "left-ray" : "right-ray";
+  out.target = isGripPrism
+    ? hand === "left"
+      ? "left-grip"
+      : "right-grip"
+    : hand === "left"
+      ? "left-ray"
+      : "right-ray";
   out.status = "xr-hand";
   out.slotIndex = -1;
   out.slotAngleDegrees = 0;
   out.visible = true;
-  out.position[0] = inwardOffset;
-  out.position[1] = HAND_PANEL_VERTICAL_OFFSET;
-  out.position[2] = -handDistance;
+  out.position[0] = isGripPrism ? 0 : inwardOffset;
+  out.position[1] = isGripPrism ? 0 : HAND_PANEL_VERTICAL_OFFSET;
+  out.position[2] = isGripPrism ? GRIP_PRISM_AXIS_OFFSET : -handDistance;
   out.orientation[0] = 0;
   out.orientation[1] = 0;
   out.orientation[2] = 0;
   out.orientation[3] = 1;
-  out.scale[0] = handScale;
-  out.scale[1] = handScale;
-  out.scale[2] = handScale;
+  out.scale[0] = isGripPrism ? gripPrismScale : handScale;
+  out.scale[1] = isGripPrism ? gripPrismScale : handScale;
+  out.scale[2] = isGripPrism ? gripPrismScale : handScale;
   return out;
 }
 
 function applyFixedWandPanelSlot(
-  settings: OpenBrushPanelAttachmentSettings,
   role: OpenBrushPanelRole,
   out: MutableOpenBrushPanelAttachmentPose,
 ): void {
   const baseIndex = OPEN_BRUSH_FIXED_WAND_PANEL_ROLES.indexOf(
     role as (typeof OPEN_BRUSH_FIXED_WAND_PANEL_ROLES)[number],
   );
-  const continuousSlot = baseIndex + (settings.wandPanelRotationSteps ?? 0);
-  const slotIndex = wrapSlotIndex(Math.round(continuousSlot));
+  const continuousSlot = baseIndex;
+  const slotIndex = wrapSlotIndex(baseIndex);
   const slotAngleDegrees = normalizeSlotAngleDegrees(
     continuousSlot * FIXED_PRISM_SLOT_DEGREES,
   );
   const angle = (slotAngleDegrees * Math.PI) / 180;
-  const signedAngle =
-    slotAngleDegrees > 180
-      ? ((slotAngleDegrees - 360) * Math.PI) / 180
-      : angle;
   const sin = Math.sin(angle);
   const cos = Math.cos(angle);
   const mirror = out.hand === "right" ? -1 : 1;
-  const yaw = -signedAngle * 0.5 * mirror;
-  const halfYaw = yaw * 0.5;
 
   out.mode = "fixed-ring";
   out.slotIndex = slotIndex;
   out.slotAngleDegrees = slotAngleDegrees;
   out.position[0] += sin * FIXED_PRISM_FACE_RADIUS * mirror;
-  out.position[2] -= (1 - cos) * FIXED_PRISM_FACE_DEPTH;
-  out.orientation[0] = 0;
-  out.orientation[1] = normalizeSignedZero(Math.sin(halfYaw));
-  out.orientation[2] = 0;
-  out.orientation[3] = normalizeSignedZero(Math.cos(halfYaw));
+  out.position[2] -= (1 - cos) * FIXED_PRISM_FACE_RADIUS;
+  writeWandPanelFaceOrientation(slotAngleDegrees, out.hand, out.orientation);
+  out.scale[0] *= FIXED_PRISM_PANEL_SCALE;
+  out.scale[1] *= FIXED_PRISM_PANEL_SCALE;
+  out.scale[2] *= FIXED_PRISM_PANEL_SCALE;
+}
+
+function applyFixedWandPrismPanelLocalSlot(
+  role: OpenBrushPanelRole,
+  out: MutableOpenBrushPanelAttachmentPose,
+): void {
+  const baseIndex = OPEN_BRUSH_FIXED_WAND_PANEL_ROLES.indexOf(
+    role as (typeof OPEN_BRUSH_FIXED_WAND_PANEL_ROLES)[number],
+  );
+  const slotIndex = wrapSlotIndex(baseIndex);
+  const slotAngleDegrees = normalizeSlotAngleDegrees(
+    baseIndex * FIXED_PRISM_SLOT_DEGREES,
+  );
+  const angle = (slotAngleDegrees * Math.PI) / 180;
+  const mirror = out.hand === "right" ? -1 : 1;
+  const radialX = Math.sin(angle) * mirror;
+  const radialY = Math.cos(angle);
+
+  out.mode = "fixed-ring";
+  out.slotIndex = slotIndex;
+  out.slotAngleDegrees = slotAngleDegrees;
+  out.position[0] = radialX * FIXED_PRISM_FACE_RADIUS;
+  out.position[1] = radialY * FIXED_PRISM_FACE_RADIUS;
+  out.position[2] = 0;
+  writeWandPrismPanelOutwardOrientation(radialX, radialY, out.orientation);
   out.scale[0] *= FIXED_PRISM_PANEL_SCALE;
   out.scale[1] *= FIXED_PRISM_PANEL_SCALE;
   out.scale[2] *= FIXED_PRISM_PANEL_SCALE;
@@ -275,6 +345,134 @@ export function advanceWandPanelRotationSteps(
 function normalizeSlotAngleDegrees(value: number): number {
   const normalized = ((value % 360) + 360) % 360;
   return Object.is(normalized, -0) ? 0 : normalized;
+}
+
+function writeWandPanelFaceOrientation(
+  slotAngleDegrees: number,
+  hand: OpenBrushDominantHand | "none",
+  orientation: [number, number, number, number],
+): void {
+  const signedAngle =
+    slotAngleDegrees > 180
+      ? ((slotAngleDegrees - 360) * Math.PI) / 180
+      : (slotAngleDegrees * Math.PI) / 180;
+  const mirror = hand === "right" ? -1 : 1;
+  const yaw = -signedAngle * mirror;
+  const halfYaw = yaw * 0.5;
+  orientation[0] = 0;
+  orientation[1] = normalizeSignedZero(Math.sin(halfYaw));
+  orientation[2] = 0;
+  orientation[3] = normalizeSignedZero(Math.cos(halfYaw));
+}
+
+function writeWandPrismSpinOrientation(
+  slotAngleDegrees: number,
+  hand: OpenBrushDominantHand | "none",
+  orientation: [number, number, number, number],
+): void {
+  const signedAngle =
+    slotAngleDegrees > 180
+      ? ((slotAngleDegrees - 360) * Math.PI) / 180
+      : (slotAngleDegrees * Math.PI) / 180;
+  const mirror = hand === "right" ? -1 : 1;
+  const roll = -signedAngle * mirror;
+  const halfRoll = roll * 0.5;
+  orientation[0] = 0;
+  orientation[1] = 0;
+  orientation[2] = normalizeSignedZero(Math.sin(halfRoll));
+  orientation[3] = normalizeSignedZero(Math.cos(halfRoll));
+}
+
+function writeWandPrismPanelOutwardOrientation(
+  radialX: number,
+  radialY: number,
+  orientation: [number, number, number, number],
+): void {
+  const radialLength = Math.hypot(radialX, radialY) || 1;
+  const normalX = radialX / radialLength;
+  const normalY = radialY / radialLength;
+
+  writeQuaternionFromAxes(
+    normalY,
+    -normalX,
+    0,
+    0,
+    0,
+    -1,
+    normalX,
+    normalY,
+    0,
+    orientation,
+  );
+}
+
+function writeQuaternionFromAxes(
+  xAxisX: number,
+  xAxisY: number,
+  xAxisZ: number,
+  yAxisX: number,
+  yAxisY: number,
+  yAxisZ: number,
+  zAxisX: number,
+  zAxisY: number,
+  zAxisZ: number,
+  orientation: [number, number, number, number],
+): void {
+  const trace = xAxisX + yAxisY + zAxisZ;
+  if (trace > 0) {
+    const scale = Math.sqrt(trace + 1) * 2;
+    orientation[0] = normalizeSignedZero((yAxisZ - zAxisY) / scale);
+    orientation[1] = normalizeSignedZero((zAxisX - xAxisZ) / scale);
+    orientation[2] = normalizeSignedZero((xAxisY - yAxisX) / scale);
+    orientation[3] = normalizeSignedZero(0.25 * scale);
+    return;
+  }
+  if (xAxisX > yAxisY && xAxisX > zAxisZ) {
+    const scale = Math.sqrt(1 + xAxisX - yAxisY - zAxisZ) * 2;
+    orientation[0] = normalizeSignedZero(0.25 * scale);
+    orientation[1] = normalizeSignedZero((yAxisX + xAxisY) / scale);
+    orientation[2] = normalizeSignedZero((zAxisX + xAxisZ) / scale);
+    orientation[3] = normalizeSignedZero((yAxisZ - zAxisY) / scale);
+    return;
+  }
+  if (yAxisY > zAxisZ) {
+    const scale = Math.sqrt(1 + yAxisY - xAxisX - zAxisZ) * 2;
+    orientation[0] = normalizeSignedZero((yAxisX + xAxisY) / scale);
+    orientation[1] = normalizeSignedZero(0.25 * scale);
+    orientation[2] = normalizeSignedZero((zAxisY + yAxisZ) / scale);
+    orientation[3] = normalizeSignedZero((zAxisX - xAxisZ) / scale);
+    return;
+  }
+  const scale = Math.sqrt(1 + zAxisZ - xAxisX - yAxisY) * 2;
+  orientation[0] = normalizeSignedZero((zAxisX + xAxisZ) / scale);
+  orientation[1] = normalizeSignedZero((zAxisY + yAxisZ) / scale);
+  orientation[2] = normalizeSignedZero(0.25 * scale);
+  orientation[3] = normalizeSignedZero((xAxisY - yAxisX) / scale);
+}
+
+function resetPose(
+  out: MutableOpenBrushPanelAttachmentPose,
+  role: OpenBrushPanelRole,
+): void {
+  out.role = role;
+  out.mode = "fallback";
+  out.anchor = "off-hand";
+  out.hand = "left";
+  out.target = "left-ray";
+  out.status = "xr-hand";
+  out.slotIndex = -1;
+  out.slotAngleDegrees = 0;
+  out.visible = true;
+  out.position[0] = 0;
+  out.position[1] = 0;
+  out.position[2] = 0;
+  out.orientation[0] = 0;
+  out.orientation[1] = 0;
+  out.orientation[2] = 0;
+  out.orientation[3] = 1;
+  out.scale[0] = 1;
+  out.scale[1] = 1;
+  out.scale[2] = 1;
 }
 
 function normalizeSignedZero(value: number): number {

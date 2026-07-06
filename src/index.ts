@@ -2,6 +2,7 @@ import {
   SessionMode,
   World,
 } from "@iwsdk/core";
+import { AnimatedController } from "@iwsdk/xr-input";
 import * as horizonKit from "@pmndrs/uikit-horizon";
 import {
   BrushIcon,
@@ -20,8 +21,8 @@ import {
 } from "@pmndrs/uikit-lucide";
 
 import {
-  Interactable,
   PanelUI,
+  RayInteractable,
   ScreenSpace,
 } from "@iwsdk/core";
 
@@ -34,6 +35,8 @@ import { setupOpenBrushShell } from "./openbrush/setup-shell.js";
 
 import { AudioFeedbackSystem } from "./systems/AudioFeedbackSystem.js";
 import { BrushCatalogSystem } from "./systems/BrushCatalogSystem.js";
+import { BrushSizeInputSystem } from "./systems/BrushSizeInputSystem.js";
+import { BrushPointerVisualSystem } from "./systems/BrushPointerVisualSystem.js";
 import { EraserCursorSystem } from "./systems/EraserCursorSystem.js";
 import { InputCommandSystem } from "./systems/InputCommandSystem.js";
 import { LayerCanvasSystem } from "./systems/LayerCanvasSystem.js";
@@ -42,6 +45,9 @@ import { PerformanceCounterSystem } from "./systems/PerformanceCounterSystem.js"
 import { RuntimeDebugSystem } from "./systems/RuntimeDebugSystem.js";
 import { SelectionSystem } from "./systems/SelectionSystem.js";
 import { StrokeAuthoringSystem } from "./systems/StrokeAuthoringSystem.js";
+import { TargetRaySpaceWebXRDebugSystem } from "./systems/TargetRaySpaceWebXRDebugSystem.js";
+
+AnimatedController.useSimpleMaterial = true;
 
 World.create(document.getElementById("scene-container") as HTMLDivElement, {
   xr: {
@@ -96,7 +102,7 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .addComponent(OpenBrushPanelAttachment, {
       role: "main",
     })
-    .addComponent(Interactable)
+    .addComponent(RayInteractable)
     .addComponent(ScreenSpace, {
       top: "20px",
       left: "20px",
@@ -104,6 +110,15 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     });
   panelEntity.object3D!.name = "OpenBrushMainPanel";
   panelEntity.object3D!.position.set(0, 2.05, -1.9);
+
+  const wandPanelPrism = world
+    .createTransformEntity()
+    .addComponent(OpenBrushPanelAttachment, {
+      role: "prism",
+      mode: "fixed-ring",
+    });
+  wandPanelPrism.object3D!.name = "OpenBrushWandPanelPrism";
+  wandPanelPrism.object3D!.visible = false;
 
   for (const panel of [
     {
@@ -126,14 +141,14 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
       .createTransformEntity()
       .addComponent(PanelUI, {
         config: panel.config,
-        maxHeight: 0.84,
-        maxWidth: 0.84,
+        maxHeight: 0.42,
+        maxWidth: 0.42,
       })
       .addComponent(OpenBrushPanelAttachment, {
         role: panel.role,
         mode: "fixed-ring",
       })
-      .addComponent(Interactable);
+      .addComponent(RayInteractable);
     wandPanel.object3D!.name = panel.name;
     wandPanel.object3D!.visible = false;
   }
@@ -146,11 +161,14 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .registerSystem(PanelSystem)
     .registerSystem(PanelAttachmentSystem)
     .registerSystem(InputCommandSystem)
+    .registerSystem(BrushSizeInputSystem)
     .registerSystem(AudioFeedbackSystem)
     .registerSystem(BrushCatalogSystem)
     .registerSystem(EraserCursorSystem)
     .registerSystem(LayerCanvasSystem)
     .registerSystem(StrokeAuthoringSystem)
+    .registerSystem(BrushPointerVisualSystem)
+    .registerSystem(TargetRaySpaceWebXRDebugSystem)
     .registerSystem(SelectionSystem)
     .registerSystem(PerformanceCounterSystem)
     .registerSystem(RuntimeDebugSystem);

@@ -1,19 +1,29 @@
 import {
+  Group,
   PanelUI,
+  RayInteractable,
   Transform,
   VisibilityState,
   createSystem,
 } from "@iwsdk/core";
 import type { Entity } from "@iwsdk/core";
+import { LineMaterial } from "three/addons/lines/LineMaterial.js";
+import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
+import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
 
 import {
   OpenBrushPanelAttachment,
   SettingsState,
 } from "../components/OpenBrushCore.js";
 import {
+  OPEN_BRUSH_FIXED_WAND_PANEL_ROLES,
+  OPEN_BRUSH_WAND_PRISM_ROLE,
   advanceWandPanelRotationSteps,
   createOpenBrushPanelAttachmentPose,
   resolveOpenBrushPanelAttachmentPoseInto,
+  resolveOpenBrushWandPrismAttachmentPoseInto,
+  resolveOpenBrushWandPrismPanelSlotPoseInto,
+  type OpenBrushFixedWandPanelRole,
   type OpenBrushPanelAttachmentSettings,
   type OpenBrushPanelAttachmentTarget,
   type OpenBrushPanelMode,
@@ -22,15 +32,31 @@ import {
 
 const BASE_PANEL_MAX_WIDTH = 1.6;
 const BASE_PANEL_MAX_HEIGHT = 5;
-const RING_PANEL_MAX_WIDTH = 0.84;
-const RING_PANEL_MAX_HEIGHT = 0.84;
+const RING_PANEL_MAX_WIDTH = 0.82;
+const RING_PANEL_MAX_HEIGHT = 0.82;
 const UNIT_SCALE = [1, 1, 1] as const;
+const PANEL_BORDER_GROUP_NAME = "OpenBrushWandPanelBorder";
+const PANEL_BORDER_Z_OFFSET = 0.002;
+const PANEL_BORDER_RENDER_ORDER = 30;
+const PANEL_BORDER_LINEWIDTH = 0.0022;
+const PANEL_BORDER_RADIUS = 0.012;
+const PANEL_BORDER_CORNER_SEGMENTS = 6;
 
 export class PanelAttachmentSystem extends createSystem({
+  attachments: { required: [Transform, OpenBrushPanelAttachment] },
   panels: { required: [PanelUI, Transform, OpenBrushPanelAttachment] },
   settings: { required: [SettingsState] },
 }) {
+  private readonly borderMaterial = new LineMaterial({
+    color: 0xffffff,
+    linewidth: PANEL_BORDER_LINEWIDTH,
+    worldUnits: true,
+    transparent: false,
+    depthTest: true,
+  });
   private readonly pose = createOpenBrushPanelAttachmentPose();
+  private readonly prismPose = createOpenBrushPanelAttachmentPose();
+  private readonly slotPose = createOpenBrushPanelAttachmentPose();
   private readonly settingsSnapshot: OpenBrushPanelAttachmentSettings = {
     dominantHand: "right",
     panelAnchor: "off-hand",
@@ -53,12 +79,25 @@ export class PanelAttachmentSystem extends createSystem({
     if (!isBrowser) {
       this.advanceWandPanelRotation(settings, deltaSeconds);
     }
+    this.readSettingsSnapshot(settings);
 
+    const settingsRevision = Number(
+      settings.getValue(SettingsState, "settingsRevision"),
+    );
+    const prism = this.getWandPrismEntity();
+
+    if (prism) {
+      if (isBrowser) {
+        this.applyBrowserFallback(prism);
+      } else {
+        this.applyXrWandPrism(prism, settingsRevision);
+      }
+    }
     for (const panel of this.queries.panels.entities) {
       if (isBrowser) {
         this.applyBrowserFallback(panel);
       } else {
-        this.applyXrAttachment(panel, settings);
+        this.applyXrAttachment(panel, settingsRevision, prism);
       }
     }
   }
@@ -67,6 +106,8 @@ export class PanelAttachmentSystem extends createSystem({
     const role = this.getPanelRole(panel);
     const visible = role === "main";
     this.setObjectVisible(panel, visible);
+    this.setPanelInteractive(panel, visible);
+    this.setPanelBorderVisible(panel, false);
     this.writeAttachmentStatus(
       panel,
       role,
@@ -82,10 +123,41 @@ export class PanelAttachmentSystem extends createSystem({
     );
   }
 
-  private applyXrAttachment(panel: Entity, settings: Entity): void {
+  private applyXrWandPrism(prism: Entity, settingsRevision: number): void {
+    this.settingsSnapshot.wandPanelRotationSteps =
+      this.animatedWandPanelRotationSteps;
+    const pose = resolveOpenBrushWandPrismAttachmentPoseInto(
+      this.settingsSnapshot,
+      this.prismPose,
+    );
+    this.setObjectVisible(prism, pose.visible);
+    this.setParent(prism, this.resolveParentEntity(pose.target));
+    this.writeTransform(prism, pose.position, pose.orientation);
+    this.writeAttachmentStatus(
+      prism,
+      pose.role,
+      pose.mode,
+      pose.anchor,
+      pose.hand,
+      pose.status,
+      pose.slotIndex,
+      pose.slotAngleDegrees,
+      pose.visible,
+      settingsRevision,
+      this.animatedWandPanelRotationSteps,
+    );
+  }
+
+  private applyXrAttachment(
+    panel: Entity,
+    settingsRevision: number,
+    prism: Entity | undefined,
+  ): void {
     const role = this.getPanelRole(panel);
     if (role === "main") {
       this.setObjectVisible(panel, false);
+      this.setPanelInteractive(panel, false);
+      this.setPanelBorderVisible(panel, false);
       this.writeAttachmentStatus(
         panel,
         role,
@@ -96,12 +168,75 @@ export class PanelAttachmentSystem extends createSystem({
         -1,
         0,
         false,
-        Number(settings.getValue(SettingsState, "settingsRevision")),
-        Number(settings.getValue(SettingsState, "wandPanelRotationSteps")),
+        settingsRevision,
+        this.animatedWandPanelRotationSteps,
       );
       return;
     }
 
+    if (!this.isFixedWandPanelRole(role)) {
+      return;
+    }
+
+    if (prism) {
+      const pose = resolveOpenBrushWandPrismPanelSlotPoseInto(
+        role,
+        this.prismPose.hand,
+        this.slotPose,
+      );
+      this.setObjectVisible(panel, pose.visible);
+      this.setPanelInteractive(panel, pose.visible);
+      this.setParent(panel, prism);
+      this.writeTransform(panel, pose.position, pose.orientation);
+      this.writePanelSize(
+        panel,
+        this.prismPose.scale[0] * pose.scale[0],
+        pose.mode,
+      );
+      this.writeAttachmentStatus(
+        panel,
+        pose.role,
+        pose.mode,
+        this.prismPose.anchor,
+        this.prismPose.hand,
+        this.prismPose.status,
+        pose.slotIndex,
+        pose.slotAngleDegrees,
+        pose.visible,
+        settingsRevision,
+        this.animatedWandPanelRotationSteps,
+      );
+      return;
+    }
+
+    this.settingsSnapshot.wandPanelRotationSteps =
+      this.animatedWandPanelRotationSteps;
+    const pose = resolveOpenBrushPanelAttachmentPoseInto(
+      this.settingsSnapshot,
+      role,
+      this.pose,
+    );
+    this.setObjectVisible(panel, pose.visible);
+    this.setPanelInteractive(panel, pose.visible);
+    this.setParent(panel, this.resolveParentEntity(pose.target));
+    this.writeTransform(panel, pose.position, pose.orientation);
+    this.writePanelSize(panel, pose.scale[0], pose.mode);
+    this.writeAttachmentStatus(
+      panel,
+      pose.role,
+      pose.mode,
+      pose.anchor,
+      pose.hand,
+      pose.status,
+      pose.slotIndex,
+      pose.slotAngleDegrees,
+      pose.visible,
+      settingsRevision,
+      this.animatedWandPanelRotationSteps,
+    );
+  }
+
+  private readSettingsSnapshot(settings: Entity): void {
     this.settingsSnapshot.dominantHand = String(
       settings.getValue(SettingsState, "dominantHand"),
     );
@@ -119,28 +254,6 @@ export class PanelAttachmentSystem extends createSystem({
     );
     this.settingsSnapshot.wandPanelRotationSteps =
       this.animatedWandPanelRotationSteps;
-    const pose = resolveOpenBrushPanelAttachmentPoseInto(
-      this.settingsSnapshot,
-      role,
-      this.pose,
-    );
-    this.setObjectVisible(panel, pose.visible);
-    this.setParent(panel, this.resolveParentEntity(pose.target));
-    this.writeTransform(panel, pose.position, pose.orientation);
-    this.writePanelSize(panel, pose.scale[0], pose.mode);
-    this.writeAttachmentStatus(
-      panel,
-      pose.role,
-      pose.mode,
-      pose.anchor,
-      pose.hand,
-      pose.status,
-      pose.slotIndex,
-      pose.slotAngleDegrees,
-      pose.visible,
-      Number(settings.getValue(SettingsState, "settingsRevision")),
-      this.animatedWandPanelRotationSteps,
-    );
   }
 
   private advanceWandPanelRotation(
@@ -170,6 +283,10 @@ export class PanelAttachmentSystem extends createSystem({
         return this.world.playerSpaceEntities.raySpaces.left;
       case "right-ray":
         return this.world.playerSpaceEntities.raySpaces.right;
+      case "left-grip":
+        return this.world.playerSpaceEntities.gripSpaces.left;
+      case "right-grip":
+        return this.world.playerSpaceEntities.gripSpaces.right;
       case "xr-origin":
       default:
         return this.world.playerEntity;
@@ -227,6 +344,7 @@ export class PanelAttachmentSystem extends createSystem({
     if (Number(entity.getValue(PanelUI, "maxHeight")) !== maxHeight) {
       entity.setValue(PanelUI, "maxHeight", maxHeight);
     }
+    this.syncPanelBorder(entity, maxWidth, maxHeight, mode === "fixed-ring");
   }
 
   private writeAttachmentStatus(
@@ -301,18 +419,200 @@ export class PanelAttachmentSystem extends createSystem({
     }
   }
 
+  private getWandPrismEntity(): Entity | undefined {
+    for (const entity of this.queries.attachments.entities) {
+      if (this.getPanelRole(entity) === OPEN_BRUSH_WAND_PRISM_ROLE) {
+        return entity;
+      }
+    }
+    return undefined;
+  }
+
   private getPanelRole(entity: Entity): OpenBrushPanelRole {
     const role = String(entity.getValue(OpenBrushPanelAttachment, "role"));
-    if (role === "color" || role === "brush" || role === "tools") {
+    if (
+      role === "color" ||
+      role === "brush" ||
+      role === "tools" ||
+      role === OPEN_BRUSH_WAND_PRISM_ROLE
+    ) {
       return role;
     }
     return "main";
+  }
+
+  private isFixedWandPanelRole(
+    role: OpenBrushPanelRole,
+  ): role is OpenBrushFixedWandPanelRole {
+    return OPEN_BRUSH_FIXED_WAND_PANEL_ROLES.includes(
+      role as OpenBrushFixedWandPanelRole,
+    );
   }
 
   private setObjectVisible(entity: Entity, visible: boolean): void {
     if (entity.object3D && entity.object3D.visible !== visible) {
       entity.object3D.visible = visible;
     }
+  }
+
+  private setPanelInteractive(entity: Entity, interactive: boolean): void {
+    if (interactive) {
+      if (!entity.hasComponent(RayInteractable)) {
+        entity.addComponent(RayInteractable);
+      }
+      return;
+    }
+    if (entity.hasComponent(RayInteractable)) {
+      entity.removeComponent(RayInteractable);
+    }
+  }
+
+  private setPanelBorderVisible(entity: Entity, visible: boolean): void {
+    const border = entity.object3D?.getObjectByName(PANEL_BORDER_GROUP_NAME);
+    if (border) {
+      border.visible = visible;
+    }
+  }
+
+  private syncPanelBorder(
+    entity: Entity,
+    width: number,
+    height: number,
+    visible: boolean,
+  ): void {
+    const object = entity.object3D;
+    if (!object) {
+      return;
+    }
+    const border = this.getOrCreatePanelBorder(object);
+    border.visible = visible;
+    if (!visible) {
+      return;
+    }
+
+    const outline = border.children[0] as LineSegments2;
+    this.writeBorderOutline(outline, width, height);
+  }
+
+  private getOrCreatePanelBorder(object: NonNullable<Entity["object3D"]>): Group {
+    const existing = object.getObjectByName(PANEL_BORDER_GROUP_NAME);
+    if (existing instanceof Group) {
+      return existing;
+    }
+
+    const border = new Group();
+    border.name = PANEL_BORDER_GROUP_NAME;
+    border.position.z = PANEL_BORDER_Z_OFFSET;
+    const geometry = new LineSegmentsGeometry();
+    this.markGeometryNonInteractive(geometry);
+    const outline = new LineSegments2(geometry, this.borderMaterial);
+    outline.name = "OpenBrushWandPanelBorder_outline";
+    outline.renderOrder = PANEL_BORDER_RENDER_ORDER;
+    outline.raycast = () => {};
+    border.add(outline);
+    object.add(border);
+    return border;
+  }
+
+  private writeBorderOutline(
+    outline: LineSegments2,
+    width: number,
+    height: number,
+  ): void {
+    const halfWidth = width * 0.5;
+    const halfHeight = height * 0.5;
+    const radius = Math.min(PANEL_BORDER_RADIUS, halfWidth, halfHeight);
+    const geometry = outline.geometry as LineSegmentsGeometry;
+    const positions = this.buildRoundedBorderSegments(
+      halfWidth,
+      halfHeight,
+      radius,
+    );
+    geometry.setPositions(positions);
+    this.markGeometryNonInteractive(geometry);
+    geometry.computeBoundingSphere();
+  }
+
+  private buildRoundedBorderSegments(
+    halfWidth: number,
+    halfHeight: number,
+    radius: number,
+  ): Float32Array {
+    const points: Array<[number, number]> = [];
+    this.pushCornerPoints(
+      points,
+      halfWidth - radius,
+      halfHeight - radius,
+      radius,
+      0,
+      Math.PI * 0.5,
+    );
+    this.pushCornerPoints(
+      points,
+      -halfWidth + radius,
+      halfHeight - radius,
+      radius,
+      Math.PI * 0.5,
+      Math.PI,
+    );
+    this.pushCornerPoints(
+      points,
+      -halfWidth + radius,
+      -halfHeight + radius,
+      radius,
+      Math.PI,
+      Math.PI * 1.5,
+    );
+    this.pushCornerPoints(
+      points,
+      halfWidth - radius,
+      -halfHeight + radius,
+      radius,
+      Math.PI * 1.5,
+      Math.PI * 2,
+    );
+
+    const positions = new Float32Array(points.length * 6);
+    for (let index = 0; index < points.length; index++) {
+      const [ax, ay] = points[index]!;
+      const [bx, by] = points[(index + 1) % points.length]!;
+      const offset = index * 6;
+      positions[offset] = ax;
+      positions[offset + 1] = ay;
+      positions[offset + 2] = 0;
+      positions[offset + 3] = bx;
+      positions[offset + 4] = by;
+      positions[offset + 5] = 0;
+    }
+    return positions;
+  }
+
+  private pushCornerPoints(
+    points: Array<[number, number]>,
+    centerX: number,
+    centerY: number,
+    radius: number,
+    startAngle: number,
+    endAngle: number,
+  ): void {
+    for (let index = 0; index <= PANEL_BORDER_CORNER_SEGMENTS; index++) {
+      if (points.length > 0 && index === 0) {
+        continue;
+      }
+      const alpha = index / PANEL_BORDER_CORNER_SEGMENTS;
+      const angle = startAngle + (endAngle - startAngle) * alpha;
+      points.push([
+        centerX + Math.cos(angle) * radius,
+        centerY + Math.sin(angle) * radius,
+      ]);
+    }
+  }
+
+  private markGeometryNonInteractive(geometry: LineSegmentsGeometry): void {
+    // IWSDK's ray BVH path expects triangle geometry. These decorative lines
+    // never raycast, so mirror the sentinel approach used by ../blocks.
+    (geometry as unknown as { boundsTree: LineSegmentsGeometry }).boundsTree =
+      geometry;
   }
 
   private getSettingsEntity(): Entity | undefined {

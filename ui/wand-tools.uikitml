@@ -1,64 +1,78 @@
 <style>
-  .panel-container {
-    align-items: flex-start;
-    padding: 1.0;
-    width: 27.8;
-    height: 27.8;
-    display: flex;
+  .wand-panel {
     flex-direction: column;
-    background-color: rgba(0, 0, 0, 0.86);
-    border-color: #f8fafc;
-    border-width: 0.16;
-    border-radius: 0.34;
+    width: 320px;
+    height: 320px;
+    padding: 14px;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0px;
+    border-radius: 0px;
+    color: #ffffff;
   }
 
-  .heading-row {
-    display: flex;
+  .header-row {
     flex-direction: row;
     align-items: center;
-    width: 100%;
+    width: 292px;
+    height: 26px;
+  }
+
+  .heading-lockup {
+    flex-direction: row;
+    align-items: center;
+    width: 188px;
+    height: 26px;
+  }
+
+  .heading-icon {
+    width: 20px;
+    height: 20px;
+    color: #ffffff;
   }
 
   .heading {
-    font-size: 1.9;
-    font-weight: medium;
-    color: #f8fafc;
+    width: 132px;
+    height: 24px;
+    font-size: 19px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-left: 8px;
     text-align: left;
-    width: 15.6;
   }
 
-  .eyebrow {
-    width: 10.2;
-    font-size: 0.86;
-    color: #aab2c3;
+  .page-mark {
+    width: 104px;
+    height: 16px;
+    font-size: 11px;
+    color: #ffffff;
     text-align: right;
   }
 
   .divider {
-    width: 25.8;
-    height: 0.08;
-    margin-top: 0.55;
-    background-color: #e5e7eb;
+    width: 292px;
+    height: 1px;
+    margin-top: 8px;
+    background-color: rgba(255, 255, 255, 0.9);
   }
 
   .button-row {
-    display: flex;
     flex-direction: row;
-    width: 100%;
-    margin-top: 0.72;
+    width: 292px;
+    height: 58px;
+    margin-top: 10px;
   }
 
   .tool-button {
-    width: 8.26;
-    height: 5.75;
-    padding: 0.42;
-    background-color: #020204;
-    color: #f8fafc;
-    border-radius: 0.3;
-    border-width: 0.14;
-    border-color: #f8fafc;
-    font-size: 0.86;
-    font-weight: medium;
+    width: 88px;
+    height: 58px;
+    padding: 5px;
+    background-color: rgba(0, 0, 0, 0.02);
+    color: #ffffff;
+    border-radius: 0px;
+    border-width: 1px;
+    border-color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
     text-align: center;
     cursor: pointer;
     flex-direction: column;
@@ -67,91 +81,108 @@
   }
 
   .secondary-button {
-    background-color: #08080c;
-    border-color: #b8bcc7;
-    color: #e5e7eb;
+    background-color: rgba(0, 0, 0, 0.02);
+    border-color: #ffffff;
+    color: #ffffff;
   }
 
   .history-button {
-    background-color: #010102;
-    border-color: #8b95a8;
-    color: #d1d5db;
+    background-color: rgba(0, 0, 0, 0.02);
+    border-color: #ffffff;
+    color: #ffffff;
   }
 
   .button-icon {
-    width: 2.35;
-    height: 2.35;
+    width: 20px;
+    height: 20px;
+    margin-bottom: 3px;
+  }
+
+  .button-label {
+    width: 76px;
+    height: 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffffff;
+    text-align: center;
+  }
+
+  .wide-button-label {
+    width: 120px;
   }
 
   .wide-button {
-    width: 12.62;
+    width: 138px;
   }
 
   .meta {
-    margin-top: 0.74;
-    padding: 0.38;
-    width: 24.96;
-    font-size: 0.9;
-    color: #d1d5db;
-    background-color: #030306;
-    border-color: #8b95a8;
-    border-width: 0.08;
-    border-radius: 0.2;
+    width: 280px;
+    height: 18px;
+    padding: 5px;
+    margin-top: 10px;
+    background-color: rgba(0, 0, 0, 0.02);
+    border-color: #ffffff;
+    border-width: 1px;
+    border-radius: 0px;
+    color: #ffffff;
+    font-size: 11px;
     text-align: center;
   }
 
   #tool-line,
   #tool-erase,
   #tool-brush-picker,
+  #tool-dropper,
   #stroke-history-redo {
-    margin-left: 0.52;
+    margin-left: 8px;
   }
 </style>
-<div class="panel-container">
-  <div class="heading-row">
-    <span class="heading">Tools</span>
-    <span class="eyebrow">Swipe stick</span>
+<Panel class="wand-panel">
+  <div class="header-row">
+    <div class="heading-lockup">
+      <PaintbrushIcon class="heading-icon"></PaintbrushIcon>
+      <span class="heading">Tools</span>
+    </div>
+    <span class="page-mark">2 / 3</span>
   </div>
   <div class="divider"></div>
   <div class="button-row">
     <button id="tool-draw" class="tool-button">
       <PaintbrushIcon class="button-icon"></PaintbrushIcon>
-      Draw
+      <span class="button-label">Draw</span>
     </button>
     <button id="tool-line" class="tool-button">
       <RulerIcon class="button-icon"></RulerIcon>
-      Line
+      <span class="button-label">Line</span>
     </button>
     <button id="tool-erase" class="tool-button">
       <EraserIcon class="button-icon"></EraserIcon>
-      Eraser
+      <span class="button-label">Erase</span>
     </button>
   </div>
   <div class="button-row">
-    <button id="tool-color-picker" class="tool-button wide-button secondary-button">
+    <button id="tool-color-picker" class="tool-button secondary-button">
       <PaletteIcon class="button-icon"></PaletteIcon>
-      Color
+      <span class="button-label">Color</span>
     </button>
-    <button id="tool-brush-picker" class="tool-button wide-button secondary-button">
+    <button id="tool-brush-picker" class="tool-button secondary-button">
       <BrushIcon class="button-icon"></BrushIcon>
-      Brush
+      <span class="button-label">Brush</span>
+    </button>
+    <button id="tool-dropper" class="tool-button secondary-button">
+      <PipetteIcon class="button-icon"></PipetteIcon>
+      <span class="button-label">Pick</span>
     </button>
   </div>
   <div class="button-row">
-    <button id="tool-dropper" class="tool-button wide-button secondary-button">
-      <PipetteIcon class="button-icon"></PipetteIcon>
-      Dropper
-    </button>
     <button id="stroke-history-undo" class="tool-button wide-button history-button">
       <Undo2Icon class="button-icon"></Undo2Icon>
-      Undo
+      <span class="button-label wide-button-label">Undo</span>
     </button>
-  </div>
-  <div class="button-row">
     <button id="stroke-history-redo" class="tool-button wide-button history-button">
       <Redo2Icon class="button-icon"></Redo2Icon>
-      Redo
+      <span class="button-label wide-button-label">Redo</span>
     </button>
   </div>
   <span id="stroke-history-state" class="meta">0 undo | 0 redo</span>
-</div>
+</Panel>
