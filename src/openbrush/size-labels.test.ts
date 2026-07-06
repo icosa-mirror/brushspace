@@ -8,7 +8,7 @@ describe("Open Brush size labels", () => {
   });
 
   it("formats eraser-scale radii in meters", () => {
-    expect(formatOpenBrushSizeMeters(0.2)).toBe("0.200 m");
+    expect(formatOpenBrushSizeMeters(0.2)).toBe("20.0 cm");
   });
 
   it("handles invalid sizes without leaking NaN into UI", () => {

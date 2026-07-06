@@ -8,16 +8,12 @@ export interface ResolvedBrushSize {
 export const OPEN_BRUSH_DEFAULT_BRUSH_SIZE_RANGE: BrushSizeRange = [0.05, 3];
 export const OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP = 0.05;
 
-// Open Brush stores normalized BrushSize01 in UI state and absolute brushSize on
-// strokes. The IWSDK live scale keeps current renderer units usable while range
-// metadata is still sourced from Open Brush descriptors.
-export const OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE = 0.02;
-export const OPEN_BRUSH_IWSDK_BRUSH_SIZE_SCALE =
-  OPEN_BRUSH_DEFAULT_LIVE_BRUSH_SIZE /
-  brushSize01ToOpenBrushSize(
-    OPEN_BRUSH_DEFAULT_SIZE01,
-    OPEN_BRUSH_DEFAULT_BRUSH_SIZE_RANGE,
-  );
+// Open Brush stores normalized BrushSize01 in UI state and absolute brushSize
+// on strokes. Descriptor size ranges are authored in Tilt Brush world units,
+// which are decimeters (App.UNITS_TO_METERS = 0.1 in the reference); the app
+// draws at 1:1 room scale in meters, so live size is the plain unit conversion.
+export const OPEN_BRUSH_UNITS_TO_METERS = 0.1;
+export const OPEN_BRUSH_IWSDK_BRUSH_SIZE_SCALE = OPEN_BRUSH_UNITS_TO_METERS;
 export const OPEN_BRUSH_DEFAULT_STARTUP_BRUSH_SIZE_RANGE: BrushSizeRange = [
   0.05,
   0.2,
@@ -27,6 +23,8 @@ export const OPEN_BRUSH_DEFAULT_STARTUP_LIVE_BRUSH_SIZE =
     OPEN_BRUSH_DEFAULT_SIZE01,
     OPEN_BRUSH_DEFAULT_STARTUP_BRUSH_SIZE_RANGE,
   );
+export const OPEN_BRUSH_THUMBSTICK_SIZE_DEADZONE = 0.18;
+export const OPEN_BRUSH_THUMBSTICK_SIZE_RATE01_PER_SECOND = 0.35;
 
 export function normalizeBrushSize(size: number): number {
   if (!Number.isFinite(size) || size <= 0) {
@@ -74,6 +72,25 @@ export function brushSize01ToLiveBrushSize(
   );
 }
 
+/**
+ * Open Brush preserves the absolute brush size when switching brushes
+ * (PointerScript.m_LastUsedBrushSize_CS): the current size carries over,
+ * clamped into the new brush's range, and size01 is re-derived from it.
+ */
+export function resolveBrushSizeForBrushChange(
+  currentLiveSize: number,
+  range?: BrushSizeRange,
+): ResolvedBrushSize {
+  const normalizedRange = normalizeBrushSizeRange(range);
+  const minLive = normalizedRange[0] * OPEN_BRUSH_IWSDK_BRUSH_SIZE_SCALE;
+  const maxLive = normalizedRange[1] * OPEN_BRUSH_IWSDK_BRUSH_SIZE_SCALE;
+  const size = Math.min(
+    maxLive,
+    Math.max(minLive, normalizeBrushSize(currentLiveSize)),
+  );
+  return { size01: liveBrushSizeToSize01(size, normalizedRange), size };
+}
+
 export function resolveBrushSize01Adjustment(
   currentSize01: number,
   delta: number,
@@ -86,6 +103,36 @@ export function resolveBrushSize01Adjustment(
     size01,
     size: brushSize01ToLiveBrushSize(size01, range),
   };
+}
+
+export function resolveBrushSizeThumbstickAdjustment(
+  currentSize01: number,
+  axisX: number,
+  deltaSeconds: number,
+  range?: BrushSizeRange,
+): ResolvedBrushSize {
+  const normalizedAxis = normalizeBrushSizeThumbstickAxis(axisX);
+  const delta =
+    normalizedAxis *
+    Math.max(0, Number.isFinite(deltaSeconds) ? deltaSeconds : 0) *
+    OPEN_BRUSH_THUMBSTICK_SIZE_RATE01_PER_SECOND;
+  return resolveBrushSize01Adjustment(currentSize01, delta, range);
+}
+
+export function normalizeBrushSizeThumbstickAxis(axisX: number): number {
+  if (!Number.isFinite(axisX)) {
+    return 0;
+  }
+  const clamped = Math.min(1, Math.max(-1, axisX));
+  const magnitude = Math.abs(clamped);
+  if (magnitude <= OPEN_BRUSH_THUMBSTICK_SIZE_DEADZONE) {
+    return 0;
+  }
+  return (
+    Math.sign(clamped) *
+    ((magnitude - OPEN_BRUSH_THUMBSTICK_SIZE_DEADZONE) /
+      (1 - OPEN_BRUSH_THUMBSTICK_SIZE_DEADZONE))
+  );
 }
 
 export function liveBrushSizeToSize01(

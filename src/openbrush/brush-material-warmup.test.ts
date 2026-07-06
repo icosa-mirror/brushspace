@@ -97,6 +97,8 @@ function createBrush(
     vectorParams: overrides.vectorParams,
     colorParams: overrides.colorParams,
     supportStatus: overrides.supportStatus ?? "supported",
+    pickerVisible: overrides.pickerVisible ?? true,
+    tags: overrides.tags ?? ["default"],
     geometryFamily: overrides.geometryFamily ?? "ribbon",
     materialFamily: overrides.materialFamily ?? "standard",
     brushSizeRange: overrides.brushSizeRange ?? [0.05, 3],

@@ -1,17 +1,20 @@
 import { describe, expect, it } from "vitest";
 
-import referenceManifest from "../../reference/Support/exportManifest.json";
+import referenceManifest from "./generated/exportManifest.json";
+import generatedBrushAssets from "./generated/brush-assets.json";
 
 import {
   buildBrushInventoryFromExportManifest,
   findBrushByGuid,
   type BrushInventoryEntry,
+  type BrushAssetRecord,
   type OpenBrushExportManifest,
 } from "./brush-inventory.js";
 import { createBrushMaterialSpec } from "./brush-materials.js";
 
 const inventory = buildBrushInventoryFromExportManifest(
   referenceManifest as unknown as OpenBrushExportManifest,
+  generatedBrushAssets.brushes as unknown as Record<string, BrushAssetRecord>,
 );
 
 describe("brush material conversion", () => {
@@ -22,7 +25,7 @@ describe("brush material conversion", () => {
     );
 
     expect(spec).toMatchObject({
-      materialFamily: "standard",
+      materialFamily: "unlit",
       shaderRewrite: "semantic-family",
       sourceBlendMode: 1,
       blending: "alpha-cutout",
@@ -107,7 +110,7 @@ describe("brush material conversion", () => {
       transparent: true,
       depthWrite: false,
     });
-    expect(spec.warning).toContain("Particle brush geometry");
+    expect(spec.warning).toContain("Particle brushes are deferred");
     expect(spec.textureSlots[0]).toMatchObject({
       name: "MainTex",
       size: [512, 512],

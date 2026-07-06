@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import referenceManifest from "../../reference/Support/exportManifest.json";
+import referenceManifest from "./generated/exportManifest.json";
+import generatedBrushAssets from "./generated/brush-assets.json";
 import {
   buildBrushInventoryFromExportManifest,
   findBrushByGuid,
   summarizeBrushInventory,
+  type BrushAssetRecord,
   type OpenBrushExportManifest,
 } from "./brush-inventory.js";
 
@@ -14,17 +16,26 @@ function loadReferenceManifest(): OpenBrushExportManifest {
 
 describe("Open Brush brush inventory", () => {
   it("builds an inventory from the real Open Brush export manifest", () => {
-    const inventory = buildBrushInventoryFromExportManifest(loadReferenceManifest());
+    const inventory = buildBrushInventoryFromExportManifest(
+      loadReferenceManifest(),
+      generatedBrushAssets.brushes as unknown as Record<string, BrushAssetRecord>,
+    );
     const summary = summarizeBrushInventory(inventory);
 
     expect(summary.total).toBe(123);
-    expect(summary.supported).toBe(4);
-    expect(summary.fallback).toBe(1);
-    expect(summary.unsupported).toBe(118);
+    // Extrusion (ribbon/tube) brushes with the default vertex stage are
+    // supported; custom-vertex extrusion and particle brushes render via
+    // fallback; hulls/templates/specials stay unsupported.
+    expect(summary.supported).toBe(79);
+    expect(summary.fallback).toBe(23);
+    expect(summary.unsupported).toBe(21);
   });
 
-  it("marks the initial MVP brush families explicitly", () => {
-    const inventory = buildBrushInventoryFromExportManifest(loadReferenceManifest());
+  it("derives brush families and ranges from the extracted reference data", () => {
+    const inventory = buildBrushInventoryFromExportManifest(
+      loadReferenceManifest(),
+      generatedBrushAssets.brushes as unknown as Record<string, BrushAssetRecord>,
+    );
 
     expect(
       findBrushByGuid(inventory, "429ed64a-4e97-4466-84d3-145a861ef684"),
@@ -32,7 +43,8 @@ describe("Open Brush brush inventory", () => {
       name: "Marker",
       supportStatus: "supported",
       geometryFamily: "ribbon",
-      materialFamily: "standard",
+      materialFamily: "unlit",
+      pickerVisible: true,
       brushSizeRange: [0.05, 3],
       pressureSizeRange: [0.1, 1],
       pressureOpacityRange: [1, 1],
@@ -74,6 +86,8 @@ describe("Open Brush brush inventory", () => {
       name: "Smoke",
       supportStatus: "fallback",
       geometryFamily: "particle",
+      materialFamily: "particle",
+      pickerVisible: false,
       brushSizeRange: [1, 2],
       pressureSizeRange: [0.2, 1],
       pressureOpacityRange: [1, 1],

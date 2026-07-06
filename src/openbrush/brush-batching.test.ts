@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import referenceManifest from "../../reference/Support/exportManifest.json";
+import referenceManifest from "./generated/exportManifest.json";
+import generatedBrushAssets from "./generated/brush-assets.json";
 
 import {
   buildBrushInventoryFromExportManifest,
+  type BrushAssetRecord,
   type OpenBrushExportManifest,
 } from "./brush-inventory.js";
 import { planBrushBatches, stringifyBatchKey } from "./brush-batching.js";
@@ -13,6 +15,7 @@ import type { StrokeData } from "./types.js";
 
 const inventory = buildBrushInventoryFromExportManifest(
   referenceManifest as unknown as OpenBrushExportManifest,
+  generatedBrushAssets.brushes as unknown as Record<string, BrushAssetRecord>,
 );
 const fixtureStroke = createPhase1FixtureDocument().strokes[0];
 

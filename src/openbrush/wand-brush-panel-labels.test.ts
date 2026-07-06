@@ -21,7 +21,7 @@ describe("Phase A wand brush panel labels", () => {
     expect(labels.wandBrushMeta).toBe(
       `${lightBrush.geometryFamily} / ${lightBrushIndex + 1}/${selectableOpenBrushes.length}`,
     );
-    expect(labels.wandBrushSize).toBe("Size 50% | 2.4 mm");
+    expect(labels.wandBrushSize).toBe("Size 50% | 1.1 cm");
     expect(labels.sizeDown).toBe("Size -");
     expect(labels.sizeUp).toBe("Size +");
     expect(labels.warning).toBe("Ready");
@@ -37,10 +37,10 @@ describe("Phase A wand brush panel labels", () => {
 
     expect(labels.wandBrushName).toBe("Eraser");
     expect(labels.wandBrushMeta).toBe("contact radius");
-    expect(labels.wandBrushSize).toBe("Radius 50% | 0.200 m");
+    expect(labels.wandBrushSize).toBe("Radius 50% | 20.0 cm");
     expect(labels.sizeDown).toBe("Radius -");
     expect(labels.sizeUp).toBe("Radius +");
-    expect(labels.activeBrushMeta).toContain("radius 50% | 0.200 m");
+    expect(labels.activeBrushMeta).toContain("radius 50% | 20.0 cm");
   });
 
   it("tracks adjusted eraser radius percentages after hand-panel size changes", () => {
@@ -51,8 +51,8 @@ describe("Phase A wand brush panel labels", () => {
       }),
     );
 
-    expect(labels.wandBrushSize).toBe("Radius 55% | 0.210 m");
-    expect(labels.activeBrushMeta).toContain("radius 55% | 0.210 m");
+    expect(labels.wandBrushSize).toBe("Radius 55% | 21.0 cm");
+    expect(labels.activeBrushMeta).toContain("radius 55% | 21.0 cm");
   });
 
   it("keeps panel-focus wording visible for paint and eraser modes", () => {
@@ -148,7 +148,7 @@ describe("Phase A wand brush panel labels", () => {
       }),
     );
 
-    expect(labels.wandBrushSize).toBe("Size 50% | 2.4 mm");
+    expect(labels.wandBrushSize).toBe("Size 50% | 1.1 cm");
     expect(labels.wandBrushSize).not.toContain("NaN");
   });
 });
@@ -164,7 +164,7 @@ function baseInput(
     activeBrushIndex: lightBrushIndex,
     brushCount: selectableOpenBrushes.length,
     brushSize01: 0.5,
-    brushSize: 0.002353189280256629,
+    brushSize: 0.01125,
     eraserRadius: 0.2,
     eraserActive: false,
     panelFocusBlocked: false,

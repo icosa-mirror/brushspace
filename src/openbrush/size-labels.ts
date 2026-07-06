@@ -6,7 +6,7 @@ export function formatOpenBrushSizeMeters(sizeMeters: number): string {
     return `${(sizeMeters * 1000).toFixed(1)} mm`;
   }
   if (sizeMeters < 1) {
-    return `${sizeMeters.toFixed(3)} m`;
+    return `${(sizeMeters * 100).toFixed(1)} cm`;
   }
   return `${sizeMeters.toFixed(2)} m`;
 }

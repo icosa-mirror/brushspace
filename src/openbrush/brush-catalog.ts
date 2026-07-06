@@ -1,8 +1,10 @@
-import referenceManifest from "../../reference/Support/exportManifest.json";
+import generatedManifest from "./generated/exportManifest.json";
+import generatedBrushAssets from "./generated/brush-assets.json";
 
 import {
   buildBrushInventoryFromExportManifest,
   summarizeBrushInventory,
+  type BrushAssetRecord,
   type BrushInventoryEntry,
   type OpenBrushExportManifest,
 } from "./brush-inventory.js";
@@ -11,14 +13,15 @@ export const OPEN_BRUSH_DEFAULT_BRUSH_GUID =
   "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62";
 
 export const openBrushInventory = buildBrushInventoryFromExportManifest(
-  referenceManifest as unknown as OpenBrushExportManifest,
+  generatedManifest as unknown as OpenBrushExportManifest,
+  generatedBrushAssets.brushes as unknown as Record<string, BrushAssetRecord>,
 );
 
 export const openBrushInventorySummary =
   summarizeBrushInventory(openBrushInventory);
 
 export const selectableOpenBrushes = openBrushInventory.filter(
-  (entry) => entry.supportStatus !== "unsupported",
+  (entry) => entry.pickerVisible,
 );
 
 export const initialOpenBrushIndex = Math.max(

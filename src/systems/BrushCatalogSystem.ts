@@ -19,8 +19,8 @@ import {
   type BrushInventoryEntry,
 } from "../openbrush/brush-inventory.js";
 import {
-  brushSize01ToLiveBrushSize,
-  normalizeBrushSize01,
+  normalizeBrushSize,
+  resolveBrushSizeForBrushChange,
 } from "../openbrush/brush-size.js";
 
 export class BrushCatalogSystem extends createSystem({
@@ -29,6 +29,7 @@ export class BrushCatalogSystem extends createSystem({
   catalog: { required: [BrushCatalogState] },
 }) {
   private activeIndex = initialOpenBrushIndex;
+  private lastBrushGuid: string | undefined;
 
   init() {
     for (const entity of this.queries.catalog.entities) {
@@ -61,8 +62,20 @@ export class BrushCatalogSystem extends createSystem({
       this.applyActiveBrush(settingsEntity);
     }
 
+    // Like Open Brush, keep the absolute brush size across brush switches
+    // (clamped into the new brush's range) instead of re-deriving it from the
+    // normalized slider — a mid-range slider means very different absolute
+    // sizes per brush. Covers both panel cycling and external guid writes.
+    const guidNow = String(settingsEntity.getValue(BrushSettings, "brushGuid"));
+    if (guidNow !== this.lastBrushGuid) {
+      const brushNow =
+        findBrushByGuid(openBrushInventory, guidNow) ??
+        selectableOpenBrushes[this.activeIndex];
+      this.applySizeForBrushChange(settingsEntity, brushNow);
+      this.lastBrushGuid = guidNow;
+    }
+
     const activeBrush = selectableOpenBrushes[this.activeIndex];
-    this.syncBrushSize(settingsEntity, activeBrush);
     for (const entity of this.queries.catalog.entities) {
       this.applyCatalogState(entity, activeBrush);
     }
@@ -71,22 +84,18 @@ export class BrushCatalogSystem extends createSystem({
   private applyActiveBrush(settingsEntity: Entity): void {
     const activeBrush = selectableOpenBrushes[this.activeIndex];
     settingsEntity.setValue(BrushSettings, "brushGuid", activeBrush.guid);
-    this.syncBrushSize(settingsEntity, activeBrush);
   }
 
-  private syncBrushSize(
+  private applySizeForBrushChange(
     settingsEntity: Entity,
     activeBrush: BrushInventoryEntry | undefined,
   ): void {
-    const size01 = normalizeBrushSize01(
-      Number(settingsEntity.getValue(BrushSettings, "size01")),
-    );
-    const liveSize = brushSize01ToLiveBrushSize(
-      size01,
+    const resolved = resolveBrushSizeForBrushChange(
+      normalizeBrushSize(Number(settingsEntity.getValue(BrushSettings, "size"))),
       activeBrush?.brushSizeRange,
     );
-    settingsEntity.setValue(BrushSettings, "size01", size01);
-    settingsEntity.setValue(BrushSettings, "size", liveSize);
+    settingsEntity.setValue(BrushSettings, "size01", resolved.size01);
+    settingsEntity.setValue(BrushSettings, "size", resolved.size);
   }
 
   private applyCatalogState(

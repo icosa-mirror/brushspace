@@ -28,6 +28,6 @@ describe("Open Brush brush catalog", () => {
         OPEN_BRUSH_DEFAULT_SIZE01,
         defaultBrush.brushSizeRange,
       ),
-    ).toBeCloseTo(0.002353, 6);
+    ).toBeCloseTo(0.01125, 6);
   });
 });

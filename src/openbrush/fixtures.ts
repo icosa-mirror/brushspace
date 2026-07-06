@@ -1,7 +1,9 @@
-import referenceManifest from "../../reference/Support/exportManifest.json";
+import referenceManifest from "./generated/exportManifest.json";
+import generatedBrushAssets from "./generated/brush-assets.json";
 
 import {
   buildBrushInventoryFromExportManifest,
+  type BrushAssetRecord,
   summarizeBrushInventory,
   type BrushInventorySummary,
   type OpenBrushExportManifest,
@@ -73,6 +75,7 @@ export function createPhase1FixtureDocument(): SketchDocument {
 export function createPhase1RuntimeSummary(): Phase1RuntimeSummary {
   const inventoryEntries = buildBrushInventoryFromExportManifest(
     referenceManifest as unknown as OpenBrushExportManifest,
+    generatedBrushAssets.brushes as unknown as Record<string, BrushAssetRecord>,
   );
   const document = createPhase1FixtureDocument();
   const validationErrors = validateSketchDocument(document);
