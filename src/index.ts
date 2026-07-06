@@ -1,3 +1,5 @@
+import "./three-workarounds.js";
+
 import {
   SessionMode,
   World,
