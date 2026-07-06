@@ -12,6 +12,7 @@
     "reference:warmup": "iwsdk reference warmup",
     "typecheck": "tsc --noEmit",
     "check:imports": "node scripts/check-imports.mjs",
+    "extract:brush-assets": "node scripts/extract-brush-assets.mjs",
     "check:features": "node scripts/check-feature-flags.mjs",
     "check": "npm run typecheck && npm run check:imports && npm run check:features && npm test",
     "test": "vitest run",
