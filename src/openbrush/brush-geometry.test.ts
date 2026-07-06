@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import referenceManifest from "../../reference/Support/exportManifest.json";
+import referenceManifest from "./generated/exportManifest.json";
+import generatedBrushAssets from "./generated/brush-assets.json";
 
 import {
   buildBrushInventoryFromExportManifest,
   findBrushByGuid,
+  type BrushAssetRecord,
   type OpenBrushExportManifest,
 } from "./brush-inventory.js";
 import {
@@ -17,6 +19,7 @@ import type { StrokeData } from "./types.js";
 
 const inventory = buildBrushInventoryFromExportManifest(
   referenceManifest as unknown as OpenBrushExportManifest,
+  generatedBrushAssets.brushes as unknown as Record<string, BrushAssetRecord>,
 );
 const fixtureStroke = createPhase1FixtureDocument().strokes[0];
 
@@ -64,12 +67,14 @@ describe("brush geometry generation", () => {
 
     const geometry = generateBrushGeometry(stroke, "ribbon");
 
+    // Identity pointer orientation (-Z forward) with an +X stroke widens the
+    // ribbon along Y (ComputeSurfaceFrameNew: right = pointerForward x move).
     expect(geometry.bounds.min[0]).toBeCloseTo(0);
-    expect(geometry.bounds.min[1]).toBeCloseTo(0);
-    expect(geometry.bounds.min[2]).toBeCloseTo(-0.1);
+    expect(geometry.bounds.min[1]).toBeCloseTo(-0.1);
+    expect(geometry.bounds.min[2]).toBeCloseTo(0);
     expect(geometry.bounds.max[0]).toBeCloseTo(1);
-    expect(geometry.bounds.max[1]).toBeCloseTo(0);
-    expect(geometry.bounds.max[2]).toBeCloseTo(0.1);
+    expect(geometry.bounds.max[1]).toBeCloseTo(0.1);
+    expect(geometry.bounds.max[2]).toBeCloseTo(0);
   });
 
   it("uses brush pressure-size minimum for low-pressure ribbon width", () => {
@@ -83,8 +88,8 @@ describe("brush geometry generation", () => {
       pressureSizeRange: [0.15, 1],
     });
 
-    expect(geometry.bounds.min[2]).toBeCloseTo(-0.015);
-    expect(geometry.bounds.max[2]).toBeCloseTo(0.015);
+    expect(geometry.bounds.min[1]).toBeCloseTo(-0.015);
+    expect(geometry.bounds.max[1]).toBeCloseTo(0.015);
   });
 
   it.each(["ribbon", "emissive", "tube", "particle"] as const)(
@@ -117,8 +122,8 @@ describe("brush geometry generation", () => {
       pressureSizeRange: [1, 1],
     });
 
-    expect(geometry.bounds.min[2]).toBeCloseTo(-0.1);
-    expect(geometry.bounds.max[2]).toBeCloseTo(0.1);
+    expect(geometry.bounds.min[1]).toBeCloseTo(-0.1);
+    expect(geometry.bounds.max[1]).toBeCloseTo(0.1);
   });
 
   it("generates stable tube geometry", () => {
@@ -128,8 +133,10 @@ describe("brush geometry generation", () => {
     const geometry = generateBrushGeometry(stroke, family ?? "unsupported");
 
     expect(geometry.family).toBe("tube");
-    expect(getGeneratedVertexCount(geometry)).toBe(12);
-    expect(getGeneratedIndexCount(geometry)).toBe(48);
+    // 3 control points x 9 ring verts (8 sides + UV seam) + 2 cap centers.
+    expect(getGeneratedVertexCount(geometry)).toBe(29);
+    // 2 segments x 8 sides x 6 + 2 caps x 8 fan triangles x 3.
+    expect(getGeneratedIndexCount(geometry)).toBe(144);
   });
 
   it("generates emissive geometry with ribbon topology", () => {
@@ -162,6 +169,116 @@ describe("brush geometry generation", () => {
     expect(geometry.warning).toContain("fallback ribbon");
     expect(getGeneratedVertexCount(geometry)).toBe(6);
   });
+
+  it("keeps ribbon frames continuous on a coil (no flips or snaps)", () => {
+    const controlPoints = [];
+    const turns = 2;
+    const count = 60;
+    for (let i = 0; i < count; i += 1) {
+      const angle = (i / (count - 1)) * turns * Math.PI * 2;
+      controlPoints.push({
+        position: [
+          Math.cos(angle) * 0.2,
+          1 + (i / (count - 1)) * 0.3,
+          -0.5 + Math.sin(angle) * 0.2,
+        ] as [number, number, number],
+        orientation: [0, 0, 0, 1] as [number, number, number, number],
+        pressure: 1,
+        timestampMs: i * 16,
+      });
+    }
+    const stroke: StrokeData = {
+      guid: "coil",
+      brushGuid: "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62",
+      brushSize: 0.02,
+      brushScale: 1,
+      color: [1, 1, 1, 1],
+      layerIndex: 0,
+      flags: 0,
+      seed: 1,
+      groupId: 1,
+      controlPoints,
+    };
+
+    const geometry = generateBrushGeometry(stroke, "ribbon");
+    // Width direction at each point = right vertex minus left vertex.
+    let previous: [number, number, number] | undefined;
+    for (let i = 0; i < count; i += 1) {
+      const left = i * 2 * 3;
+      const right = (i * 2 + 1) * 3;
+      const dir: [number, number, number] = [
+        geometry.positions[right] - geometry.positions[left],
+        geometry.positions[right + 1] - geometry.positions[left + 1],
+        geometry.positions[right + 2] - geometry.positions[left + 2],
+      ];
+      const length = Math.hypot(dir[0], dir[1], dir[2]);
+      expect(length).toBeGreaterThan(0.02 * 0.5); // never collapses
+      if (previous) {
+        const dot =
+          (dir[0] * previous[0] + dir[1] * previous[1] + dir[2] * previous[2]) /
+          (length * Math.hypot(previous[0], previous[1], previous[2]));
+        // Adjacent frames stay continuous — the old XZ-planar offset snapped
+        // when the coil tangent went vertical.
+        expect(dot).toBeGreaterThan(0.7);
+      }
+      previous = dir;
+    }
+  });
+
+  it("transports tube ring frames without spinning on a coil", () => {
+    const controlPoints = [];
+    const count = 40;
+    for (let i = 0; i < count; i += 1) {
+      const angle = (i / (count - 1)) * Math.PI * 2;
+      controlPoints.push({
+        position: [
+          Math.cos(angle) * 0.2,
+          1 + (i / (count - 1)) * 0.2,
+          -0.5 + Math.sin(angle) * 0.2,
+        ] as [number, number, number],
+        orientation: [0, 0, 0, 1] as [number, number, number, number],
+        pressure: 1,
+        timestampMs: i * 16,
+      });
+    }
+    const stroke: StrokeData = {
+      guid: "tube-coil",
+      brushGuid: "8e58ceea-7830-49b4-aba9-6215104ab52a",
+      brushSize: 0.02,
+      brushScale: 1,
+      color: [1, 1, 1, 1],
+      layerIndex: 0,
+      flags: 0,
+      seed: 1,
+      groupId: 1,
+      controlPoints,
+    };
+
+    const geometry = generateBrushGeometry(stroke, "tube");
+    const ringVerts = 9;
+    let previous: [number, number, number] | undefined;
+    for (let i = 0; i < count; i += 1) {
+      const center = stroke.controlPoints[i].position;
+      const v0 = i * ringVerts * 3;
+      const radial: [number, number, number] = [
+        geometry.positions[v0] - center[0],
+        geometry.positions[v0 + 1] - center[1],
+        geometry.positions[v0 + 2] - center[2],
+      ];
+      const length = Math.hypot(radial[0], radial[1], radial[2]);
+      expect(length).toBeCloseTo(0.01, 3); // radius = brushSize / 2
+      if (previous) {
+        const dot =
+          (radial[0] * previous[0] +
+            radial[1] * previous[1] +
+            radial[2] * previous[2]) /
+          (length * Math.hypot(previous[0], previous[1], previous[2]));
+        expect(dot).toBeGreaterThan(0.9); // parallel transport: no ring spin
+      }
+      previous = radial;
+    }
+  });
+
 });
 
 function withBrushGuid(stroke: StrokeData, brushGuid: string): StrokeData {

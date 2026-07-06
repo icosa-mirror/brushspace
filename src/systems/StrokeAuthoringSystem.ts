@@ -3,6 +3,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   DoubleSide,
+  FrontSide,
   Hovered,
   Mesh,
   MeshBasicMaterial,
@@ -13,7 +14,7 @@ import {
   Vector3,
   createSystem,
 } from "@iwsdk/core";
-import type { Entity } from "@iwsdk/core";
+import type { Entity, Material } from "@iwsdk/core";
 
 import {
   BrushPointer,
@@ -24,20 +25,32 @@ import {
   OpenBrushAppState,
   OpenBrushEraserCursor,
   OpenBrushPanelAttachment,
+  SettingsState,
   StrokeHistoryState,
 } from "../components/OpenBrushCore.js";
 import { openBrushInventory } from "../openbrush/brush-catalog.js";
 import {
   findBrushByGuid,
   type BrushGeometryFamily,
+  type BrushInventoryEntry,
   type BrushPressureOpacityRange,
   type BrushPressureSizeRange,
 } from "../openbrush/brush-inventory.js";
 import { generateBrushGeometry } from "../openbrush/brush-geometry.js";
-import { createBrushMaterialSpec } from "../openbrush/brush-materials.js";
+import {
+  createBrushMaterialSpec,
+  type BrushMaterialSpec,
+} from "../openbrush/brush-materials.js";
+import {
+  applyBrushShaderAttributeAliases,
+  openBrushShaderLibrary,
+} from "../openbrush/brush-shader-library.js";
 import {
   createMirroredStrokeDataX,
-  shouldSampleControlPoint,
+  resolveStrokeSampleDecision,
+  resolveStrokeSpawnIntervalMeters,
+  OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS,
+  OPEN_BRUSH_TUBE_DEFAULT_SOLID_MIN_LENGTH_METERS,
   upsertTapeMeasureEndpoints,
   upsertStraightedgeEndpoint,
   writeGridSnappedPosition,
@@ -82,10 +95,31 @@ import {
   type OpenBrushPickedStrokeSnapshot,
 } from "../openbrush/picker-settings.js";
 
+// Endpoint-move threshold for straightedge/tape tools only; freehand strokes
+// use the Open Brush spawn-interval sampling in sampleActiveStroke.
 const MIN_SAMPLE_DISTANCE = 0.015;
+
+// QuadStripBrush uses its class constant; TubeBrush reads the descriptor's
+// m_SolidMinLengthMeters_PS.
+function resolveSolidMinLengthMeters(
+  brushEntry: BrushInventoryEntry | undefined,
+  geometryFamily: BrushGeometryFamily,
+): number {
+  if (geometryFamily === "tube") {
+    const descriptorValue = brushEntry?.geometryParams?.solidMinLengthMeters;
+    return typeof descriptorValue === "number" &&
+      Number.isFinite(descriptorValue) &&
+      descriptorValue > 0
+      ? descriptorValue
+      : OPEN_BRUSH_TUBE_DEFAULT_SOLID_MIN_LENGTH_METERS;
+  }
+  return OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS;
+}
 const GRID_SNAP_SIZE = 0.1;
 const LAZY_INPUT_RADIUS = 0.08;
 const STENCIL_FRONT_PLANE_Z = -1.2;
+const BRUSH_POINTER_TIP_FORWARD_OFFSET = 0.045;
+type BrushPointerHand = "left" | "right";
 
 interface RuntimeStroke {
   entity: Entity;
@@ -103,7 +137,12 @@ interface RuntimeStroke {
   stencilMode: OpenBrushToolStencilMode;
   strokeData: StrokeData;
   controlPoints: ControlPoint[];
+  /** Position of the last "keeper" control point (Open Brush m_LastSpawnPos). */
   lastPosition: Vec3;
+  /** Whether the most recent control point is a keeper (PointerScript semantics). */
+  lastPointIsKeeper: boolean;
+  /** Per-brush solid segment minimum length in meters. */
+  solidMinLengthMeters: number;
   minBounds: Float32Array;
   maxBounds: Float32Array;
 }
@@ -114,6 +153,7 @@ export class StrokeAuthoringSystem extends createSystem({
   brushSettings: { required: [BrushSettings] },
   pointers: { required: [BrushPointer] },
   history: { required: [StrokeHistoryState] },
+  settings: { required: [SettingsState] },
   layers: { required: [CanvasLayer] },
   strokes: { required: [BrushStroke] },
   hoveredPanels: { required: [PanelUI, OpenBrushPanelAttachment, Hovered] },
@@ -162,7 +202,30 @@ export class StrokeAuthoringSystem extends createSystem({
   private consumedStrokeRedoRequestRevision = 0;
   private eraseHoldErasedCount = 0;
 
+  init() {
+    // Load all supported brushes, not just picker-visible ones: hidden
+    // supported brushes (experimental/superseded) must still render with
+    // their real shaders when a sketch references them.
+    const shaderBrushes = openBrushInventory.filter(
+      (entry) => entry.supportStatus === "supported",
+    );
+    const loads = shaderBrushes.map((entry) =>
+      openBrushShaderLibrary.load(entry),
+    );
+    void Promise.all(loads).then(async (materials) => {
+      const loadedCount = materials.filter(Boolean).length;
+      if (loadedCount > 0) {
+        await openBrushShaderLibrary.warmUp(this.renderer, this.scene, this.camera);
+      }
+      console.log(
+        `OpenBrush brush shader materials ready: ${loadedCount}/${loads.length} supported brushes.`,
+      );
+    });
+  }
+
   update(_delta: number, time: number) {
+    openBrushShaderLibrary.updateFrame(time, this.camera);
+
     const commandEntity = this.getFirstEntity("commands");
     if (!commandEntity) {
       return;
@@ -182,9 +245,7 @@ export class StrokeAuthoringSystem extends createSystem({
     const commandSource = String(commandEntity.getValue(InputCommandState, "source"));
     const activeTool = this.getActiveTool();
     const appStateEntity = this.getFirstEntity("appState");
-    if (rawPaintPressed) {
-      this.samplePointerPose(commandEntity, activeTool);
-    }
+    this.samplePointerPose(commandEntity, activeTool);
     if (!rawPaintPressed || !activeTool.erases) {
       this.eraseHoldErasedCount = 0;
     }
@@ -429,16 +490,11 @@ export class StrokeAuthoringSystem extends createSystem({
       controlPoints: [],
     });
     const geometry = new BufferGeometry();
-    const material = new MeshBasicMaterial({
-      vertexColors: materialSpec.vertexColors,
-      side: materialSpec.doubleSided ? DoubleSide : undefined,
-      opacity: color[3],
-      transparent: materialSpec.transparent,
-      depthWrite: materialSpec.depthWrite,
-      alphaTest: materialSpec.alphaCutoff,
-      blending:
-        materialSpec.blending === "additive" ? AdditiveBlending : NormalBlending,
-    });
+    const material = this.createStrokeRenderMaterial(
+      brushEntry,
+      materialSpec,
+      color[3],
+    );
     const mesh = new Mesh(geometry, material);
     mesh.frustumCulled = false;
     mesh.name = `OpenBrushStrokeMesh_${this.strokeCounter}`;
@@ -484,6 +540,8 @@ export class StrokeAuthoringSystem extends createSystem({
       strokeData,
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
+      lastPointIsKeeper: false,
+      solidMinLengthMeters: resolveSolidMinLengthMeters(brushEntry, geometryFamily),
       minBounds: entity.getVectorView(BrushStroke, "minBounds") as Float32Array,
       maxBounds: entity.getVectorView(BrushStroke, "maxBounds") as Float32Array,
     };
@@ -509,38 +567,60 @@ export class StrokeAuthoringSystem extends createSystem({
 
     const frame = this.writeSampleFrame(time, pressure, stroke);
 
-    if (
-      !force &&
-      !shouldSampleControlPoint(
-        stroke.lastPosition,
-        frame.position,
-        MIN_SAMPLE_DISTANCE,
-      )
-    ) {
+    // Open Brush sampling: a new solid segment ("keeper") spawns every
+    // spawn-interval of travel; between keepers the trailing control point is
+    // overwritten each frame so the stroke tip tracks the pointer exactly.
+    const spawnInterval = resolveStrokeSpawnIntervalMeters({
+      brushSize: stroke.strokeData.brushSize,
+      pressure: frame.pressure,
+      pressureSizeMin: stroke.pressureSizeRange?.[0],
+      solidMinLengthMeters: stroke.solidMinLengthMeters,
+    });
+    const decision = force
+      ? "keep"
+      : resolveStrokeSampleDecision(
+          stroke.lastPosition,
+          frame.position,
+          spawnInterval,
+        );
+    if (decision === "ignore") {
       return;
     }
 
-    const index = stroke.controlPoints.length;
-    stroke.lastPosition[0] = frame.position[0];
-    stroke.lastPosition[1] = frame.position[1];
-    stroke.lastPosition[2] = frame.position[2];
+    let index: number;
+    let controlPoint: ControlPoint;
+    if (stroke.lastPointIsKeeper || stroke.controlPoints.length === 0) {
+      index = stroke.controlPoints.length;
+      controlPoint = {
+        position: [0, 0, 0],
+        orientation: [0, 0, 0, 1],
+        pressure: frame.pressure,
+        timestampMs: frame.timestampMs,
+      };
+      stroke.controlPoints.push(controlPoint);
+    } else {
+      index = stroke.controlPoints.length - 1;
+      controlPoint = stroke.controlPoints[index];
+    }
+    controlPoint.position[0] = frame.position[0];
+    controlPoint.position[1] = frame.position[1];
+    controlPoint.position[2] = frame.position[2];
+    controlPoint.orientation[0] = frame.orientation[0];
+    controlPoint.orientation[1] = frame.orientation[1];
+    controlPoint.orientation[2] = frame.orientation[2];
+    controlPoint.orientation[3] = frame.orientation[3];
+    controlPoint.pressure = frame.pressure;
+    controlPoint.timestampMs = frame.timestampMs;
 
-    const controlPoint: ControlPoint = {
-      position: [
-        frame.position[0],
-        frame.position[1],
-        frame.position[2],
-      ],
-      orientation: [
-        frame.orientation[0],
-        frame.orientation[1],
-        frame.orientation[2],
-        frame.orientation[3],
-      ],
-      pressure: frame.pressure,
-      timestampMs: frame.timestampMs,
-    };
-    stroke.controlPoints.push(controlPoint);
+    if (decision === "keep") {
+      stroke.lastPosition[0] = frame.position[0];
+      stroke.lastPosition[1] = frame.position[1];
+      stroke.lastPosition[2] = frame.position[2];
+      stroke.lastPointIsKeeper = true;
+    } else {
+      stroke.lastPointIsKeeper = false;
+    }
+
     this.updateBounds(stroke, index, frame.position);
     this.rebuildStrokeMesh(stroke);
     stroke.entity.setValue(
@@ -602,6 +682,33 @@ export class StrokeAuthoringSystem extends createSystem({
     this.setPointerSampleCount(stroke.controlPoints.length);
   }
 
+  /**
+   * Prefer the brush's real Open Brush GLSL material (shared per GUID) when
+   * it has loaded; otherwise fall back to the semantic MeshBasicMaterial.
+   */
+  private createStrokeRenderMaterial(
+    brushEntry: BrushInventoryEntry | undefined,
+    materialSpec: BrushMaterialSpec,
+    opacity: number,
+  ): Material {
+    if (brushEntry) {
+      const shaderMaterial = openBrushShaderLibrary.get(brushEntry.guid);
+      if (shaderMaterial) {
+        return shaderMaterial;
+      }
+    }
+    return new MeshBasicMaterial({
+      vertexColors: materialSpec.vertexColors,
+      side: materialSpec.doubleSided ? DoubleSide : FrontSide,
+      opacity,
+      transparent: materialSpec.transparent,
+      depthWrite: materialSpec.depthWrite,
+      alphaTest: materialSpec.alphaCutoff,
+      blending:
+        materialSpec.blending === "additive" ? AdditiveBlending : NormalBlending,
+    });
+  }
+
   private rebuildStrokeMesh(stroke: RuntimeStroke): void {
     const generated = generateBrushGeometry(
       stroke.strokeData,
@@ -624,6 +731,7 @@ export class StrokeAuthoringSystem extends createSystem({
       new BufferAttribute(generated.colors, 4),
     );
     stroke.geometry.setAttribute("uv", new BufferAttribute(generated.uvs, 2));
+    applyBrushShaderAttributeAliases(stroke.geometry);
     stroke.geometry.setIndex(new BufferAttribute(generated.indices, 1));
     stroke.geometry.setDrawRange(0, generated.indices.length);
     this.copyGeneratedBounds(stroke, generated.bounds.min, generated.bounds.max);
@@ -1141,16 +1249,11 @@ export class StrokeAuthoringSystem extends createSystem({
     const brushEntry = findBrushByGuid(openBrushInventory, strokeData.brushGuid);
     const materialSpec = createBrushMaterialSpec(brushEntry, strokeData.color);
     const geometry = new BufferGeometry();
-    const material = new MeshBasicMaterial({
-      vertexColors: materialSpec.vertexColors,
-      side: materialSpec.doubleSided ? DoubleSide : undefined,
-      opacity: strokeData.color[3],
-      transparent: materialSpec.transparent,
-      depthWrite: materialSpec.depthWrite,
-      alphaTest: materialSpec.alphaCutoff,
-      blending:
-        materialSpec.blending === "additive" ? AdditiveBlending : NormalBlending,
-    });
+    const material = this.createStrokeRenderMaterial(
+      brushEntry,
+      materialSpec,
+      strokeData.color[3],
+    );
     const mesh = new Mesh(geometry, material);
     mesh.frustumCulled = false;
     mesh.name = `OpenBrushStrokeMesh_${this.strokeCounter}`;
@@ -1196,6 +1299,11 @@ export class StrokeAuthoringSystem extends createSystem({
       strokeData,
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
+      lastPointIsKeeper: false,
+      solidMinLengthMeters: resolveSolidMinLengthMeters(
+        brushEntry,
+        source.geometryFamily,
+      ),
       minBounds: entity.getVectorView(BrushStroke, "minBounds") as Float32Array,
       maxBounds: entity.getVectorView(BrushStroke, "maxBounds") as Float32Array,
     };
@@ -1269,23 +1377,62 @@ export class StrokeAuthoringSystem extends createSystem({
     commandEntity: Entity,
     activeTool: OpenBrushToolDescriptor,
   ): void {
-    const hand = String(commandEntity.getValue(InputCommandState, "primaryHand"));
+    const hand = this.resolveBrushPointerHand(commandEntity);
     const source = String(commandEntity.getValue(InputCommandState, "source"));
-    if (source === "xr-left" || hand === "left") {
-      this.world.player.gripSpaces.left.getWorldPosition(this.samplePosition);
-      this.world.player.gripSpaces.left.getWorldQuaternion(this.sampleQuaternion);
-      this.world.player.raySpaces.left.getWorldPosition(this.panelRayPosition);
-      this.world.player.raySpaces.left.getWorldQuaternion(this.panelRayQuaternion);
-    } else if (source === "xr-right" || hand === "right") {
-      this.world.player.gripSpaces.right.getWorldPosition(this.samplePosition);
-      this.world.player.gripSpaces.right.getWorldQuaternion(this.sampleQuaternion);
-      this.world.player.raySpaces.right.getWorldPosition(this.panelRayPosition);
-      this.world.player.raySpaces.right.getWorldQuaternion(this.panelRayQuaternion);
+    const leftControllerConnected = Boolean(
+      commandEntity.getValue(InputCommandState, "leftControllerConnected"),
+    );
+    const rightControllerConnected = Boolean(
+      commandEntity.getValue(InputCommandState, "rightControllerConnected"),
+    );
+    if (
+      hand === "left" &&
+      source !== "browser-pointer" &&
+      source !== "keyboard" &&
+      leftControllerConnected
+    ) {
+      this.sampleXrPointerPose("left");
+    } else if (
+      hand === "right" &&
+      source !== "browser-pointer" &&
+      source !== "keyboard" &&
+      rightControllerConnected
+    ) {
+      this.sampleXrPointerPose("right");
     } else {
       this.sampleBrowserPointerPose(commandEntity);
     }
 
-    this.writeSampledBrushPointerState(commandEntity, activeTool);
+    this.writeSampledBrushPointerState(hand, activeTool);
+  }
+
+  private resolveBrushPointerHand(commandEntity: Entity): BrushPointerHand {
+    const commandHand = String(
+      commandEntity.getValue(InputCommandState, "primaryHand"),
+    );
+    if (commandHand === "left" || commandHand === "right") {
+      return commandHand;
+    }
+    const settings = this.getFirstEntity("settings");
+    return String(settings?.getValue(SettingsState, "dominantHand")) === "left"
+      ? "left"
+      : "right";
+  }
+
+  private sampleXrPointerPose(hand: BrushPointerHand): void {
+    const raySpace =
+      hand === "left"
+        ? this.world.player.raySpaces.left
+        : this.world.player.raySpaces.right;
+    raySpace.getWorldPosition(this.panelRayPosition);
+    raySpace.getWorldQuaternion(this.panelRayQuaternion);
+    this.sampleQuaternion.copy(this.panelRayQuaternion);
+    this.rayDirection
+      .set(0, 0, -1)
+      .applyQuaternion(this.panelRayQuaternion);
+    this.samplePosition
+      .copy(this.panelRayPosition)
+      .addScaledVector(this.rayDirection, BRUSH_POINTER_TIP_FORWARD_OFFSET);
   }
 
   private sampleBrowserPointerPose(commandEntity: Entity): void {
@@ -1414,10 +1561,9 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private writeSampledBrushPointerState(
-    commandEntity: Entity,
+    hand: BrushPointerHand,
     activeTool: OpenBrushToolDescriptor,
   ): void {
-    const hand = String(commandEntity.getValue(InputCommandState, "primaryHand"));
     for (const entity of this.queries.pointers.entities) {
       if (String(entity.getValue(BrushPointer, "hand")) !== hand) {
         continue;
@@ -1464,7 +1610,12 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private getFirstEntity(
-    queryName: "commands" | "appState" | "brushSettings" | "eraserCursors",
+    queryName:
+      | "commands"
+      | "appState"
+      | "brushSettings"
+      | "eraserCursors"
+      | "settings",
   ): Entity | undefined {
     const next = this.queries[queryName].entities.values().next();
     return next.done ? undefined : next.value;

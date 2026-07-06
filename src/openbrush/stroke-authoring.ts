@@ -66,6 +66,60 @@ export function shouldSampleControlPoint(
   return dx * dx + dy * dy + dz * dz >= minDistance * minDistance;
 }
 
+// Open Brush stroke sampling (QuadStripBrush/TubeBrush + PointerScript):
+// geometry ignores movement under kMinimumMoveLengthMeters_PS; a new solid
+// segment ("keeper" control point) spawns once the pointer travels
+// solidMinLength + pressuredSize * kSolidAspectRatio from the last keeper.
+// Between keepers the trailing control point is overwritten every frame so
+// the stroke tip stays glued to the pointer.
+export const OPEN_BRUSH_MINIMUM_MOVE_METERS = 5e-4;
+export const OPEN_BRUSH_SOLID_ASPECT_RATIO = 0.2;
+export const OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS = 0.0015;
+export const OPEN_BRUSH_TUBE_DEFAULT_SOLID_MIN_LENGTH_METERS = 0.002;
+
+export type StrokeSampleDecision = "ignore" | "extend" | "keep";
+
+export function resolveStrokeSpawnIntervalMeters(options: {
+  brushSize: number;
+  pressure: number;
+  pressureSizeMin?: number;
+  solidMinLengthMeters?: number;
+}): number {
+  const pressure = Math.min(1, Math.max(0, options.pressure));
+  const pressureSizeMin =
+    typeof options.pressureSizeMin === "number" &&
+    Number.isFinite(options.pressureSizeMin)
+      ? Math.min(1, Math.max(0, options.pressureSizeMin))
+      : 1;
+  const solidMinLength =
+    typeof options.solidMinLengthMeters === "number" &&
+    Number.isFinite(options.solidMinLengthMeters) &&
+    options.solidMinLengthMeters > 0
+      ? options.solidMinLengthMeters
+      : OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS;
+  const pressuredSize =
+    Math.max(0, options.brushSize) *
+    (pressureSizeMin + (1 - pressureSizeMin) * pressure);
+  return solidMinLength + pressuredSize * OPEN_BRUSH_SOLID_ASPECT_RATIO;
+}
+
+export function resolveStrokeSampleDecision(
+  lastKeeperPosition: Vec3,
+  nextPosition: Vec3,
+  spawnIntervalMeters: number,
+): StrokeSampleDecision {
+  const dx = nextPosition[0] - lastKeeperPosition[0];
+  const dy = nextPosition[1] - lastKeeperPosition[1];
+  const dz = nextPosition[2] - lastKeeperPosition[2];
+  const distanceSq = dx * dx + dy * dy + dz * dz;
+  if (distanceSq < OPEN_BRUSH_MINIMUM_MOVE_METERS * OPEN_BRUSH_MINIMUM_MOVE_METERS) {
+    return "ignore";
+  }
+  return distanceSq >= spawnIntervalMeters * spawnIntervalMeters
+    ? "keep"
+    : "extend";
+}
+
 export function writeGridSnappedPosition(
   target: Vec3,
   source: Vec3,

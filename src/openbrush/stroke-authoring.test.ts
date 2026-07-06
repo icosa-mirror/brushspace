@@ -12,6 +12,9 @@ import {
   writeLazyInputPosition,
   writeStencilPlaneProjectedPosition,
   type StrokePointerFrame,
+  resolveStrokeSampleDecision,
+  resolveStrokeSpawnIntervalMeters,
+  OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS,
 } from "./stroke-authoring.js";
 import { StrokeFlags, createEmptyStrokeData, type ControlPoint } from "./types.js";
 
@@ -256,5 +259,48 @@ describe("stroke authoring state", () => {
     expect(mirrored.controlPoints).toHaveLength(2);
     expect(mirrored.controlPoints[0].position).toEqual([-0.25, 1, -0.5]);
     expect(mirrored.controlPoints[1].position).toEqual([0.75, 2, -0.25]);
+  });
+});
+
+describe("Open Brush stroke sampling", () => {
+  it("computes the spawn interval from solid min length and pressured size", () => {
+    // Light at its default size (1.125cm), full pressure:
+    // 0.0015 + 0.01125 * 0.2 = 3.75mm between keeper points.
+    expect(
+      resolveStrokeSpawnIntervalMeters({
+        brushSize: 0.01125,
+        pressure: 1,
+        pressureSizeMin: 0.15,
+        solidMinLengthMeters: OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS,
+      }),
+    ).toBeCloseTo(0.00375, 6);
+
+    // Light pressure shrinks the pressured size and tightens the interval.
+    expect(
+      resolveStrokeSpawnIntervalMeters({
+        brushSize: 0.01125,
+        pressure: 0,
+        pressureSizeMin: 0.15,
+        solidMinLengthMeters: OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS,
+      }),
+    ).toBeCloseTo(0.0015 + 0.01125 * 0.15 * 0.2, 6);
+  });
+
+  it("ignores sub-half-millimeter movement from the last keeper", () => {
+    expect(
+      resolveStrokeSampleDecision([0, 0, 0], [0.0004, 0, 0], 0.00375),
+    ).toBe("ignore");
+  });
+
+  it("extends the trailing point below the spawn interval", () => {
+    expect(
+      resolveStrokeSampleDecision([0, 0, 0], [0.002, 0, 0], 0.00375),
+    ).toBe("extend");
+  });
+
+  it("keeps a new control point past the spawn interval", () => {
+    expect(
+      resolveStrokeSampleDecision([0, 0, 0], [0.004, 0, 0], 0.00375),
+    ).toBe("keep");
   });
 });
