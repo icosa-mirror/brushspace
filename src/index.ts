@@ -1,6 +1,6 @@
 import "./three-workarounds.js";
 
-import { SessionMode, World } from "@iwsdk/core";
+import { SessionMode, VisibilityState, World } from "@iwsdk/core";
 import { AnimatedController } from "@iwsdk/xr-input";
 import * as horizonKit from "@pmndrs/uikit-horizon";
 import {
@@ -108,6 +108,21 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
   camera.rotateX(-0.08);
 
   setupOpenBrushShell(world);
+
+  // Plain HTML Enter VR button: the DOM click carries the user activation
+  // that XR session requests need, so it can call launchXR() directly.
+  // Hidden while immersive; offer:"always" still covers browsers with
+  // native Enter-VR UI.
+  const enterVrButton = document.getElementById("enter-vr-button");
+  if (enterVrButton) {
+    enterVrButton.addEventListener("click", () => {
+      world.launchXR();
+    });
+    world.visibilityState.subscribe((state) => {
+      enterVrButton.style.display =
+        state === VisibilityState.NonImmersive ? "block" : "none";
+    });
+  }
 
   const wandPanelPrism = world
     .createTransformEntity()
