@@ -1,0 +1,146 @@
+<style>
+  .join-panel {
+    flex-direction: column;
+    align-items: center;
+    width: 240px;
+    height: 360px;
+    padding: 14px;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0px;
+    border-radius: 0px;
+    color: #ffffff;
+  }
+
+  .join-heading {
+    width: 212px;
+    height: 22px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+    text-align: center;
+  }
+
+  .join-entry {
+    width: 212px;
+    height: 40px;
+    margin-top: 10px;
+    padding: 8px;
+    background-color: rgba(0, 0, 0, 0.35);
+    border-width: 1px;
+    border-color: #ffffff;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .key-row {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 212px;
+    height: 46px;
+    margin-top: 8px;
+  }
+
+  .key-button {
+    width: 64px;
+    height: 46px;
+    min-width: 64px;
+    padding: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+    background-color: rgba(0, 0, 0, 0.02);
+    border-width: 1px;
+    border-color: #ffffff;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .key-button:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+  }
+
+  .key-button:active {
+    background-color: rgba(255, 255, 255, 0.32);
+  }
+
+  .action-row {
+    flex-direction: row;
+    justify-content: center;
+    width: 212px;
+    height: 44px;
+    margin-top: 12px;
+  }
+
+  .action-button {
+    width: 100px;
+    height: 44px;
+    min-width: 100px;
+    padding: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+    border-width: 1px;
+    border-color: #ffffff;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .join-action {
+    background-color: rgba(248, 250, 252, 0.95);
+    color: #09090b;
+  }
+
+  .join-action:hover {
+    background-color: rgba(255, 255, 255, 1);
+  }
+
+  .cancel-action {
+    background-color: rgba(0, 0, 0, 0.02);
+    color: #ffffff;
+  }
+
+  .cancel-action:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+  }
+</style>
+<Panel class="join-panel">
+  <span class="join-heading">Join a sketch</span>
+  <span id="join-entry" class="join-entry">· · · · · ·</span>
+  <div class="key-row">
+    <button id="key-1" class="key-button"><span>1</span></button>
+    <button id="key-2" class="key-button"><span>2</span></button>
+    <button id="key-3" class="key-button"><span>3</span></button>
+  </div>
+  <div class="key-row">
+    <button id="key-4" class="key-button"><span>4</span></button>
+    <button id="key-5" class="key-button"><span>5</span></button>
+    <button id="key-6" class="key-button"><span>6</span></button>
+  </div>
+  <div class="key-row">
+    <button id="key-7" class="key-button"><span>7</span></button>
+    <button id="key-8" class="key-button"><span>8</span></button>
+    <button id="key-9" class="key-button"><span>9</span></button>
+  </div>
+  <div class="key-row">
+    <button id="key-back" class="key-button"><span>⌫</span></button>
+    <button id="key-0" class="key-button"><span>0</span></button>
+    <button id="key-join" class="key-button join-action"><span>Go</span></button>
+  </div>
+  <div class="action-row">
+    <button id="key-cancel" class="action-button cancel-action"><span>Cancel</span></button>
+  </div>
+</Panel>

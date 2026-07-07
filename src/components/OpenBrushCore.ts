@@ -162,6 +162,21 @@ export const PersistenceState = createComponent("PersistenceState", {
   isDirty: { type: Types.Boolean, default: false },
 });
 
+export const CollabState = createComponent("CollabState", {
+  // "idle" | "hosting" | "joining" | "connected" | "ended" | "error"
+  status: { type: Types.String, default: "idle" },
+  // "none" | "host" | "guest"
+  role: { type: Types.String, default: "none" },
+  /** The 6-digit share code while hosting or connected. */
+  code: { type: Types.String, default: "" },
+  /** Human-readable status line for the tools panel. */
+  message: { type: Types.String, default: "" },
+  /** Digits typed so far on the join keypad. */
+  joinEntry: { type: Types.String, default: "" },
+  joinPanelOpen: { type: Types.Boolean, default: false },
+  revision: { type: Types.Int32, default: 0 },
+});
+
 export const PlaybackState = createComponent("PlaybackState", {
   mode: { type: Types.String, default: "quickload" },
   status: { type: Types.String, default: "idle" },

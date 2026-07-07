@@ -13,6 +13,7 @@ import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
 
 import {
+  CollabState,
   OpenBrushAppState,
   OpenBrushPanelAttachment,
   SettingsState,
@@ -93,9 +94,10 @@ export class PanelAttachmentSystem extends createSystem({
     );
     const prism = this.getWandPrismEntity();
 
-    // In the intro state the sketch-library gallery replaces the wand UI:
-    // the prism and every wand panel hide until a sketch is active.
-    const introMode = !isBrowser && this.isIntroMode();
+    // The sketch-library gallery (intro state) and the collab join keypad
+    // both replace the wand UI: the prism and every wand panel hide while
+    // either is up.
+    const introMode = !isBrowser && this.wandUiReplaced();
 
     if (prism) {
       if (isBrowser) {
@@ -120,9 +122,15 @@ export class PanelAttachmentSystem extends createSystem({
     }
   }
 
-  private isIntroMode(): boolean {
+  private wandUiReplaced(): boolean {
     for (const entity of this.queries.appState.entities) {
-      return String(entity.getValue(OpenBrushAppState, "mode")) === "intro";
+      if (String(entity.getValue(OpenBrushAppState, "mode")) === "intro") {
+        return true;
+      }
+      return (
+        entity.hasComponent(CollabState) &&
+        Boolean(entity.getValue(CollabState, "joinPanelOpen"))
+      );
     }
     return false;
   }

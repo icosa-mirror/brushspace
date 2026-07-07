@@ -14,6 +14,7 @@ import {
   BrushSettings,
   BrushStroke,
   CanvasLayer,
+  CollabState,
   OpenBrushAppState,
   OpenBrushEraserCursor,
   PlaybackState,
@@ -37,6 +38,7 @@ import {
   resolveBrushSize01Adjustment,
 } from "./openbrush/brush-size.js";
 import { findBrushByGuid } from "./openbrush/brush-inventory.js";
+import { CollabSystem } from "./systems/CollabSystem.js";
 import { SketchLibrarySystem } from "./systems/SketchLibrarySystem.js";
 import {
   createNextLayerState,
@@ -272,6 +274,7 @@ export class PanelSystem extends createSystem({
         continue;
       }
       this.updateWandToolLabels(document, entity.hasComponent(Hovered));
+      this.updateCollabLabels(document);
       this.clearStaleWandHoverState(
         entity,
         document,
@@ -317,6 +320,26 @@ export class PanelSystem extends createSystem({
     return Boolean(
       this.input.xr.gamepads.left?.getSelecting() ||
         this.input.xr.gamepads.right?.getSelecting(),
+    );
+  }
+
+  private updateCollabLabels(document: UIKitDocument): void {
+    const appState = this.getAppStateEntity();
+    if (!appState || !appState.hasComponent(CollabState)) {
+      return;
+    }
+    const message =
+      String(appState.getValue(CollabState, "message")) || "solo sketching";
+    this.setText(document, "collab-status", message);
+    const status = String(appState.getValue(CollabState, "status"));
+    this.setText(
+      document,
+      "tool-share-label",
+      status === "hosting"
+        ? "Stop"
+        : status === "connected"
+          ? "Linked"
+          : "Share",
     );
   }
 
@@ -376,6 +399,9 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "tool-camera");
     this.nameElement(document, "tool-save");
     this.nameElement(document, "tool-home");
+    this.nameElement(document, "tool-share");
+    this.nameElement(document, "tool-join");
+    this.nameElement(document, "collab-status");
     this.nameElement(document, "stroke-history-undo");
     this.nameElement(document, "stroke-history-redo");
     this.nameElement(document, "stroke-history-state");
@@ -417,6 +443,16 @@ export class PanelSystem extends createSystem({
     const homeButton = document.getElementById("tool-home") as TextElement;
     homeButton?.addEventListener("click", () => {
       this.world.getSystem(SketchLibrarySystem)?.quitToIntro();
+    });
+
+    const shareButton = document.getElementById("tool-share") as TextElement;
+    shareButton?.addEventListener("click", () => {
+      this.world.getSystem(CollabSystem)?.toggleHosting();
+    });
+
+    const joinButton = document.getElementById("tool-join") as TextElement;
+    joinButton?.addEventListener("click", () => {
+      this.world.getSystem(CollabSystem)?.openJoinPanel();
     });
 
     const undoButton = document.getElementById(

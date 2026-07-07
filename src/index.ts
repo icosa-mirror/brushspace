@@ -18,8 +18,10 @@ import {
   Redo2Icon,
   RulerIcon,
   SaveIcon,
+  Share2Icon,
   SwatchBookIcon,
   Undo2Icon,
+  UsersIcon,
 } from "@pmndrs/uikit-lucide";
 
 import { PanelUI, RayInteractable } from "@iwsdk/core";
@@ -40,6 +42,7 @@ import { BrushPageSystem } from "./systems/BrushPageSystem.js";
 import { ColorPickerSystem } from "./systems/ColorPickerSystem.js";
 import { BrushSizeInputSystem } from "./systems/BrushSizeInputSystem.js";
 import { CameraToolSystem } from "./systems/CameraToolSystem.js";
+import { CollabSystem } from "./systems/CollabSystem.js";
 import { BrushPointerVisualSystem } from "./systems/BrushPointerVisualSystem.js";
 import { EraserCursorSystem } from "./systems/EraserCursorSystem.js";
 import { InputCommandSystem } from "./systems/InputCommandSystem.js";
@@ -93,8 +96,10 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
           Redo2Icon,
           RulerIcon,
           SaveIcon,
+          Share2Icon,
           SwatchBookIcon,
           Undo2Icon,
+          UsersIcon,
         },
       ],
     },
@@ -192,6 +197,17 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .registerSystem(TipAnchorTuningSystem)
     .registerSystem(SelectionSystem)
     .registerSystem(SketchLibrarySystem)
+    .registerSystem(CollabSystem)
     .registerSystem(PerformanceCounterSystem)
     .registerSystem(RuntimeDebugSystem);
+
+  // Share links: brushspace.example/?join=123456 joins straight into the
+  // peer's sketch (the in-VR path uses the keypad on the tools panel).
+  const joinCode = new URLSearchParams(window.location.search).get("join");
+  if (joinCode) {
+    const collab = world.getSystem(CollabSystem);
+    if (collab) {
+      collab.autoJoinCode = joinCode;
+    }
+  }
 });

@@ -234,6 +234,11 @@ export class StrokeAuthoringSystem extends createSystem({
   private activeStroke: RuntimeStroke | undefined;
   private strokeCounter = 0;
   private readonly strokeHistory = new StrokeEntityHistory<Entity>();
+  // Remote peers' in-progress strokes (collab mode), keyed by stroke guid.
+  private readonly remoteActiveStrokes = new Map<string, RuntimeStroke>();
+  /** Collab hooks — fired for LOCAL operations only, never for remote ones. */
+  onLocalStrokesCommitted?: (strokes: StrokeData[]) => void;
+  onLocalStrokeVisibility?: (guids: string[], visible: boolean) => void;
   private consumedStrokeUndoRequestRevision = 0;
   private consumedStrokeRedoRequestRevision = 0;
   private eraseHoldErasedCount = 0;
@@ -1040,6 +1045,20 @@ export class StrokeAuthoringSystem extends createSystem({
     }
     this.strokeHistory.commit(strokeGroup);
     this.activeStroke = undefined;
+    if (this.onLocalStrokesCommitted) {
+      const committed: StrokeData[] = [];
+      for (const entity of strokeGroup) {
+        const data = entity.object3D?.userData.openBrushStrokeData as
+          | StrokeData
+          | undefined;
+        if (data) {
+          committed.push(data);
+        }
+      }
+      if (committed.length > 0) {
+        this.onLocalStrokesCommitted(committed);
+      }
+    }
   }
 
   private eraseIntersectingStrokes(): void {
@@ -1109,6 +1128,7 @@ export class StrokeAuthoringSystem extends createSystem({
       this.setStrokeVisible(entity, false);
     }
     this.strokeHistory.commitErased(erasedStrokes);
+    this.emitLocalVisibility(erasedStrokes, false);
     this.eraseHoldErasedCount += erasedStrokes.length;
     if (appStateEntity) {
       const plural = this.eraseHoldErasedCount === 1 ? "" : "s";
@@ -1520,6 +1540,84 @@ export class StrokeAuthoringSystem extends createSystem({
    * can stagger it in.
    */
   spawnStrokeFromData(strokeData: StrokeData, startVisible = false): Entity {
+    return this.buildStrokeRuntimeFromData(strokeData, startVisible).entity;
+  }
+
+  /**
+   * Creates or updates a peer's in-progress stroke (collab mode). Progress
+   * messages carry the whole stroke, so updates simply replace the data and
+   * rebuild — lost updates self-heal on the next one.
+   */
+  upsertRemoteStroke(strokeData: StrokeData): void {
+    const existing = this.remoteActiveStrokes.get(strokeData.guid);
+    if (!existing) {
+      const runtime = this.buildStrokeRuntimeFromData(strokeData, true, false);
+      this.remoteActiveStrokes.set(strokeData.guid, runtime);
+      return;
+    }
+    existing.strokeData = strokeData;
+    existing.controlPoints = strokeData.controlPoints;
+    existing.entity.setValue(
+      BrushStroke,
+      "controlPointCount",
+      strokeData.controlPoints.length,
+    );
+    if (existing.entity.object3D) {
+      existing.entity.object3D.userData.openBrushStrokeData = strokeData;
+    }
+    this.recalculateBounds(existing);
+    this.rebuildStrokeMesh(existing);
+  }
+
+  /** Replaces the in-progress remote stroke with its final authoritative data. */
+  finalizeRemoteStroke(strokeData: StrokeData): void {
+    this.upsertRemoteStroke(strokeData);
+    const runtime = this.remoteActiveStrokes.get(strokeData.guid);
+    if (runtime) {
+      runtime.entity.setValue(BrushStroke, "finalized", true);
+      this.remoteActiveStrokes.delete(strokeData.guid);
+    }
+  }
+
+  /** The peer discarded their in-progress stroke. */
+  dropRemoteStroke(guid: string): void {
+    const runtime = this.remoteActiveStrokes.get(guid);
+    if (!runtime) {
+      return;
+    }
+    this.remoteActiveStrokes.delete(guid);
+    runtime.geometry.dispose();
+    runtime.entity.destroy();
+  }
+
+  /** Applies a peer's erase/undo/redo without echoing it back. */
+  applyRemoteVisibility(guids: readonly string[], visible: boolean): number {
+    const wanted = new Set(guids);
+    let applied = 0;
+    for (const entity of this.queries.strokes.entities) {
+      if (wanted.has(String(entity.getValue(BrushStroke, "guid")))) {
+        this.setStrokeVisible(entity, visible);
+        applied += 1;
+      }
+    }
+    return applied;
+  }
+
+  /** The local in-progress stroke, for the collab progress broadcast. */
+  getActiveLocalStrokeData(): StrokeData | undefined {
+    return this.activeStroke?.strokeData;
+  }
+
+  /** Forget remote in-progress bookkeeping (entities are torn down elsewhere). */
+  clearRemoteActiveStrokes(): void {
+    this.remoteActiveStrokes.clear();
+  }
+
+  private buildStrokeRuntimeFromData(
+    strokeData: StrokeData,
+    startVisible: boolean,
+    finalized = true,
+  ): RuntimeStroke {
     this.strokeCounter += 1;
     const brushEntry = findBrushByGuid(openBrushInventory, strokeData.brushGuid);
     const geometryFamily = brushEntry?.geometryFamily ?? "unsupported";
@@ -1552,7 +1650,7 @@ export class StrokeAuthoringSystem extends createSystem({
       layerIndex: strokeData.layerIndex,
       brushSize: strokeData.brushSize,
       color: strokeData.color,
-      finalized: true,
+      finalized,
       visible: startVisible,
       renderVisible: startVisible,
       selected: false,
@@ -1593,7 +1691,7 @@ export class StrokeAuthoringSystem extends createSystem({
     };
     this.recalculateBounds(runtime);
     this.rebuildStrokeMesh(runtime);
-    return entity;
+    return runtime;
   }
 
   private createMirroredStroke(source: RuntimeStroke): Entity {
@@ -1705,6 +1803,7 @@ export class StrokeAuthoringSystem extends createSystem({
     for (const entity of operation.group) {
       this.setStrokeVisible(entity, visible);
     }
+    this.emitLocalVisibility(operation.group, visible);
   }
 
   private redoLastStroke(): void {
@@ -1715,6 +1814,23 @@ export class StrokeAuthoringSystem extends createSystem({
     const visible = operation.kind === "create";
     for (const entity of operation.group) {
       this.setStrokeVisible(entity, visible);
+    }
+    this.emitLocalVisibility(operation.group, visible);
+  }
+
+  private emitLocalVisibility(entities: readonly Entity[], visible: boolean): void {
+    if (!this.onLocalStrokeVisibility || entities.length === 0) {
+      return;
+    }
+    const guids: string[] = [];
+    for (const entity of entities) {
+      const guid = String(entity.getValue(BrushStroke, "guid"));
+      if (guid) {
+        guids.push(guid);
+      }
+    }
+    if (guids.length > 0) {
+      this.onLocalStrokeVisibility(guids, visible);
     }
   }
 

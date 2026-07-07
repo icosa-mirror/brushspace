@@ -27,6 +27,7 @@ import {
   PerformanceState,
   PlaybackState,
   PersistenceState,
+  CollabState,
   SelectionState,
   SelectionWidget,
   SettingsState,
@@ -124,6 +125,7 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
     .addComponent(OpenBrushCameraState)
     .addComponent(PerformanceState)
     .addComponent(PersistenceState)
+    .addComponent(CollabState)
     .addComponent(PlaybackState)
     .addComponent(SelectionState)
     .addComponent(StrokeHistoryState)

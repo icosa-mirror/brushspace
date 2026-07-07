@@ -201,6 +201,41 @@ export class SketchLibrarySystem extends createSystem({
       });
   }
 
+  /** All visible finalized strokes — the collab snapshot payload. */
+  collectVisibleStrokeData(): StrokeData[] {
+    return this.collectStrokeData();
+  }
+
+  /**
+   * Guest side of a collab join: clear the local sketch immediately (no
+   * transition) so the host's streamed snapshot lands on a blank canvas.
+   */
+  prepareForCollabJoin(): void {
+    const appState = this.getAppState();
+    if (!appState) {
+      return;
+    }
+    this.transition = undefined;
+    this.busy = false;
+    this.getIntroSketchSystem()?.setSketchVisible(false, false);
+    this.disposeAllStrokes();
+    appState.setValue(PersistenceState, "activeSketchId", "");
+    appState.setValue(PersistenceState, "activeSketchName", "Shared Sketch");
+    appState.setValue(OpenBrushAppState, "mode", "ready");
+    appState.setValue(OpenBrushAppState, "toolStatus", "joining");
+  }
+
+  /** Adopt the host's sketch name so the guest's Save keeps it. */
+  adoptCollabSketchName(name: string): void {
+    const appState = this.getAppState();
+    appState?.setValue(
+      PersistenceState,
+      "activeSketchName",
+      name || "Shared Sketch",
+    );
+    appState?.setValue(PersistenceState, "activeSketchId", "");
+  }
+
   /** Tools-panel Home: back to the intro state, keeping the sketch visible. */
   quitToIntro(): void {
     const appState = this.getAppState();

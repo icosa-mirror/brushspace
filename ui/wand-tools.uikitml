@@ -2,7 +2,7 @@
   .wand-panel {
     flex-direction: column;
     width: 320px;
-    height: 307px;
+    height: 415px;
     padding: 14px;
     background-color: rgba(0, 0, 0, 0);
     border-width: 0px;
@@ -117,6 +117,11 @@
     text-align: center;
   }
 
+  .row-gap-spacer {
+    width: 92px;
+    height: 58px;
+  }
+
   .meta {
     width: 292px;
     height: 30px;
@@ -183,5 +188,17 @@
       <span class="button-label">Home</span>
     </button>
   </div>
+  <div class="button-row">
+    <button id="tool-share" class="tool-button secondary-button">
+      <Share2Icon class="button-icon"></Share2Icon>
+      <span id="tool-share-label" class="button-label">Share</span>
+    </button>
+    <button id="tool-join" class="tool-button secondary-button">
+      <UsersIcon class="button-icon"></UsersIcon>
+      <span class="button-label">Join</span>
+    </button>
+    <div class="row-gap-spacer"></div>
+  </div>
+  <span id="collab-status" class="meta">solo sketching</span>
   <span id="stroke-history-state" class="meta">0 undo | 0 redo</span>
 </Panel>
