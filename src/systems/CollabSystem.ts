@@ -32,20 +32,31 @@ import {
 } from "../openbrush/collab.js";
 import type { Quat, Vec3 } from "../openbrush/types.js";
 import { clearUIKitInteractionStateExcept } from "../openbrush/uikit-interaction.js";
+import { AudioFeedbackSystem } from "./AudioFeedbackSystem.js";
 import { SketchLibrarySystem } from "./SketchLibrarySystem.js";
 import { StrokeAuthoringSystem } from "./StrokeAuthoringSystem.js";
 
-type CollabPhase = "idle" | "hosting" | "joining" | "connected";
+type CollabPhase =
+  | "idle"
+  | "hosting"
+  | "joining"
+  | "connected"
+  | "reconnecting";
 
 // Whole-stroke progress + tip beacons, both self-healing, so modest rates
 // read smoothly without stressing the data channel.
 const PROGRESS_INTERVAL_SECONDS = 0.1;
 const TIP_INTERVAL_SECONDS = 0.12;
 const TIP_STALE_SECONDS = 2;
-// Tips flow ~8Hz from a live peer, so silence this long means the peer is
-// gone (abrupt drops take WebRTC 30s+ to notice via ICE consent expiry).
-// Side effect: a backgrounded 2D tab stops its loop and will read as gone.
-const PEER_SILENCE_TIMEOUT_SECONDS = 10;
+// Keepalive pings go out on a timer (not the render loop) so they survive
+// rAF pauses — headset off, system menu, backgrounded tab. Silence on the
+// wire this long therefore means the peer is genuinely unreachable, and even
+// then it only triggers a RECONNECT attempt, never an instant goodbye.
+const KEEPALIVE_INTERVAL_MS = 2000;
+const PEER_SILENCE_TIMEOUT_SECONDS = 15;
+// The guest re-dials the host's still-claimed code for about a minute.
+const RECONNECT_ATTEMPTS = 15;
+const RECONNECT_INTERVAL_SECONDS = 4;
 const HOST_ID_RETRIES = 3;
 
 /**
@@ -88,6 +99,14 @@ export class CollabSystem extends createSystem({
   private recvCount = 0;
   private lastRecvClock = 0;
   private readonly recentOps: string[] = [];
+
+  // Disruption recovery.
+  private keepaliveTimer: ReturnType<typeof setInterval> | undefined;
+  private byeReceived = false;
+  private reconnectAttemptsLeft = 0;
+  private reconnectDelay = 0;
+  private sameCodeRetriesLeft = 0;
+  private connectedAtClock = -Infinity;
 
   // Join keypad panel.
   private keypadEntity?: Entity;
@@ -139,17 +158,124 @@ export class CollabSystem extends createSystem({
 
     this.syncKeypad(appState);
     this.updateRemoteTip(delta);
+    this.stepReconnect(delta);
 
     if (this.phase !== "connected") {
       return;
     }
     if (this.clock - this.lastRecvClock > PEER_SILENCE_TIMEOUT_SECONDS) {
-      console.log("[Collab] peer silent too long - treating as gone");
-      this.onPeerGone();
+      console.log("[Collab] peer silent too long - attempting reconnect");
+      this.handleConnectionLost();
       return;
     }
     this.broadcastStrokeProgress(delta);
     this.broadcastTip(delta);
+  }
+
+  /** Recovery loop: the guest re-dials, the host re-claims its code. */
+  private stepReconnect(delta: number): void {
+    if (this.phase !== "reconnecting") {
+      return;
+    }
+    this.reconnectDelay -= delta;
+    if (this.reconnectDelay > 0) {
+      return;
+    }
+    this.reconnectDelay = RECONNECT_INTERVAL_SECONDS;
+    if (this.reconnectAttemptsLeft <= 0) {
+      this.finalPeerGone();
+      return;
+    }
+    this.reconnectAttemptsLeft -= 1;
+    if (this.role === "host") {
+      // Re-claim the SAME code so the guest's re-dial still matches.
+      console.log("[Collab] re-claiming code", this.code);
+      this.peer?.destroy();
+      this.peer = undefined;
+      this.startHosting(this.code);
+      return;
+    }
+    this.setStatus(
+      "reconnecting",
+      `Connection lost - reconnecting (${RECONNECT_ATTEMPTS - this.reconnectAttemptsLeft}/${RECONNECT_ATTEMPTS})`,
+    );
+    this.dialHost();
+  }
+
+  /**
+   * The wire went quiet or the channel died without a goodbye. Keep every
+   * stroke, then recover: the host keeps its code claimed at the broker and
+   * waits; the guest re-dials that code until it answers or retries run out.
+   */
+  private handleConnectionLost(): void {
+    this.stopKeepalive();
+    const conn = this.conn;
+    this.conn = undefined;
+    try {
+      conn?.close();
+    } catch {
+      // Already dead.
+    }
+    this.world.getSystem(StrokeAuthoringSystem)?.clearRemoteActiveStrokes();
+    if (this.clock - this.connectedAtClock >= RECONNECT_INTERVAL_SECONDS) {
+      // A fresh disruption gets a full retry budget; a connection that died
+      // within seconds of opening is a recovery that isn't sticking — keep
+      // burning the existing budget so it can't loop forever.
+      this.reconnectAttemptsLeft = RECONNECT_ATTEMPTS;
+      this.sameCodeRetriesLeft = RECONNECT_ATTEMPTS;
+    }
+    if (this.role === "host") {
+      if (this.peer && !this.peer.destroyed && !this.peer.disconnected) {
+        // Broker registration survived: just wait for the guest to re-dial.
+        this.phase = "hosting";
+        this.setStatus(
+          "hosting",
+          `Connection lost - code ${this.code} still active`,
+        );
+      } else {
+        // Broker registration died too; re-claim the same code (retried by
+        // stepReconnect until the broker lets go of the zombie id).
+        this.phase = "reconnecting";
+        this.reconnectDelay = 0;
+        this.setStatus(
+          "reconnecting",
+          `Connection lost - restoring code ${this.code}`,
+        );
+      }
+      return;
+    }
+    this.phase = "reconnecting";
+    this.reconnectDelay = 1;
+    this.setStatus("reconnecting", "Connection lost - reconnecting...");
+  }
+
+  /** One reconnect dial: fresh peer, connect to the host's code. */
+  private dialHost(): void {
+    this.peer?.destroy();
+    const peer = new Peer();
+    this.peer = peer;
+    peer.on("open", () => {
+      if (this.peer !== peer || this.phase !== "reconnecting") {
+        return;
+      }
+      const conn = peer.connect(collabPeerId(this.code), {
+        reliable: true,
+        serialization: "json",
+      });
+      this.adoptConnection(conn);
+    });
+    peer.on("error", (error) => this.onPeerError(peer, error));
+  }
+
+  /** Retries exhausted (or explicit goodbye): the sketch stays with us. */
+  private finalPeerGone(): void {
+    this.world.getSystem(AudioFeedbackSystem)?.playSound("peer-left");
+    this.teardown(
+      this.role === "guest"
+        ? "Host left - the sketch is yours to keep"
+        : "Peer left",
+      "ended",
+    );
   }
 
   // -------------------------------------------------------------------------
@@ -166,6 +292,7 @@ export class CollabSystem extends createSystem({
       return;
     }
     this.hostRetriesLeft = HOST_ID_RETRIES;
+    this.sameCodeRetriesLeft = 0;
     this.startHosting(generateCollabCode());
   }
 
@@ -231,17 +358,39 @@ export class CollabSystem extends createSystem({
     this.peer = peer;
     peer.on("open", () => {
       if (this.peer === peer) {
+        this.sameCodeRetriesLeft = 0;
         this.setStatus("hosting", `Code ${code} - share it!`);
+      }
+    });
+    peer.on("disconnected", () => {
+      // Broker socket dropped (not the data channel). Re-register so the
+      // code stays dialable.
+      if (this.peer === peer && !peer.destroyed) {
+        console.log("[Collab] broker connection lost - re-registering");
+        try {
+          peer.reconnect();
+        } catch {
+          // The recovery loop re-claims the code if this fails.
+        }
       }
     });
     peer.on("connection", (conn) => {
       if (this.peer !== peer) {
         return;
       }
-      if (this.conn) {
+      if (this.conn?.open) {
         // One guest only; politely refuse extras.
         conn.on("open", () => conn.close());
         return;
+      }
+      // A pending connection that never opened (e.g. an abandoned dial from
+      // a reconnecting guest) must not wedge the slot — replace it.
+      const stale = this.conn;
+      this.conn = undefined;
+      try {
+        stale?.close();
+      } catch {
+        // Already dead.
       }
       this.adoptConnection(conn);
     });
@@ -250,20 +399,29 @@ export class CollabSystem extends createSystem({
 
   private adoptConnection(conn: DataConnection): void {
     this.conn = conn;
+    this.byeReceived = false;
+    let opened = false;
     conn.on("open", () => {
       console.log("[Collab] connection open, role:", this.role);
       if (this.conn !== conn) {
         return;
       }
+      opened = true;
       this.phase = "connected";
       this.lastRecvClock = this.clock;
+      this.connectedAtClock = this.clock;
+      this.startKeepalive(conn);
+      this.world.getSystem(AudioFeedbackSystem)?.playSound("connect");
       if (this.role === "guest") {
         conn.send({ t: "hello", version: COLLAB_PROTOCOL_VERSION });
         this.setStatus("connected", "Connected - syncing sketch");
       } else {
-        this.sendSnapshot();
         this.setStatus("connected", `Connected - code ${this.code}`);
       }
+      // Both sides sync their visible strokes: on first join the guest has
+      // none, and after a reconnect this merges what either side drew while
+      // apart (stroke GUIDs dedup the replays).
+      this.sendSnapshot();
     });
     conn.on("data", (data) => {
       if (this.conn === conn) {
@@ -272,27 +430,75 @@ export class CollabSystem extends createSystem({
     });
     conn.on("close", () => {
       console.log("[Collab] connection closed");
-      if (this.conn === conn) {
+      if (this.conn !== conn) {
+        return;
+      }
+      if (!opened) {
+        // A dial that never came up; the retry loop owns the pacing.
+        this.conn = undefined;
+        return;
+      }
+      if (this.byeReceived) {
         this.onPeerGone();
+      } else {
+        this.handleConnectionLost();
       }
     });
     conn.on("error", (error) => {
       console.warn("[Collab] connection error", error);
-      if (this.conn === conn) {
-        this.onPeerGone();
+      if (this.conn !== conn) {
+        return;
       }
+      if (!opened) {
+        this.conn = undefined;
+        return;
+      }
+      this.handleConnectionLost();
     });
+  }
+
+  private startKeepalive(conn: DataConnection): void {
+    this.stopKeepalive();
+    // setInterval keeps ticking while rAF is paused (headset off, system
+    // menu), which is exactly when the peer must keep hearing from us.
+    this.keepaliveTimer = setInterval(() => {
+      if (this.conn !== conn || !conn.open) {
+        this.stopKeepalive();
+        return;
+      }
+      try {
+        conn.send({ t: "ping" });
+      } catch {
+        // The close/error handlers own recovery.
+      }
+    }, KEEPALIVE_INTERVAL_MS);
+  }
+
+  private stopKeepalive(): void {
+    if (this.keepaliveTimer !== undefined) {
+      clearInterval(this.keepaliveTimer);
+      this.keepaliveTimer = undefined;
+    }
   }
 
   private onPeerError(peer: Peer, error: Error & { type?: string }): void {
     if (this.peer !== peer) {
       return;
     }
+    console.warn("[Collab] peer error:", error.type ?? error.message);
     if (error.type === "unavailable-id" && this.role === "host") {
-      // Someone else holds this code at the broker — roll a new one.
       peer.destroy();
       this.peer = undefined;
+      if (this.sameCodeRetriesLeft > 0) {
+        // Recovering a session: the broker still holds our old (zombie)
+        // registration; keep retrying the SAME code so the guest's re-dial
+        // still matches.
+        this.sameCodeRetriesLeft -= 1;
+        this.phase = "reconnecting";
+        return;
+      }
       if (this.hostRetriesLeft > 0) {
+        // Fresh share: someone else genuinely holds this code — roll a new one.
         this.hostRetriesLeft -= 1;
         this.startHosting(generateCollabCode());
       } else {
@@ -300,19 +506,42 @@ export class CollabSystem extends createSystem({
       }
       return;
     }
+    if (this.phase === "reconnecting") {
+      // Any dial failure (host not re-registered yet, broker hiccup) just
+      // waits for the next retry tick.
+      peer.destroy();
+      return;
+    }
     if (error.type === "peer-unavailable") {
-      this.teardown(`No sketch found for code ${this.code}`, "error");
+      if (this.role === "guest" && this.phase === "joining") {
+        // First dial to a code nobody holds: a genuine typo.
+        this.teardown(`No sketch found for code ${this.code}`, "error");
+      }
+      // Otherwise it's a stale answer to a peer that already went away
+      // (e.g. the guest's abandoned retry dialer) — never fatal.
       return;
     }
     if (this.phase === "connected") {
       // Signaling hiccups don't matter once the data channel is up.
       return;
     }
+    if (this.role === "host") {
+      // Never abandon an active share over broker trouble; keep the code
+      // and let the recovery loop re-claim it.
+      this.phase = "reconnecting";
+      this.reconnectDelay = RECONNECT_INTERVAL_SECONDS;
+      this.setStatus(
+        "reconnecting",
+        `Connection trouble - restoring code ${this.code}`,
+      );
+      return;
+    }
     this.teardown("Connection failed - try again", "error");
   }
 
-  /** The other side vanished: keep every stroke, just go solo. */
+  /** The other side said goodbye on purpose: keep every stroke, go solo. */
   private onPeerGone(): void {
+    this.stopKeepalive();
     const wasGuest = this.role === "guest";
     this.conn = undefined;
     if (this.role === "host" && this.peer && !this.peer.destroyed) {
@@ -332,6 +561,9 @@ export class CollabSystem extends createSystem({
   }
 
   private teardown(message: string, status: string): void {
+    console.log("[Collab] teardown:", message);
+    this.stopKeepalive();
+    this.reconnectAttemptsLeft = 0;
     const conn = this.conn;
     this.conn = undefined;
     if (conn?.open) {
@@ -410,13 +642,17 @@ export class CollabSystem extends createSystem({
         break;
       case "snapshot": {
         if (message.version !== COLLAB_PROTOCOL_VERSION) {
-          this.teardown("Host runs an incompatible version", "error");
+          this.teardown("Peer runs an incompatible version", "error");
           break;
         }
         this.snapshotStrokesPending = message.strokeCount;
-        this.world
-          .getSystem(SketchLibrarySystem)
-          ?.adoptCollabSketchName(message.sketchName);
+        if (this.role === "guest") {
+          // Only the guest adopts the sketch name; the host's snapshot of a
+          // reconnecting guest must not rename the host's sketch.
+          this.world
+            .getSystem(SketchLibrarySystem)
+            ?.adoptCollabSketchName(message.sketchName);
+        }
         this.setStatus("connected", `Connected - code ${this.code}`);
         break;
       }
@@ -448,7 +684,11 @@ export class CollabSystem extends createSystem({
         this.tipLastSeen = this.clock;
         this.showRemoteTip();
         break;
+      case "ping":
+        // Keepalive: receipt alone refreshed lastRecvClock.
+        break;
       case "bye":
+        this.byeReceived = true;
         this.onPeerGone();
         break;
     }
@@ -659,6 +899,7 @@ export class CollabSystem extends createSystem({
       } | null;
       element?.addEventListener("click", () => {
         clearUIKitInteractionStateExcept(document, element);
+        this.world.getSystem(AudioFeedbackSystem)?.playSound("ui-click");
         handler();
       });
     };

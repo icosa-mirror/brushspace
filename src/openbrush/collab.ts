@@ -88,6 +88,15 @@ export interface CollabTipMessage {
   drawing: boolean;
 }
 
+/**
+ * Timer-driven keepalive. Sent via setInterval rather than the render loop
+ * so it keeps flowing while rAF is paused (headset off, system menu, tab in
+ * background) — silence on the wire then reliably means the peer is gone.
+ */
+export interface CollabPingMessage {
+  t: "ping";
+}
+
 export interface CollabByeMessage {
   t: "bye";
 }
@@ -100,6 +109,7 @@ export type CollabMessage =
   | CollabStrokeDropMessage
   | CollabVisibilityMessage
   | CollabTipMessage
+  | CollabPingMessage
   | CollabByeMessage;
 
 const MESSAGE_TYPES = new Set([
@@ -110,6 +120,7 @@ const MESSAGE_TYPES = new Set([
   "stroke-drop",
   "visibility",
   "tip",
+  "ping",
   "bye",
 ]);
 
@@ -188,6 +199,7 @@ export function parseCollabMessage(raw: unknown): CollabMessage | undefined {
         typeof message.drawing === "boolean"
         ? message
         : undefined;
+    case "ping":
     case "bye":
       return message;
   }

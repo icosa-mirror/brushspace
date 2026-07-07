@@ -96,6 +96,7 @@ describe("collab message parsing", () => {
         drawing: true,
       })?.t,
     ).toBe("tip");
+    expect(parseCollabMessage({ t: "ping" })?.t).toBe("ping");
     expect(parseCollabMessage({ t: "bye" })?.t).toBe("bye");
   });
 

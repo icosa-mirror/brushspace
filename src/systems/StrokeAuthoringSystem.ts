@@ -108,6 +108,8 @@ import {
 
 // Endpoint-move threshold for straightedge/tape tools only; freehand strokes
 // use the Open Brush spawn-interval sampling in sampleActiveStroke.
+import { AudioFeedbackSystem } from "./AudioFeedbackSystem.js";
+
 const MIN_SAMPLE_DISTANCE = 0.015;
 
 // QuadStripBrush uses its class constant; TubeBrush reads the descriptor's
@@ -1129,6 +1131,7 @@ export class StrokeAuthoringSystem extends createSystem({
     }
     this.strokeHistory.commitErased(erasedStrokes);
     this.emitLocalVisibility(erasedStrokes, false);
+    this.world.getSystem(AudioFeedbackSystem)?.playSoundVariant("erase");
     this.eraseHoldErasedCount += erasedStrokes.length;
     if (appStateEntity) {
       const plural = this.eraseHoldErasedCount === 1 ? "" : "s";
@@ -1288,6 +1291,7 @@ export class StrokeAuthoringSystem extends createSystem({
       true,
     );
     this.clearDropperHover();
+    this.world.getSystem(AudioFeedbackSystem)?.playSound("color-picked");
 
     const previousToolId = String(
       appStateEntity.getValue(OpenBrushAppState, "previousTool"),
@@ -1551,6 +1555,14 @@ export class StrokeAuthoringSystem extends createSystem({
   upsertRemoteStroke(strokeData: StrokeData): void {
     const existing = this.remoteActiveStrokes.get(strokeData.guid);
     if (!existing) {
+      // Reconnect resyncs replay strokes we may already hold — GUIDs are
+      // author-unique, so an existing finalized copy wins (its local
+      // visibility included).
+      for (const entity of this.queries.strokes.entities) {
+        if (String(entity.getValue(BrushStroke, "guid")) === strokeData.guid) {
+          return;
+        }
+      }
       const runtime = this.buildStrokeRuntimeFromData(strokeData, true, false);
       this.remoteActiveStrokes.set(strokeData.guid, runtime);
       return;
@@ -1804,6 +1816,7 @@ export class StrokeAuthoringSystem extends createSystem({
       this.setStrokeVisible(entity, visible);
     }
     this.emitLocalVisibility(operation.group, visible);
+    this.world.getSystem(AudioFeedbackSystem)?.playSoundVariant("undo");
   }
 
   private redoLastStroke(): void {
@@ -1816,6 +1829,7 @@ export class StrokeAuthoringSystem extends createSystem({
       this.setStrokeVisible(entity, visible);
     }
     this.emitLocalVisibility(operation.group, visible);
+    this.world.getSystem(AudioFeedbackSystem)?.playSoundVariant("redo");
   }
 
   private emitLocalVisibility(entities: readonly Entity[], visible: boolean): void {

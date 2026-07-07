@@ -32,6 +32,7 @@ import {
 } from "../openbrush/document.js";
 import type { StrokeData } from "../openbrush/types.js";
 import { clearUIKitInteractionStateExcept } from "../openbrush/uikit-interaction.js";
+import { AudioFeedbackSystem } from "./AudioFeedbackSystem.js";
 import { IntroSketchSystem } from "./IntroSketchSystem.js";
 import { StrokeAuthoringSystem } from "./StrokeAuthoringSystem.js";
 import { assetUrl } from "../openbrush/asset-url.js";
@@ -190,6 +191,7 @@ export class SketchLibrarySystem extends createSystem({
         );
         appState.setValue(PersistenceState, "isDirty", false);
         appState.setValue(OpenBrushAppState, "toolStatus", `saved "${name}"`);
+        this.world.getSystem(AudioFeedbackSystem)?.playSound("save");
         await this.refreshEntries();
       })
       .catch((error) => {
@@ -228,12 +230,20 @@ export class SketchLibrarySystem extends createSystem({
   /** Adopt the host's sketch name so the guest's Save keeps it. */
   adoptCollabSketchName(name: string): void {
     const appState = this.getAppState();
-    appState?.setValue(
-      PersistenceState,
-      "activeSketchName",
-      name || "Shared Sketch",
+    if (!appState) {
+      return;
+    }
+    const next = name || "Shared Sketch";
+    const current = String(
+      appState.getValue(PersistenceState, "activeSketchName"),
     );
-    appState?.setValue(PersistenceState, "activeSketchId", "");
+    if (current === next) {
+      // Reconnect resync: keep the existing catalog id so a later Save
+      // updates the guest's record instead of duplicating it.
+      return;
+    }
+    appState.setValue(PersistenceState, "activeSketchName", next);
+    appState.setValue(PersistenceState, "activeSketchId", "");
   }
 
   /** Tools-panel Home: back to the intro state, keeping the sketch visible. */
@@ -310,6 +320,7 @@ export class SketchLibrarySystem extends createSystem({
             Number(appState.getValue(PersistenceState, "loadRevision")) + 1,
           );
           appState.setValue(OpenBrushAppState, "mode", "ready");
+          this.world.getSystem(AudioFeedbackSystem)?.playSound("load-sketch");
           this.transitionInStrokes(spawned, () => {
             this.busy = false;
           });
@@ -434,6 +445,7 @@ export class SketchLibrarySystem extends createSystem({
       } | null;
       element?.addEventListener("click", () => {
         clearUIKitInteractionStateExcept(document, element);
+        this.world.getSystem(AudioFeedbackSystem)?.playSound("ui-click");
         handler();
       });
     };
