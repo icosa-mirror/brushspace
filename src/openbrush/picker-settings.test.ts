@@ -21,9 +21,11 @@ import {
 import type { Rgba } from "./types.js";
 
 describe("Open Brush picker settings", () => {
-  it("copies color only for Color Picker", () => {
+  // The flag combinations below exercise the copy logic in isolation; the
+  // shipped tool set only exposes the dropper (all flags set).
+  it("copies color only when the spec picks color", () => {
     const next = resolveOpenBrushPickerBrushSettings(
-      pickerSpec("color-picker"),
+      partialSpec({ picksColor: true }),
       currentSettings(),
       pickedStroke(),
       openBrushInventory,
@@ -35,9 +37,9 @@ describe("Open Brush picker settings", () => {
     expect(next.size).toBe(currentSize);
   });
 
-  it("copies brush only for Brush Picker and keeps normalized size intent", () => {
+  it("copies brush only when the spec picks brush, keeping size intent", () => {
     const next = resolveOpenBrushPickerBrushSettings(
-      pickerSpec("brush-picker"),
+      partialSpec({ picksBrush: true }),
       currentSettings(),
       pickedStroke(),
       openBrushInventory,
@@ -52,9 +54,9 @@ describe("Open Brush picker settings", () => {
     expect(next.size).not.toBe(pickedSize);
   });
 
-  it("normalizes current size intent when Brush Picker changes brushes", () => {
+  it("normalizes current size intent when a brush pick changes brushes", () => {
     const next = resolveOpenBrushPickerBrushSettings(
-      pickerSpec("brush-picker"),
+      partialSpec({ picksBrush: true }),
       {
         ...currentSettings(),
         size01: 1.5,
@@ -131,6 +133,20 @@ function pickerSpec(toolId: string): OpenBrushPickerToolSpec {
     throw new Error(`Expected picker spec for ${toolId}`);
   }
   return spec;
+}
+
+function partialSpec(
+  overrides: Partial<OpenBrushPickerToolSpec>,
+): OpenBrushPickerToolSpec {
+  return {
+    picksColor: false,
+    picksBrush: false,
+    picksSize: false,
+    radius: 0.025,
+    forwardOffset: 0,
+    pickedStatusLabel: "test",
+    ...overrides,
+  };
 }
 
 function getCurrentBrush() {

@@ -61,6 +61,8 @@ export interface BrushGeometryParams {
   opacity?: number;
   solidMinLengthMeters?: number;
   audioReactive?: boolean;
+  colorLuminanceMin?: number;
+  colorSaturationMax?: number;
 }
 
 /** Geometry generator family resolved from the Unity brush prefab. */
@@ -90,6 +92,8 @@ export interface BrushAssetRecord {
   supersededByGuid?: string;
   /** Open Brush GUI tags from the descriptor (e.g. "default", "experimental", "audioreactive"). */
   tags?: string[];
+  /** Extracted picker button icon file under public/openbrush/icons/. */
+  buttonIcon?: string;
 }
 
 export interface BrushInventoryEntry extends OpenBrushExportBrush {
@@ -107,6 +111,8 @@ export interface BrushInventoryEntry extends OpenBrushExportBrush {
   supersededByGuid?: string;
   /** Open Brush GUI tags from the descriptor. */
   tags: string[];
+  /** Picker button icon file under public/openbrush/icons/, when extracted. */
+  buttonIconFile?: string;
   /** True when the brush should be offered in the brush picker. */
   pickerVisible: boolean;
 }
@@ -289,6 +295,7 @@ export function buildBrushInventoryFromExportManifest(
       generatorClass: assetRecord?.generatorClass,
       supersededByGuid: assetRecord?.supersededByGuid,
       tags: assetRecord?.tags ?? [],
+      buttonIconFile: assetRecord?.buttonIcon,
       pickerVisible: support.pickerVisible,
     };
   });

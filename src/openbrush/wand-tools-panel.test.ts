@@ -8,8 +8,6 @@ describe("wand tools panel markup", () => {
       "tool-draw",
       "tool-line",
       "tool-erase",
-      "tool-color-picker",
-      "tool-brush-picker",
       "tool-dropper",
     ];
 
@@ -41,9 +39,14 @@ describe("wand tools panel markup", () => {
 
   it("uses icon-forward controls for tools, sampling, and history", () => {
     expect(wandToolsMarkup).toContain("<PaintbrushIcon");
-    expect(wandToolsMarkup).toContain("<PaletteIcon");
     expect(wandToolsMarkup).toContain("<PipetteIcon");
     expect(wandToolsMarkup).toContain("<Undo2Icon");
     expect(wandToolsMarkup).toContain("<Redo2Icon");
+  });
+
+  it("exposes only the dropper pick tool (no invented partial pickers)", () => {
+    expect(wandToolsMarkup).not.toContain("tool-color-picker");
+    expect(wandToolsMarkup).not.toContain("tool-brush-picker");
+    expect(wandToolsMarkup).toContain('id="tool-dropper"');
   });
 });

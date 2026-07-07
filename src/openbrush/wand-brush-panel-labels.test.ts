@@ -31,28 +31,28 @@ describe("Phase A wand brush panel labels", () => {
     const labels = resolveWandBrushPanelLabels(
       baseInput({
         eraserActive: true,
-        eraserRadius: 0.2,
+        eraserRadius: 0.02,
       }),
     );
 
     expect(labels.wandBrushName).toBe("Eraser");
     expect(labels.wandBrushMeta).toBe("contact radius");
-    expect(labels.wandBrushSize).toBe("Radius 50% | 20.0 cm");
+    expect(labels.wandBrushSize).toBe("Radius 50% | 2.0 cm");
     expect(labels.sizeDown).toBe("Radius -");
     expect(labels.sizeUp).toBe("Radius +");
-    expect(labels.activeBrushMeta).toContain("radius 50% | 20.0 cm");
+    expect(labels.activeBrushMeta).toContain("radius 50% | 2.0 cm");
   });
 
   it("tracks adjusted eraser radius percentages after hand-panel size changes", () => {
     const labels = resolveWandBrushPanelLabels(
       baseInput({
         eraserActive: true,
-        eraserRadius: 0.21,
+        eraserRadius: 0.021,
       }),
     );
 
-    expect(labels.wandBrushSize).toBe("Radius 55% | 21.0 cm");
-    expect(labels.activeBrushMeta).toContain("radius 55% | 21.0 cm");
+    expect(labels.wandBrushSize).toBe("Radius 55% | 2.1 cm");
+    expect(labels.activeBrushMeta).toContain("radius 55% | 2.1 cm");
   });
 
   it("keeps panel-focus wording visible for paint and eraser modes", () => {
@@ -165,7 +165,7 @@ function baseInput(
     brushCount: selectableOpenBrushes.length,
     brushSize01: 0.5,
     brushSize: 0.01125,
-    eraserRadius: 0.2,
+    eraserRadius: 0.02,
     eraserActive: false,
     panelFocusBlocked: false,
     toolStatus: "draw-ready",

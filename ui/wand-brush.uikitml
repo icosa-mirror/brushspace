@@ -2,7 +2,7 @@
   .wand-panel {
     flex-direction: column;
     width: 320px;
-    height: 320px;
+    height: 405px;
     padding: 14px;
     background-color: rgba(0, 0, 0, 0);
     border-width: 0px;
@@ -12,6 +12,7 @@
 
   .header-row {
     flex-direction: row;
+    justify-content: space-between;
     align-items: center;
     width: 292px;
     height: 26px;
@@ -20,7 +21,7 @@
   .heading-lockup {
     flex-direction: row;
     align-items: center;
-    width: 188px;
+    width: 178px;
     height: 26px;
   }
 
@@ -31,7 +32,7 @@
   }
 
   .heading {
-    width: 132px;
+    width: 150px;
     height: 24px;
     font-size: 19px;
     font-weight: 700;
@@ -41,7 +42,7 @@
   }
 
   .page-mark {
-    width: 104px;
+    width: 114px;
     height: 16px;
     font-size: 11px;
     color: #ffffff;
@@ -55,114 +56,161 @@
     background-color: rgba(255, 255, 255, 0.9);
   }
 
-  .brush-name {
-    width: 292px;
-    height: 26px;
-    margin-top: 12px;
-    font-size: 22px;
-    font-weight: 700;
-    color: #ffffff;
-    text-align: left;
-  }
-
-  .brush-meta {
-    width: 292px;
-    height: 15px;
-    margin-top: 3px;
-    font-size: 12px;
-    color: #ffffff;
-    text-align: left;
-  }
-
-  .size-readout {
-    width: 280px;
-    height: 22px;
-    padding: 4px;
-    margin-top: 10px;
-    background-color: rgba(0, 0, 0, 0.02);
-    border-color: #ffffff;
-    border-width: 1px;
-    border-radius: 0px;
-    color: #ffffff;
-    font-size: 13px;
-    text-align: center;
-  }
-
-  .button-row {
+  .grid-row {
     flex-direction: row;
+    justify-content: space-between;
     width: 292px;
-    height: 58px;
-    margin-top: 10px;
+    height: 61px;
+    margin-top: 12px;
   }
 
-  .tool-button {
-    width: 138px;
-    height: 58px;
+  .brush-cell {
+    width: 61px;
+    min-width: 61px;
+    height: 61px;
     padding: 5px;
     background-color: rgba(0, 0, 0, 0.02);
-    color: #ffffff;
-    border-radius: 0px;
     border-width: 1px;
     border-color: #ffffff;
-    font-size: 11px;
-    font-weight: 700;
-    text-align: center;
+    border-radius: 8px;
     cursor: pointer;
     flex-direction: column;
     align-items: center;
     justify-content: center;
   }
 
-  .button-icon {
-    width: 20px;
-    height: 20px;
-    margin-bottom: 3px;
+  .brush-cell:hover {
+    background-color: rgba(255, 255, 255, 0.16);
   }
 
-  .button-label {
-    width: 120px;
-    height: 14px;
-    font-size: 11px;
+  .brush-cell:active {
+    background-color: rgba(255, 255, 255, 0.32);
+  }
+
+  .brush-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .footer-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 292px;
+    height: 36px;
+    margin-top: 14px;
+  }
+
+  .page-button {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    background-color: rgba(0, 0, 0, 0.02);
+    border-width: 1px;
+    border-color: #ffffff;
+    border-radius: 8px;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .page-button:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+  }
+
+  .page-button:active {
+    background-color: rgba(255, 255, 255, 0.32);
+  }
+
+  .page-button-icon {
+    width: 20px;
+    height: 20px;
+    color: #ffffff;
+  }
+
+  .brush-name {
+    width: 204px;
+    height: 22px;
+    font-size: 15px;
     font-weight: 700;
     color: #ffffff;
     text-align: center;
   }
 
-  #brush-next,
-  #brush-size-up {
-    margin-left: 8px;
-  }
 </style>
 <Panel class="wand-panel">
   <div class="header-row">
     <div class="heading-lockup">
       <BrushIcon class="heading-icon"></BrushIcon>
-      <span class="heading">Brush</span>
+      <span class="heading">Brushes</span>
     </div>
-    <span class="page-mark">3 / 3</span>
+    <span id="brush-page-mark" class="page-mark">1 / 1</span>
   </div>
   <div class="divider"></div>
-  <span id="wand-brush-name" class="brush-name">Light</span>
-  <span id="wand-brush-meta" class="brush-meta">emissive / 3 of 5</span>
-  <span id="wand-brush-size" class="size-readout">Size 50%</span>
-  <div class="button-row">
-    <button id="brush-prev" class="tool-button">
-      <ChevronLeftIcon class="button-icon"></ChevronLeftIcon>
-      <span class="button-label">Prev</span>
+  <div class="grid-row">
+    <button id="brush-cell-0" class="brush-cell">
+      <img id="brush-icon-0" class="brush-icon" src="/openbrush/blank-icon.png"></img>
     </button>
-    <button id="brush-next" class="tool-button">
-      <ChevronRightIcon class="button-icon"></ChevronRightIcon>
-      <span class="button-label">Next</span>
+    <button id="brush-cell-1" class="brush-cell">
+      <img id="brush-icon-1" class="brush-icon" src="/openbrush/blank-icon.png"></img>
+    </button>
+    <button id="brush-cell-2" class="brush-cell">
+      <img id="brush-icon-2" class="brush-icon" src="/openbrush/blank-icon.png"></img>
+    </button>
+    <button id="brush-cell-3" class="brush-cell">
+      <img id="brush-icon-3" class="brush-icon" src="/openbrush/blank-icon.png"></img>
     </button>
   </div>
-  <div class="button-row">
-    <button id="brush-size-down" class="tool-button">
-      <ChevronDownIcon class="button-icon"></ChevronDownIcon>
-      <span class="button-label">Size -</span>
+  <div class="grid-row">
+    <button id="brush-cell-4" class="brush-cell">
+      <img id="brush-icon-4" class="brush-icon" src="/openbrush/blank-icon.png"></img>
     </button>
-    <button id="brush-size-up" class="tool-button">
-      <ChevronUpIcon class="button-icon"></ChevronUpIcon>
-      <span class="button-label">Size +</span>
+    <button id="brush-cell-5" class="brush-cell">
+      <img id="brush-icon-5" class="brush-icon" src="/openbrush/blank-icon.png"></img>
+    </button>
+    <button id="brush-cell-6" class="brush-cell">
+      <img id="brush-icon-6" class="brush-icon" src="/openbrush/blank-icon.png"></img>
+    </button>
+    <button id="brush-cell-7" class="brush-cell">
+      <img id="brush-icon-7" class="brush-icon" src="/openbrush/blank-icon.png"></img>
+    </button>
+  </div>
+  <div class="grid-row">
+    <button id="brush-cell-8" class="brush-cell">
+      <img id="brush-icon-8" class="brush-icon" src="/openbrush/blank-icon.png"></img>
+    </button>
+    <button id="brush-cell-9" class="brush-cell">
+      <img id="brush-icon-9" class="brush-icon" src="/openbrush/blank-icon.png"></img>
+    </button>
+    <button id="brush-cell-10" class="brush-cell">
+      <img id="brush-icon-10" class="brush-icon" src="/openbrush/blank-icon.png"></img>
+    </button>
+    <button id="brush-cell-11" class="brush-cell">
+      <img id="brush-icon-11" class="brush-icon" src="/openbrush/blank-icon.png"></img>
+    </button>
+  </div>
+  <div class="grid-row">
+    <button id="brush-cell-12" class="brush-cell">
+      <img id="brush-icon-12" class="brush-icon" src="/openbrush/blank-icon.png"></img>
+    </button>
+    <button id="brush-cell-13" class="brush-cell">
+      <img id="brush-icon-13" class="brush-icon" src="/openbrush/blank-icon.png"></img>
+    </button>
+    <button id="brush-cell-14" class="brush-cell">
+      <img id="brush-icon-14" class="brush-icon" src="/openbrush/blank-icon.png"></img>
+    </button>
+    <button id="brush-cell-15" class="brush-cell">
+      <img id="brush-icon-15" class="brush-icon" src="/openbrush/blank-icon.png"></img>
+    </button>
+  </div>
+  <div class="footer-row">
+    <button id="brush-page-prev" class="page-button">
+      <ChevronLeftIcon class="page-button-icon"></ChevronLeftIcon>
+    </button>
+    <span id="brush-active-name" class="brush-name">Brush</span>
+    <button id="brush-page-next" class="page-button">
+      <ChevronRightIcon class="page-button-icon"></ChevronRightIcon>
     </button>
   </div>
 </Panel>

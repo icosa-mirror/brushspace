@@ -25,7 +25,6 @@ import {
 import type { BrushInventoryEntry } from "./brush-inventory.js";
 import {
   createBrushShaderMaterialDescriptor,
-  packBrushShaderTime,
   prepareBrushShaderSource,
   OPENBRUSH_AMBIENT_LIGHT_COLOR,
   OPENBRUSH_FOG_COLOR,
@@ -71,23 +70,26 @@ export class BrushShaderLibrary {
       value: new Vector4().fromArray(OPENBRUSH_AMBIENT_LIGHT_COLOR as number[]),
     },
     u_fogColor: { value: new Vector3().fromArray(OPENBRUSH_FOG_COLOR as number[]) },
-    // Fog is disabled until stroke geometry moves to canvas units; the
-    // shaders' density constants assume Open Brush world scale.
-    u_fogDensity: { value: 0 },
+    // ENVIRONMENT_STANDARD fog. ApplyFog multiplies by 10 internally, so this
+    // lands at the same 0.0025/m the environment meshes use.
+    u_fogDensity: { value: 0.00025 },
   };
 
   get(guid: string): ShaderMaterial | undefined {
     return this.materials.get(guid);
   }
 
-  async load(entry: BrushInventoryEntry): Promise<ShaderMaterial | undefined> {
+  async load(
+    entry: BrushInventoryEntry,
+    options?: { allowAnyGeometry?: boolean },
+  ): Promise<ShaderMaterial | undefined> {
     const cached = this.materials.get(entry.guid);
     if (cached) {
       return cached;
     }
     let promise = this.pending.get(entry.guid);
     if (!promise) {
-      promise = this.createMaterial(entry);
+      promise = this.createMaterial(entry, options);
       this.pending.set(entry.guid, promise);
     }
     return promise;
@@ -95,8 +97,14 @@ export class BrushShaderLibrary {
 
   /** Advance shared per-frame uniforms. Call once per frame before rendering. */
   updateFrame(timeSeconds: number, camera: Camera): void {
-    const [x, y, z, w] = packBrushShaderTime(timeSeconds);
-    (this.frameUniforms.u_time.value as Vector4).set(x, y, z, w);
+    // Same packing as packBrushShaderTime (Unity _Time), written in place so
+    // the per-frame call allocates nothing.
+    (this.frameUniforms.u_time.value as Vector4).set(
+      timeSeconds / 20,
+      timeSeconds,
+      timeSeconds * 2,
+      timeSeconds * 3,
+    );
     this.viewMatrix.copy(camera.matrixWorld).invert();
     (this.frameUniforms.u_SceneLight_0_matrix.value as Matrix4).multiplyMatrices(
       this.viewMatrix,
@@ -146,8 +154,9 @@ export class BrushShaderLibrary {
 
   private async createMaterial(
     entry: BrushInventoryEntry,
+    options?: { allowAnyGeometry?: boolean },
   ): Promise<ShaderMaterial | undefined> {
-    const descriptor = createBrushShaderMaterialDescriptor(entry);
+    const descriptor = createBrushShaderMaterialDescriptor(entry, options);
     if (!descriptor) {
       return undefined;
     }
@@ -253,6 +262,7 @@ export function applyBrushShaderAttributeAliases(geometry: BufferGeometry): void
     ["normal", "a_normal"],
     ["color", "a_color"],
     ["uv", "a_texcoord0"],
+    ["uv1", "a_texcoord1"],
   ];
   for (const [standardName, glslName] of aliases) {
     const attribute = geometry.getAttribute(standardName);

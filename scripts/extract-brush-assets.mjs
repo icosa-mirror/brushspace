@@ -18,6 +18,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import sharp from "sharp";
+
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const referenceRoot = path.join(repoRoot, "reference");
 const generatorsDir = path.join(referenceRoot, "Support", "GlTFShaders", "Generators");
@@ -40,6 +42,7 @@ const scriptIndexRoot = path.join(referenceRoot, "Assets", "Scripts");
 const outPublicDir = path.join(repoRoot, "public", "openbrush");
 const outShaderDir = path.join(outPublicDir, "shaders");
 const outTextureDir = path.join(outPublicDir, "textures");
+const outIconDir = path.join(outPublicDir, "icons");
 const outGeneratedDir = path.join(repoRoot, "src", "openbrush", "generated");
 
 // ---------------------------------------------------------------------------
@@ -302,6 +305,8 @@ function extractGeometryParams(descriptorText) {
     opacity: parseYamlScalar(descriptorText, "m_Opacity"),
     solidMinLengthMeters: parseYamlScalar(descriptorText, "m_SolidMinLengthMeters_PS"),
     audioReactive: parseYamlScalar(descriptorText, "m_AudioReactive") === 1,
+    colorLuminanceMin: parseYamlScalar(descriptorText, "m_ColorLuminanceMin"),
+    colorSaturationMax: parseYamlScalar(descriptorText, "m_ColorSaturationMax"),
     brushSizeRange: parseYamlVec2(descriptorText, "m_BrushSizeRange"),
     pressureSizeRange: parseYamlVec2(descriptorText, "m_PressureSizeRange"),
     pressureOpacityRange: parseYamlVec2(descriptorText, "m_PressureOpacityRange"),
@@ -312,14 +317,17 @@ function extractGeometryParams(descriptorText) {
 // Main
 // ---------------------------------------------------------------------------
 
-function main() {
+async function main() {
   const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
   const brushes = Object.values(manifest.brushes);
+  const iconJobs = [];
 
   fs.rmSync(outShaderDir, { recursive: true, force: true });
   fs.rmSync(outTextureDir, { recursive: true, force: true });
+  fs.rmSync(outIconDir, { recursive: true, force: true });
   fs.mkdirSync(outShaderDir, { recursive: true });
   fs.mkdirSync(outTextureDir, { recursive: true });
+  fs.mkdirSync(outIconDir, { recursive: true });
   fs.mkdirSync(outGeneratedDir, { recursive: true });
 
   const metaGuidIndex = buildMetaGuidIndex();
@@ -398,6 +406,23 @@ function main() {
     } else {
       record.geometry = extractGeometryParams(descriptor.text);
       record.tags = extractBrushTags(descriptor.text);
+      // Brush picker button icon (BrushDescriptor.m_ButtonTexture).
+      const buttonTextureMatch = descriptor.text.match(
+        /m_ButtonTexture: \{fileID: \d+, guid: ([0-9a-f]{32}),\s+type: \d+\}/,
+      );
+      const buttonTexturePath = buttonTextureMatch
+        ? metaGuidIndex.get(buttonTextureMatch[1])
+        : undefined;
+      if (buttonTexturePath && fs.existsSync(buttonTexturePath)) {
+        const iconName = `${guid}.png`;
+        iconJobs.push({
+          source: buttonTexturePath,
+          destination: path.join(outIconDir, iconName),
+        });
+        record.buttonIcon = iconName;
+      } else {
+        problems.push(`${brush.name} (${guid}): button icon unresolved`);
+      }
       const generatorClass = resolveGeneratorClass(
         descriptor.text,
         metaGuidIndex,
@@ -460,6 +485,8 @@ function main() {
     }
   }
 
+  await Promise.all(iconJobs.map((job) => writeTransparentIcon(job)));
+
   fs.copyFileSync(manifestPath, path.join(outGeneratedDir, "exportManifest.json"));
   fs.writeFileSync(
     path.join(outGeneratedDir, "brush-assets.json"),
@@ -488,4 +515,29 @@ function main() {
   }
 }
 
-main();
+// The Unity button textures are white/colored glyphs rendered additively over
+// solid black with no alpha channel (PanelButton_Atlas.shader draws the whole
+// tile). Recover transparency by treating each pixel as premultiplied over
+// black: alpha = max(r,g,b), color unpremultiplied.
+async function writeTransparentIcon({ source, destination }) {
+  const { data, info } = await sharp(source)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  for (let i = 0; i < data.length; i += 4) {
+    const max = Math.max(data[i], data[i + 1], data[i + 2]);
+    data[i + 3] = max;
+    if (max > 0) {
+      data[i] = Math.min(255, Math.round((data[i] * 255) / max));
+      data[i + 1] = Math.min(255, Math.round((data[i + 1] * 255) / max));
+      data[i + 2] = Math.min(255, Math.round((data[i + 2] * 255) / max));
+    }
+  }
+  await sharp(data, {
+    raw: { width: info.width, height: info.height, channels: 4 },
+  })
+    .png()
+    .toFile(destination);
+}
+
+await main();

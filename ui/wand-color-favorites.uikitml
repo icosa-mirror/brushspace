@@ -1,0 +1,75 @@
+<style>
+  .favorites-panel {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 344px;
+    height: 48px;
+    padding: 8px;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0px;
+    border-radius: 0px;
+  }
+
+  .add-button {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    padding: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+    background-color: rgba(0, 0, 0, 0.02);
+    border-width: 1px;
+    border-color: #ffffff;
+    border-radius: 17px;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .add-button:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+  }
+
+  .add-button:active {
+    background-color: rgba(255, 255, 255, 0.32);
+  }
+
+  .add-icon {
+    width: 18px;
+    height: 18px;
+    color: #ffffff;
+  }
+
+  .swatch {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    padding: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.35);
+    border-radius: 14px;
+    cursor: pointer;
+  }
+
+  .swatch:hover {
+    border-color: #ffffff;
+  }
+</style>
+<Panel class="favorites-panel">
+  <button id="favorite-add" class="add-button">
+    <PlusIcon class="add-icon"></PlusIcon>
+  </button>
+  <button id="favorite-0" class="swatch"></button>
+  <button id="favorite-1" class="swatch"></button>
+  <button id="favorite-2" class="swatch"></button>
+  <button id="favorite-3" class="swatch"></button>
+  <button id="favorite-4" class="swatch"></button>
+  <button id="favorite-5" class="swatch"></button>
+  <button id="favorite-6" class="swatch"></button>
+  <button id="favorite-7" class="swatch"></button>
+</Panel>

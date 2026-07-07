@@ -26,28 +26,125 @@ export interface BrushGeometryOptions {
   pressureOpacityRange?: BrushPressureOpacityRange;
 }
 
+/**
+ * Reusable geometry storage: stroke meshes rebuild every sampled frame while
+ * drawing, so the arrays grow geometrically and are written in place instead
+ * of being reallocated per sample (only vertexCount/indexCount entries are
+ * meaningful; renderers bound drawing with setDrawRange).
+ */
+export interface BrushGeometryArrays {
+  family: BrushGeometryFamily;
+  positions: Float32Array;
+  normals: Float32Array;
+  colors: Float32Array;
+  uvs: Float32Array;
+  indices: Uint32Array;
+  vertexCount: number;
+  indexCount: number;
+  bounds: BrushGeometryBounds;
+  warning?: string;
+}
+
 const DEFAULT_PRESSURE_SIZE_MIN = 0.1;
+const INITIAL_VERTEX_CAPACITY = 256;
+const INITIAL_INDEX_CAPACITY = 1024;
+
+export function createBrushGeometryArrays(): BrushGeometryArrays {
+  return {
+    family: "ribbon",
+    positions: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
+    normals: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
+    colors: new Float32Array(INITIAL_VERTEX_CAPACITY * 4),
+    uvs: new Float32Array(INITIAL_VERTEX_CAPACITY * 2),
+    indices: new Uint32Array(INITIAL_INDEX_CAPACITY),
+    vertexCount: 0,
+    indexCount: 0,
+    bounds: createEmptyBounds(),
+  };
+}
+
+/** Grows storage to fit the given counts; returns true when reallocated. */
+function ensureGeometryCapacity(
+  out: BrushGeometryArrays,
+  vertexCount: number,
+  indexCount: number,
+): boolean {
+  const currentVertexCapacity = out.positions.length / 3;
+  const currentIndexCapacity = out.indices.length;
+  if (vertexCount <= currentVertexCapacity && indexCount <= currentIndexCapacity) {
+    return false;
+  }
+  let vertexCapacity = Math.max(currentVertexCapacity, INITIAL_VERTEX_CAPACITY);
+  while (vertexCapacity < vertexCount) {
+    vertexCapacity *= 2;
+  }
+  let indexCapacity = Math.max(currentIndexCapacity, INITIAL_INDEX_CAPACITY);
+  while (indexCapacity < indexCount) {
+    indexCapacity *= 2;
+  }
+  out.positions = new Float32Array(vertexCapacity * 3);
+  out.normals = new Float32Array(vertexCapacity * 3);
+  out.colors = new Float32Array(vertexCapacity * 4);
+  out.uvs = new Float32Array(vertexCapacity * 2);
+  out.indices = new Uint32Array(indexCapacity);
+  return true;
+}
+
+function resetBounds(bounds: BrushGeometryBounds): void {
+  bounds.min[0] = Number.POSITIVE_INFINITY;
+  bounds.min[1] = Number.POSITIVE_INFINITY;
+  bounds.min[2] = Number.POSITIVE_INFINITY;
+  bounds.max[0] = Number.NEGATIVE_INFINITY;
+  bounds.max[1] = Number.NEGATIVE_INFINITY;
+  bounds.max[2] = Number.NEGATIVE_INFINITY;
+}
+
+/**
+ * Writes stroke geometry into reusable storage; returns true when the
+ * backing arrays were reallocated (callers must rebind GPU attributes).
+ */
+export function generateBrushGeometryInto(
+  stroke: StrokeData,
+  family: BrushGeometryFamily,
+  options: BrushGeometryOptions,
+  out: BrushGeometryArrays,
+): boolean {
+  out.warning = undefined;
+  resetBounds(out.bounds);
+  switch (family) {
+    case "ribbon":
+      return generateRibbonGeometry(stroke, "ribbon", options, out);
+    case "emissive":
+      return generateRibbonGeometry(stroke, "emissive", options, out);
+    case "tube":
+      return generateTubeGeometry(stroke, options, out);
+    case "particle":
+      return generateParticleGeometry(stroke, options, out);
+    case "unsupported": {
+      const reallocated = generateRibbonGeometry(stroke, "unsupported", options, out);
+      out.warning = "Unsupported brush geometry family; generated fallback ribbon.";
+      return reallocated;
+    }
+  }
+}
 
 export function generateBrushGeometry(
   stroke: StrokeData,
   family: BrushGeometryFamily,
   options: BrushGeometryOptions = {},
 ): GeneratedBrushGeometry {
-  switch (family) {
-    case "ribbon":
-      return generateRibbonGeometry(stroke, "ribbon", options);
-    case "emissive":
-      return generateRibbonGeometry(stroke, "emissive", options);
-    case "tube":
-      return generateTubeGeometry(stroke, options);
-    case "particle":
-      return generateParticleGeometry(stroke, options);
-    case "unsupported": {
-      const fallback = generateRibbonGeometry(stroke, "unsupported", options);
-      fallback.warning = "Unsupported brush geometry family; generated fallback ribbon.";
-      return fallback;
-    }
-  }
+  const arrays = createBrushGeometryArrays();
+  generateBrushGeometryInto(stroke, family, options, arrays);
+  return {
+    family: arrays.family,
+    positions: arrays.positions.subarray(0, arrays.vertexCount * 3),
+    normals: arrays.normals.subarray(0, arrays.vertexCount * 3),
+    colors: arrays.colors.subarray(0, arrays.vertexCount * 4),
+    uvs: arrays.uvs.subarray(0, arrays.vertexCount * 2),
+    indices: arrays.indices.subarray(0, arrays.indexCount),
+    bounds: arrays.bounds,
+    warning: arrays.warning,
+  };
 }
 
 export function getGeneratedVertexCount(geometry: GeneratedBrushGeometry): number {
@@ -62,16 +159,14 @@ function generateRibbonGeometry(
   stroke: StrokeData,
   family: BrushGeometryFamily,
   options: BrushGeometryOptions,
-): GeneratedBrushGeometry {
+  out: BrushGeometryArrays,
+): boolean {
   const pointCount = stroke.controlPoints.length;
   const vertexCount = pointCount * 2;
   const segmentCount = Math.max(0, pointCount - 1);
-  const positions = new Float32Array(vertexCount * 3);
-  const normals = new Float32Array(vertexCount * 3);
-  const colors = new Float32Array(vertexCount * 4);
-  const uvs = new Float32Array(vertexCount * 2);
-  const indices = new Uint32Array(segmentCount * 6);
-  const bounds = createEmptyBounds();
+  const indexCount = segmentCount * 6;
+  const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
+  const { positions, normals, colors, uvs, indices, bounds } = out;
   const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
   const pressureOpacityMin = normalizePressureOpacityMin(
     options.pressureOpacityRange,
@@ -159,7 +254,10 @@ function generateRibbonGeometry(
     indices[offset + 5] = vertex + 3;
   }
 
-  return { family, positions, normals, colors, uvs, indices, bounds };
+  out.family = family;
+  out.vertexCount = vertexCount;
+  out.indexCount = indexCount;
+  return reallocated;
 }
 
 // Open Brush TubeBrush: m_PointsInClosedCircle = 8 ring points on a
@@ -171,7 +269,8 @@ const TUBE_RING_VERTS = TUBE_RING_SIDES + 1;
 function generateTubeGeometry(
   stroke: StrokeData,
   options: BrushGeometryOptions,
-): GeneratedBrushGeometry {
+  out: BrushGeometryArrays,
+): boolean {
   const pointCount = stroke.controlPoints.length;
   const segmentCount = Math.max(0, pointCount - 1);
   const hasCaps = pointCount >= 2;
@@ -179,12 +278,8 @@ function generateTubeGeometry(
   const vertexCount = pointCount * TUBE_RING_VERTS + capVertexCount;
   const indexCount =
     segmentCount * TUBE_RING_SIDES * 6 + (hasCaps ? 2 * TUBE_RING_SIDES * 3 : 0);
-  const positions = new Float32Array(vertexCount * 3);
-  const normals = new Float32Array(vertexCount * 3);
-  const colors = new Float32Array(vertexCount * 4);
-  const uvs = new Float32Array(vertexCount * 2);
-  const indices = new Uint32Array(indexCount);
-  const bounds = createEmptyBounds();
+  const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
+  const { positions, normals, colors, uvs, indices, bounds } = out;
   const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
   const pressureOpacityMin = normalizePressureOpacityMin(
     options.pressureOpacityRange,
@@ -333,21 +428,22 @@ function generateTubeGeometry(
     }
   }
 
-  return { family: "tube", positions, normals, colors, uvs, indices, bounds };
+  out.family = "tube";
+  out.vertexCount = vertexCount;
+  out.indexCount = indexCount;
+  return reallocated;
 }
 
 function generateParticleGeometry(
   stroke: StrokeData,
   options: BrushGeometryOptions,
-): GeneratedBrushGeometry {
+  out: BrushGeometryArrays,
+): boolean {
   const pointCount = stroke.controlPoints.length;
   const vertexCount = pointCount * 4;
-  const positions = new Float32Array(vertexCount * 3);
-  const normals = new Float32Array(vertexCount * 3);
-  const colors = new Float32Array(vertexCount * 4);
-  const uvs = new Float32Array(vertexCount * 2);
-  const indices = new Uint32Array(pointCount * 6);
-  const bounds = createEmptyBounds();
+  const indexCount = pointCount * 6;
+  const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
+  const { positions, normals, colors, uvs, indices, bounds } = out;
   const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
   const pressureOpacityMin = normalizePressureOpacityMin(
     options.pressureOpacityRange,
@@ -438,7 +534,10 @@ function generateParticleGeometry(
     indices[indexOffset + 5] = vertex + 3;
   }
 
-  return { family: "particle", positions, normals, colors, uvs, indices, bounds };
+  out.family = "particle";
+  out.vertexCount = vertexCount;
+  out.indexCount = indexCount;
+  return reallocated;
 }
 
 function getPressureSizeMultiplier(

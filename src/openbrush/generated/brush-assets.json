@@ -33,6 +33,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1.5
@@ -49,6 +51,7 @@
       "tags": [
         "default"
       ],
+      "buttonIcon": "f72ec0e7-a844-4e38-82e3-140c44772699.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -76,6 +79,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1.5
@@ -90,6 +95,7 @@
         ]
       },
       "tags": [],
+      "buttonIcon": "c515dad7-4393-4681-81ad-162ef052241b.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon",
       "supersededByGuid": "f72ec0e7-a844-4e38-82e3-140c44772699"
@@ -118,6 +124,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1
@@ -134,6 +142,7 @@
       "tags": [
         "default"
       ],
+      "buttonIcon": "f5c336cf-5108-4b40-ade9-c687504385ab.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -161,6 +170,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1
@@ -175,6 +186,7 @@
         ]
       },
       "tags": [],
+      "buttonIcon": "c0012095-3ffd-4040-8ee1-fc180d346eaa.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon",
       "supersededByGuid": "f5c336cf-5108-4b40-ade9-c687504385ab"
@@ -203,6 +215,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1.5
@@ -219,6 +233,7 @@
       "tags": [
         "default"
       ],
+      "buttonIcon": "75b32cf0-fdd6-4d89-a64b-e2a00b247b0f.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -246,6 +261,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1.5
@@ -260,6 +277,7 @@
         ]
       },
       "tags": [],
+      "buttonIcon": "fdf0326a-c0d1-4fed-b101-9db0ff6d071f.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon",
       "supersededByGuid": "75b32cf0-fdd6-4d89-a64b-e2a00b247b0f"
@@ -288,6 +306,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.01,
           1.25
@@ -304,6 +324,7 @@
       "tags": [
         "default"
       ],
+      "buttonIcon": "b67c0e81-ce6d-40a8-aeb0-ef036b081aa3.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -331,6 +352,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.01,
           1.25
@@ -345,6 +368,7 @@
         ]
       },
       "tags": [],
+      "buttonIcon": "dea67637-cd1a-27e4-c9b1-52f4bbcb84e5.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon",
       "supersededByGuid": "b67c0e81-ce6d-40a8-aeb0-ef036b081aa3"
@@ -369,6 +393,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           3
@@ -386,6 +412,7 @@
         "whiteboard",
         "default"
       ],
+      "buttonIcon": "429ed64a-4e97-4466-84d3-145a861ef684.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -409,6 +436,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           1
@@ -426,6 +455,7 @@
         "whiteboard",
         "default"
       ],
+      "buttonIcon": "d90c6ad8-af0f-4b54-b422-e0f92abe1b3c.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -449,6 +479,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           1
@@ -465,6 +497,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "1a26b8c0-8a07-4f8a-9fac-d2ef36e0cad0.png",
       "generatorClass": "FlatGeometryBrush",
       "generatorFamily": "ribbon",
       "supersededByGuid": "d90c6ad8-af0f-4b54-b422-e0f92abe1b3c"
@@ -484,6 +517,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           2
@@ -500,6 +535,7 @@
       "tags": [
         "default"
       ],
+      "buttonIcon": "0d3889f3-3ede-470c-8af4-de4813306126.png",
       "generatorClass": "FlatGeometryBrush",
       "generatorFamily": "ribbon"
     },
@@ -523,6 +559,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 0.98,
         "brushSizeRange": [
           0.025,
           0.5
@@ -539,6 +577,7 @@
       "tags": [
         "default"
       ],
+      "buttonIcon": "cf019139-d41c-4eb0-a1d0-5cf54b0a42f3.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -557,6 +596,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           3
@@ -573,6 +614,7 @@
       "tags": [
         "default"
       ],
+      "buttonIcon": "2d35bcf0-e4d8-452c-97b1-3311be063130.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -591,6 +633,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           3
@@ -605,6 +649,7 @@
         ]
       },
       "tags": [],
+      "buttonIcon": "280c0a7a-aad8-416c-a7d2-df63d129ca70.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon",
       "supersededByGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130"
@@ -624,6 +669,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           3
@@ -638,6 +685,7 @@
         ]
       },
       "tags": [],
+      "buttonIcon": "55303bc4-c749-4a72-98d9-d23e68e76e18.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon",
       "supersededByGuid": "280c0a7a-aad8-416c-a7d2-df63d129ca70"
@@ -662,6 +710,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           3
@@ -678,6 +728,7 @@
       "tags": [
         "default"
       ],
+      "buttonIcon": "b468c1fb-f254-41ed-8ec9-57030bc5660c.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -701,6 +752,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           3
@@ -715,6 +768,7 @@
         ]
       },
       "tags": [],
+      "buttonIcon": "c8ccb53d-ae13-45ef-8afb-b730d81394eb.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon",
       "supersededByGuid": "b468c1fb-f254-41ed-8ec9-57030bc5660c"
@@ -734,6 +788,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           3
@@ -750,6 +806,7 @@
       "tags": [
         "default"
       ],
+      "buttonIcon": "0d3889f3-3ede-470c-8af4-f44813306126.png",
       "generatorClass": "FlatGeometryBrush",
       "generatorFamily": "ribbon"
     },
@@ -773,6 +830,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           2
@@ -791,6 +850,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "accb32f5-4509-454f-93f8-1df3fd31df1b.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -814,6 +874,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           0.2
@@ -831,6 +893,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -854,6 +917,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           2
@@ -871,6 +936,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "cb92b597-94ca-4255-b017-0e3f42f12f9e.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -894,6 +960,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           0.075
@@ -912,6 +980,7 @@
         "audioreactive",
         "particle"
       ],
+      "buttonIcon": "02ffb866-7fb2-4d15-b761-1012cefb1360.png",
       "generatorClass": "GeniusParticlesBrush",
       "generatorFamily": "particle"
     },
@@ -935,6 +1004,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           1,
           2
@@ -952,6 +1023,7 @@
         "default",
         "particle"
       ],
+      "buttonIcon": "70d79cca-b159-4f35-990c-f02193947fe8.png",
       "generatorClass": "GeniusParticlesBrush",
       "generatorFamily": "particle"
     },
@@ -975,6 +1047,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           0.15
@@ -993,6 +1067,7 @@
         "audioreactive",
         "particle"
       ],
+      "buttonIcon": "d902ed8b-d0d1-476c-a8de-878a79e3a34c.png",
       "generatorClass": "GeniusParticlesBrush",
       "generatorFamily": "particle"
     },
@@ -1011,6 +1086,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           1
@@ -1028,6 +1105,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "ad1ad437-76e2-450d-a23a-e17f8310b960.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -1051,6 +1129,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.075,
           0.15
@@ -1069,6 +1149,7 @@
         "audioreactive",
         "particle"
       ],
+      "buttonIcon": "0eb4db27-3f82-408d-b5a1-19ebd7d5b711.png",
       "generatorClass": "GeniusParticlesBrush",
       "generatorFamily": "particle"
     },
@@ -1092,6 +1173,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 0.98,
         "brushSizeRange": [
           0.025,
           0.4
@@ -1109,6 +1192,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "d229d335-c334-495a-a801-660ac8a87360.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -1132,6 +1216,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 0.98,
         "brushSizeRange": [
           0.2,
           1
@@ -1149,6 +1235,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "10201aa3-ebc2-42d8-84b7-2e63f6eeb8ab.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -1172,6 +1259,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           0.5
@@ -1188,6 +1277,7 @@
       "tags": [
         "default"
       ],
+      "buttonIcon": "8dc4a70c-d558-4efd-a5ed-d4e860f40dc3.png",
       "generatorClass": "SprayBrush",
       "generatorFamily": "particle"
     },
@@ -1211,6 +1301,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           0.5
@@ -1225,6 +1317,7 @@
         ]
       },
       "tags": [],
+      "buttonIcon": "7a1c8107-50c5-4b70-9a39-421576d6617e.png",
       "generatorClass": "SprayBrush",
       "generatorFamily": "particle",
       "supersededByGuid": "8dc4a70c-d558-4efd-a5ed-d4e860f40dc3"
@@ -1253,6 +1346,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1.25
@@ -1269,6 +1364,7 @@
       "tags": [
         "default"
       ],
+      "buttonIcon": "d0262945-853c-4481-9cbd-88586bed93cb.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -1296,6 +1392,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1.25
@@ -1310,6 +1408,7 @@
         ]
       },
       "tags": [],
+      "buttonIcon": "3ca16e2f-bdcd-4da2-8631-dcef342f40f1.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon",
       "supersededByGuid": "d0262945-853c-4481-9cbd-88586bed93cb"
@@ -1338,6 +1437,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1.5
@@ -1354,6 +1455,7 @@
       "tags": [
         "default"
       ],
+      "buttonIcon": "f1114e2e-eb8d-4fde-915a-6e653b54e9f5.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -1381,6 +1483,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1.5
@@ -1395,6 +1499,7 @@
         ]
       },
       "tags": [],
+      "buttonIcon": "759f1ebd-20cd-4720-8d41-234e0da63716.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon",
       "supersededByGuid": "f1114e2e-eb8d-4fde-915a-6e653b54e9f5"
@@ -1419,6 +1524,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           2
@@ -1435,6 +1542,7 @@
       "tags": [
         "default"
       ],
+      "buttonIcon": "1161af82-50cf-47db-9706-0c3576d43c43.png",
       "generatorClass": "SprayBrush",
       "generatorFamily": "particle"
     },
@@ -1458,6 +1566,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           2
@@ -1472,6 +1582,7 @@
         ]
       },
       "tags": [],
+      "buttonIcon": "79168f10-6961-464a-8be1-57ed364c5600.png",
       "generatorClass": "SprayBrush",
       "generatorFamily": "particle",
       "supersededByGuid": "1161af82-50cf-47db-9706-0c3576d43c43"
@@ -1496,6 +1607,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1.5
@@ -1513,6 +1626,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "5347acf0-a8e2-47b6-8346-30c70719d763.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -1536,6 +1650,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1.5
@@ -1550,6 +1666,7 @@
         ]
       },
       "tags": [],
+      "buttonIcon": "e814fef1-97fd-7194-4a2f-50c2bb918be2.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon",
       "supersededByGuid": "5347acf0-a8e2-47b6-8346-30c70719d763"
@@ -1569,6 +1686,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.02,
           0.05
@@ -1586,6 +1705,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "f6e85de3-6dcc-4e7f-87fd-cee8c3d25d51.png",
       "generatorClass": "FlatGeometryBrush",
       "generatorFamily": "ribbon"
     },
@@ -1609,6 +1729,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           2
@@ -1626,6 +1748,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "44bb800a-fbc3-4592-8426-94ecb05ddec3.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -1653,6 +1776,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 0.98,
         "brushSizeRange": [
           0.1,
           1
@@ -1670,6 +1795,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "dce872c2-7b49-4684-b59b-c45387949c5c.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -1697,6 +1823,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 0.98,
         "brushSizeRange": [
           0.1,
           1
@@ -1713,6 +1841,7 @@
       "tags": [
         "audioreactive"
       ],
+      "buttonIcon": "e8ef32b1-baa8-460a-9c2c-9cf8506794f5.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon",
       "supersededByGuid": "dce872c2-7b49-4684-b59b-c45387949c5c"
@@ -1737,6 +1866,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.075,
           0.15
@@ -1754,6 +1885,7 @@
         "default",
         "particle"
       ],
+      "buttonIcon": "89d104cd-d012-426b-b5b3-bbaee63ac43c.png",
       "generatorClass": "GeniusParticlesBrush",
       "generatorFamily": "particle"
     },
@@ -1772,6 +1904,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 0.98,
         "brushSizeRange": [
           0.025,
           0.15
@@ -1789,6 +1923,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "b2ffef01-eaaa-4ab5-aa64-95a2c4f5dbc6.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -1812,6 +1947,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           1.5
@@ -1829,6 +1966,7 @@
         "whiteboard",
         "default"
       ],
+      "buttonIcon": "700f3aa8-9a7c-2384-8b8a-ea028905dd8c.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -1852,6 +1990,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           0.2
@@ -1869,6 +2009,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "6a1cf9f9-032c-45ec-9b6e-a6680bee32e9.png",
       "generatorClass": "MidpointPlusLifetimeSprayBrush",
       "generatorFamily": "particle"
     },
@@ -1892,6 +2033,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 0.98,
         "brushSizeRange": [
           0.02,
           0.1
@@ -1909,6 +2052,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "4391aaaa-df81-4396-9e33-31e4e4930b27.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -1927,6 +2071,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 0.98,
         "brushSizeRange": [
           0.1,
           0.3
@@ -1944,6 +2090,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "0f0ff7b2-a677-45eb-a7d6-0cd7206f4816.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -1967,6 +2114,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.4,
           0.8
@@ -1986,6 +2135,7 @@
         "audioreactive",
         "particle"
       ],
+      "buttonIcon": "6a1cf9f9-032c-45ec-9b1d-a6680bee30f7.png",
       "generatorClass": "GeniusParticlesBrush",
       "generatorFamily": "particle"
     },
@@ -2004,6 +2154,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           1
@@ -2020,6 +2172,7 @@
       "tags": [
         "default"
       ],
+      "buttonIcon": "e0abbc80-0f80-e854-4970-8924a0863dcc.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -2043,6 +2196,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           0.5
@@ -2060,6 +2215,7 @@
         "whiteboard",
         "default"
       ],
+      "buttonIcon": "2f212815-f4d3-c1a4-681a-feeaf9c6dc37.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -2078,6 +2234,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.02,
           0.5
@@ -2096,6 +2254,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "4391385a-df73-4396-9e33-31e4e4930b27.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -2114,6 +2273,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           1
@@ -2131,6 +2292,7 @@
         "whiteboard",
         "default"
       ],
+      "buttonIcon": "4391385a-cf83-4396-9e33-31e4e4930b27.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -2149,6 +2311,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           2
@@ -2165,6 +2329,7 @@
       "tags": [
         "default"
       ],
+      "buttonIcon": "cf7f0059-7aeb-53a4-2b67-c83d863a9ffa.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -2183,6 +2348,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.02,
           0.5
@@ -2199,6 +2366,7 @@
       "tags": [
         "default"
       ],
+      "buttonIcon": "d381e0f5-3def-4a0d-8853-31e9200bcbda.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -2217,6 +2385,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.02,
           0.5
@@ -2234,6 +2404,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "4391aaaa-df73-4396-9e33-31e4e4930b27.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -2261,6 +2432,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           1.5
@@ -2278,6 +2451,7 @@
         "default",
         "audioreactive"
       ],
+      "buttonIcon": "1caa6d7d-f015-3f54-3a4b-8b5354d39f81.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -2296,6 +2470,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.005,
           1
@@ -2314,6 +2490,7 @@
         "default",
         "hull"
       ],
+      "buttonIcon": "faaa4d44-fcfb-4177-96be-753ac0421ba3.png",
       "generatorClass": "HullBrush",
       "generatorFamily": "hull"
     },
@@ -2332,6 +2509,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.005,
           1
@@ -2350,6 +2529,7 @@
         "default",
         "hull"
       ],
+      "buttonIcon": "79348357-432d-4746-8e29-0e25c112e3aa.png",
       "generatorClass": "HullBrush",
       "generatorFamily": "hull"
     },
@@ -2368,6 +2548,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.005,
           1
@@ -2386,6 +2568,7 @@
         "default",
         "hull"
       ],
+      "buttonIcon": "a8fea537-da7c-4d4b-817f-24f074725d6d.png",
       "generatorClass": "HullBrush",
       "generatorFamily": "hull"
     },
@@ -2409,6 +2592,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.005,
           1
@@ -2426,6 +2611,7 @@
         "default",
         "hull"
       ],
+      "buttonIcon": "c8313697-2563-47fc-832e-290f4c04b901.png",
       "generatorClass": "HullBrush",
       "generatorFamily": "hull"
     },
@@ -2453,6 +2639,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.7,
           1.5
@@ -2467,6 +2655,7 @@
         ]
       },
       "tags": [],
+      "buttonIcon": "ea19de07-d0c0-4484-9198-18489a3c1487.png",
       "generatorClass": "SprayBrush",
       "generatorFamily": "particle",
       "supersededByGuid": "4a76a27a-44d8-4bfe-9a8c-713749a499b0"
@@ -2491,6 +2680,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           2
@@ -2507,6 +2698,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "d1d991f2-e7a0-4cf1-b328-f57e915e6260.png",
       "generatorClass": "SprayBrush",
       "generatorFamily": "particle"
     },
@@ -2530,6 +2722,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.5,
           1
@@ -2547,6 +2741,7 @@
         "experimental",
         "audioreactive"
       ],
+      "buttonIcon": "c33714d1-b2f9-412e-bd50-1884c9d46336.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -2570,6 +2765,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.2,
           1
@@ -2584,6 +2781,7 @@
         ]
       },
       "tags": [],
+      "buttonIcon": "0077f88c-d93a-42f3-b59b-b31c50cdb414.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -2602,6 +2800,8 @@
         "opacity": 0,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 0,
         "brushSizeRange": [
           0,
           0
@@ -2633,6 +2833,8 @@
         "opacity": 0,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 0,
         "brushSizeRange": [
           0,
           0
@@ -2664,6 +2866,8 @@
         "opacity": 0,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 0,
         "brushSizeRange": [
           0,
           0
@@ -2695,6 +2899,8 @@
         "opacity": 0,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 0,
         "brushSizeRange": [
           0,
           0
@@ -2726,6 +2932,8 @@
         "opacity": 0,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 0,
         "brushSizeRange": [
           0,
           0
@@ -2757,6 +2965,8 @@
         "opacity": 0,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 0,
         "brushSizeRange": [
           0,
           0
@@ -2788,6 +2998,8 @@
         "opacity": 0,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 0,
         "brushSizeRange": [
           0,
           0
@@ -2819,6 +3031,8 @@
         "opacity": 0,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 0,
         "brushSizeRange": [
           0,
           0
@@ -2859,6 +3073,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1
@@ -2875,6 +3091,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "1b897b7e-9b76-425a-b031-a867c48df409.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -2902,6 +3119,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1
@@ -2916,6 +3135,7 @@
         ]
       },
       "tags": [],
+      "buttonIcon": "4465b5ef-3605-bec4-2b3e-6b04508ddb6b.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon",
       "supersededByGuid": "1b897b7e-9b76-425a-b031-a867c48df409"
@@ -2940,6 +3160,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.08,
           1
@@ -2956,6 +3178,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "8e58ceea-7830-49b4-aba9-6215104ab52a.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -2979,6 +3202,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.08,
           0.25
@@ -2995,6 +3220,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "03a529e1-f519-3dd4-582d-2d5cd92c3f4f.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -3022,6 +3248,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.01,
           1
@@ -3038,6 +3266,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "725f4c6a-6427-6524-29ab-da371924adab.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -3065,6 +3294,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           0.7
@@ -3081,6 +3312,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "ddda8745-4bb5-ac54-88b6-d1480370583e.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -3104,6 +3336,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           1.5
@@ -3120,6 +3354,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "50e99447-3861-05f4-697d-a1b96e771b98.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -3143,6 +3378,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.2,
           2
@@ -3159,6 +3396,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "7136a729-1aab-bd24-f8b2-ca88b6adfb67.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -3182,6 +3420,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.15,
           0.15
@@ -3199,6 +3439,7 @@
         "experimental",
         "particle"
       ],
+      "buttonIcon": "a8147ce1-005e-abe4-88e8-09a1eaadcc89.png",
       "generatorClass": "GeniusParticlesBrush",
       "generatorFamily": "particle"
     },
@@ -3222,6 +3463,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.01,
           2
@@ -3238,6 +3481,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "9568870f-8594-60f4-1b20-dfbc8a5eac0e.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -3265,6 +3509,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.5,
           1.5
@@ -3281,6 +3527,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "2e03b1bf-3ebd-4609-9d7e-f4cafadc4dfa.png",
       "generatorClass": "SquareBrush",
       "generatorFamily": "quad-stamp"
     },
@@ -3308,6 +3555,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.5,
           1.25
@@ -3324,6 +3573,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "39ee7377-7a9e-47a7-a0f8-0c77712f75d3.png",
       "generatorClass": "ThickGeometryBrush",
       "generatorFamily": "thick-strip"
     },
@@ -3342,6 +3592,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           2
@@ -3359,6 +3611,7 @@
         "experimental",
         "audioreactive"
       ],
+      "buttonIcon": "2c1a6a63-6552-4d23-86d7-58f6fba8581b.png",
       "generatorClass": "QuadStripUnitizedUVBrush",
       "generatorFamily": "ribbon"
     },
@@ -3377,6 +3630,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           1
@@ -3394,6 +3649,7 @@
         "experimental",
         "broken"
       ],
+      "buttonIcon": "61d2ef63-ed60-49b3-85fb-7267b7d234f2.png",
       "generatorClass": "CandyCane"
     },
     "20a0bf1a-a96e-44e5-84ac-9823d2d65023": {
@@ -3411,6 +3667,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           1
@@ -3428,6 +3686,7 @@
         "experimental",
         "broken"
       ],
+      "buttonIcon": "20a0bf1a-a96e-44e5-84ac-9823d2d65023.png",
       "generatorClass": "HolidayTree"
     },
     "2b65cd94-9259-4f10-99d2-d54b6664ac33": {
@@ -3445,6 +3704,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           1
@@ -3462,6 +3723,7 @@
         "experimental",
         "broken"
       ],
+      "buttonIcon": "2b65cd94-9259-4f10-99d2-d54b6664ac33.png",
       "generatorClass": "SnowflakeBrush"
     },
     "22d4f434-23e4-49d9-a9bd-05798aa21e58": {
@@ -3479,6 +3741,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           1.5
@@ -3496,6 +3760,7 @@
         "experimental",
         "broken"
       ],
+      "buttonIcon": "22d4f434-23e4-49d9-a9bd-05798aa21e58.png",
       "generatorClass": "PlaitBrush"
     },
     "f28c395c-a57d-464b-8f0b-558c59478fa3": {
@@ -3522,6 +3787,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.01,
           1.25
@@ -3538,6 +3805,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "f28c395c-a57d-464b-8f0b-558c59478fa3.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -3565,6 +3833,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.01,
           1.25
@@ -3581,6 +3851,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "99aafe96-1645-44cd-99bd-979bc6ef37c5.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -3608,6 +3879,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           2
@@ -3625,6 +3898,7 @@
         "experimental",
         "audioreactive"
       ],
+      "buttonIcon": "53d753ef-083c-45e1-98e7-4459b4471219.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -3643,6 +3917,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.02,
           0.5
@@ -3659,6 +3935,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "9871385a-df73-4396-9e33-31e4e4930b27.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -3677,6 +3954,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.02,
           0.5
@@ -3693,6 +3972,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "4391ffaa-df73-4396-9e33-31e4e4930b27.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -3716,6 +3996,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           0.1
@@ -3733,6 +4015,7 @@
         "experimental",
         "audioreactive"
       ],
+      "buttonIcon": "6a1cf9f9-032c-45ec-9b6e-a6680bee30f7.png",
       "generatorClass": "MidpointPlusLifetimeSprayBrush",
       "generatorFamily": "particle"
     },
@@ -3756,6 +4039,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.08,
           1
@@ -3772,6 +4057,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "eba3f993-f9a1-4d35-b84e-bb08f48981a4.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -3795,6 +4081,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.2,
           0.2
@@ -3812,6 +4100,7 @@
         "experimental",
         "audioreactive"
       ],
+      "buttonIcon": "6a1cf9f9-032c-45ec-311e-a6680bee32e9.png",
       "generatorClass": "MidpointPlusLifetimeSprayBrush",
       "generatorFamily": "particle"
     },
@@ -3835,6 +4124,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           0.3
@@ -3852,6 +4143,7 @@
         "experimental",
         "audioreactive"
       ],
+      "buttonIcon": "0f5820df-cb6b-4a6c-960e-56e4c8000eda.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -3875,6 +4167,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 0.98,
         "brushSizeRange": [
           0.025,
           0.2
@@ -3891,6 +4185,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "492b36ff-b337-436a-ba5f-1e87ee86747e.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -3914,6 +4209,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           3
@@ -3930,6 +4227,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "f0a2298a-be80-432c-9fee-a86dcc06f4f9.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -3953,6 +4251,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           3
@@ -3969,6 +4269,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "f4a0550c-332a-4e1a-9793-b71508f4a454.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -3987,6 +4288,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 0.98,
         "brushSizeRange": [
           0.08,
           0.5
@@ -4004,6 +4307,7 @@
         "experimental",
         "audioreactive"
       ],
+      "buttonIcon": "c1c9b26d-673a-4dc6-b373-51715654ab96.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -4027,6 +4331,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           1.5
@@ -4044,6 +4350,7 @@
         "experimental",
         "audioreactive"
       ],
+      "buttonIcon": "a555b809-2017-46cb-ac26-e63173d8f45e.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -4071,6 +4378,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1.25
@@ -4087,6 +4396,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "84d5bbb2-6634-8434-f8a7-681b576b4664.png",
       "generatorClass": "FlatGeometryBrush",
       "generatorFamily": "ribbon"
     },
@@ -4110,6 +4420,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0.4,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           2
@@ -4127,6 +4439,7 @@
         "experimental",
         "audioreactive"
       ],
+      "buttonIcon": "3d9755da-56c7-7294-9b1d-5ec349975f52.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -4158,6 +4471,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1.5
@@ -4174,6 +4489,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "1cf94f63-f57a-4a1a-ad14-295af4f5ab5c.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -4205,6 +4521,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.01,
           1
@@ -4222,6 +4540,7 @@
         "experimental",
         "audioreactive"
       ],
+      "buttonIcon": "c86c058d-1bda-2e94-08db-f3d6a96ac4a1.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -4249,6 +4568,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0.001,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.02,
           2.5
@@ -4265,6 +4586,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "fde6e778-0f7a-e584-38d6-89d44cee59f6.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -4283,6 +4605,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.025,
           1
@@ -4299,6 +4623,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "f8ba3d18-01fc-4d7b-b2d9-b99d10b8e7cf.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -4317,6 +4642,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.02,
           0.5
@@ -4334,6 +4661,7 @@
         "experimental",
         "audioreactive"
       ],
+      "buttonIcon": "c5da2e70-a6e4-63a4-898c-5cfedef09c97.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -4352,6 +4680,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.01,
           1.5
@@ -4368,6 +4698,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "62fef968-e842-3224-4a0e-1fdb7cfb745c.png",
       "generatorClass": "TubeBrush",
       "generatorFamily": "tube"
     },
@@ -4391,6 +4722,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": true,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 0.98,
         "brushSizeRange": [
           0.2,
           1
@@ -4408,6 +4741,7 @@
         "experimental",
         "audioreactive"
       ],
+      "buttonIcon": "d120944d-772f-4062-99c6-46a6f219eeaf.png",
       "generatorClass": "QuadStripBrushStretchUV",
       "generatorFamily": "ribbon"
     },
@@ -4426,6 +4760,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           1
@@ -4443,6 +4779,7 @@
         "experimental",
         "audioreactive"
       ],
+      "buttonIcon": "d9cc5e99-ace1-4d12-96e0-4a7c18c99cfc.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -4461,6 +4798,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           1
@@ -4478,6 +4817,7 @@
         "experimental",
         "audioreactive"
       ],
+      "buttonIcon": "bdf65db2-1fb7-4202-b5e0-c6b5e3ea851e.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -4496,6 +4836,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           1
@@ -4512,6 +4854,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "30cb9af6-be41-4872-8f3e-cbff63fe3db8.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -4530,6 +4873,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0.04,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.1,
           1
@@ -4546,6 +4891,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "abfbb2aa-70b4-4a5c-8126-8eedda2b3628.png",
       "generatorClass": "QuadStripBrushDistanceUV",
       "generatorFamily": "ribbon"
     },
@@ -4564,6 +4910,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.005,
           1
@@ -4581,6 +4929,7 @@
         "experimental",
         "hull"
       ],
+      "buttonIcon": "355b3579-bf1d-4ff5-a200-704437fe684b.png",
       "generatorClass": "HullBrush",
       "generatorFamily": "hull"
     },
@@ -4608,6 +4957,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.7,
           1.5
@@ -4624,6 +4975,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "7259cce5-41c1-ec74-c885-78af28a31d95.png",
       "generatorClass": "SprayBrush",
       "generatorFamily": "particle"
     },
@@ -4651,6 +5003,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1
@@ -4667,6 +5021,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "7c972c27-d3c2-8af4-7bf8-5d9db8f0b7bb.png",
       "generatorClass": "FlatGeometryBrush",
       "generatorFamily": "ribbon"
     },
@@ -4685,6 +5040,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.005,
           1
@@ -4701,6 +5058,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "7ae1f880-a517-44a0-99f9-1cab654498c6.png",
       "generatorClass": "ConcaveHullBrush",
       "generatorFamily": "hull"
     },
@@ -4719,6 +5077,8 @@
         "opacity": 1,
         "solidMinLengthMeters": 0.002,
         "audioReactive": false,
+        "colorLuminanceMin": 0,
+        "colorSaturationMax": 1,
         "brushSizeRange": [
           0.05,
           1
@@ -4735,6 +5095,7 @@
       "tags": [
         "experimental"
       ],
+      "buttonIcon": "d3f3b18a-da03-f694-b838-28ba8e749a98.png",
       "generatorClass": "Square3DPrintBrush"
     }
   }

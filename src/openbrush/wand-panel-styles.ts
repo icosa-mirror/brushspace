@@ -4,9 +4,8 @@ export type PhaseAWandButtonId =
   | "tool-draw"
   | "tool-line"
   | "tool-erase"
-  | "tool-color-picker"
-  | "tool-brush-picker"
   | "tool-dropper"
+  | "tool-camera"
   | "stroke-history-undo"
   | "stroke-history-redo";
 
@@ -24,9 +23,8 @@ export const PHASE_A_WAND_BUTTON_IDS: readonly PhaseAWandButtonId[] = [
   "tool-draw",
   "tool-line",
   "tool-erase",
-  "tool-color-picker",
-  "tool-brush-picker",
   "tool-dropper",
+  "tool-camera",
   "stroke-history-undo",
   "stroke-history-redo",
 ] as const;
@@ -44,12 +42,10 @@ export function resolvePhaseAWandButtonVisualState(
       return state.straightEdgeEnabled ? "active" : "inactive";
     case "tool-erase":
       return state.activeToolId === "eraser" ? "active" : "inactive";
-    case "tool-color-picker":
-      return state.activeToolId === "color-picker" ? "active" : "inactive";
-    case "tool-brush-picker":
-      return state.activeToolId === "brush-picker" ? "active" : "inactive";
     case "tool-dropper":
       return state.activeToolId === "dropper" ? "active" : "inactive";
+    case "tool-camera":
+      return state.activeToolId === "camera" ? "active" : "inactive";
     case "stroke-history-undo":
       return state.undoDepth > 0 ? "inactive" : "disabled";
     case "stroke-history-redo":

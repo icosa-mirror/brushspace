@@ -37,18 +37,6 @@ describe("Phase A wand panel button styles", () => {
     ).toBe("active");
     expect(
       resolvePhaseAWandButtonVisualState(
-        "tool-color-picker",
-        baseState({ activeToolId: "color-picker" }),
-      ),
-    ).toBe("active");
-    expect(
-      resolvePhaseAWandButtonVisualState(
-        "tool-brush-picker",
-        baseState({ activeToolId: "brush-picker" }),
-      ),
-    ).toBe("active");
-    expect(
-      resolvePhaseAWandButtonVisualState(
         "tool-dropper",
         baseState({ activeToolId: "dropper" }),
       ),

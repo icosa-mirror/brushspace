@@ -2,6 +2,7 @@ import {
   Group,
   PanelUI,
   RayInteractable,
+  ScreenSpace,
   Transform,
   VisibilityState,
   createSystem,
@@ -12,6 +13,7 @@ import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
 import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
 
 import {
+  OpenBrushAppState,
   OpenBrushPanelAttachment,
   SettingsState,
 } from "../components/OpenBrushCore.js";
@@ -33,7 +35,9 @@ import {
 const BASE_PANEL_MAX_WIDTH = 1.6;
 const BASE_PANEL_MAX_HEIGHT = 5;
 const RING_PANEL_MAX_WIDTH = 0.82;
-const RING_PANEL_MAX_HEIGHT = 0.82;
+// Taller than wide so the 4x4 brush grid spans the full face width and the
+// color face fits the favorites strip below the wheel.
+const RING_PANEL_MAX_HEIGHT = 1.04;
 const UNIT_SCALE = [1, 1, 1] as const;
 const PANEL_BORDER_GROUP_NAME = "OpenBrushWandPanelBorder";
 const PANEL_BORDER_Z_OFFSET = 0.002;
@@ -44,8 +48,11 @@ const PANEL_BORDER_CORNER_SEGMENTS = 6;
 
 export class PanelAttachmentSystem extends createSystem({
   attachments: { required: [Transform, OpenBrushPanelAttachment] },
-  panels: { required: [PanelUI, Transform, OpenBrushPanelAttachment] },
+  // Panels are any attached entities except the prism itself; custom panels
+  // (e.g. the color picker) participate without a PanelUI component.
+  panels: { required: [Transform, OpenBrushPanelAttachment] },
   settings: { required: [SettingsState] },
+  appState: { required: [OpenBrushAppState] },
 }) {
   private readonly borderMaterial = new LineMaterial({
     color: 0xffffff,
@@ -86,23 +93,65 @@ export class PanelAttachmentSystem extends createSystem({
     );
     const prism = this.getWandPrismEntity();
 
+    // In the intro state the sketch-library gallery replaces the wand UI:
+    // the prism and every wand panel hide until a sketch is active.
+    const introMode = !isBrowser && this.isIntroMode();
+
     if (prism) {
       if (isBrowser) {
         this.applyBrowserFallback(prism);
+      } else if (introMode) {
+        this.applyXrIntroHidden(prism, settingsRevision);
       } else {
         this.applyXrWandPrism(prism, settingsRevision);
       }
     }
     for (const panel of this.queries.panels.entities) {
+      if (this.getPanelRole(panel) === OPEN_BRUSH_WAND_PRISM_ROLE) {
+        continue;
+      }
       if (isBrowser) {
         this.applyBrowserFallback(panel);
+      } else if (introMode) {
+        this.applyXrIntroHidden(panel, settingsRevision);
       } else {
         this.applyXrAttachment(panel, settingsRevision, prism);
       }
     }
   }
 
+  private isIntroMode(): boolean {
+    for (const entity of this.queries.appState.entities) {
+      return String(entity.getValue(OpenBrushAppState, "mode")) === "intro";
+    }
+    return false;
+  }
+
+  private applyXrIntroHidden(panel: Entity, settingsRevision: number): void {
+    this.setObjectVisible(panel, false);
+    this.setPanelInteractive(panel, false);
+    this.setPanelBorderVisible(panel, false);
+    this.writeAttachmentStatus(
+      panel,
+      this.getPanelRole(panel),
+      "fallback",
+      "off-hand",
+      "none",
+      "intro-hidden",
+      -1,
+      0,
+      false,
+      settingsRevision,
+      this.animatedWandPanelRotationSteps,
+    );
+  }
+
   private applyBrowserFallback(panel: Entity): void {
+    // Screen-space panels are camera-anchored (ScreenSpaceUISystem owns their
+    // pose and visibility); don't fight them from the attachment logic.
+    if (panel.hasComponent(ScreenSpace)) {
+      return;
+    }
     const role = this.getPanelRole(panel);
     const visible = role === "main";
     this.setObjectVisible(panel, visible);
@@ -332,6 +381,31 @@ export class PanelAttachmentSystem extends createSystem({
     scale: number,
     mode: OpenBrushPanelMode,
   ): void {
+    if (!entity.hasComponent(PanelUI)) {
+      // Custom panels author geometry in panel units and take the pose scale
+      // directly on their object. The border must render identically to the
+      // PanelUI panels (whose roots are unscaled), so build it in world units
+      // and cancel the root scale on the border group — corner radius, line
+      // width, and z offset are absolute constants.
+      const object = entity.object3D;
+      object?.scale.setScalar(scale);
+      const worldWidth =
+        (mode === "fixed-ring" ? RING_PANEL_MAX_WIDTH : BASE_PANEL_MAX_WIDTH) *
+        scale;
+      const worldHeight =
+        (mode === "fixed-ring" ? RING_PANEL_MAX_HEIGHT : BASE_PANEL_MAX_HEIGHT) *
+        scale;
+      this.syncPanelBorder(entity, worldWidth, worldHeight, mode === "fixed-ring");
+      if (object && scale > 0) {
+        const border = object.getObjectByName(PANEL_BORDER_GROUP_NAME);
+        if (border) {
+          const inverseScale = 1 / scale;
+          border.scale.setScalar(inverseScale);
+          border.position.z = PANEL_BORDER_Z_OFFSET * inverseScale;
+        }
+      }
+      return;
+    }
     const baseWidth =
       mode === "fixed-ring" ? RING_PANEL_MAX_WIDTH : BASE_PANEL_MAX_WIDTH;
     const baseHeight =
