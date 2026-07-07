@@ -42,9 +42,9 @@ const INTRO_SCALE = 0.1;
 // signage. Local units are decimeters (parented under the intro root).
 const WORDMARK_URL = assetUrl("/openbrush/intro/brushspace.png");
 const WORDMARK_WIDTH_DM = 50;
-// 968x118 px source.
-const WORDMARK_HEIGHT_DM = (WORDMARK_WIDTH_DM * 118) / 968;
-const WORDMARK_POSITION_DM: readonly [number, number, number] = [0, 14, -40];
+// 2081x467 px source.
+const WORDMARK_HEIGHT_DM = (WORDMARK_WIDTH_DM * 467) / 2081;
+const WORDMARK_POSITION_DM: readonly [number, number, number] = [0, 16, -40];
 
 /**
  * Open Brush's welcome-screen sketch (openbrush_intro_simple.prefab),
