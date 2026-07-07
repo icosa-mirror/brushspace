@@ -26,6 +26,8 @@ import {
 
 // MultiCam snapshot settings from the reference: CameraConfig.kFovDefault 80,
 // ScreenshotManager default width 1920 with 16:9 aspect.
+import { AudioFeedbackSystem } from "./AudioFeedbackSystem.js";
+
 const SNAPSHOT_FOV_DEGREES = 80;
 const SNAPSHOT_WIDTH = 1920;
 const SNAPSHOT_HEIGHT = 1080;
@@ -190,6 +192,7 @@ export class CameraToolSystem extends createSystem({
   }
 
   private captureSnapshot(appState: Entity): void {
+    this.world.getSystem(AudioFeedbackSystem)?.playSound("camera-shutter");
     this.renderTo(this.captureTarget);
     this.world.renderer.readRenderTargetPixels(
       this.captureTarget,

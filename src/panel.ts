@@ -93,6 +93,8 @@ import {
   type OpenBrushSettingsCommand,
 } from "./openbrush/settings.js";
 
+import { AudioFeedbackSystem } from "./systems/AudioFeedbackSystem.js";
+
 type TextElement = UIKit.Text | null;
 type StyleElement =
   | (UIKitInteractionElement & {
@@ -361,6 +363,7 @@ export class PanelSystem extends createSystem({
       ) => void;
     };
     root.addEventListener?.("click", (event) => {
+      this.world.getSystem(AudioFeedbackSystem)?.playSound("ui-click");
       // If the other hand still holds its trigger, its click is in flight —
       // sweeping now would abort it. The deferred sweeps handle cleanup.
       if (this.anySelectHeld()) {

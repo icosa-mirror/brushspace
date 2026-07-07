@@ -19,6 +19,8 @@ import {
   createWorldGrabPose,
 } from "../openbrush/world-grab.js";
 
+import { AudioFeedbackSystem } from "./AudioFeedbackSystem.js";
+
 /**
  * Port of Open Brush's two-handed world grab (SketchControlsScript
  * UpdateGrab_World): holding both grips moves, turns (about world up while
@@ -105,6 +107,9 @@ export class WorldGrabSystem extends createSystem({
     if (this.wasGrabbing !== grabbing) {
       this.wasGrabbing = grabbing;
       poseEntity.setValue(OpenBrushScenePose, "grabActive", grabbing);
+      if (grabbing) {
+        this.world.getSystem(AudioFeedbackSystem)?.playSound("world-grab");
+      }
     }
   }
 
