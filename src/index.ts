@@ -1,16 +1,15 @@
 import "./three-workarounds.js";
 
-import {
-  SessionMode,
-  World,
-} from "@iwsdk/core";
+import { SessionMode, World } from "@iwsdk/core";
 import { AnimatedController } from "@iwsdk/xr-input";
 import * as horizonKit from "@pmndrs/uikit-horizon";
 import {
   BrushIcon,
+  CameraIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   EraserIcon,
+  HouseIcon,
   MinusIcon,
   PaintbrushIcon,
   PaletteIcon,
@@ -18,18 +17,18 @@ import {
   PlusIcon,
   Redo2Icon,
   RulerIcon,
+  SaveIcon,
   SwatchBookIcon,
   Undo2Icon,
 } from "@pmndrs/uikit-lucide";
 
-import {
-  PanelUI,
-  RayInteractable,
-  ScreenSpace,
-} from "@iwsdk/core";
+import { PanelUI, RayInteractable } from "@iwsdk/core";
 
 import { OpenBrushDebug } from "./components/OpenBrushDebug.js";
-import { OpenBrushPanelAttachment } from "./components/OpenBrushCore.js";
+import {
+  OpenBrushBrushPage,
+  OpenBrushPanelAttachment,
+} from "./components/OpenBrushCore.js";
 
 import { PanelSystem } from "./panel.js";
 
@@ -37,17 +36,26 @@ import { setupOpenBrushShell } from "./openbrush/setup-shell.js";
 
 import { AudioFeedbackSystem } from "./systems/AudioFeedbackSystem.js";
 import { BrushCatalogSystem } from "./systems/BrushCatalogSystem.js";
+import { BrushPageSystem } from "./systems/BrushPageSystem.js";
+import { ColorPickerSystem } from "./systems/ColorPickerSystem.js";
 import { BrushSizeInputSystem } from "./systems/BrushSizeInputSystem.js";
+import { CameraToolSystem } from "./systems/CameraToolSystem.js";
 import { BrushPointerVisualSystem } from "./systems/BrushPointerVisualSystem.js";
 import { EraserCursorSystem } from "./systems/EraserCursorSystem.js";
 import { InputCommandSystem } from "./systems/InputCommandSystem.js";
+import { IntroSketchSystem } from "./systems/IntroSketchSystem.js";
 import { LayerCanvasSystem } from "./systems/LayerCanvasSystem.js";
 import { PanelAttachmentSystem } from "./systems/PanelAttachmentSystem.js";
 import { PerformanceCounterSystem } from "./systems/PerformanceCounterSystem.js";
 import { RuntimeDebugSystem } from "./systems/RuntimeDebugSystem.js";
 import { SelectionSystem } from "./systems/SelectionSystem.js";
+import { SketchLibrarySystem } from "./systems/SketchLibrarySystem.js";
+import { StandardEnvironmentSystem } from "./systems/StandardEnvironmentSystem.js";
 import { StrokeAuthoringSystem } from "./systems/StrokeAuthoringSystem.js";
 import { TargetRaySpaceWebXRDebugSystem } from "./systems/TargetRaySpaceWebXRDebugSystem.js";
+import { TipAnchorTuningSystem } from "./systems/TipAnchorTuningSystem.js";
+import { WorldGrabSystem } from "./systems/WorldGrabSystem.js";
+import { WorldGrabVisualsSystem } from "./systems/WorldGrabVisualsSystem.js";
 
 AnimatedController.useSimpleMaterial = true;
 
@@ -64,15 +72,19 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     sceneUnderstanding: false,
     environmentRaycast: false,
     spatialUI: {
-      forwardHtmlEvents: true,
+      // No 2D interaction: the landing page is view-only (drawing and all
+      // panels are in-session; offer:"always" provides Enter XR).
+      forwardHtmlEvents: false,
       preferredColorScheme: "dark",
       kits: [
         horizonKit,
         {
           BrushIcon,
+          CameraIcon,
           ChevronLeftIcon,
           ChevronRightIcon,
           EraserIcon,
+          HouseIcon,
           MinusIcon,
           PaintbrushIcon,
           PaletteIcon,
@@ -80,6 +92,7 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
           PlusIcon,
           Redo2Icon,
           RulerIcon,
+          SaveIcon,
           SwatchBookIcon,
           Undo2Icon,
         },
@@ -89,29 +102,12 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
 }).then((world) => {
   const { camera } = world;
 
-  camera.position.set(-4, 1.5, -6);
-  camera.rotateY(-Math.PI * 0.75);
+  // Browser view: stand on the stage at eye height, facing the intro sketch
+  // signage head-on like the in-headset welcome view.
+  camera.position.set(0, 1.3, 1);
+  camera.rotateX(-0.08);
 
   setupOpenBrushShell(world);
-
-  const panelEntity = world
-    .createTransformEntity()
-    .addComponent(PanelUI, {
-      config: "./ui/welcome.json",
-      maxHeight: 5,
-      maxWidth: 1.6,
-    })
-    .addComponent(OpenBrushPanelAttachment, {
-      role: "main",
-    })
-    .addComponent(RayInteractable)
-    .addComponent(ScreenSpace, {
-      top: "20px",
-      left: "20px",
-      height: "95%",
-    });
-  panelEntity.object3D!.name = "OpenBrushMainPanel";
-  panelEntity.object3D!.position.set(0, 2.05, -1.9);
 
   const wandPanelPrism = world
     .createTransformEntity()
@@ -122,21 +118,18 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
   wandPanelPrism.object3D!.name = "OpenBrushWandPanelPrism";
   wandPanelPrism.object3D!.visible = false;
 
+  // The color slot is a custom 3D panel (ColorPickerSystem); the other wand
+  // slots are UIKit panels.
   for (const panel of [
     {
-      role: "color",
-      config: "./ui/wand-color.json",
-      name: "OpenBrushWandColorPanel",
+      role: "tools",
+      config: "./ui/wand-tools.json",
+      name: "OpenBrushWandToolsPanel",
     },
     {
       role: "brush",
       config: "./ui/wand-brush.json",
       name: "OpenBrushWandBrushPanel",
-    },
-    {
-      role: "tools",
-      config: "./ui/wand-tools.json",
-      name: "OpenBrushWandToolsPanel",
     },
   ] as const) {
     const wandPanel = world
@@ -151,6 +144,9 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
         mode: "fixed-ring",
       })
       .addComponent(RayInteractable);
+    if (panel.role === "brush") {
+      wandPanel.addComponent(OpenBrushBrushPage);
+    }
     wandPanel.object3D!.name = panel.name;
     wandPanel.object3D!.visible = false;
   }
@@ -166,12 +162,21 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .registerSystem(BrushSizeInputSystem)
     .registerSystem(AudioFeedbackSystem)
     .registerSystem(BrushCatalogSystem)
+    .registerSystem(BrushPageSystem)
+    .registerSystem(ColorPickerSystem)
+    .registerSystem(CameraToolSystem)
     .registerSystem(EraserCursorSystem)
     .registerSystem(LayerCanvasSystem)
+    .registerSystem(WorldGrabSystem)
+    .registerSystem(WorldGrabVisualsSystem)
+    .registerSystem(StandardEnvironmentSystem)
+    .registerSystem(IntroSketchSystem)
     .registerSystem(StrokeAuthoringSystem)
     .registerSystem(BrushPointerVisualSystem)
     .registerSystem(TargetRaySpaceWebXRDebugSystem)
+    .registerSystem(TipAnchorTuningSystem)
     .registerSystem(SelectionSystem)
+    .registerSystem(SketchLibrarySystem)
     .registerSystem(PerformanceCounterSystem)
     .registerSystem(RuntimeDebugSystem);
 });

@@ -312,14 +312,14 @@ export function exportSketchDocumentToGlb(
   const json: GlbDocument = {
     asset: {
       version: "2.0",
-      generator: "Open Brush IWSDK Port",
+      generator: "Brushspace",
     },
     scene: 0,
     scenes: [
       {
         nodes: rootNodeIndices,
         extras: {
-          TB_Application: "Open Brush IWSDK Port",
+          TB_Application: "Brushspace",
           TB_SchemaVersion: document.metadata.schemaVersion,
           TB_Source: document.metadata.source,
           openBrushLayerCount: document.layers.length,

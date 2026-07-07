@@ -58,7 +58,7 @@ export function createSketchDocument({
 } = {}): SketchDocument {
   return {
     metadata: {
-      appName: "Open Brush IWSDK Port",
+      appName: "Brushspace",
       schemaVersion: 1,
       source: "fixture",
       ...metadata,

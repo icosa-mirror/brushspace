@@ -45,7 +45,7 @@ describe("Open Brush .tilt files", () => {
     const roundTrip = readTiltFile(writeTiltFile(source));
 
     expect(roundTrip.metadata).toEqual({
-      appName: "Open Brush IWSDK Port",
+      appName: "Brushspace",
       schemaVersion: 1,
       source: "tilt",
     });
