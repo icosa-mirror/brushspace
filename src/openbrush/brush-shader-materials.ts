@@ -1,7 +1,8 @@
 import type { BrushInventoryEntry } from "./brush-inventory.js";
+import { assetUrl } from "./asset-url.js";
 
-export const OPENBRUSH_SHADER_BASE_URL = "/openbrush/shaders/";
-export const OPENBRUSH_TEXTURE_BASE_URL = "/openbrush/textures/";
+export const OPENBRUSH_SHADER_BASE_URL = assetUrl("/openbrush/shaders/");
+export const OPENBRUSH_TEXTURE_BASE_URL = assetUrl("/openbrush/textures/");
 
 /** Open Brush export blend modes (IExportableMaterial.cs). */
 export type BrushShaderBlending = "opaque" | "cutout" | "additive" | "alpha";
@@ -78,9 +79,16 @@ export function resolveBrushShaderBlending(blendMode: number): BrushShaderBlendi
 
 export function createBrushShaderMaterialDescriptor(
   entry: BrushInventoryEntry,
+  options?: { allowAnyGeometry?: boolean },
 ): BrushShaderMaterialDescriptor | undefined {
   const assets = entry.shaderAssets;
-  if (!assets || !getBrushShaderEligibility(entry).eligible) {
+  if (!assets) {
+    return undefined;
+  }
+  // The eligibility gate exists because OUR generated stroke geometry only
+  // suits default-vertex brushes; baked meshes (the intro sketch) carry the
+  // original attributes, so any brush shader can run on them.
+  if (!options?.allowAnyGeometry && !getBrushShaderEligibility(entry).eligible) {
     return undefined;
   }
 
@@ -142,12 +150,18 @@ export function createBrushShaderMaterialDescriptor(
  * directive is dropped too.
  */
 export function prepareBrushShaderSource(source: string): string {
-  return source
-    .replace(
-      /^[ \t]*uniform[ \t]+(?:highp[ \t]+|mediump[ \t]+|lowp[ \t]+)?(?:mat4[ \t]+(?:modelViewMatrix|projectionMatrix|viewMatrix|modelMatrix)|mat3[ \t]+normalMatrix|vec3[ \t]+cameraPosition)[ \t]*;[^\n]*\n?/gm,
-      "",
-    )
-    .replace(/^[ \t]*#extension[ \t]+GL_OES_standard_derivatives[^\n]*\n?/gm, "");
+  return (
+    source
+      .replace(
+        /^[ \t]*uniform[ \t]+(?:highp[ \t]+|mediump[ \t]+|lowp[ \t]+)?(?:mat4[ \t]+(?:modelViewMatrix|projectionMatrix|viewMatrix|modelMatrix)|mat3[ \t]+normalMatrix|vec3[ \t]+cameraPosition)[ \t]*;[^\n]*\n?/gm,
+        "",
+      )
+      .replace(/^[ \t]*#extension[ \t]+GL_OES_standard_derivatives[^\n]*\n?/gm, "")
+      // The particle shaders ship their own mat4 inverse(), legal in the
+      // exported GLSL 1.00 but a redeclaration of the built-in once three
+      // promotes the source to GLSL ES 3.00 — rename definition and calls.
+      .replace(/\binverse\b(?=\s*\()/g, "tb_inverse")
+  );
 }
 
 /**

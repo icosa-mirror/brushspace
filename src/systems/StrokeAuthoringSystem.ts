@@ -3,6 +3,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   DoubleSide,
+  DynamicDrawUsage,
   FrontSide,
   Hovered,
   Mesh,
@@ -24,7 +25,10 @@ import {
   InputCommandState,
   OpenBrushAppState,
   OpenBrushEraserCursor,
+  OpenBrushCustomPanel,
   OpenBrushPanelAttachment,
+  OpenBrushScenePose,
+  OpenBrushTipAnchor,
   SettingsState,
   StrokeHistoryState,
 } from "../components/OpenBrushCore.js";
@@ -36,7 +40,11 @@ import {
   type BrushPressureOpacityRange,
   type BrushPressureSizeRange,
 } from "../openbrush/brush-inventory.js";
-import { generateBrushGeometry } from "../openbrush/brush-geometry.js";
+import {
+  createBrushGeometryArrays,
+  generateBrushGeometryInto,
+  type BrushGeometryArrays,
+} from "../openbrush/brush-geometry.js";
 import {
   createBrushMaterialSpec,
   type BrushMaterialSpec,
@@ -48,6 +56,7 @@ import {
 import {
   createMirroredStrokeDataX,
   resolveStrokeSampleDecision,
+  OPEN_BRUSH_MINIMUM_MOVE_METERS,
   resolveStrokeSpawnIntervalMeters,
   OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS,
   OPEN_BRUSH_TUBE_DEFAULT_SOLID_MIN_LENGTH_METERS,
@@ -66,10 +75,12 @@ import { isOpenBrushEraserHit } from "../openbrush/stroke-eraser.js";
 import { isOpenBrushPickerHit } from "../openbrush/stroke-picker.js";
 import {
   OPEN_BRUSH_ERASER_FORWARD_OFFSET,
+  OPEN_BRUSH_POINTER_TIP_FORWARD_OFFSET,
   isOpenBrushPanelFocusStatus,
   normalizeOpenBrushEraserRadius,
   resolveOpenBrushPanelFocusStatus,
   resolveOpenBrushPickerToolSpec,
+  resolveOpenBrushTool,
   type OpenBrushToolDescriptor,
   type OpenBrushToolId,
   type OpenBrushToolLazyMode,
@@ -118,7 +129,10 @@ function resolveSolidMinLengthMeters(
 const GRID_SNAP_SIZE = 0.1;
 const LAZY_INPUT_RADIUS = 0.08;
 const STENCIL_FRONT_PLANE_Z = -1.2;
-const BRUSH_POINTER_TIP_FORWARD_OFFSET = 0.045;
+
+// Half extents of custom wand panels in panel units (RING_PANEL_MAX_* / 2).
+const CUSTOM_PANEL_HALF_WIDTH = 0.41;
+const CUSTOM_PANEL_HALF_HEIGHT = 0.52;
 type BrushPointerHand = "left" | "right";
 
 interface RuntimeStroke {
@@ -143,6 +157,17 @@ interface RuntimeStroke {
   lastPointIsKeeper: boolean;
   /** Per-brush solid segment minimum length in meters. */
   solidMinLengthMeters: number;
+  /** Reusable geometry storage (grown geometrically, written in place). */
+  geometryArrays: BrushGeometryArrays;
+  /**
+   * Scene pose snapshot at stroke start: control points are authored in
+   * canvas space so the sketch can be grabbed, turned, and scaled. The pose
+   * is frozen while a stroke is live (the world grab is disabled while
+   * painting).
+   */
+  posePosition: Vec3;
+  poseOrientationInv: [number, number, number, number];
+  poseScale: number;
   minBounds: Float32Array;
   maxBounds: Float32Array;
 }
@@ -157,8 +182,14 @@ export class StrokeAuthoringSystem extends createSystem({
   layers: { required: [CanvasLayer] },
   strokes: { required: [BrushStroke] },
   hoveredPanels: { required: [PanelUI, OpenBrushPanelAttachment, Hovered] },
+  hoveredCustomPanels: {
+    required: [OpenBrushCustomPanel, OpenBrushPanelAttachment, Hovered],
+  },
   panels: { required: [PanelUI, OpenBrushPanelAttachment] },
+  customPanels: { required: [OpenBrushCustomPanel, OpenBrushPanelAttachment] },
   eraserCursors: { required: [OpenBrushEraserCursor] },
+  scenePoses: { required: [OpenBrushScenePose, Transform] },
+  tipAnchors: { required: [OpenBrushTipAnchor, Transform] },
 }) {
   private readonly samplePosition = new Vector3();
   private readonly sampleQuaternion = new Quaternion();
@@ -177,8 +208,13 @@ export class StrokeAuthoringSystem extends createSystem({
   private readonly rayDirection = new Vector3();
   private readonly tapeAnchorPosition = new Vector3();
   private readonly tapeAnchorQuaternion = new Quaternion();
+  private readonly canvasPosition = new Vector3();
+  private readonly canvasQuaternion = new Quaternion();
+  private readonly poseQuaternionInv = new Quaternion();
+  private readonly poseOriginScratch = new Vector3();
   private readonly eraserCenter: Vec3 = [0, 0, 0];
   private readonly pickerCenter: Vec3 = [0, 0, 0];
+  private readonly canvasToolCenter: Vec3 = [0, 0, 0];
   private readonly strokeWorldPosition = new Vector3();
   private readonly strokeBoundsOffset: Vec3 = [0, 0, 0];
   private readonly sampleFrame: StrokePointerFrame = {
@@ -266,18 +302,61 @@ export class StrokeAuthoringSystem extends createSystem({
       return;
     }
 
-    if (rawPaintPressed && this.isPickerTool(activeTool)) {
+    if (this.isPickerTool(activeTool)) {
       if (this.activeStroke) {
         this.finalizeActiveStroke();
       }
-      const blockReason = this.getPickerBlockReason(commandSource, activeTool);
-      if (blockReason === "panel") {
-        this.setPanelFocusStatus(appStateEntity, activeTool);
-      } else if (!blockReason) {
-        this.clearPanelFocusStatus(appStateEntity, activeTool);
-        this.pickIntersectingStroke(activeTool);
-      } else {
-        this.clearPanelFocusStatus(appStateEntity, activeTool);
+      // DropperTool previews the hovered stroke every frame, before any
+      // trigger press.
+      const hoverTarget = this.updateDropperHover(activeTool);
+      const paintDown = Boolean(
+        commandEntity.getValue(InputCommandState, "paintDown"),
+      );
+      if (paintDown) {
+        const blockReason = this.getPickerBlockReason(commandSource, activeTool);
+        if (blockReason === "panel") {
+          this.setPanelFocusStatus(appStateEntity, activeTool);
+        } else if (!blockReason) {
+          this.clearPanelFocusStatus(appStateEntity, activeTool);
+          this.pickWithDropper(activeTool, hoverTarget);
+        } else {
+          this.clearPanelFocusStatus(appStateEntity, activeTool);
+        }
+      }
+      this.updateHistoryState();
+      return;
+    }
+    this.clearDropperHover();
+
+    // No painting while the intro gallery is up.
+    if (
+      appStateEntity &&
+      String(appStateEntity.getValue(OpenBrushAppState, "mode")) === "intro"
+    ) {
+      if (this.activeStroke) {
+        this.finalizeActiveStroke();
+      }
+      this.updateHistoryState();
+      return;
+    }
+
+    // No stroke authoring while the world is grabbed (AllowWorldTransform
+    // and stroke creation are mutually exclusive in Open Brush).
+    const worldGrabActive = Boolean(
+      this.getFirstEntity("scenePoses")?.getValue(OpenBrushScenePose, "grabActive"),
+    );
+    if (worldGrabActive) {
+      if (this.activeStroke) {
+        this.finalizeActiveStroke();
+      }
+      this.updateHistoryState();
+      return;
+    }
+
+    // Non-painting tools (e.g. the camera) never author strokes.
+    if (!activeTool.paints) {
+      if (this.activeStroke) {
+        this.finalizeActiveStroke();
       }
       this.updateHistoryState();
       return;
@@ -315,6 +394,14 @@ export class StrokeAuthoringSystem extends createSystem({
   private isHoveringPanel(): boolean {
     for (const entity of this.queries.hoveredPanels.entities) {
       if (this.isFocusablePanel(entity)) {
+        return true;
+      }
+    }
+    for (const entity of this.queries.hoveredCustomPanels.entities) {
+      if (
+        entity.object3D?.visible !== false &&
+        Boolean(entity.getValue(OpenBrushPanelAttachment, "visible"))
+      ) {
         return true;
       }
     }
@@ -439,6 +526,51 @@ export class StrokeAuthoringSystem extends createSystem({
       }
     }
 
+    // Custom (non-PanelUI) wand panels: geometry is authored in panel units
+    // on a scaled root, and they are front-facing only, so back-side rays
+    // paint through them like they are not there.
+    for (const entity of this.queries.customPanels.entities) {
+      const panelObject = entity.object3D;
+      if (
+        !panelObject ||
+        panelObject.visible === false ||
+        !entity.getValue(OpenBrushPanelAttachment, "visible")
+      ) {
+        continue;
+      }
+
+      panelObject.getWorldPosition(this.panelPosition);
+      panelObject.getWorldQuaternion(this.panelQuaternion);
+      this.panelRight.set(1, 0, 0).applyQuaternion(this.panelQuaternion);
+      this.panelUp.set(0, 1, 0).applyQuaternion(this.panelQuaternion);
+      this.panelNormal.set(0, 0, 1).applyQuaternion(this.panelQuaternion);
+
+      const denominator = this.rayDirection.dot(this.panelNormal);
+      if (denominator >= -0.0001) {
+        continue; // parallel or approaching from behind
+      }
+
+      this.panelDelta.copy(this.panelPosition).sub(this.panelRayPosition);
+      const distance = this.panelDelta.dot(this.panelNormal) / denominator;
+      if (distance < 0) {
+        continue;
+      }
+
+      this.panelHit
+        .copy(this.panelRayPosition)
+        .addScaledVector(this.rayDirection, distance);
+      this.panelDelta.copy(this.panelHit).sub(this.panelPosition);
+
+      const halfWidth = CUSTOM_PANEL_HALF_WIDTH * panelObject.scale.x;
+      const halfHeight = CUSTOM_PANEL_HALF_HEIGHT * panelObject.scale.x;
+      if (
+        Math.abs(this.panelDelta.dot(this.panelRight)) <= halfWidth &&
+        Math.abs(this.panelDelta.dot(this.panelUp)) <= halfHeight
+      ) {
+        return true;
+      }
+    }
+
     return false;
   }
 
@@ -478,10 +610,16 @@ export class StrokeAuthoringSystem extends createSystem({
     this.strokeCounter += 1;
     const guid = `runtime-stroke-${this.strokeCounter}`;
     const groupId = this.strokeCounter;
+    // Author in canvas space: sizes and positions divide out the scene pose,
+    // like PointerScript converting room space to canvas space.
+    const poseEntity = this.getFirstEntity("scenePoses");
+    const poseObject = poseEntity?.object3D;
+    const poseScale = poseObject ? poseObject.scale.x || 1 : 1;
+    const canvasBrushSize = brushSize / poseScale;
     const strokeData = createEmptyStrokeData({
       guid,
       brushGuid,
-      brushSize,
+      brushSize: canvasBrushSize,
       brushScale: 1,
       color,
       layerIndex,
@@ -499,7 +637,9 @@ export class StrokeAuthoringSystem extends createSystem({
     mesh.frustumCulled = false;
     mesh.name = `OpenBrushStrokeMesh_${this.strokeCounter}`;
 
-    const entity = this.world.createTransformEntity(mesh);
+    const entity = poseEntity
+      ? this.world.createTransformEntity(mesh, poseEntity)
+      : this.world.createTransformEntity(mesh);
     entity.object3D!.name = `OpenBrushStroke_${this.strokeCounter}`;
     entity.addComponent(BrushStroke, {
       guid,
@@ -511,7 +651,7 @@ export class StrokeAuthoringSystem extends createSystem({
       materialFamily: materialSpec.materialFamily,
       renderWarning: materialSpec.warning ?? "",
       layerIndex,
-      brushSize,
+      brushSize: canvasBrushSize,
       color,
       finalized: false,
       visible: true,
@@ -541,7 +681,19 @@ export class StrokeAuthoringSystem extends createSystem({
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
       lastPointIsKeeper: false,
-      solidMinLengthMeters: resolveSolidMinLengthMeters(brushEntry, geometryFamily),
+      solidMinLengthMeters:
+        resolveSolidMinLengthMeters(brushEntry, geometryFamily) / poseScale,
+      geometryArrays: createBrushGeometryArrays(),
+      posePosition: poseObject
+        ? [poseObject.position.x, poseObject.position.y, poseObject.position.z]
+        : [0, 0, 0],
+      poseOrientationInv: poseObject
+        ? (this.poseQuaternionInv
+            .copy(poseObject.quaternion)
+            .invert()
+            .toArray() as [number, number, number, number])
+        : [0, 0, 0, 1],
+      poseScale,
       minBounds: entity.getVectorView(BrushStroke, "minBounds") as Float32Array,
       maxBounds: entity.getVectorView(BrushStroke, "maxBounds") as Float32Array,
     };
@@ -582,6 +734,7 @@ export class StrokeAuthoringSystem extends createSystem({
           stroke.lastPosition,
           frame.position,
           spawnInterval,
+          OPEN_BRUSH_MINIMUM_MOVE_METERS / stroke.poseScale,
         );
     if (decision === "ignore") {
       return;
@@ -710,39 +863,50 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private rebuildStrokeMesh(stroke: RuntimeStroke): void {
-    const generated = generateBrushGeometry(
+    const arrays = stroke.geometryArrays;
+    const reallocated = generateBrushGeometryInto(
       stroke.strokeData,
       stroke.geometryFamily,
       {
         pressureSizeRange: stroke.pressureSizeRange,
         pressureOpacityRange: stroke.pressureOpacityRange,
       },
+      arrays,
     );
-    stroke.geometry.setAttribute(
-      "position",
-      new BufferAttribute(generated.positions, 3),
-    );
-    stroke.geometry.setAttribute(
-      "normal",
-      new BufferAttribute(generated.normals, 3),
-    );
-    stroke.geometry.setAttribute(
-      "color",
-      new BufferAttribute(generated.colors, 4),
-    );
-    stroke.geometry.setAttribute("uv", new BufferAttribute(generated.uvs, 2));
-    applyBrushShaderAttributeAliases(stroke.geometry);
-    stroke.geometry.setIndex(new BufferAttribute(generated.indices, 1));
-    stroke.geometry.setDrawRange(0, generated.indices.length);
-    this.copyGeneratedBounds(stroke, generated.bounds.min, generated.bounds.max);
-    stroke.entity.setValue(
-      BrushStroke,
-      "vertexCount",
-      generated.positions.length / 3,
-    );
-    stroke.entity.setValue(BrushStroke, "indexCount", generated.indices.length);
-    if (generated.warning) {
-      stroke.entity.setValue(BrushStroke, "renderWarning", generated.warning);
+
+    // Rebuilds run every sampled frame while drawing: reuse the GPU-bound
+    // attributes and only rebind when the backing storage grew.
+    if (reallocated || !stroke.geometry.getAttribute("position")) {
+      const position = new BufferAttribute(arrays.positions, 3);
+      const normal = new BufferAttribute(arrays.normals, 3);
+      const color = new BufferAttribute(arrays.colors, 4);
+      const uv = new BufferAttribute(arrays.uvs, 2);
+      const index = new BufferAttribute(arrays.indices, 1);
+      for (const attribute of [position, normal, color, uv, index]) {
+        attribute.setUsage(DynamicDrawUsage);
+      }
+      stroke.geometry.setAttribute("position", position);
+      stroke.geometry.setAttribute("normal", normal);
+      stroke.geometry.setAttribute("color", color);
+      stroke.geometry.setAttribute("uv", uv);
+      applyBrushShaderAttributeAliases(stroke.geometry);
+      stroke.geometry.setIndex(index);
+    } else {
+      (stroke.geometry.getAttribute("position") as BufferAttribute).needsUpdate = true;
+      (stroke.geometry.getAttribute("normal") as BufferAttribute).needsUpdate = true;
+      (stroke.geometry.getAttribute("color") as BufferAttribute).needsUpdate = true;
+      (stroke.geometry.getAttribute("uv") as BufferAttribute).needsUpdate = true;
+      const index = stroke.geometry.getIndex();
+      if (index) {
+        index.needsUpdate = true;
+      }
+    }
+    stroke.geometry.setDrawRange(0, arrays.indexCount);
+    this.copyGeneratedBounds(stroke, arrays.bounds.min, arrays.bounds.max);
+    stroke.entity.setValue(BrushStroke, "vertexCount", arrays.vertexCount);
+    stroke.entity.setValue(BrushStroke, "indexCount", arrays.indexCount);
+    if (arrays.warning) {
+      stroke.entity.setValue(BrushStroke, "renderWarning", arrays.warning);
     }
   }
 
@@ -866,6 +1030,10 @@ export class StrokeAuthoringSystem extends createSystem({
     stroke.entity.setValue(BrushStroke, "finalized", true);
     stroke.entity.setValue(BrushStroke, "visible", true);
     stroke.entity.setValue(BrushStroke, "renderVisible", true);
+    // Retained for sketch serialization (save/export).
+    if (stroke.entity.object3D) {
+      stroke.entity.object3D.userData.openBrushStrokeData = stroke.strokeData;
+    }
     const strokeGroup = [stroke.entity];
     if (stroke.mirrorMode === "x" && stroke.controlPoints.length >= 2) {
       strokeGroup.push(this.createMirroredStroke(stroke));
@@ -881,6 +1049,11 @@ export class StrokeAuthoringSystem extends createSystem({
       : 0;
     this.writeToolCenter(this.eraserCenter, this.getEraserForwardOffset());
     const eraserRadius = this.getEraserRadius();
+    const canvas = this.writeCanvasToolCenter(
+      this.canvasToolCenter,
+      this.eraserCenter,
+    );
+    const canvasEraserRadius = eraserRadius / canvas.scale;
 
     const erasedStrokes: Entity[] = [];
     for (const entity of this.queries.strokes.entities) {
@@ -919,8 +1092,8 @@ export class StrokeAuthoringSystem extends createSystem({
           geometryHit,
         },
         activeLayerIndex,
-        this.eraserCenter,
-        eraserRadius,
+        canvas.center,
+        canvasEraserRadius,
       )) {
         erasedStrokes.push(entity);
       }
@@ -1006,7 +1179,64 @@ export class StrokeAuthoringSystem extends createSystem({
     );
   }
 
-  private pickIntersectingStroke(activeTool: OpenBrushToolDescriptor): void {
+  /** Refreshes the hover preview on the sphere cursor; returns the target. */
+  private updateDropperHover(
+    activeTool: OpenBrushToolDescriptor,
+  ): Entity | undefined {
+    const pickerSpec = resolveOpenBrushPickerToolSpec(activeTool.id);
+    const cursor = this.getFirstEntity("eraserCursors");
+    if (!pickerSpec || !cursor) {
+      return undefined;
+    }
+
+    this.writeToolCenter(this.pickerCenter, pickerSpec.forwardOffset);
+    const target = this.findIntersectingStroke(
+      this.pickerCenter,
+      pickerSpec.radius,
+    );
+    if (!target) {
+      this.clearDropperHover();
+      return undefined;
+    }
+
+    if (Boolean(cursor.getValue(OpenBrushEraserCursor, "hoverValid")) !== true) {
+      cursor.setValue(OpenBrushEraserCursor, "hoverValid", true);
+    }
+    const hoverColor = cursor.getVectorView(
+      OpenBrushEraserCursor,
+      "hoverColor",
+    ) as Float32Array;
+    const strokeColor = target.getVectorView(BrushStroke, "color") as Float32Array;
+    hoverColor[0] = strokeColor[0];
+    hoverColor[1] = strokeColor[1];
+    hoverColor[2] = strokeColor[2];
+    hoverColor[3] = 1;
+    const brushGuid = String(target.getValue(BrushStroke, "brushGuid"));
+    const brushName = findBrushByGuid(openBrushInventory, brushGuid)?.name ?? "";
+    if (String(cursor.getValue(OpenBrushEraserCursor, "hoverBrushName")) !== brushName) {
+      cursor.setValue(OpenBrushEraserCursor, "hoverBrushName", brushName);
+    }
+    return target;
+  }
+
+  private clearDropperHover(): void {
+    const cursor = this.getFirstEntity("eraserCursors");
+    if (!cursor) {
+      return;
+    }
+    if (Boolean(cursor.getValue(OpenBrushEraserCursor, "hoverValid"))) {
+      cursor.setValue(OpenBrushEraserCursor, "hoverValid", false);
+    }
+  }
+
+  /**
+   * DropperTool pick: adopt the hovered stroke's brush, size, and color, then
+   * exit back to the previous tool (m_RequestExit).
+   */
+  private pickWithDropper(
+    activeTool: OpenBrushToolDescriptor,
+    target: Entity | undefined,
+  ): void {
     const appStateEntity = this.getFirstEntity("appState");
     const settingsEntity = this.getFirstEntity("brushSettings");
     if (!appStateEntity || !settingsEntity) {
@@ -1017,10 +1247,6 @@ export class StrokeAuthoringSystem extends createSystem({
     if (!pickerSpec) {
       return;
     }
-
-    this.writeToolCenter(this.pickerCenter, pickerSpec.forwardOffset);
-
-    const target = this.findIntersectingStroke(this.pickerCenter, pickerSpec.radius);
     if (!target) {
       this.setToolStatus(appStateEntity, "nothing-to-pick");
       return;
@@ -1041,6 +1267,21 @@ export class StrokeAuthoringSystem extends createSystem({
       `picked ${pickerSpec.pickedStatusLabel} #${commandIndex}`,
       true,
     );
+    this.clearDropperHover();
+
+    const previousToolId = String(
+      appStateEntity.getValue(OpenBrushAppState, "previousTool"),
+    );
+    const exitTool = resolveOpenBrushTool(
+      previousToolId === activeTool.id ? "free-paint" : previousToolId,
+    );
+    appStateEntity.setValue(OpenBrushAppState, "previousTool", activeTool.id);
+    appStateEntity.setValue(OpenBrushAppState, "activeTool", exitTool.id);
+    appStateEntity.setValue(
+      OpenBrushAppState,
+      "toolRevision",
+      Number(appStateEntity.getValue(OpenBrushAppState, "toolRevision")) + 1,
+    );
   }
 
   private findIntersectingStroke(center: Vec3, radius: number): Entity | undefined {
@@ -1048,6 +1289,8 @@ export class StrokeAuthoringSystem extends createSystem({
     const activeLayerIndex = appStateEntity
       ? Number(appStateEntity.getValue(OpenBrushAppState, "activeLayerIndex"))
       : 0;
+    const canvas = this.writeCanvasToolCenter(this.canvasToolCenter, center);
+    const canvasRadius = radius / canvas.scale;
     let target: Entity | undefined;
     let newestCommandIndex = -1;
 
@@ -1089,8 +1332,8 @@ export class StrokeAuthoringSystem extends createSystem({
             geometryHit,
           },
           activeLayerIndex,
-          center,
-          radius,
+          canvas.center,
+          canvasRadius,
         )
       ) {
         continue;
@@ -1106,6 +1349,8 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private writeStrokeBoundsOffset(entity: Entity, target: Vec3): Vec3 {
+    // Bounds and their offsets live in canvas space (strokes sit under the
+    // scene pose root), matching the canvas-space tool centers.
     const object = entity.object3D;
     if (!object) {
       target[0] = 0;
@@ -1113,11 +1358,9 @@ export class StrokeAuthoringSystem extends createSystem({
       target[2] = 0;
       return target;
     }
-
-    object.getWorldPosition(this.strokeWorldPosition);
-    target[0] = this.strokeWorldPosition.x;
-    target[1] = this.strokeWorldPosition.y;
-    target[2] = this.strokeWorldPosition.z;
+    target[0] = object.position.x;
+    target[1] = object.position.y;
+    target[2] = object.position.z;
     return target;
   }
 
@@ -1128,6 +1371,35 @@ export class StrokeAuthoringSystem extends createSystem({
       this.sampleQuaternion,
       forwardOffset,
     );
+  }
+
+  /**
+   * Converts a world-space tool center into the current canvas space so the
+   * stroke-bounds broadphase stays exact under the world grab; returns the
+   * matching canvas-space radius via `scaleOut`.
+   */
+  private writeCanvasToolCenter(
+    target: Vec3,
+    worldCenter: Vec3,
+  ): { center: Vec3; scale: number } {
+    const poseObject = this.getFirstEntity("scenePoses")?.object3D;
+    if (!poseObject) {
+      target[0] = worldCenter[0];
+      target[1] = worldCenter[1];
+      target[2] = worldCenter[2];
+      return { center: target, scale: 1 };
+    }
+    const scale = poseObject.scale.x || 1;
+    this.poseQuaternionInv.copy(poseObject.quaternion).invert();
+    this.canvasPosition
+      .set(worldCenter[0], worldCenter[1], worldCenter[2])
+      .sub(poseObject.position)
+      .applyQuaternion(this.poseQuaternionInv)
+      .divideScalar(scale);
+    target[0] = this.canvasPosition.x;
+    target[1] = this.canvasPosition.y;
+    target[2] = this.canvasPosition.z;
+    return { center: target, scale };
   }
 
   private readBrushSettingsSnapshot(
@@ -1152,9 +1424,13 @@ export class StrokeAuthoringSystem extends createSystem({
       BrushStroke,
       "color",
     ) as Float32Array;
+    // Stroke sizes are stored in canvas units; the dropper adopts the room
+    // size (DropperTool uses stroke.SizeInRoomSpace).
+    const poseScale = this.getFirstEntity("scenePoses")?.object3D?.scale.x || 1;
     return {
       brushGuid: String(strokeEntity.getValue(BrushStroke, "brushGuid")),
-      brushSize: Number(strokeEntity.getValue(BrushStroke, "brushSize")),
+      brushSize:
+        Number(strokeEntity.getValue(BrushStroke, "brushSize")) * poseScale,
       color: [color[0], color[1], color[2], color[3]],
     };
   }
@@ -1238,6 +1514,88 @@ export class StrokeAuthoringSystem extends createSystem({
     );
   }
 
+  /**
+   * Rebuilds a stroke entity from serialized data (sketch load). The
+   * geometry is generated once; the entity starts hidden so load transitions
+   * can stagger it in.
+   */
+  spawnStrokeFromData(strokeData: StrokeData, startVisible = false): Entity {
+    this.strokeCounter += 1;
+    const brushEntry = findBrushByGuid(openBrushInventory, strokeData.brushGuid);
+    const geometryFamily = brushEntry?.geometryFamily ?? "unsupported";
+    const materialSpec = createBrushMaterialSpec(brushEntry, strokeData.color);
+    const geometry = new BufferGeometry();
+    const material = this.createStrokeRenderMaterial(
+      brushEntry,
+      materialSpec,
+      strokeData.color[3],
+    );
+    const mesh = new Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    mesh.name = `OpenBrushStrokeMesh_${this.strokeCounter}`;
+
+    const poseEntity = this.getFirstEntity("scenePoses");
+    const entity = poseEntity
+      ? this.world.createTransformEntity(mesh, poseEntity)
+      : this.world.createTransformEntity(mesh);
+    entity.object3D!.name = `OpenBrushStroke_${this.strokeCounter}`;
+    entity.object3D!.userData.openBrushStrokeData = strokeData;
+    entity.addComponent(BrushStroke, {
+      guid: strokeData.guid,
+      brushGuid: strokeData.brushGuid,
+      toolId: "free-paint",
+      groupId: strokeData.groupId,
+      groupContinuation: false,
+      geometryFamily,
+      materialFamily: materialSpec.materialFamily,
+      renderWarning: materialSpec.warning ?? "",
+      layerIndex: strokeData.layerIndex,
+      brushSize: strokeData.brushSize,
+      color: strokeData.color,
+      finalized: true,
+      visible: startVisible,
+      renderVisible: startVisible,
+      selected: false,
+      controlPointCount: strokeData.controlPoints.length,
+      vertexCount: 0,
+      indexCount: 0,
+      commandIndex: this.strokeCounter,
+    });
+    if (!startVisible && entity.object3D) {
+      entity.object3D.visible = false;
+    }
+
+    const runtime: RuntimeStroke = {
+      entity,
+      mesh,
+      geometry,
+      geometryFamily,
+      pressureSizeRange: brushEntry?.pressureSizeRange,
+      pressureOpacityRange: brushEntry?.pressureOpacityRange,
+      toolId: "free-paint",
+      groupId: strokeData.groupId,
+      samplingMode: "freehand",
+      mirrorMode: "none",
+      snapMode: "none",
+      lazyMode: "none",
+      stencilMode: "none",
+      strokeData,
+      controlPoints: strokeData.controlPoints,
+      lastPosition: [0, 0, 0],
+      lastPointIsKeeper: false,
+      solidMinLengthMeters: resolveSolidMinLengthMeters(brushEntry, geometryFamily),
+      geometryArrays: createBrushGeometryArrays(),
+      posePosition: [0, 0, 0],
+      poseOrientationInv: [0, 0, 0, 1],
+      poseScale: 1,
+      minBounds: entity.getVectorView(BrushStroke, "minBounds") as Float32Array,
+      maxBounds: entity.getVectorView(BrushStroke, "maxBounds") as Float32Array,
+    };
+    this.recalculateBounds(runtime);
+    this.rebuildStrokeMesh(runtime);
+    return entity;
+  }
+
   private createMirroredStroke(source: RuntimeStroke): Entity {
     this.strokeCounter += 1;
     const guid = `runtime-stroke-${this.strokeCounter}`;
@@ -1258,8 +1616,12 @@ export class StrokeAuthoringSystem extends createSystem({
     mesh.frustumCulled = false;
     mesh.name = `OpenBrushStrokeMesh_${this.strokeCounter}`;
 
-    const entity = this.world.createTransformEntity(mesh);
+    const poseEntity = this.getFirstEntity("scenePoses");
+    const entity = poseEntity
+      ? this.world.createTransformEntity(mesh, poseEntity)
+      : this.world.createTransformEntity(mesh);
     entity.object3D!.name = `OpenBrushStroke_${this.strokeCounter}`;
+    entity.object3D!.userData.openBrushStrokeData = strokeData;
     entity.addComponent(BrushStroke, {
       guid,
       brushGuid: strokeData.brushGuid,
@@ -1304,12 +1666,34 @@ export class StrokeAuthoringSystem extends createSystem({
         brushEntry,
         source.geometryFamily,
       ),
+      geometryArrays: createBrushGeometryArrays(),
+      posePosition: [
+        source.posePosition[0],
+        source.posePosition[1],
+        source.posePosition[2],
+      ],
+      poseOrientationInv: [
+        source.poseOrientationInv[0],
+        source.poseOrientationInv[1],
+        source.poseOrientationInv[2],
+        source.poseOrientationInv[3],
+      ],
+      poseScale: source.poseScale,
       minBounds: entity.getVectorView(BrushStroke, "minBounds") as Float32Array,
       maxBounds: entity.getVectorView(BrushStroke, "maxBounds") as Float32Array,
     };
     this.recalculateBounds(mirroredStroke);
     this.rebuildStrokeMesh(mirroredStroke);
     return entity;
+  }
+
+  /**
+   * Forget all undo/redo history without disposing entities — the sketch
+   * library destroys stroke entities itself (brush materials are shared per
+   * GUID and must survive).
+   */
+  resetStrokeHistory(): void {
+    this.strokeHistory.forgetAll();
   }
 
   private undoLastStroke(): void {
@@ -1420,19 +1804,33 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private sampleXrPointerPose(hand: BrushPointerHand): void {
-    const raySpace =
-      hand === "left"
-        ? this.world.player.raySpaces.left
-        : this.world.player.raySpaces.right;
-    raySpace.getWorldPosition(this.panelRayPosition);
-    raySpace.getWorldQuaternion(this.panelRayQuaternion);
+    // The tip anchor IS the tool attach point (grip space + tuned offset —
+    // Quest browser workaround for bad target-ray-space poses).
+    const anchorObject = this.getTipAnchorObject(hand);
+    if (!anchorObject) {
+      return;
+    }
+    anchorObject.getWorldPosition(this.panelRayPosition);
+    anchorObject.getWorldQuaternion(this.panelRayQuaternion);
     this.sampleQuaternion.copy(this.panelRayQuaternion);
     this.rayDirection
       .set(0, 0, -1)
       .applyQuaternion(this.panelRayQuaternion);
-    this.samplePosition
-      .copy(this.panelRayPosition)
-      .addScaledVector(this.rayDirection, BRUSH_POINTER_TIP_FORWARD_OFFSET);
+    this.samplePosition.copy(this.panelRayPosition);
+  }
+
+  private getTipAnchorObject(
+    hand: BrushPointerHand,
+  ): NonNullable<Entity["object3D"]> | undefined {
+    for (const anchor of this.queries.tipAnchors.entities) {
+      if (
+        String(anchor.getValue(OpenBrushTipAnchor, "hand")) === hand &&
+        anchor.object3D
+      ) {
+        return anchor.object3D;
+      }
+    }
+    return undefined;
   }
 
   private sampleBrowserPointerPose(commandEntity: Entity): void {
@@ -1477,9 +1875,10 @@ export class StrokeAuthoringSystem extends createSystem({
     stroke: RuntimeStroke,
   ): StrokePointerFrame {
     this.sampleFrame.pressure = pressure;
-    this.sampleFrame.position[0] = this.samplePosition.x;
-    this.sampleFrame.position[1] = this.samplePosition.y;
-    this.sampleFrame.position[2] = this.samplePosition.z;
+    this.writeCanvasSpacePose(stroke, this.samplePosition, this.sampleQuaternion);
+    this.sampleFrame.position[0] = this.canvasPosition.x;
+    this.sampleFrame.position[1] = this.canvasPosition.y;
+    this.sampleFrame.position[2] = this.canvasPosition.z;
     if (stroke.lazyMode === "position" && stroke.controlPoints.length > 0) {
       writeLazyInputPosition(
         this.sampleFrame.position,
@@ -1503,12 +1902,40 @@ export class StrokeAuthoringSystem extends createSystem({
         STENCIL_FRONT_PLANE_Z,
       );
     }
-    this.sampleFrame.orientation[0] = this.sampleQuaternion.x;
-    this.sampleFrame.orientation[1] = this.sampleQuaternion.y;
-    this.sampleFrame.orientation[2] = this.sampleQuaternion.z;
-    this.sampleFrame.orientation[3] = this.sampleQuaternion.w;
+    this.sampleFrame.orientation[0] = this.canvasQuaternion.x;
+    this.sampleFrame.orientation[1] = this.canvasQuaternion.y;
+    this.sampleFrame.orientation[2] = this.canvasQuaternion.z;
+    this.sampleFrame.orientation[3] = this.canvasQuaternion.w;
     this.sampleFrame.timestampMs = Math.round(time * 1000);
     return this.sampleFrame;
+  }
+
+  /** Converts a world-space pointer pose into the stroke's canvas space. */
+  private writeCanvasSpacePose(
+    stroke: RuntimeStroke,
+    worldPosition: Vector3,
+    worldQuaternion: Quaternion,
+  ): void {
+    this.poseQuaternionInv.set(
+      stroke.poseOrientationInv[0],
+      stroke.poseOrientationInv[1],
+      stroke.poseOrientationInv[2],
+      stroke.poseOrientationInv[3],
+    );
+    this.canvasPosition
+      .copy(worldPosition)
+      .sub(
+        this.poseOriginScratch.set(
+          stroke.posePosition[0],
+          stroke.posePosition[1],
+          stroke.posePosition[2],
+        ),
+      )
+      .applyQuaternion(this.poseQuaternionInv)
+      .divideScalar(stroke.poseScale);
+    this.canvasQuaternion
+      .copy(this.poseQuaternionInv)
+      .multiply(worldQuaternion);
   }
 
   private writeTapeAnchorFrame(
@@ -1615,6 +2042,8 @@ export class StrokeAuthoringSystem extends createSystem({
       | "appState"
       | "brushSettings"
       | "eraserCursors"
+      | "scenePoses"
+      | "tipAnchors"
       | "settings",
   ): Entity | undefined {
     const next = this.queries[queryName].entities.values().next();

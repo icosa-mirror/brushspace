@@ -209,6 +209,18 @@ describe("shader source preparation for non-raw ShaderMaterial", () => {
     expect(prepared).toContain("fwidth");
   });
 
+  it("renames the hand-rolled inverse() (built-in in GLSL ES 3.00)", () => {
+    const prepared = prepareBrushShaderSource(
+      "mat4 inverse(mat4 m) { return m; }\n" +
+        "void main() { vec4 p = inverse(modelViewMatrix) * vec4(1.0); float s = inversesqrt(4.0); }",
+    );
+    expect(prepared).toContain("mat4 tb_inverse(mat4 m)");
+    expect(prepared).toContain("tb_inverse(modelViewMatrix)");
+    expect(prepared).not.toMatch(/\binverse\s*\(/);
+    // The genuine built-in inversesqrt is untouched.
+    expect(prepared).toContain("inversesqrt(4.0)");
+  });
+
   it("is idempotent", () => {
     const source = "uniform mat4 modelViewMatrix;\nvoid main() {}";
     const once = prepareBrushShaderSource(source);

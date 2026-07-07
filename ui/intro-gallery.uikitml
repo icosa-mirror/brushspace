@@ -1,0 +1,214 @@
+<style>
+  .gallery-panel {
+    flex-direction: column;
+    width: 340px;
+    height: 430px;
+    padding: 14px;
+    background-color: rgba(0, 0, 0, 0);
+    border-width: 0px;
+    border-radius: 0px;
+    color: #ffffff;
+  }
+
+  .header-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 312px;
+    height: 26px;
+  }
+
+  .heading-lockup {
+    flex-direction: row;
+    align-items: center;
+    width: 190px;
+    height: 26px;
+  }
+
+  .heading-icon {
+    width: 20px;
+    height: 20px;
+    color: #ffffff;
+  }
+
+  .heading {
+    width: 162px;
+    height: 24px;
+    font-size: 19px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-left: 8px;
+    text-align: left;
+  }
+
+  .page-mark {
+    width: 122px;
+    height: 16px;
+    font-size: 11px;
+    color: #ffffff;
+    text-align: right;
+  }
+
+  .new-sketch-button {
+    width: 312px;
+    height: 52px;
+    min-width: 312px;
+    margin-top: 12px;
+    background-color: rgba(248, 250, 252, 0.95);
+    border-width: 0px;
+    border-radius: 10px;
+    color: #09090b;
+    font-size: 17px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .new-sketch-button:hover {
+    background-color: rgba(255, 255, 255, 1);
+  }
+
+  .new-sketch-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    color: #09090b;
+  }
+
+  .section-label {
+    width: 312px;
+    height: 18px;
+    margin-top: 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #a1a1aa;
+    text-align: left;
+  }
+
+  .grid-row {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 312px;
+    height: 96px;
+    margin-top: 10px;
+  }
+
+  .sketch-cell {
+    width: 96px;
+    height: 96px;
+    min-width: 96px;
+    padding: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+    background-color: rgba(0, 0, 0, 0.25);
+    border-width: 1px;
+    border-color: #ffffff;
+    border-radius: 10px;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sketch-cell:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+  }
+
+  .sketch-thumb {
+    width: 88px;
+    height: 88px;
+    border-radius: 8px;
+  }
+
+  .footer-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 312px;
+    height: 34px;
+    margin-top: 14px;
+  }
+
+  .page-button {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    padding: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+    background-color: rgba(0, 0, 0, 0.02);
+    border-width: 1px;
+    border-color: #ffffff;
+    border-radius: 8px;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .page-button:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+  }
+
+  .page-button-icon {
+    width: 18px;
+    height: 18px;
+    color: #ffffff;
+  }
+
+  .footer-label {
+    width: 228px;
+    height: 18px;
+    font-size: 12px;
+    color: #a1a1aa;
+    text-align: center;
+  }
+</style>
+<Panel class="gallery-panel">
+  <div class="header-row">
+    <div class="heading-lockup">
+      <PaintbrushIcon class="heading-icon"></PaintbrushIcon>
+      <span class="heading">Brushspace</span>
+    </div>
+    <span id="gallery-page-mark" class="page-mark">1 / 1</span>
+  </div>
+  <button id="gallery-new" class="new-sketch-button">
+    <PlusIcon class="new-sketch-icon"></PlusIcon>
+    <span>New Sketch</span>
+  </button>
+  <span class="section-label">Your Sketches</span>
+  <div class="grid-row">
+    <button id="gallery-sketch-0" class="sketch-cell">
+      <img id="gallery-thumb-0" class="sketch-thumb" src="/openbrush/blank-icon.png"></img>
+    </button>
+    <button id="gallery-sketch-1" class="sketch-cell">
+      <img id="gallery-thumb-1" class="sketch-thumb" src="/openbrush/blank-icon.png"></img>
+    </button>
+    <button id="gallery-sketch-2" class="sketch-cell">
+      <img id="gallery-thumb-2" class="sketch-thumb" src="/openbrush/blank-icon.png"></img>
+    </button>
+  </div>
+  <div class="grid-row">
+    <button id="gallery-sketch-3" class="sketch-cell">
+      <img id="gallery-thumb-3" class="sketch-thumb" src="/openbrush/blank-icon.png"></img>
+    </button>
+    <button id="gallery-sketch-4" class="sketch-cell">
+      <img id="gallery-thumb-4" class="sketch-thumb" src="/openbrush/blank-icon.png"></img>
+    </button>
+    <button id="gallery-sketch-5" class="sketch-cell">
+      <img id="gallery-thumb-5" class="sketch-thumb" src="/openbrush/blank-icon.png"></img>
+    </button>
+  </div>
+  <div class="footer-row">
+    <button id="gallery-prev" class="page-button">
+      <ChevronLeftIcon class="page-button-icon"></ChevronLeftIcon>
+    </button>
+    <span id="gallery-label" class="footer-label"></span>
+    <button id="gallery-next" class="page-button">
+      <ChevronRightIcon class="page-button-icon"></ChevronRightIcon>
+    </button>
+  </div>
+</Panel>

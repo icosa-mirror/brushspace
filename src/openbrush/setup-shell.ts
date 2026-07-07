@@ -7,6 +7,9 @@ import {
   OneHandGrabbable,
   SphereGeometry,
 } from "@iwsdk/core";
+import { LineMaterial } from "three/addons/lines/LineMaterial.js";
+import { LineSegments2 } from "three/addons/lines/LineSegments2.js";
+import { LineSegmentsGeometry } from "three/addons/lines/LineSegmentsGeometry.js";
 import type { Entity, World } from "@iwsdk/core";
 
 import {
@@ -16,7 +19,10 @@ import {
   BrushSettings,
   CanvasLayer,
   InputCommandState,
+  OpenBrushCameraState,
   OpenBrushEraserCursor,
+  OpenBrushScenePose,
+  OpenBrushTipAnchor,
   OpenBrushAppState,
   PerformanceState,
   PlaybackState,
@@ -36,27 +42,36 @@ import {
   OPEN_BRUSH_DEFAULT_BRUSH_GUID,
   openBrushInventory,
 } from "./brush-catalog.js";
+import { buildOpenBrushToolSphereSegments } from "./eraser-cursor.js";
 import {
   OPEN_BRUSH_DEFAULT_ERASER_RADIUS,
+  OPEN_BRUSH_TIP_ANCHOR_POSITION_LEFT,
+  OPEN_BRUSH_TIP_ANCHOR_POSITION_RIGHT,
+  OPEN_BRUSH_TIP_ANCHOR_QUATERNION_LEFT,
+  OPEN_BRUSH_TIP_ANCHOR_QUATERNION_RIGHT,
   OPEN_BRUSH_ERASER_FORWARD_OFFSET,
 } from "./tools.js";
 
+// ENVIRONMENT_STANDARD gradient skybox: m_SkyboxColorB at the zenith,
+// m_SkyboxColorA at the horizon.
 const OPEN_BRUSH_DARK_SKY: [number, number, number, number] = [
-  0.005,
-  0.008,
-  0.016,
+  0.022,
+  0.022,
+  0.055,
   1,
 ];
+// The dome blends colors over a wide altitude band, so the horizon value is
+// tuned below m_SkyboxColorA to match the app's narrow horizon glow.
 const OPEN_BRUSH_DARK_EQUATOR: [number, number, number, number] = [
-  0.012,
-  0.018,
-  0.035,
+  0.09,
+  0.09,
+  0.125,
   1,
 ];
 const OPEN_BRUSH_DARK_GROUND: [number, number, number, number] = [
-  0.001,
-  0.001,
-  0.003,
+  0.02,
+  0.02,
+  0.033,
   1,
 ];
 const OPEN_BRUSH_DARK_DOME_INTENSITY = 0.9;
@@ -64,6 +79,7 @@ const OPEN_BRUSH_DARK_IBL_INTENSITY = 0.35;
 
 export interface OpenBrushShellEntities {
   appState: Entity;
+  scenePose: Entity;
   mainCanvas: Entity;
   selectionCanvas: Entity;
   selectionWidget: Entity;
@@ -105,6 +121,7 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
     .addComponent(AudioFeedbackState)
     .addComponent(UiCommandHistoryState)
     .addComponent(SettingsState)
+    .addComponent(OpenBrushCameraState)
     .addComponent(PerformanceState)
     .addComponent(PersistenceState)
     .addComponent(PlaybackState)
@@ -113,7 +130,14 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
     .addComponent(BrushCatalogState);
   appState.object3D!.name = "OpenBrushAppState";
 
-  const mainCanvas = world.createTransformEntity().addComponent(CanvasLayer, {
+  const scenePose = world
+    .createTransformEntity()
+    .addComponent(OpenBrushScenePose);
+  scenePose.object3D!.name = "OpenBrushScenePose";
+
+  const mainCanvas = world
+    .createTransformEntity(undefined, scenePose)
+    .addComponent(CanvasLayer, {
     layerIndex: 0,
     order: 0,
     layerName: "Sketch",
@@ -124,7 +148,9 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
   });
   mainCanvas.object3D!.name = "OpenBrushMainCanvas";
 
-  const selectionCanvas = world.createTransformEntity().addComponent(CanvasLayer, {
+  const selectionCanvas = world
+    .createTransformEntity(undefined, scenePose)
+    .addComponent(CanvasLayer, {
     layerIndex: 1,
     order: 0,
     layerName: "Selection",
@@ -155,16 +181,25 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
     });
   selectionWidget.object3D!.name = "OpenBrushSelectionWidget";
 
-  const eraserCursorMesh = new Mesh(
-    new SphereGeometry(1, 24, 16),
-    new MeshBasicMaterial({
-      color: 0x7dd3fc,
-      transparent: true,
-      opacity: 0.24,
-      wireframe: true,
-      depthWrite: false,
+  // Fat-line wireframe globe like Open Brush's selectionsphere tool mesh;
+  // the entity scale sets the radius while the line width stays constant.
+  const eraserCursorGeometry = new LineSegmentsGeometry();
+  eraserCursorGeometry.setPositions(buildOpenBrushToolSphereSegments());
+  // IWSDK's ray BVH path expects triangle geometry; these decorative lines
+  // never raycast (same sentinel as the panel borders).
+  (eraserCursorGeometry as unknown as { boundsTree: LineSegmentsGeometry }).boundsTree =
+    eraserCursorGeometry;
+  const eraserCursorMesh = new LineSegments2(
+    eraserCursorGeometry,
+    new LineMaterial({
+      color: 0xffffff,
+      linewidth: 0.0022,
+      worldUnits: true,
+      transparent: false,
+      depthTest: true,
     }),
   );
+  eraserCursorMesh.raycast = () => {};
   eraserCursorMesh.name = "OpenBrushEraserCursorMesh";
   eraserCursorMesh.visible = false;
   const eraserCursor = world
@@ -178,6 +213,24 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
     });
   eraserCursor.object3D!.name = "OpenBrushEraserCursor";
 
+  for (const hand of ["left", "right"] as const) {
+    const gripEntity = world.playerSpaceEntities.gripSpaces[hand];
+    const anchor = world
+      .createTransformEntity(undefined, gripEntity)
+      .addComponent(OpenBrushTipAnchor, { hand });
+    anchor.object3D!.name = `OpenBrushTipAnchor_${hand}`;
+    anchor.object3D!.position.set(
+      ...(hand === "left"
+        ? OPEN_BRUSH_TIP_ANCHOR_POSITION_LEFT
+        : OPEN_BRUSH_TIP_ANCHOR_POSITION_RIGHT),
+    );
+    anchor.object3D!.quaternion.set(
+      ...(hand === "left"
+        ? OPEN_BRUSH_TIP_ANCHOR_QUATERNION_LEFT
+        : OPEN_BRUSH_TIP_ANCHOR_QUATERNION_RIGHT),
+    );
+  }
+
   const leftPointer = createBrushPointer(world, "left");
   leftPointer.object3D!.position.set(-0.25, 1.1, -0.6);
 
@@ -186,6 +239,7 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
 
   return {
     appState,
+    scenePose,
     mainCanvas,
     selectionCanvas,
     selectionWidget,

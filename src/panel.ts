@@ -37,6 +37,7 @@ import {
   resolveBrushSize01Adjustment,
 } from "./openbrush/brush-size.js";
 import { findBrushByGuid } from "./openbrush/brush-inventory.js";
+import { SketchLibrarySystem } from "./systems/SketchLibrarySystem.js";
 import {
   createNextLayerState,
   cycleLayerIndex,
@@ -80,6 +81,7 @@ import {
   type PhaseAWandButtonTone,
   type PhaseAWandButtonVisualState,
 } from "./openbrush/wand-panel-styles.js";
+import { clearUIKitInteractionStateExcept } from "./openbrush/uikit-interaction.js";
 import {
   normalizeOpenBrushSettings,
   resolveOpenBrushSettingsCommand,
@@ -129,24 +131,20 @@ const PANEL_ANCHORS: readonly OpenBrushPanelAnchor[] = [
   "center",
 ];
 const PLAYBACK_MODES = ["quickload", "timestamp", "distance"] as const;
-const WAND_COLOR_SWATCHES = [
-  { id: "color-blue", color: [0.1, 0.45, 0.95, 1] },
-  { id: "color-red", color: [0.95, 0.18, 0.28, 1] },
-  { id: "color-yellow", color: [0.95, 0.82, 0.18, 1] },
-  { id: "color-green", color: [0.2, 0.75, 0.35, 1] },
-  { id: "color-white", color: [0.98, 0.98, 0.96, 1] },
-] as const;
-const WAND_COLOR_SWATCH_IDS = WAND_COLOR_SWATCHES.map((swatch) => swatch.id);
 const WAND_BRUSH_BUTTON_IDS = [
   "brush-prev",
   "brush-next",
   "brush-size-down",
   "brush-size-up",
 ] as const;
+// Shared wand-button palette: every button keeps a white outline; state is
+// signaled through the fill (selected = bright, hover = subtle, pressed =
+// brighter) so the wand panels react consistently, matching the brush page
+// cells in ui/wand-brush.uikitml.
 const WAND_BUTTON_BACKGROUND = "rgba(0, 0, 0, 0.02)";
 const WAND_BUTTON_ACTIVE_STYLE = {
-  backgroundColor: WAND_BUTTON_BACKGROUND,
-  borderColor: 0xf8fafc,
+  backgroundColor: "rgba(255, 255, 255, 0.28)",
+  borderColor: 0xffffff,
   color: 0xffffff,
 } as const;
 const WAND_BUTTON_PRIMARY_STYLE = {
@@ -156,23 +154,28 @@ const WAND_BUTTON_PRIMARY_STYLE = {
 } as const;
 const WAND_BUTTON_SECONDARY_STYLE = {
   backgroundColor: WAND_BUTTON_BACKGROUND,
-  borderColor: 0xd7dce8,
+  borderColor: 0xffffff,
   color: 0xffffff,
 } as const;
 const WAND_BUTTON_DISABLED_STYLE = {
   backgroundColor: WAND_BUTTON_BACKGROUND,
-  borderColor: 0x6b7280,
+  borderColor: 0xffffff,
   color: 0x8b95a8,
 } as const;
 const WAND_BUTTON_HOVER_STYLE = {
-  backgroundColor: "rgba(248, 250, 252, 0.82)",
-  borderColor: 0xf8fafc,
-  color: 0x020204,
+  backgroundColor: "rgba(255, 255, 255, 0.16)",
+  borderColor: 0xffffff,
+  color: 0xffffff,
+} as const;
+const WAND_BUTTON_PRESSED_STYLE = {
+  backgroundColor: "rgba(255, 255, 255, 0.32)",
+  borderColor: 0xffffff,
+  color: 0xffffff,
 } as const;
 const WAND_BUTTON_ACTIVE_HOVERABLE_STYLE = {
   ...WAND_BUTTON_ACTIVE_STYLE,
   hover: WAND_BUTTON_HOVER_STYLE,
-  active: WAND_BUTTON_HOVER_STYLE,
+  active: WAND_BUTTON_PRESSED_STYLE,
 } as const;
 const WAND_BUTTON_ACTIVE_IDLE_STYLE = {
   ...WAND_BUTTON_ACTIVE_STYLE,
@@ -182,7 +185,7 @@ const WAND_BUTTON_ACTIVE_IDLE_STYLE = {
 const WAND_BUTTON_PRIMARY_HOVERABLE_STYLE = {
   ...WAND_BUTTON_PRIMARY_STYLE,
   hover: WAND_BUTTON_HOVER_STYLE,
-  active: WAND_BUTTON_HOVER_STYLE,
+  active: WAND_BUTTON_PRESSED_STYLE,
 } as const;
 const WAND_BUTTON_PRIMARY_IDLE_STYLE = {
   ...WAND_BUTTON_PRIMARY_STYLE,
@@ -192,7 +195,7 @@ const WAND_BUTTON_PRIMARY_IDLE_STYLE = {
 const WAND_BUTTON_SECONDARY_HOVERABLE_STYLE = {
   ...WAND_BUTTON_SECONDARY_STYLE,
   hover: WAND_BUTTON_HOVER_STYLE,
-  active: WAND_BUTTON_HOVER_STYLE,
+  active: WAND_BUTTON_PRESSED_STYLE,
 } as const;
 const WAND_BUTTON_SECONDARY_IDLE_STYLE = {
   ...WAND_BUTTON_SECONDARY_STYLE,
@@ -202,7 +205,7 @@ const WAND_BUTTON_SECONDARY_IDLE_STYLE = {
 const WAND_BUTTON_DISABLED_HOVERABLE_STYLE = {
   ...WAND_BUTTON_DISABLED_STYLE,
   hover: WAND_BUTTON_HOVER_STYLE,
-  active: WAND_BUTTON_HOVER_STYLE,
+  active: WAND_BUTTON_PRESSED_STYLE,
 } as const;
 const WAND_BUTTON_DISABLED_IDLE_STYLE = {
   ...WAND_BUTTON_DISABLED_STYLE,
@@ -216,21 +219,17 @@ const WAND_BRUSH_BUTTON_STYLE = {
 } as const;
 
 export class PanelSystem extends createSystem({
-  welcomePanel: {
+  wandToolsPanel: {
     required: [PanelUI, PanelDocument],
-    where: [eq(PanelUI, "config", "./ui/welcome.json")],
+    where: [eq(PanelUI, "config", "./ui/wand-tools.json")],
   },
   wandBrushPanel: {
     required: [PanelUI, PanelDocument],
     where: [eq(PanelUI, "config", "./ui/wand-brush.json")],
   },
-  wandColorPanel: {
+  wandColorFavoritesPanel: {
     required: [PanelUI, PanelDocument],
-    where: [eq(PanelUI, "config", "./ui/wand-color.json")],
-  },
-  wandToolsPanel: {
-    required: [PanelUI, PanelDocument],
-    where: [eq(PanelUI, "config", "./ui/wand-tools.json")],
+    where: [eq(PanelUI, "config", "./ui/wand-color-favorites.json")],
   },
   brushSettings: { required: [BrushSettings] },
   appState: { required: [OpenBrushAppState] },
@@ -245,30 +244,14 @@ export class PanelSystem extends createSystem({
   strokes: { required: [BrushStroke] },
 }) {
   private readonly initializedPanels = new Set<number>();
+  private readonly clickSweepBound = new Set<number>();
+  private readonly wandPanelWasHovered = new Set<number>();
   private readonly commandHistory = new UiCommandHistory();
 
   init() {
-    this.queries.welcomePanel.subscribe("qualify", (entity) => {
-      this.setupPanel(entity);
-    });
-    this.queries.wandBrushPanel.subscribe("qualify", (entity) => {
-      this.setupWandBrushPanel(entity);
-    });
-    this.queries.wandColorPanel.subscribe("qualify", (entity) => {
-      this.setupWandColorPanel(entity);
-    });
     this.queries.wandToolsPanel.subscribe("qualify", (entity) => {
       this.setupWandToolsPanel(entity);
     });
-    for (const entity of this.queries.welcomePanel.entities) {
-      this.setupPanel(entity);
-    }
-    for (const entity of this.queries.wandBrushPanel.entities) {
-      this.setupWandBrushPanel(entity);
-    }
-    for (const entity of this.queries.wandColorPanel.entities) {
-      this.setupWandColorPanel(entity);
-    }
     for (const entity of this.queries.wandToolsPanel.entities) {
       this.setupWandToolsPanel(entity);
     }
@@ -276,22 +259,11 @@ export class PanelSystem extends createSystem({
 
   update() {
     this.updateUiCommandHistoryState();
-    for (const entity of this.queries.welcomePanel.entities) {
-      const document = PanelDocument.data.document[
-        entity.index
-      ] as UIKitDocument;
-      if (!document) {
-        continue;
-      }
-      this.updateBrushLabels(document);
-      this.updateToolLabels(document);
-      this.updateLayerLabels(document);
-      this.updateSelectionLabels(document);
-      this.updateHistoryLabels(document);
-      this.updateSettingsLabels(document);
-      this.updatePersistenceLabels(document);
-      this.updatePlaybackLabels(document);
-    }
+    // While a trigger is held, a UIKit click is potentially in flight
+    // (pointerdown fired, pointerup pending). Sweeping activeList in that
+    // window aborts the click — the "have to click twice" bug — so every
+    // sweep below defers until both triggers are released.
+    const selectHeld = this.anySelectHeld();
     for (const entity of this.queries.wandToolsPanel.entities) {
       const document = PanelDocument.data.document[
         entity.index
@@ -300,555 +272,96 @@ export class PanelSystem extends createSystem({
         continue;
       }
       this.updateWandToolLabels(document, entity.hasComponent(Hovered));
-      this.clearStaleWandHoverState(entity, document, PHASE_A_WAND_BUTTON_IDS);
-    }
-    for (const entity of this.queries.wandBrushPanel.entities) {
-      const document = PanelDocument.data.document[
-        entity.index
-      ] as UIKitDocument;
-      if (!document) {
-        continue;
-      }
-      this.updateBrushLabels(document);
-      this.clearStaleWandHoverState(entity, document, WAND_BRUSH_BUTTON_IDS);
-    }
-    for (const entity of this.queries.wandColorPanel.entities) {
-      const document = PanelDocument.data.document[
-        entity.index
-      ] as UIKitDocument;
-      if (!document) {
-        continue;
-      }
-      this.updateWandColorLabels(document);
       this.clearStaleWandHoverState(
         entity,
         document,
-        WAND_COLOR_SWATCH_IDS,
+        PHASE_A_WAND_BUTTON_IDS,
+        selectHeld,
       );
     }
-  }
-
-  private setupPanel(entity: Entity): void {
-    if (this.initializedPanels.has(entity.index)) {
-      return;
-    }
-    const document = PanelDocument.data.document[
-      entity.index
-    ] as UIKitDocument;
-    if (!document) {
-      return;
-    }
-    this.initializedPanels.add(entity.index);
-
-    this.nameElement(document, "xr-button");
-    this.nameElement(document, "history-undo-button");
-    this.nameElement(document, "history-redo-button");
-    this.nameElement(document, "tool-draw-button");
-    this.nameElement(document, "tool-eraser-button");
-    this.nameElement(document, "tool-straightedge-button");
-    this.nameElement(document, "tool-mirror-button");
-    this.nameElement(document, "tool-grid-snap-button");
-    this.nameElement(document, "tool-lazy-input-button");
-    this.nameElement(document, "tool-tape-button");
-    this.nameElement(document, "tool-stencil-button");
-    this.nameElement(document, "tool-color-picker-button");
-    this.nameElement(document, "tool-brush-picker-button");
-    this.nameElement(document, "tool-dropper-button");
-    this.nameElement(document, "tool-pick-button");
-    this.nameElement(document, "tool-erase-button");
-    this.nameElement(document, "brush-previous-button");
-    this.nameElement(document, "brush-next-button");
-    this.nameElement(document, "brush-size-down-button");
-    this.nameElement(document, "brush-size-up-button");
-    this.nameElement(document, "layer-new-button");
-    this.nameElement(document, "layer-next-button");
-    this.nameElement(document, "layer-toggle-visible-button");
-    this.nameElement(document, "layer-toggle-lock-button");
-    this.nameElement(document, "layer-move-up-button");
-    this.nameElement(document, "layer-move-down-button");
-    this.nameElement(document, "layer-clear-button");
-    this.nameElement(document, "selection-select-last-button");
-    this.nameElement(document, "selection-clear-button");
-    this.nameElement(document, "selection-nudge-left-button");
-    this.nameElement(document, "selection-nudge-right-button");
-    this.nameElement(document, "settings-hand-button");
-    this.nameElement(document, "settings-anchor-button");
-    this.nameElement(document, "settings-scale-down-button");
-    this.nameElement(document, "settings-scale-up-button");
-    this.nameElement(document, "settings-distance-near-button");
-    this.nameElement(document, "settings-distance-far-button");
-    this.nameElement(document, "settings-turn-mode-button");
-    this.nameElement(document, "settings-locomotion-button");
-    this.nameElement(document, "settings-browser-pointer-button");
-    this.nameElement(document, "settings-vignette-button");
-    this.nameElement(document, "settings-help-button");
-    this.nameElement(document, "sketch-save-button");
-    this.nameElement(document, "sketch-save-as-button");
-    this.nameElement(document, "sketch-load-button");
-    this.nameElement(document, "sketch-export-tilt-button");
-    this.nameElement(document, "sketch-export-glb-button");
-    this.nameElement(document, "playback-mode-button");
-    this.nameElement(document, "playback-rewind-button");
-    this.nameElement(document, "playback-step-button");
-    this.nameElement(document, "playback-complete-button");
-
-    const xrButton = document.getElementById("xr-button") as TextElement;
-    xrButton?.addEventListener("click", () => {
-      if (this.world.visibilityState.value === VisibilityState.NonImmersive) {
-        this.world.launchXR();
-      } else {
-        this.world.exitXR();
-      }
-    });
-    this.cleanupFuncs.push(
-      this.world.visibilityState.subscribe((visibilityState) => {
-        if (visibilityState === VisibilityState.NonImmersive) {
-          xrButton?.setProperties({ text: "Enter XR" });
-        } else {
-          xrButton?.setProperties({ text: "Exit to Browser" });
+    // UIKit hover/pressed styling (including the horizon-kit button theme's
+    // grey fills) keys off per-element hovered/active lists that stick when
+    // the ray leaves mid-press. Sweep them: on every click anywhere (across
+    // ALL wand documents), the moment a panel regains hover (so leftovers
+    // clear before they are seen), and for a few frames after hover ends.
+    for (const query of [
+      this.queries.wandToolsPanel,
+      this.queries.wandBrushPanel,
+      this.queries.wandColorFavoritesPanel,
+    ]) {
+      for (const entity of query.entities) {
+        const document = PanelDocument.data.document[
+          entity.index
+        ] as UIKitDocument;
+        if (!document) {
+          continue;
         }
-      }),
+        this.bindClickSweep(entity, document);
+        const hovered = entity.hasComponent(Hovered);
+        if (hovered && !this.wandPanelWasHovered.has(entity.index)) {
+          if (!selectHeld) {
+            this.wandPanelWasHovered.add(entity.index);
+            clearUIKitInteractionStateExcept(document);
+          }
+        } else if (!hovered) {
+          this.wandPanelWasHovered.delete(entity.index);
+        }
+        if (query !== this.queries.wandToolsPanel) {
+          this.clearStaleWandHoverState(entity, document, [], selectHeld);
+        }
+      }
+    }
+  }
+
+  private anySelectHeld(): boolean {
+    return Boolean(
+      this.input.xr.gamepads.left?.getSelecting() ||
+        this.input.xr.gamepads.right?.getSelecting(),
     );
-
-    const undoButton = document.getElementById(
-      "history-undo-button",
-    ) as TextElement;
-    undoButton?.addEventListener("click", () => {
-      this.undoUiCommand();
-    });
-
-    const redoButton = document.getElementById(
-      "history-redo-button",
-    ) as TextElement;
-    redoButton?.addEventListener("click", () => {
-      this.redoUiCommand();
-    });
-
-    const drawToolButton = document.getElementById(
-      "tool-draw-button",
-    ) as TextElement;
-    drawToolButton?.addEventListener("click", () => {
-      this.selectTool("free-paint");
-    });
-
-    const eraserToolButton = document.getElementById(
-      "tool-eraser-button",
-    ) as TextElement;
-    eraserToolButton?.addEventListener("click", () => {
-      this.selectTool("eraser");
-    });
-
-    const straightedgeToolButton = document.getElementById(
-      "tool-straightedge-button",
-    ) as TextElement;
-    straightedgeToolButton?.addEventListener("click", () => {
-      this.toggleStraightEdgeMode();
-    });
-
-    const mirrorToolButton = document.getElementById(
-      "tool-mirror-button",
-    ) as TextElement;
-    mirrorToolButton?.addEventListener("click", () => {
-      this.selectTool("mirror");
-    });
-
-    const gridSnapToolButton = document.getElementById(
-      "tool-grid-snap-button",
-    ) as TextElement;
-    gridSnapToolButton?.addEventListener("click", () => {
-      this.selectTool("grid-snap");
-    });
-
-    const lazyInputToolButton = document.getElementById(
-      "tool-lazy-input-button",
-    ) as TextElement;
-    lazyInputToolButton?.addEventListener("click", () => {
-      this.selectTool("lazy-input");
-    });
-
-    const tapeToolButton = document.getElementById(
-      "tool-tape-button",
-    ) as TextElement;
-    tapeToolButton?.addEventListener("click", () => {
-      this.selectTool("tape");
-    });
-
-    const stencilToolButton = document.getElementById(
-      "tool-stencil-button",
-    ) as TextElement;
-    stencilToolButton?.addEventListener("click", () => {
-      this.selectTool("stencil");
-    });
-
-    const colorPickerToolButton = document.getElementById(
-      "tool-color-picker-button",
-    ) as TextElement;
-    colorPickerToolButton?.addEventListener("click", () => {
-      this.selectTool("color-picker");
-    });
-
-    const brushPickerToolButton = document.getElementById(
-      "tool-brush-picker-button",
-    ) as TextElement;
-    brushPickerToolButton?.addEventListener("click", () => {
-      this.selectTool("brush-picker");
-    });
-
-    const dropperToolButton = document.getElementById(
-      "tool-dropper-button",
-    ) as TextElement;
-    dropperToolButton?.addEventListener("click", () => {
-      this.selectTool("dropper");
-    });
-
-    const pickButton = document.getElementById("tool-pick-button") as TextElement;
-    pickButton?.addEventListener("click", () => {
-      this.pickFromActiveTool();
-    });
-
-    const eraseButton = document.getElementById(
-      "tool-erase-button",
-    ) as TextElement;
-    eraseButton?.addEventListener("click", () => {
-      this.eraseWithActiveTool();
-    });
-
-    const previousBrushButton = document.getElementById(
-      "brush-previous-button",
-    ) as TextElement;
-    previousBrushButton?.addEventListener("click", () => {
-      this.selectBrushOffset(-1);
-    });
-
-    const nextBrushButton = document.getElementById(
-      "brush-next-button",
-    ) as TextElement;
-    nextBrushButton?.addEventListener("click", () => {
-      this.selectBrushOffset(1);
-    });
-
-    const brushSizeDownButton = document.getElementById(
-      "brush-size-down-button",
-    ) as TextElement;
-    brushSizeDownButton?.addEventListener("click", () => {
-      this.adjustActiveToolSize(-OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP);
-    });
-
-    const brushSizeUpButton = document.getElementById(
-      "brush-size-up-button",
-    ) as TextElement;
-    brushSizeUpButton?.addEventListener("click", () => {
-      this.adjustActiveToolSize(OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP);
-    });
-
-    const newLayerButton = document.getElementById(
-      "layer-new-button",
-    ) as TextElement;
-    newLayerButton?.addEventListener("click", () => {
-      this.createLayer();
-    });
-
-    const nextLayerButton = document.getElementById(
-      "layer-next-button",
-    ) as TextElement;
-    nextLayerButton?.addEventListener("click", () => {
-      this.selectLayerOffset(1);
-    });
-
-    const visibilityButton = document.getElementById(
-      "layer-toggle-visible-button",
-    ) as TextElement;
-    visibilityButton?.addEventListener("click", () => {
-      this.toggleActiveLayerVisibility();
-    });
-
-    const lockButton = document.getElementById(
-      "layer-toggle-lock-button",
-    ) as TextElement;
-    lockButton?.addEventListener("click", () => {
-      this.toggleActiveLayerLock();
-    });
-
-    const moveUpButton = document.getElementById(
-      "layer-move-up-button",
-    ) as TextElement;
-    moveUpButton?.addEventListener("click", () => {
-      this.moveActiveLayer(-1);
-    });
-
-    const moveDownButton = document.getElementById(
-      "layer-move-down-button",
-    ) as TextElement;
-    moveDownButton?.addEventListener("click", () => {
-      this.moveActiveLayer(1);
-    });
-
-    const clearLayerButton = document.getElementById(
-      "layer-clear-button",
-    ) as TextElement;
-    clearLayerButton?.addEventListener("click", () => {
-      this.clearActiveLayer();
-    });
-
-    const selectLastButton = document.getElementById(
-      "selection-select-last-button",
-    ) as TextElement;
-    selectLastButton?.addEventListener("click", () => {
-      this.selectLastStrokeOnActiveLayer();
-    });
-
-    const clearSelectionButton = document.getElementById(
-      "selection-clear-button",
-    ) as TextElement;
-    clearSelectionButton?.addEventListener("click", () => {
-      this.clearSelection();
-    });
-
-    const nudgeLeftButton = document.getElementById(
-      "selection-nudge-left-button",
-    ) as TextElement;
-    nudgeLeftButton?.addEventListener("click", () => {
-      this.nudgeSelectedStrokes(-SELECTION_NUDGE_DISTANCE, 0, 0);
-    });
-
-    const nudgeRightButton = document.getElementById(
-      "selection-nudge-right-button",
-    ) as TextElement;
-    nudgeRightButton?.addEventListener("click", () => {
-      this.nudgeSelectedStrokes(SELECTION_NUDGE_DISTANCE, 0, 0);
-    });
-
-    const settingsHandButton = document.getElementById(
-      "settings-hand-button",
-    ) as TextElement;
-    settingsHandButton?.addEventListener("click", () => {
-      this.applySettingsCommand({ type: "toggle-dominant-hand" });
-    });
-
-    const settingsAnchorButton = document.getElementById(
-      "settings-anchor-button",
-    ) as TextElement;
-    settingsAnchorButton?.addEventListener("click", () => {
-      this.applySettingsCommand({
-        type: "set-panel-anchor",
-        anchor: this.getNextPanelAnchor(),
-      });
-    });
-
-    const settingsScaleDownButton = document.getElementById(
-      "settings-scale-down-button",
-    ) as TextElement;
-    settingsScaleDownButton?.addEventListener("click", () => {
-      this.applySettingsCommand({
-        type: "nudge-panel-scale",
-        delta: -PANEL_SCALE_STEP,
-      });
-    });
-
-    const settingsScaleUpButton = document.getElementById(
-      "settings-scale-up-button",
-    ) as TextElement;
-    settingsScaleUpButton?.addEventListener("click", () => {
-      this.applySettingsCommand({
-        type: "nudge-panel-scale",
-        delta: PANEL_SCALE_STEP,
-      });
-    });
-
-    const settingsDistanceNearButton = document.getElementById(
-      "settings-distance-near-button",
-    ) as TextElement;
-    settingsDistanceNearButton?.addEventListener("click", () => {
-      this.applySettingsCommand({
-        type: "nudge-panel-distance",
-        delta: -PANEL_DISTANCE_STEP,
-      });
-    });
-
-    const settingsDistanceFarButton = document.getElementById(
-      "settings-distance-far-button",
-    ) as TextElement;
-    settingsDistanceFarButton?.addEventListener("click", () => {
-      this.applySettingsCommand({
-        type: "nudge-panel-distance",
-        delta: PANEL_DISTANCE_STEP,
-      });
-    });
-
-    const settingsTurnModeButton = document.getElementById(
-      "settings-turn-mode-button",
-    ) as TextElement;
-    settingsTurnModeButton?.addEventListener("click", () => {
-      this.applySettingsCommand({ type: "cycle-turn-mode" });
-    });
-
-    const settingsLocomotionButton = document.getElementById(
-      "settings-locomotion-button",
-    ) as TextElement;
-    settingsLocomotionButton?.addEventListener("click", () => {
-      this.applySettingsCommand({
-        type: "set-locomotion-mode",
-        mode: this.getNextLocomotionMode(),
-      });
-    });
-
-    const settingsBrowserPointerButton = document.getElementById(
-      "settings-browser-pointer-button",
-    ) as TextElement;
-    settingsBrowserPointerButton?.addEventListener("click", () => {
-      const settings = this.readSettingsState();
-      this.applySettingsCommand({
-        type: "set-browser-pointer-enabled",
-        enabled: !settings.browserPointerEnabled,
-      });
-    });
-
-    const settingsVignetteButton = document.getElementById(
-      "settings-vignette-button",
-    ) as TextElement;
-    settingsVignetteButton?.addEventListener("click", () => {
-      const settings = this.readSettingsState();
-      this.applySettingsCommand({
-        type: "set-comfort-vignette-enabled",
-        enabled: !settings.comfortVignetteEnabled,
-      });
-    });
-
-    const settingsHelpButton = document.getElementById(
-      "settings-help-button",
-    ) as TextElement;
-    settingsHelpButton?.addEventListener("click", () => {
-      this.applySettingsCommand({ type: "toggle-help" });
-    });
-
-    const sketchSaveButton = document.getElementById(
-      "sketch-save-button",
-    ) as TextElement;
-    sketchSaveButton?.addEventListener("click", () => {
-      this.saveRuntimeSketch(false);
-    });
-
-    const sketchSaveAsButton = document.getElementById(
-      "sketch-save-as-button",
-    ) as TextElement;
-    sketchSaveAsButton?.addEventListener("click", () => {
-      this.saveRuntimeSketch(true);
-    });
-
-    const sketchLoadButton = document.getElementById(
-      "sketch-load-button",
-    ) as TextElement;
-    sketchLoadButton?.addEventListener("click", () => {
-      this.loadRuntimeSketch();
-    });
-
-    const sketchExportTiltButton = document.getElementById(
-      "sketch-export-tilt-button",
-    ) as TextElement;
-    sketchExportTiltButton?.addEventListener("click", () => {
-      this.exportRuntimeSketch("tilt");
-    });
-
-    const sketchExportGlbButton = document.getElementById(
-      "sketch-export-glb-button",
-    ) as TextElement;
-    sketchExportGlbButton?.addEventListener("click", () => {
-      this.exportRuntimeSketch("glb");
-    });
-
-    const playbackModeButton = document.getElementById(
-      "playback-mode-button",
-    ) as TextElement;
-    playbackModeButton?.addEventListener("click", () => {
-      this.cyclePlaybackMode();
-    });
-
-    const playbackRewindButton = document.getElementById(
-      "playback-rewind-button",
-    ) as TextElement;
-    playbackRewindButton?.addEventListener("click", () => {
-      this.rewindPlayback();
-    });
-
-    const playbackStepButton = document.getElementById(
-      "playback-step-button",
-    ) as TextElement;
-    playbackStepButton?.addEventListener("click", () => {
-      this.stepPlayback();
-    });
-
-    const playbackCompleteButton = document.getElementById(
-      "playback-complete-button",
-    ) as TextElement;
-    playbackCompleteButton?.addEventListener("click", () => {
-      this.completePlayback();
-    });
-    this.updateBrushLabels(document);
-    this.updateToolLabels(document);
-    this.updateLayerLabels(document);
-    this.updateSelectionLabels(document);
-    this.updateHistoryLabels(document);
-    this.updateSettingsLabels(document);
-    this.updatePersistenceLabels(document);
-    this.updatePlaybackLabels(document);
   }
 
-  private setupWandBrushPanel(entity: Entity): void {
-    if (!this.registerPanelDocument(entity)) {
+  /**
+   * Clicks bubble to the document root; on each one, drop stale hover and
+   * pressed styling on EVERY wand document except the element being clicked
+   * (stale state on one panel is often created while interacting with
+   * another).
+   */
+  private bindClickSweep(entity: Entity, document: UIKitDocument): void {
+    if (this.clickSweepBound.has(entity.index)) {
       return;
     }
-    const document = PanelDocument.data.document[entity.index] as UIKitDocument;
-    this.nameElement(document, "brush-prev");
-    this.nameElement(document, "brush-next");
-    this.nameElement(document, "brush-size-down");
-    this.nameElement(document, "brush-size-up");
-    this.nameElement(document, "wand-brush-name");
-    this.nameElement(document, "wand-brush-meta");
-    this.nameElement(document, "wand-brush-size");
-
-    const previousBrushButton = document.getElementById(
-      "brush-prev",
-    ) as TextElement;
-    previousBrushButton?.addEventListener("click", () => {
-      this.selectBrushOffset(-1);
+    this.clickSweepBound.add(entity.index);
+    const root = document.rootElement as unknown as {
+      addEventListener?: (
+        type: string,
+        listener: (event: { target?: unknown }) => void,
+      ) => void;
+    };
+    root.addEventListener?.("click", (event) => {
+      // If the other hand still holds its trigger, its click is in flight —
+      // sweeping now would abort it. The deferred sweeps handle cleanup.
+      if (this.anySelectHeld()) {
+        return;
+      }
+      this.sweepAllWandDocuments(event?.target);
     });
-
-    const nextBrushButton = document.getElementById("brush-next") as TextElement;
-    nextBrushButton?.addEventListener("click", () => {
-      this.selectBrushOffset(1);
-    });
-
-    const brushSizeDownButton = document.getElementById(
-      "brush-size-down",
-    ) as TextElement;
-    brushSizeDownButton?.addEventListener("click", () => {
-      this.adjustActiveToolSize(-OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP);
-    });
-
-    const brushSizeUpButton = document.getElementById(
-      "brush-size-up",
-    ) as TextElement;
-    brushSizeUpButton?.addEventListener("click", () => {
-      this.adjustActiveToolSize(OPEN_BRUSH_BRUSH_SIZE_BUTTON_STEP);
-    });
-
-    this.updateBrushLabels(document);
   }
 
-  private setupWandColorPanel(entity: Entity): void {
-    if (!this.registerPanelDocument(entity)) {
-      return;
+  private sweepAllWandDocuments(exceptTarget?: unknown): void {
+    for (const query of [
+      this.queries.wandToolsPanel,
+      this.queries.wandBrushPanel,
+      this.queries.wandColorFavoritesPanel,
+    ]) {
+      for (const entity of query.entities) {
+        const document = PanelDocument.data.document[
+          entity.index
+        ] as UIKitDocument;
+        if (document) {
+          clearUIKitInteractionStateExcept(document, exceptTarget);
+        }
+      }
     }
-    const document = PanelDocument.data.document[entity.index] as UIKitDocument;
-    this.nameElement(document, "current-color-swatch");
-    for (const swatch of WAND_COLOR_SWATCHES) {
-      this.nameElement(document, swatch.id);
-      const button = document.getElementById(swatch.id) as TextElement;
-      button?.addEventListener("click", () => {
-        this.setBrushColor(swatch.color);
-      });
-    }
-    this.updateWandColorLabels(document);
   }
 
   private setupWandToolsPanel(entity: Entity): void {
@@ -859,9 +372,10 @@ export class PanelSystem extends createSystem({
     this.nameElement(document, "tool-draw");
     this.nameElement(document, "tool-line");
     this.nameElement(document, "tool-erase");
-    this.nameElement(document, "tool-color-picker");
-    this.nameElement(document, "tool-brush-picker");
     this.nameElement(document, "tool-dropper");
+    this.nameElement(document, "tool-camera");
+    this.nameElement(document, "tool-save");
+    this.nameElement(document, "tool-home");
     this.nameElement(document, "stroke-history-undo");
     this.nameElement(document, "stroke-history-redo");
     this.nameElement(document, "stroke-history-state");
@@ -881,25 +395,28 @@ export class PanelSystem extends createSystem({
       this.selectTool("eraser");
     });
 
-    const colorPickerToolButton = document.getElementById(
-      "tool-color-picker",
-    ) as TextElement;
-    colorPickerToolButton?.addEventListener("click", () => {
-      this.selectTool("color-picker");
-    });
-
-    const brushPickerToolButton = document.getElementById(
-      "tool-brush-picker",
-    ) as TextElement;
-    brushPickerToolButton?.addEventListener("click", () => {
-      this.selectTool("brush-picker");
-    });
-
     const dropperToolButton = document.getElementById(
       "tool-dropper",
     ) as TextElement;
     dropperToolButton?.addEventListener("click", () => {
       this.selectTool("dropper");
+    });
+
+    const cameraToolButton = document.getElementById(
+      "tool-camera",
+    ) as TextElement;
+    cameraToolButton?.addEventListener("click", () => {
+      this.selectTool("camera");
+    });
+
+    const saveButton = document.getElementById("tool-save") as TextElement;
+    saveButton?.addEventListener("click", () => {
+      this.world.getSystem(SketchLibrarySystem)?.saveActiveSketch();
+    });
+
+    const homeButton = document.getElementById("tool-home") as TextElement;
+    homeButton?.addEventListener("click", () => {
+      this.world.getSystem(SketchLibrarySystem)?.quitToIntro();
     });
 
     const undoButton = document.getElementById(
@@ -1136,30 +653,6 @@ export class PanelSystem extends createSystem({
     this.touchAppState();
   }
 
-  private setBrushColor(color: readonly [number, number, number, number]): void {
-    const settingsEntity = this.getBrushSettingsEntity();
-    if (!settingsEntity) {
-      return;
-    }
-    const colorView = settingsEntity.getVectorView(
-      BrushSettings,
-      "color",
-    ) as Float32Array;
-    if (
-      colorView[0] === color[0] &&
-      colorView[1] === color[1] &&
-      colorView[2] === color[2] &&
-      colorView[3] === color[3]
-    ) {
-      return;
-    }
-    colorView[0] = color[0];
-    colorView[1] = color[1];
-    colorView[2] = color[2];
-    colorView[3] = color[3];
-    this.touchAppState();
-  }
-
   private readBrushSettingsSnapshot(
     settingsEntity: Entity,
   ): OpenBrushBrushSettingsSnapshot {
@@ -1220,197 +713,6 @@ export class PanelSystem extends createSystem({
       BrushSettings,
       "size",
       brushSize01ToLiveBrushSize(size01, brush?.brushSizeRange),
-    );
-  }
-
-  private updateBrushLabels(document: UIKitDocument): void {
-    const settingsEntity = this.getBrushSettingsEntity();
-    const appState = this.getAppStateEntity();
-    const activeTool = resolveOpenBrushTool(
-      appState ? String(appState.getValue(OpenBrushAppState, "activeTool")) : "",
-    );
-    const toolStatus = appState
-      ? String(appState.getValue(OpenBrushAppState, "toolStatus"))
-      : activeTool.status;
-    const panelFocusBlocked = isOpenBrushPanelFocusStatus(toolStatus);
-    const activeBrushGuid = settingsEntity
-      ? String(settingsEntity.getValue(BrushSettings, "brushGuid"))
-      : "";
-    const activeIndex = resolveSelectableBrushIndex(activeBrushGuid);
-    const activeBrush = selectableOpenBrushes[activeIndex];
-    const size01 = settingsEntity
-      ? normalizeBrushSize01(
-          Number(settingsEntity.getValue(BrushSettings, "size01")),
-        )
-      : Number.NaN;
-    const size = settingsEntity
-      ? Number(settingsEntity.getValue(BrushSettings, "size"))
-      : undefined;
-    const eraserCursor = this.getEraserCursorEntity();
-    const eraserRadius = eraserCursor
-      ? Number(eraserCursor.getValue(OpenBrushEraserCursor, "radius"))
-      : 0;
-    const labels = resolveWandBrushPanelLabels({
-      activeBrush,
-      activeBrushIndex: activeIndex,
-      brushCount: selectableOpenBrushes.length,
-      brushSize01: size01,
-      brushSize: size,
-      eraserRadius,
-      eraserActive: activeTool.erases,
-      panelFocusBlocked,
-      toolStatus,
-    });
-
-    this.setText(document, "active-brush-name", labels.activeBrushName);
-    this.setText(document, "active-brush-meta", labels.activeBrushMeta);
-    this.setText(
-      document,
-      "wand-brush-name",
-      labels.wandBrushName,
-    );
-    this.setText(
-      document,
-      "wand-brush-meta",
-      labels.wandBrushMeta,
-    );
-    this.setText(
-      document,
-      "wand-brush-size",
-      labels.wandBrushSize,
-    );
-    this.setText(
-      document,
-      "brush-catalog-counts",
-      `${openBrushInventorySummary.supported} supported | ${openBrushInventorySummary.fallback} fallback | ${openBrushInventorySummary.unsupported} pending`,
-    );
-    this.setText(
-      document,
-      "brush-warning",
-      labels.warning,
-    );
-    this.resetWandBrushButtonStyles(document);
-  }
-
-  private updateWandColorLabels(document: UIKitDocument): void {
-    const settingsEntity = this.getBrushSettingsEntity();
-    const swatch = document.getElementById("current-color-swatch") as StyleElement;
-    if (!settingsEntity || !swatch) {
-      return;
-    }
-    const colorView = settingsEntity.getVectorView(
-      BrushSettings,
-      "color",
-    ) as Float32Array;
-    const activeSwatchId = getNearestWandColorSwatchId(
-      colorView[0],
-      colorView[1],
-      colorView[2],
-    );
-    swatch.setProperties({
-      backgroundColor: formatTranslucentWandColor([
-        colorView[0],
-        colorView[1],
-        colorView[2],
-      ]),
-      borderColor: 0xf8fafc,
-    });
-    for (const colorSwatch of WAND_COLOR_SWATCHES) {
-      const button = document.getElementById(colorSwatch.id) as StyleElement;
-      button?.setProperties({
-        backgroundColor: formatTranslucentWandColor(colorSwatch.color),
-        borderColor:
-          colorSwatch.id === activeSwatchId ? 0xf8fafc : 0x71717a,
-        color: 0xffffff,
-      });
-    }
-  }
-
-  private updateToolLabels(document: UIKitDocument): void {
-    const appState = this.getAppStateEntity();
-    const selectedTool = resolveOpenBrushTool(
-      appState ? String(appState.getValue(OpenBrushAppState, "activeTool")) : "",
-    );
-    const straightEdgeEnabled = appState
-      ? Boolean(appState.getValue(OpenBrushAppState, "straightEdgeEnabled"))
-      : false;
-    const activeTool = resolveEffectiveOpenBrushTool(
-      selectedTool.id,
-      straightEdgeEnabled,
-    );
-    const toolStatus = appState
-      ? String(appState.getValue(OpenBrushAppState, "toolStatus"))
-      : activeTool.status;
-
-    this.setText(document, "active-tool-name", activeTool.label);
-    this.setText(document, "active-tool-state", toolStatus);
-    this.setText(
-      document,
-      "tool-draw-button",
-      selectedTool.id === "free-paint" && !straightEdgeEnabled
-        ? "Draw *"
-        : "Draw",
-    );
-    this.setText(
-      document,
-      "tool-eraser-button",
-      activeTool.id === "eraser" ? "Eraser *" : "Eraser",
-    );
-    this.setText(
-      document,
-      "tool-straightedge-button",
-      activeTool.id === "straightedge" ? "Line *" : "Line",
-    );
-    this.setText(
-      document,
-      "tool-mirror-button",
-      activeTool.id === "mirror" ? "Mirror *" : "Mirror",
-    );
-    this.setText(
-      document,
-      "tool-grid-snap-button",
-      activeTool.id === "grid-snap" ? "Grid *" : "Grid",
-    );
-    this.setText(
-      document,
-      "tool-lazy-input-button",
-      activeTool.id === "lazy-input" ? "Lazy *" : "Lazy",
-    );
-    this.setText(
-      document,
-      "tool-tape-button",
-      activeTool.id === "tape" ? "Tape *" : "Tape",
-    );
-    this.setText(
-      document,
-      "tool-stencil-button",
-      activeTool.id === "stencil" ? "Stencil *" : "Stencil",
-    );
-    this.setText(
-      document,
-      "tool-color-picker-button",
-      activeTool.id === "color-picker" ? "Color *" : "Color",
-    );
-    this.setText(
-      document,
-      "tool-brush-picker-button",
-      activeTool.id === "brush-picker" ? "Brush *" : "Brush",
-    );
-    this.setText(
-      document,
-      "tool-dropper-button",
-      activeTool.id === "dropper" ? "Dropper *" : "Dropper",
-    );
-    this.setText(
-      document,
-      "tool-pick-button",
-      activeTool.id === "color-picker"
-        ? "Pick Color"
-        : activeTool.id === "brush-picker"
-          ? "Pick Brush"
-          : activeTool.id === "dropper"
-            ? "Pick Dropper"
-            : "Pick Target",
     );
   }
 
@@ -1478,14 +780,35 @@ export class PanelSystem extends createSystem({
     }
   }
 
+  // Stale hover state only appears from UIKit events that trail the ray
+  // leaving the panel, so sweep for a few frames after hover ends instead of
+  // walking the whole element tree every non-hovered frame.
+  private static readonly STALE_HOVER_SWEEP_FRAMES = 3;
+  private readonly staleHoverSweepsLeft = new Map<number, number>();
+
   private clearStaleWandHoverState(
     panelEntity: Entity,
     document: UIKitDocument,
     elementIds: readonly string[],
+    selectHeld = false,
   ): void {
     if (panelEntity.hasComponent(Hovered)) {
+      this.staleHoverSweepsLeft.set(
+        panelEntity.index,
+        PanelSystem.STALE_HOVER_SWEEP_FRAMES,
+      );
       return;
     }
+    const sweepsLeft = this.staleHoverSweepsLeft.get(panelEntity.index) ?? 0;
+    if (sweepsLeft <= 0) {
+      return;
+    }
+    if (selectHeld) {
+      // A pressed trigger means a click may be in flight (e.g. the ray
+      // jittered off the panel mid-press); sweep after release instead.
+      return;
+    }
+    this.staleHoverSweepsLeft.set(panelEntity.index, sweepsLeft - 1);
     this.clearUIKitInteractionState(document);
     for (const elementId of elementIds) {
       this.clearUIKitInteractionState(document.getElementById(elementId));
@@ -1794,226 +1117,6 @@ export class PanelSystem extends createSystem({
           Number(layer.getValue(CanvasLayer, "layerIndex")) === layerIndex,
       );
     }
-  }
-
-  private updateLayerLabels(document: UIKitDocument): void {
-    const appState = this.getAppStateEntity();
-    const activeLayerIndex = appState
-      ? Number(appState.getValue(OpenBrushAppState, "activeLayerIndex"))
-      : 0;
-    const summary = summarizeRuntimeLayers(this.getLayerStates(), activeLayerIndex);
-    this.setText(document, "active-layer-name", summary.activeLayerName);
-    this.setText(
-      document,
-      "active-layer-meta",
-      `Layer ${summary.activeLayerIndex} | order ${
-        summary.activeLayerOrder + 1
-      }/${summary.paintLayerCount} | ${summary.selectionLayerCount} selection`,
-    );
-    this.setText(
-      document,
-      "layer-state",
-      `${summary.activeLayerVisible ? "Visible" : "Hidden"} | ${
-        summary.activeLayerLocked ? "Locked" : "Unlocked"
-      }`,
-    );
-    this.setText(
-      document,
-      "layer-toggle-visible-button",
-      summary.activeLayerVisible ? "Hide" : "Show",
-    );
-    this.setText(
-      document,
-      "layer-toggle-lock-button",
-      summary.activeLayerLocked ? "Unlock" : "Lock",
-    );
-  }
-
-  private updateSelectionLabels(document: UIKitDocument): void {
-    const selectionState = this.getSelectionStateEntity();
-    const selectedStrokeCount = selectionState
-      ? Number(selectionState.getValue(SelectionState, "selectedStrokeCount"))
-      : 0;
-    const activeSelectionLayerIndex = selectionState
-      ? Number(
-          selectionState.getValue(SelectionState, "activeSelectionLayerIndex"),
-        )
-      : -1;
-    const lastSelectedStrokeCommandIndex = selectionState
-      ? Number(
-          selectionState.getValue(
-            SelectionState,
-            "lastSelectedStrokeCommandIndex",
-          ),
-        )
-      : 0;
-
-    if (selectedStrokeCount === 0) {
-      this.setText(document, "selection-state", "No selection");
-      return;
-    }
-
-    const layerLabel =
-      activeSelectionLayerIndex >= 0
-        ? `Layer ${activeSelectionLayerIndex}`
-        : "Mixed layers";
-    this.setText(
-      document,
-      "selection-state",
-      `${selectedStrokeCount} selected | ${layerLabel} | #${lastSelectedStrokeCommandIndex}`,
-    );
-  }
-
-  private updateHistoryLabels(document: UIKitDocument): void {
-    const summary = this.commandHistory.summarize();
-    this.setText(
-      document,
-      "history-state",
-      `${summary.undoDepth} undo | ${summary.redoDepth} redo`,
-    );
-  }
-
-  private updateSettingsLabels(document: UIKitDocument): void {
-    const settings = this.readSettingsState();
-    this.setText(
-      document,
-      "settings-summary",
-      `${formatTitle(settings.dominantHand)} hand`,
-    );
-    this.setText(
-      document,
-      "settings-panel-meta",
-      `${formatTitle(settings.turnMode)} turn | ${formatTitle(
-        settings.locomotionMode,
-      )} | Panel ${settings.panelScale.toFixed(2)}x | ${settings.panelDistance.toFixed(
-        2,
-      )}m | ${formatAnchor(settings.panelAnchor)}`,
-    );
-    this.setText(
-      document,
-      "settings-hand-button",
-      `${formatTitle(settings.dominantHand)} Hand`,
-    );
-    this.setText(
-      document,
-      "settings-anchor-button",
-      formatAnchor(settings.panelAnchor),
-    );
-    this.setText(
-      document,
-      "settings-turn-mode-button",
-      `${formatTitle(settings.turnMode)} Turn`,
-    );
-    this.setText(
-      document,
-      "settings-locomotion-button",
-      `${formatTitle(settings.locomotionMode)} Move`,
-    );
-    this.setText(
-      document,
-      "settings-browser-pointer-button",
-      settings.browserPointerEnabled ? "Pointer On" : "Pointer Off",
-    );
-    this.setText(
-      document,
-      "settings-vignette-button",
-      settings.comfortVignetteEnabled ? "Vignette On" : "Vignette Off",
-    );
-    this.setText(
-      document,
-      "settings-help-button",
-      settings.helpVisible ? "Hide Help" : "Show Help",
-    );
-    this.setText(
-      document,
-      "settings-status",
-      `${settings.settingsStatus} r${settings.settingsRevision}`,
-    );
-    this.setText(
-      document,
-      "settings-help-text",
-      settings.helpVisible
-        ? "Browser pointer and XR rays share the same panel commands."
-        : "",
-    );
-  }
-
-  private updatePersistenceLabels(document: UIKitDocument): void {
-    const persistence = this.getPersistenceStateEntity();
-    if (!persistence) {
-      this.setText(document, "sketch-status", "Persistence unavailable");
-      return;
-    }
-    const status = String(persistence.getValue(PersistenceState, "status"));
-    const sketchName = String(
-      persistence.getValue(PersistenceState, "activeSketchName"),
-    );
-    const catalogEntryCount = Number(
-      persistence.getValue(PersistenceState, "catalogEntryCount"),
-    );
-    const lastLayerCount = Number(
-      persistence.getValue(PersistenceState, "lastLayerCount"),
-    );
-    const lastStrokeCount = Number(
-      persistence.getValue(PersistenceState, "lastStrokeCount"),
-    );
-    const lastControlPointCount = Number(
-      persistence.getValue(PersistenceState, "lastControlPointCount"),
-    );
-    const lastByteLength = Number(
-      persistence.getValue(PersistenceState, "lastTiltByteLength"),
-    );
-    const dirty = Boolean(persistence.getValue(PersistenceState, "isDirty"));
-
-    this.setText(document, "sketch-name", sketchName);
-    this.setText(
-      document,
-      "sketch-status",
-      `${status}${dirty ? " | dirty" : ""} | ${catalogEntryCount} saved`,
-    );
-    this.setText(
-      document,
-      "sketch-meta",
-      `${lastLayerCount} layers | ${lastStrokeCount} strokes | ${lastControlPointCount} points | ${formatBytes(
-        lastByteLength,
-      )}`,
-    );
-  }
-
-  private updatePlaybackLabels(document: UIKitDocument): void {
-    const playback = this.getPlaybackStateEntity();
-    if (!playback) {
-      this.setText(document, "playback-status", "Playback unavailable");
-      return;
-    }
-    const mode = String(playback.getValue(PlaybackState, "mode"));
-    const status = String(playback.getValue(PlaybackState, "status"));
-    const cursor = Number(playback.getValue(PlaybackState, "cursor"));
-    const duration = Number(playback.getValue(PlaybackState, "duration"));
-    const unit = String(playback.getValue(PlaybackState, "unit"));
-    const visibleStrokeCount = Number(
-      playback.getValue(PlaybackState, "visibleStrokeCount"),
-    );
-    const totalStrokeCount = Number(
-      playback.getValue(PlaybackState, "totalStrokeCount"),
-    );
-
-    this.setText(document, "playback-mode", `${formatTitle(mode)} playback`);
-    this.setText(
-      document,
-      "playback-status",
-      `${status} | ${visibleStrokeCount}/${totalStrokeCount} visible`,
-    );
-    this.setText(
-      document,
-      "playback-meta",
-      `${cursor.toFixed(1)}/${duration.toFixed(1)} ${unit}`,
-    );
-    this.setText(
-      document,
-      "playback-mode-button",
-      `${formatTitle(mode)} Mode`,
-    );
   }
 
   private saveRuntimeSketch(saveAs: boolean): void {
@@ -2396,9 +1499,17 @@ export class PanelSystem extends createSystem({
     return settings.locomotionMode === "stationary" ? "smooth" : "stationary";
   }
 
+  // Label sync runs every frame; setProperties allocates and triggers UIKit
+  // layout work, so skip elements whose text has not changed.
+  private readonly lastSetText = new WeakMap<object, string>();
+
   private setText(document: UIKitDocument, id: string, text: string): void {
     const element = document.getElementById(id) as TextElement;
-    element?.setProperties({ text });
+    if (!element || this.lastSetText.get(element) === text) {
+      return;
+    }
+    this.lastSetText.set(element, text);
+    element.setProperties({ text });
   }
 
   private nameElement(document: UIKitDocument, id: string): void {
@@ -2911,37 +2022,3 @@ function getPhaseAWandButtonStyle(
     : WAND_BUTTON_SECONDARY_IDLE_STYLE;
 }
 
-function getNearestWandColorSwatchId(
-  red: number,
-  green: number,
-  blue: number,
-): (typeof WAND_COLOR_SWATCHES)[number]["id"] {
-  let nearest: (typeof WAND_COLOR_SWATCHES)[number] = WAND_COLOR_SWATCHES[0];
-  let nearestDistance = Number.POSITIVE_INFINITY;
-  for (const swatch of WAND_COLOR_SWATCHES) {
-    const deltaRed = red - swatch.color[0];
-    const deltaGreen = green - swatch.color[1];
-    const deltaBlue = blue - swatch.color[2];
-    const distance =
-      deltaRed * deltaRed + deltaGreen * deltaGreen + deltaBlue * deltaBlue;
-    if (distance < nearestDistance) {
-      nearest = swatch;
-      nearestDistance = distance;
-    }
-  }
-  return nearest.id;
-}
-
-function formatTranslucentWandColor(color: readonly number[]): string {
-  const red = clampColorByte(color[0] ?? 0);
-  const green = clampColorByte(color[1] ?? 0);
-  const blue = clampColorByte(color[2] ?? 0);
-  return `rgba(${red}, ${green}, ${blue}, 0.18)`;
-}
-
-function clampColorByte(value: number): number {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.min(255, Math.max(0, Math.round(value * 255)));
-}

@@ -2,7 +2,7 @@
   .wand-panel {
     flex-direction: column;
     width: 320px;
-    height: 320px;
+    height: 307px;
     padding: 14px;
     background-color: rgba(0, 0, 0, 0);
     border-width: 0px;
@@ -12,6 +12,7 @@
 
   .header-row {
     flex-direction: row;
+    justify-content: space-between;
     align-items: center;
     width: 292px;
     height: 26px;
@@ -20,7 +21,7 @@
   .heading-lockup {
     flex-direction: row;
     align-items: center;
-    width: 188px;
+    width: 178px;
     height: 26px;
   }
 
@@ -31,7 +32,7 @@
   }
 
   .heading {
-    width: 132px;
+    width: 150px;
     height: 24px;
     font-size: 19px;
     font-weight: 700;
@@ -41,7 +42,7 @@
   }
 
   .page-mark {
-    width: 104px;
+    width: 114px;
     height: 16px;
     font-size: 11px;
     color: #ffffff;
@@ -57,18 +58,19 @@
 
   .button-row {
     flex-direction: row;
+    justify-content: space-between;
     width: 292px;
     height: 58px;
     margin-top: 10px;
   }
 
   .tool-button {
-    width: 88px;
+    width: 92px;
     height: 58px;
     padding: 5px;
     background-color: rgba(0, 0, 0, 0.02);
     color: #ffffff;
-    border-radius: 0px;
+    border-radius: 8px;
     border-width: 1px;
     border-color: #ffffff;
     font-size: 11px;
@@ -78,6 +80,14 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+  }
+
+  .tool-button:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+  }
+
+  .tool-button:active {
+    background-color: rgba(255, 255, 255, 0.32);
   }
 
   .secondary-button {
@@ -99,7 +109,7 @@
   }
 
   .button-label {
-    width: 76px;
+    width: 80px;
     height: 14px;
     font-size: 11px;
     font-weight: 700;
@@ -107,35 +117,20 @@
     text-align: center;
   }
 
-  .wide-button-label {
-    width: 120px;
-  }
-
-  .wide-button {
-    width: 138px;
-  }
-
   .meta {
-    width: 280px;
-    height: 18px;
+    width: 292px;
+    height: 30px;
     padding: 5px;
     margin-top: 10px;
     background-color: rgba(0, 0, 0, 0.02);
     border-color: #ffffff;
     border-width: 1px;
-    border-radius: 0px;
+    border-radius: 8px;
     color: #ffffff;
     font-size: 11px;
     text-align: center;
   }
 
-  #tool-line,
-  #tool-erase,
-  #tool-brush-picker,
-  #tool-dropper,
-  #stroke-history-redo {
-    margin-left: 8px;
-  }
 </style>
 <Panel class="wand-panel">
   <div class="header-row">
@@ -143,7 +138,7 @@
       <PaintbrushIcon class="heading-icon"></PaintbrushIcon>
       <span class="heading">Tools</span>
     </div>
-    <span class="page-mark">2 / 3</span>
+    <span class="page-mark"></span>
   </div>
   <div class="divider"></div>
   <div class="button-row">
@@ -161,27 +156,31 @@
     </button>
   </div>
   <div class="button-row">
-    <button id="tool-color-picker" class="tool-button secondary-button">
-      <PaletteIcon class="button-icon"></PaletteIcon>
-      <span class="button-label">Color</span>
-    </button>
-    <button id="tool-brush-picker" class="tool-button secondary-button">
-      <BrushIcon class="button-icon"></BrushIcon>
-      <span class="button-label">Brush</span>
-    </button>
     <button id="tool-dropper" class="tool-button secondary-button">
       <PipetteIcon class="button-icon"></PipetteIcon>
-      <span class="button-label">Pick</span>
+      <span class="button-label">Dropper</span>
+    </button>
+    <button id="tool-camera" class="tool-button secondary-button">
+      <CameraIcon class="button-icon"></CameraIcon>
+      <span class="button-label">Camera</span>
+    </button>
+    <button id="tool-save" class="tool-button secondary-button">
+      <SaveIcon class="button-icon"></SaveIcon>
+      <span class="button-label">Save</span>
     </button>
   </div>
   <div class="button-row">
-    <button id="stroke-history-undo" class="tool-button wide-button history-button">
+    <button id="stroke-history-undo" class="tool-button history-button">
       <Undo2Icon class="button-icon"></Undo2Icon>
-      <span class="button-label wide-button-label">Undo</span>
+      <span class="button-label">Undo</span>
     </button>
-    <button id="stroke-history-redo" class="tool-button wide-button history-button">
+    <button id="stroke-history-redo" class="tool-button history-button">
       <Redo2Icon class="button-icon"></Redo2Icon>
-      <span class="button-label wide-button-label">Redo</span>
+      <span class="button-label">Redo</span>
+    </button>
+    <button id="tool-home" class="tool-button secondary-button">
+      <HouseIcon class="button-icon"></HouseIcon>
+      <span class="button-label">Home</span>
     </button>
   </div>
   <span id="stroke-history-state" class="meta">0 undo | 0 redo</span>

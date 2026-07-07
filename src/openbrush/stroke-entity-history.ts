@@ -69,6 +69,15 @@ export class StrokeEntityHistory<T extends DisposableStrokeEntity> {
     return this.disposeCreateOperations(this.redoGroups);
   }
 
+  /**
+   * Drop all history without disposing anything — for callers that own the
+   * entity teardown themselves (e.g. clearing the whole sketch).
+   */
+  forgetAll(): void {
+    this.undoGroups.length = 0;
+    this.redoGroups.length = 0;
+  }
+
   clearAll(): number {
     return this.disposeUniqueOperations(this.redoGroups, this.undoGroups);
   }
