@@ -115,6 +115,19 @@ export const OpenBrushPanelAttachment = createComponent(
   },
 );
 
+// Root node the sketch content hangs from; the two-hand world grab drives
+// its pose (App.Scene.Pose equivalent). `scale` mirrors the uniform scale for
+// systems that need canvas-unit conversions.
+export const OpenBrushScenePose = createComponent("OpenBrushScenePose", {
+  grabActive: { type: Types.Boolean, default: false },
+  scale: { type: Types.Float32, default: 1 },
+});
+
+export const OpenBrushCameraState = createComponent("OpenBrushCameraState", {
+  snapshotCount: { type: Types.Int32, default: 0 },
+  lastSnapshotName: { type: Types.String, default: "" },
+});
+
 export const PerformanceState = createComponent("PerformanceState", {
   drawCallCount: { type: Types.Int32, default: 0 },
   batchCount: { type: Types.Int32, default: 0 },
@@ -216,6 +229,11 @@ export const OpenBrushEraserCursor = createComponent("OpenBrushEraserCursor", {
   },
   hot: { type: Types.Boolean, default: false },
   visible: { type: Types.Boolean, default: false },
+  // Dropper hover feedback (DropperTool): the stroke currently under the
+  // sphere, previewed before the pick commits.
+  hoverValid: { type: Types.Boolean, default: false },
+  hoverColor: { type: Types.Color, default: [1, 1, 1, 1] },
+  hoverBrushName: { type: Types.String, default: "" },
 });
 
 export const BrushStroke = createComponent("BrushStroke", {
@@ -240,4 +258,40 @@ export const BrushStroke = createComponent("BrushStroke", {
   commandIndex: { type: Types.Int32, default: 0 },
   minBounds: { type: Types.Vec3, default: [0, 0, 0] },
   maxBounds: { type: Types.Vec3, default: [0, 0, 0] },
+});
+
+export const OpenBrushColorPicker = createComponent("OpenBrushColorPicker", {
+  hue01: { type: Types.Float32, default: 0.5833 },
+  saturation: { type: Types.Float32, default: 0.81 },
+  lightness: { type: Types.Float32, default: 0.525 },
+  pointerActive: { type: Types.Boolean, default: false },
+});
+
+/** Tag for custom (non-PanelUI) wand panels that block painting while hovered. */
+export const OpenBrushCustomPanel = createComponent("OpenBrushCustomPanel", {});
+
+// The tool attach point: a grip-space child with a tunable local offset that
+// the draw head, tool cursors, and panel rays hang from (workaround for the
+// Quest browser reporting bad target-ray-space poses).
+export const OpenBrushTipAnchor = createComponent("OpenBrushTipAnchor", {
+  hand: { type: Types.String, default: "right" },
+});
+
+// Saved color swatches under the color wheel (the app's custom palette).
+export const OpenBrushColorFavorites = createComponent("OpenBrushColorFavorites", {
+  count: { type: Types.Int32, default: 0 },
+  revision: { type: Types.Int32, default: 0 },
+  favorite0: { type: Types.Color, default: [0, 0, 0, 1] },
+  favorite1: { type: Types.Color, default: [0, 0, 0, 1] },
+  favorite2: { type: Types.Color, default: [0, 0, 0, 1] },
+  favorite3: { type: Types.Color, default: [0, 0, 0, 1] },
+  favorite4: { type: Types.Color, default: [0, 0, 0, 1] },
+  favorite5: { type: Types.Color, default: [0, 0, 0, 1] },
+  favorite6: { type: Types.Color, default: [0, 0, 0, 1] },
+  favorite7: { type: Types.Color, default: [0, 0, 0, 1] },
+});
+
+export const OpenBrushBrushPage = createComponent("OpenBrushBrushPage", {
+  page: { type: Types.Int32, default: 0 },
+  pageCount: { type: Types.Int32, default: 1 },
 });

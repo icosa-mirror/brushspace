@@ -5,7 +5,6 @@ import {
   OPEN_BRUSH_DROPPER_FORWARD_OFFSET,
   OPEN_BRUSH_DROPPER_PICK_RADIUS,
   OPEN_BRUSH_ERASER_SIZE_RANGE,
-  OPEN_BRUSH_SIMPLE_PICKER_RADIUS,
   getNextOpenBrushTool,
   isOpenBrushToolId,
   isOpenBrushPanelFocusStatus,
@@ -43,31 +42,31 @@ describe("Open Brush tools", () => {
     expect(eraser.samplingMode).toBe("none");
     expect(eraser.snapMode).toBe("none");
     expect(eraser.lazyMode).toBe("none");
-    expect(OPEN_BRUSH_ERASER_SIZE_RANGE).toEqual([0.1, 0.3]);
-    expect(OPEN_BRUSH_DEFAULT_ERASER_RADIUS).toBeCloseTo(0.2);
+    expect(OPEN_BRUSH_ERASER_SIZE_RANGE).toEqual([0.01, 0.03]);
+    expect(OPEN_BRUSH_DEFAULT_ERASER_RADIUS).toBeCloseTo(0.02);
   });
 
   it("maps eraser radius through the reference linear size range", () => {
-    expect(openBrushEraserSize01ToRadius(0)).toBeCloseTo(0.1);
-    expect(openBrushEraserSize01ToRadius(0.5)).toBeCloseTo(0.2);
-    expect(openBrushEraserSize01ToRadius(1)).toBeCloseTo(0.3);
-    expect(openBrushEraserRadiusToSize01(0.2)).toBeCloseTo(0.5);
-    expect(normalizeOpenBrushEraserRadius(Number.NaN)).toBeCloseTo(0.2);
-    expect(normalizeOpenBrushEraserRadius(0.01)).toBeCloseTo(0.1);
-    expect(normalizeOpenBrushEraserRadius(1)).toBeCloseTo(0.3);
+    expect(openBrushEraserSize01ToRadius(0)).toBeCloseTo(0.01);
+    expect(openBrushEraserSize01ToRadius(0.5)).toBeCloseTo(0.02);
+    expect(openBrushEraserSize01ToRadius(1)).toBeCloseTo(0.03);
+    expect(openBrushEraserRadiusToSize01(0.02)).toBeCloseTo(0.5);
+    expect(normalizeOpenBrushEraserRadius(Number.NaN)).toBeCloseTo(0.02);
+    expect(normalizeOpenBrushEraserRadius(0.001)).toBeCloseTo(0.01);
+    expect(normalizeOpenBrushEraserRadius(1)).toBeCloseTo(0.03);
   });
 
   it("resolves eraser size nudges as clamped normalized adjustments", () => {
-    const increased = resolveOpenBrushEraserSizeAdjustment(0.2, 0.05);
-    const clampedLow = resolveOpenBrushEraserSizeAdjustment(0.11, -0.5);
-    const clampedHigh = resolveOpenBrushEraserSizeAdjustment(0.29, 0.5);
+    const increased = resolveOpenBrushEraserSizeAdjustment(0.02, 0.05);
+    const clampedLow = resolveOpenBrushEraserSizeAdjustment(0.011, -0.5);
+    const clampedHigh = resolveOpenBrushEraserSizeAdjustment(0.029, 0.5);
 
     expect(increased.size01).toBeCloseTo(0.55);
-    expect(increased.radius).toBeCloseTo(0.21);
+    expect(increased.radius).toBeCloseTo(0.021);
     expect(clampedLow.size01).toBe(0);
-    expect(clampedLow.radius).toBeCloseTo(0.1);
+    expect(clampedLow.radius).toBeCloseTo(0.01);
     expect(clampedHigh.size01).toBe(1);
-    expect(clampedHigh.radius).toBeCloseTo(0.3);
+    expect(clampedHigh.radius).toBeCloseTo(0.03);
   });
 
   it("marks straightedge as a painting line-sampling tool", () => {
@@ -133,7 +132,7 @@ describe("Open Brush tools", () => {
   });
 
   it("marks pickers as state-only tools", () => {
-    for (const toolId of ["color-picker", "brush-picker", "dropper"]) {
+    for (const toolId of ["dropper"]) {
       const picker = resolveOpenBrushTool(toolId);
       expect(picker.paints).toBe(false);
       expect(picker.erases).toBe(false);
@@ -147,22 +146,10 @@ describe("Open Brush tools", () => {
 
   it("keeps picker semantics source-grounded per tool", () => {
     expect(resolveOpenBrushPickerToolSpec("free-paint")).toBeUndefined();
-    expect(resolveOpenBrushPickerToolSpec("color-picker")).toMatchObject({
-      picksColor: true,
-      picksBrush: false,
-      picksSize: false,
-      radius: OPEN_BRUSH_SIMPLE_PICKER_RADIUS,
-      forwardOffset: 0,
-      pickedStatusLabel: "color",
-    });
-    expect(resolveOpenBrushPickerToolSpec("brush-picker")).toMatchObject({
-      picksColor: false,
-      picksBrush: true,
-      picksSize: false,
-      radius: OPEN_BRUSH_SIMPLE_PICKER_RADIUS,
-      forwardOffset: 0,
-      pickedStatusLabel: "brush",
-    });
+    // Open Brush has a single pick tool: the dropper adopts brush, size, and
+    // color together (there are no partial pick tools).
+    expect(resolveOpenBrushPickerToolSpec("color-picker")).toBeUndefined();
+    expect(resolveOpenBrushPickerToolSpec("brush-picker")).toBeUndefined();
     expect(resolveOpenBrushPickerToolSpec("dropper")).toMatchObject({
       picksColor: true,
       picksBrush: true,
@@ -181,7 +168,7 @@ describe("Open Brush tools", () => {
       "erase-panel-focus",
     );
     expect(
-      resolveOpenBrushPanelFocusStatus(resolveOpenBrushTool("brush-picker")),
+      resolveOpenBrushPanelFocusStatus(resolveOpenBrushTool("dropper")),
     ).toBe("pick-panel-focus");
     expect(isOpenBrushPanelFocusStatus("draw-panel-focus")).toBe(true);
     expect(isOpenBrushPanelFocusStatus("draw-ready")).toBe(false);

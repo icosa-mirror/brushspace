@@ -10,6 +10,7 @@ import {
   AudioFeedbackState,
   InputCommandState,
   OpenBrushAppState,
+  OpenBrushEraserCursor,
 } from "../components/OpenBrushCore.js";
 import { createFeedbackWavUrl } from "../openbrush/audio-feedback.js";
 
@@ -17,8 +18,10 @@ export class AudioFeedbackSystem extends createSystem({
   feedback: {
     required: [OpenBrushAppState, InputCommandState, AudioFeedbackState],
   },
+  eraserCursors: { required: [OpenBrushEraserCursor] },
 }) {
   private feedbackUrl = "";
+  private lastHoverValid = false;
 
   init(): void {
     this.feedbackUrl = createFeedbackWavUrl();
@@ -67,6 +70,20 @@ export class AudioFeedbackSystem extends createSystem({
     }
     if (Boolean(entity.getValue(InputCommandState, "paintUp"))) {
       this.recordFeedback(entity, "paint-end", "paintEndCount");
+    }
+
+    // DropperTool plays an intersection sound when the hover target appears
+    // or disappears.
+    const cursorNext = this.queries.eraserCursors.entities.values().next();
+    const cursor = cursorNext.done ? undefined : cursorNext.value;
+    if (cursor) {
+      const hoverValid = Boolean(
+        cursor.getValue(OpenBrushEraserCursor, "hoverValid"),
+      );
+      if (hoverValid !== this.lastHoverValid) {
+        this.lastHoverValid = hoverValid;
+        this.recordFeedback(entity, "dropper-hover", "toolChangeCount");
+      }
     }
   }
 

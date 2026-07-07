@@ -107,12 +107,13 @@ export function resolveStrokeSampleDecision(
   lastKeeperPosition: Vec3,
   nextPosition: Vec3,
   spawnIntervalMeters: number,
+  minimumMoveMeters = OPEN_BRUSH_MINIMUM_MOVE_METERS,
 ): StrokeSampleDecision {
   const dx = nextPosition[0] - lastKeeperPosition[0];
   const dy = nextPosition[1] - lastKeeperPosition[1];
   const dz = nextPosition[2] - lastKeeperPosition[2];
   const distanceSq = dx * dx + dy * dy + dz * dz;
-  if (distanceSq < OPEN_BRUSH_MINIMUM_MOVE_METERS * OPEN_BRUSH_MINIMUM_MOVE_METERS) {
+  if (distanceSq < minimumMoveMeters * minimumMoveMeters) {
     return "ignore";
   }
   return distanceSq >= spawnIntervalMeters * spawnIntervalMeters

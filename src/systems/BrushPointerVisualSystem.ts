@@ -13,12 +13,15 @@ import type { Entity } from "@iwsdk/core";
 import {
   BrushPointer,
   BrushSettings,
+  OpenBrushAppState,
+  OpenBrushScenePose,
   SettingsState,
 } from "../components/OpenBrushCore.js";
 import {
   OPEN_BRUSH_DEFAULT_STARTUP_LIVE_BRUSH_SIZE,
   normalizeBrushSize,
 } from "../openbrush/brush-size.js";
+import { resolveOpenBrushToolSphereCursor } from "../openbrush/eraser-cursor.js";
 
 const POINTER_VISUAL_ROOT_NAME = "OpenBrushPointerTipVisual";
 const POINTER_CONE_NAME = "OpenBrushPointerConeTip";
@@ -39,8 +42,16 @@ interface BrushPointerVisualParts {
 export class BrushPointerVisualSystem extends createSystem({
   pointers: { required: [BrushPointer] },
   brushSettings: { required: [BrushSettings] },
+  appState: { required: [OpenBrushAppState] },
+  scenePoses: { required: [OpenBrushScenePose] },
   settings: { required: [SettingsState] },
 }) {
+  private readonly sphereCursorScratch = {
+    visible: false,
+    radius: 0,
+    forwardOffset: 0,
+    spins: false,
+  };
   private readonly visuals = new Map<number, BrushPointerVisualParts>();
   private coneGeometry!: BufferGeometry;
   private ringGeometry!: RingGeometry;
@@ -63,12 +74,20 @@ export class BrushPointerVisualSystem extends createSystem({
   update() {
     const activeHand = this.getDominantHand();
     const brushDiameter = this.getBrushIndicatorDiameter();
+    // Tools that present the sphere cursor (eraser, pick tools) replace the
+    // drawing tip entirely, like Open Brush swapping the pointer for the tool
+    // mesh.
+    const replacedBySphereCursor = this.isTipReplacedBySphereCursor();
+    const worldGrabActive = this.isWorldGrabActive();
     for (const entity of this.queries.pointers.entities) {
       const visual = this.getOrCreateVisual(entity);
       if (!visual) {
         continue;
       }
-      const visible = String(entity.getValue(BrushPointer, "hand")) === activeHand;
+      const visible =
+        !replacedBySphereCursor &&
+        !worldGrabActive &&
+        String(entity.getValue(BrushPointer, "hand")) === activeHand;
       visual.root.visible = visible;
       if (visible) {
         visual.ring.scale.setScalar(brushDiameter);
@@ -103,6 +122,30 @@ export class BrushPointerVisualSystem extends createSystem({
     const visual = { root, ring };
     this.visuals.set(entity.index, visual);
     return visual;
+  }
+
+  private isWorldGrabActive(): boolean {
+    const next = this.queries.scenePoses.entities.values().next();
+    const pose = next.done ? undefined : next.value;
+    return Boolean(pose?.getValue(OpenBrushScenePose, "grabActive"));
+  }
+
+  private isTipReplacedBySphereCursor(): boolean {
+    const next = this.queries.appState.entities.values().next();
+    const appState = next.done ? undefined : next.value;
+    if (!appState) {
+      return false;
+    }
+    const activeTool = String(appState.getValue(OpenBrushAppState, "activeTool"));
+    if (activeTool === "camera") {
+      return true;
+    }
+    return resolveOpenBrushToolSphereCursor(
+      activeTool,
+      "visible",
+      0,
+      this.sphereCursorScratch,
+    ).visible;
   }
 
   private getDominantHand(): "left" | "right" {

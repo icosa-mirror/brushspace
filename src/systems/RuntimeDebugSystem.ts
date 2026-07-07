@@ -67,7 +67,18 @@ export class RuntimeDebugSystem extends createSystem({
     );
   }
 
-  update() {
+  // The debug mirror copies ~120 fields (with String/Number conversions);
+  // refreshing a few times per second keeps inspection useful without the
+  // per-frame allocation churn.
+  private static readonly REFRESH_INTERVAL_SECONDS = 0.25;
+  private refreshTimer = 0;
+
+  update(delta: number) {
+    this.refreshTimer += delta;
+    if (this.refreshTimer < RuntimeDebugSystem.REFRESH_INTERVAL_SECONDS) {
+      return;
+    }
+    this.refreshTimer = 0;
     for (const entity of this.queries.debug.entities) {
       this.applyDebugValues(entity);
     }
