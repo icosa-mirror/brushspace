@@ -11,6 +11,7 @@ import type { Entity } from "@iwsdk/core";
 
 import { OpenBrushScenePose } from "../components/core.js";
 import { assetUrl } from "../app/asset-url.js";
+import { initialLoad } from "../app/initial-load.js";
 
 // ENVIRONMENT_STANDARD render settings (fog color/density) and the flat
 // material colors of the EnvironmentPrefabs/Standard geometry nodes.
@@ -95,6 +96,8 @@ export class StandardEnvironmentSystem extends createSystem({
       entity.object3D!.name = "OpenBrushEnvironmentStandard";
     } catch (error) {
       console.warn("Standard environment failed to load:", error);
+    } finally {
+      initialLoad.complete("environment");
     }
   }
 }

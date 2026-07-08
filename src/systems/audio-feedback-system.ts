@@ -14,6 +14,7 @@ import {
   SettingsState,
 } from "../components/core.js";
 import { assetUrl } from "../app/asset-url.js";
+import { initialLoad } from "../app/initial-load.js";
 
 /**
  * One-shot sound effects, all lifted from Open Brush's Assets/Audio (see
@@ -63,20 +64,33 @@ export class AudioFeedbackSystem extends createSystem({
   private lastRotationSteps = Number.NaN;
 
   init(): void {
-    for (const [id, spec] of Object.entries(OPEN_BRUSH_SOUNDS)) {
-      const entity = this.world.createTransformEntity();
-      entity.object3D!.name = `OpenBrushSound_${id}`;
-      entity.addComponent(AudioSource, {
-        src: assetUrl(`/audio/openbrush/${spec.file}`),
-        positional: false,
-        volume: spec.volume,
-        loop: false,
-        autoplay: false,
-        playbackMode: PlaybackMode.Overlap,
-        maxInstances: 3,
-      });
-      this.soundEntities.set(id as OpenBrushSoundId, entity);
-    }
+    // The core AudioSystem fetches every AudioSource src as soon as the
+    // entity exists (~1.4 MB across these files), so wait out the
+    // landing-critical downloads; playSound is a no-op for sounds that have
+    // not been created yet.
+    let disposed = false;
+    this.cleanupFuncs.push(() => {
+      disposed = true;
+    });
+    void initialLoad.whenDone.then(() => {
+      if (disposed) {
+        return;
+      }
+      for (const [id, spec] of Object.entries(OPEN_BRUSH_SOUNDS)) {
+        const entity = this.world.createTransformEntity();
+        entity.object3D!.name = `OpenBrushSound_${id}`;
+        entity.addComponent(AudioSource, {
+          src: assetUrl(`/audio/openbrush/${spec.file}`),
+          positional: false,
+          volume: spec.volume,
+          loop: false,
+          autoplay: false,
+          playbackMode: PlaybackMode.Overlap,
+          maxInstances: 3,
+        });
+        this.soundEntities.set(id as OpenBrushSoundId, entity);
+      }
+    });
   }
 
   /** Plays a one-shot (no-op while feedback is disabled). */

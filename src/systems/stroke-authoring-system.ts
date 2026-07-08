@@ -32,6 +32,7 @@ import {
   SettingsState,
   StrokeHistoryState,
 } from "../components/core.js";
+import { initialLoad } from "../app/initial-load.js";
 import { openBrushInventory } from "../brushes/brush-catalog.js";
 import {
   findBrushByGuid,
@@ -247,23 +248,38 @@ export class StrokeAuthoringSystem extends createSystem({
   private eraseHoldErasedCount = 0;
 
   init() {
-    // Load all supported brushes, not just picker-visible ones: hidden
-    // supported brushes (experimental/superseded) must still render with
-    // their real shaders when a sketch references them.
-    const shaderBrushes = openBrushInventory.filter(
-      (entry) => entry.supportStatus === "supported",
-    );
-    const loads = shaderBrushes.map((entry) =>
-      openBrushShaderLibrary.load(entry),
-    );
-    void Promise.all(loads).then(async (materials) => {
-      const loadedCount = materials.filter(Boolean).length;
-      if (loadedCount > 0) {
-        await openBrushShaderLibrary.warmUp(this.renderer, this.scene, this.camera);
+    let disposed = false;
+    this.cleanupFuncs.push(() => {
+      disposed = true;
+    });
+    // The full-catalog warmup fetches tens of MB of shader textures, so it
+    // waits out the landing-critical downloads (the intro sketch loads its
+    // own brushes directly; the shader library cache dedups the overlap).
+    void initialLoad.whenDone.then(() => {
+      if (disposed) {
+        return;
       }
-      console.log(
-        `OpenBrush brush shader materials ready: ${loadedCount}/${loads.length} supported brushes.`,
+      // Load all supported brushes, not just picker-visible ones: hidden
+      // supported brushes (experimental/superseded) must still render with
+      // their real shaders when a sketch references them.
+      const shaderBrushes = openBrushInventory.filter(
+        (entry) => entry.supportStatus === "supported",
       );
+      const loads = shaderBrushes.map((entry) =>
+        openBrushShaderLibrary.load(entry),
+      );
+      void Promise.all(loads).then(async (materials) => {
+        if (disposed) {
+          return;
+        }
+        const loadedCount = materials.filter(Boolean).length;
+        if (loadedCount > 0) {
+          await openBrushShaderLibrary.warmUp(this.renderer, this.scene, this.camera);
+        }
+        console.log(
+          `OpenBrush brush shader materials ready: ${loadedCount}/${loads.length} supported brushes.`,
+        );
+      });
     });
   }
 

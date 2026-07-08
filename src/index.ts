@@ -34,6 +34,8 @@ import {
 
 import { PanelSystem } from "./systems/panel-system.js";
 
+import { initialLoad } from "./app/initial-load.js";
+import { setupLoadingScreen } from "./app/loading-screen.js";
 import { setupOpenBrushShell } from "./app/setup-shell.js";
 import { version } from "../package.json";
 
@@ -62,6 +64,10 @@ import { WorldGrabSystem } from "./systems/world-grab-system.js";
 import { WorldGrabVisualsSystem } from "./systems/world-grab-visuals-system.js";
 
 AnimatedController.useSimpleMaterial = true;
+
+// The overlay markup is in index.html so it paints before the bundle runs;
+// this hooks its progress bar up to the initial-load tracker.
+setupLoadingScreen();
 
 World.create(document.getElementById("scene-container") as HTMLDivElement, {
   xr: {
@@ -106,6 +112,8 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     },
   },
 }).then((world) => {
+  initialLoad.complete("world");
+
   const { camera } = world;
 
   // Browser view: stand on the stage at eye height, facing the intro sketch
@@ -129,12 +137,24 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     enterVrButton.addEventListener("click", () => {
       world.launchXR();
     });
-    world.visibilityState.subscribe((state) => {
-      const nonImmersive = state === VisibilityState.NonImmersive;
-      enterVrButton.style.display = nonImmersive ? "block" : "none";
+    // The landing chrome waits for both the non-immersive view and the
+    // initial assets — the loading screen owns the viewport until then.
+    let nonImmersive = false;
+    let assetsReady = initialLoad.done;
+    const applyLandingChrome = () => {
+      const show = nonImmersive && assetsReady;
+      enterVrButton.style.display = show ? "block" : "none";
       if (landingFooter) {
-        landingFooter.style.display = nonImmersive ? "flex" : "none";
+        landingFooter.style.display = show ? "flex" : "none";
       }
+    };
+    world.visibilityState.subscribe((state) => {
+      nonImmersive = state === VisibilityState.NonImmersive;
+      applyLandingChrome();
+    });
+    void initialLoad.whenDone.then(() => {
+      assetsReady = true;
+      applyLandingChrome();
     });
   }
 

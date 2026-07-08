@@ -17,6 +17,10 @@ import {
   type BakedSketchManifest,
 } from "../sketch/baked-sketch.js";
 import { assetUrl } from "../app/asset-url.js";
+import {
+  fetchArrayBufferWithProgress,
+  initialLoad,
+} from "../app/initial-load.js";
 
 // The intro geometry is authored in Tilt Brush units (decimeters), arranged
 // AROUND the viewer at the origin — present it in place, just rescaled.
@@ -105,15 +109,41 @@ export class IntroSketchSystem extends createSystem({
 
   private async loadIntro(): Promise<void> {
     try {
-      const [manifestResponse, binResponse] = await Promise.all([
-        fetch(assetUrl("/openbrush/intro/intro.json")),
-        fetch(assetUrl("/openbrush/intro/intro.bin")),
+      // The geometry buffer, the manifest, and every node's brush material
+      // (GLSL program + textures, deduped per brush by the shader library)
+      // download concurrently; the geometry bytes dominate, so they drive
+      // the loading bar.
+      const manifestPromise = fetch(assetUrl("/openbrush/intro/intro.json")).then(
+        (response) => {
+          if (!response.ok) {
+            throw new Error("intro sketch manifest missing");
+          }
+          return response.json() as Promise<BakedSketchManifest>;
+        },
+      );
+      const binPromise = fetchArrayBufferWithProgress(
+        assetUrl("/openbrush/intro/intro.bin"),
+        (fraction) => initialLoad.setProgress("intro-geometry", fraction),
+      );
+      const materialsPromise = manifestPromise.then((manifest) => {
+        let resolved = 0;
+        return Promise.all(
+          manifest.nodes.map(async (node) => {
+            const material = await resolveBakedSketchMaterial(node);
+            resolved += 1;
+            initialLoad.setProgress(
+              "intro-materials",
+              resolved / manifest.nodes.length,
+            );
+            return material;
+          }),
+        );
+      });
+      const [manifest, bin, materials] = await Promise.all([
+        manifestPromise,
+        binPromise,
+        materialsPromise,
       ]);
-      if (!manifestResponse.ok || !binResponse.ok) {
-        throw new Error("intro sketch assets missing");
-      }
-      const manifest = (await manifestResponse.json()) as BakedSketchManifest;
-      const bin = await binResponse.arrayBuffer();
       if (this.removed) {
         return;
       }
@@ -121,19 +151,18 @@ export class IntroSketchSystem extends createSystem({
       const root = new Group();
       root.name = "OpenBrushIntroSketch";
 
-      for (const node of manifest.nodes) {
+      manifest.nodes.forEach((node, index) => {
         const geometry = buildBakedSketchGeometry(node, bin);
-        const material = await resolveBakedSketchMaterial(node);
-        const mesh = new Mesh(geometry, material);
+        const mesh = new Mesh(geometry, materials[index]);
         mesh.name = `OpenBrushIntro_${node.materialName}`;
         mesh.frustumCulled = false;
         mesh.raycast = () => {};
         root.add(mesh);
-      }
+      });
+      root.add(await this.createWordmark());
       if (this.removed) {
         return;
       }
-      root.add(await this.createWordmark());
 
       root.scale.setScalar(INTRO_SCALE);
       root.visible = this.desiredVisible;
@@ -147,15 +176,33 @@ export class IntroSketchSystem extends createSystem({
         : this.world.createTransformEntity(root);
       this.rootEntity.object3D!.name = "OpenBrushIntroSketchEntity";
       this.loaded = true;
+
+      // Hold the meshes hidden until the loading screen starts fading, then
+      // stagger them in like a sketch load (the overlay fade and the
+      // transition overlap deliberately).
+      this.applyChildVisibility(0);
+      void initialLoad.whenDone.then(() => {
+        if (this.removed || !this.root || !this.desiredVisible) {
+          return;
+        }
+        this.transitionElapsed = 0;
+        this.transitionDuration = 0.9;
+      });
     } catch (error) {
       console.warn("Intro sketch failed to load:", error);
       this.loaded = true;
+    } finally {
+      // The landing page must never wait on a failed download.
+      initialLoad.complete("intro-geometry");
+      initialLoad.complete("intro-materials");
+      initialLoad.complete("intro-wordmark");
     }
   }
 
   /** The Brushspace wordmark, headlining the Tilt Brush signage. */
   private async createWordmark(): Promise<Mesh> {
     const texture = await AssetManager.loadTexture(WORDMARK_URL);
+    initialLoad.complete("intro-wordmark");
     texture.colorSpace = SRGBColorSpace;
     const mesh = new Mesh(
       new PlaneGeometry(WORDMARK_WIDTH_DM, WORDMARK_HEIGHT_DM),
