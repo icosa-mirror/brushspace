@@ -229,6 +229,7 @@ export class StrokeAuthoringSystem extends createSystem({
   // buffer of recent tip poses.
   private previewTrail: RuntimeStroke | undefined;
   private previewBrushGuid = "";
+  private readonly previewPointPool: ControlPoint[] = [];
   private readonly previewBirths: number[] = [];
   private previewClock = 0;
   private readonly previewWorldPosition = new Vector3();
@@ -1001,22 +1002,26 @@ export class StrokeAuthoringSystem extends createSystem({
     poseObject.getWorldQuaternion(this.previewPoseQuaternion).invert();
     this.previewWorldQuaternion.premultiply(this.previewPoseQuaternion);
 
+    // The trail appends one point per frame for as long as a paint tool is
+    // idle; recycle expired points through a small pool instead of
+    // allocating fresh ones.
     const points = trail.strokeData.controlPoints;
-    points.push({
-      position: [
-        this.previewLocalPosition.x,
-        this.previewLocalPosition.y,
-        this.previewLocalPosition.z,
-      ],
-      orientation: [
-        this.previewWorldQuaternion.x,
-        this.previewWorldQuaternion.y,
-        this.previewWorldQuaternion.z,
-        this.previewWorldQuaternion.w,
-      ],
+    const point = this.previewPointPool.pop() ?? {
+      position: [0, 0, 0],
+      orientation: [0, 0, 0, 1],
       pressure: 1,
-      timestampMs: this.previewClock * 1000,
-    });
+      timestampMs: 0,
+    };
+    point.position[0] = this.previewLocalPosition.x;
+    point.position[1] = this.previewLocalPosition.y;
+    point.position[2] = this.previewLocalPosition.z;
+    point.orientation[0] = this.previewWorldQuaternion.x;
+    point.orientation[1] = this.previewWorldQuaternion.y;
+    point.orientation[2] = this.previewWorldQuaternion.z;
+    point.orientation[3] = this.previewWorldQuaternion.w;
+    point.pressure = 1;
+    point.timestampMs = this.previewClock * 1000;
+    points.push(point);
     this.previewBirths.push(this.previewClock);
     while (
       this.previewBirths.length > 2 &&
@@ -1024,7 +1029,10 @@ export class StrokeAuthoringSystem extends createSystem({
         StrokeAuthoringSystem.PREVIEW_POINT_LIFE_SECONDS
     ) {
       this.previewBirths.shift();
-      points.shift();
+      const expired = points.shift();
+      if (expired) {
+        this.previewPointPool.push(expired);
+      }
     }
     if (points.length < 2) {
       trail.mesh.visible = false;
@@ -1143,7 +1151,9 @@ export class StrokeAuthoringSystem extends createSystem({
 
   private resetPreviewTrailPoints(): void {
     if (this.previewTrail) {
-      this.previewTrail.strokeData.controlPoints.length = 0;
+      const points = this.previewTrail.strokeData.controlPoints;
+      this.previewPointPool.push(...points);
+      points.length = 0;
       this.previewTrail.mesh.visible = false;
     }
     this.previewBirths.length = 0;
@@ -1169,7 +1179,11 @@ export class StrokeAuthoringSystem extends createSystem({
         stroke.samplingMode === "tape") &&
       stroke.controlPoints.length < 2
     ) {
-      stroke.entity.dispose();
+      // Materials are shared per brush GUID and must survive; dispose only
+      // this stroke's geometry (entity.dispose() would kill the material for
+      // every other stroke using the same brush).
+      stroke.geometry.dispose();
+      stroke.entity.destroy();
       this.activeStroke = undefined;
       return;
     }
@@ -1203,6 +1217,27 @@ export class StrokeAuthoringSystem extends createSystem({
     }
   }
 
+  // Erase runs every held-trigger frame over every stroke in the sketch;
+  // the candidate/target wrappers and hit list are reused to keep the loop
+  // allocation-free.
+  private readonly eraseCandidateScratch = {
+    layerIndex: 0,
+    finalized: false,
+    visible: false,
+    renderVisible: false,
+    brushSize: 0,
+    minBounds: undefined as unknown as Vec3,
+    maxBounds: undefined as unknown as Vec3,
+    boundsOffset: undefined as unknown as Vec3,
+    boundsIncludeBrushWidth: true,
+  };
+  private readonly eraseTargetScratch = {
+    value: undefined as unknown as Entity,
+    candidate: this.eraseCandidateScratch,
+    geometryHit: false,
+  };
+  private readonly erasedStrokesScratch: Entity[] = [];
+
   private eraseIntersectingStrokes(): void {
     const appStateEntity = this.getFirstEntity("appState");
     const activeLayerIndex = appStateEntity
@@ -1216,42 +1251,40 @@ export class StrokeAuthoringSystem extends createSystem({
     );
     const canvasEraserRadius = eraserRadius / canvas.scale;
 
-    const erasedStrokes: Entity[] = [];
+    const erasedStrokes = this.erasedStrokesScratch;
+    erasedStrokes.length = 0;
+    const candidate = this.eraseCandidateScratch;
+    const target = this.eraseTargetScratch;
     for (const entity of this.queries.strokes.entities) {
-      const minBounds = entity.getVectorView(
+      candidate.layerIndex = Number(entity.getValue(BrushStroke, "layerIndex"));
+      candidate.finalized = Boolean(entity.getValue(BrushStroke, "finalized"));
+      candidate.visible = Boolean(entity.getValue(BrushStroke, "visible"));
+      candidate.renderVisible = Boolean(
+        entity.getValue(BrushStroke, "renderVisible"),
+      );
+      candidate.brushSize = Number(entity.getValue(BrushStroke, "brushSize"));
+      candidate.minBounds = entity.getVectorView(
         BrushStroke,
         "minBounds",
       ) as unknown as Vec3;
-      const maxBounds = entity.getVectorView(
+      candidate.maxBounds = entity.getVectorView(
         BrushStroke,
         "maxBounds",
       ) as unknown as Vec3;
-      const boundsOffset = this.writeStrokeBoundsOffset(
+      candidate.boundsOffset = this.writeStrokeBoundsOffset(
         entity,
         this.strokeBoundsOffset,
       );
-      const candidate = {
-        layerIndex: Number(entity.getValue(BrushStroke, "layerIndex")),
-        finalized: Boolean(entity.getValue(BrushStroke, "finalized")),
-        visible: Boolean(entity.getValue(BrushStroke, "visible")),
-        renderVisible: Boolean(entity.getValue(BrushStroke, "renderVisible")),
-        brushSize: Number(entity.getValue(BrushStroke, "brushSize")),
-        minBounds,
-        maxBounds,
-        boundsOffset,
-        boundsIncludeBrushWidth: true,
-      };
-      const geometryHit = this.strokeGeometryIntersectsSphere(
-        entity,
-        this.eraserCenter,
-        eraserRadius,
+      target.value = entity;
+      target.geometryHit = Boolean(
+        this.strokeGeometryIntersectsSphere(
+          entity,
+          this.eraserCenter,
+          eraserRadius,
+        ),
       );
       if (isOpenBrushEraserHit(
-        {
-          value: entity,
-          candidate,
-          geometryHit,
-        },
+        target,
         activeLayerIndex,
         canvas.center,
         canvasEraserRadius,

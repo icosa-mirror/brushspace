@@ -63,12 +63,13 @@ export class WorldGrabVisualsSystem extends createSystem({
   private readonly lineQuaternion = new Quaternion();
   private readonly toViewer = new Vector3();
   private readonly Y_AXIS = new Vector3(0, 1, 0);
+  private rootEntity?: Entity;
 
   init() {
     this.root = new Group();
     this.root.name = "OpenBrushWorldGrabVisuals";
     this.root.visible = false;
-    this.world.scene.add(this.root);
+    this.rootEntity = this.world.createTransformEntity(this.root);
 
     this.line = new Mesh(
       new BoxGeometry(1, 1, 1),
@@ -106,6 +107,7 @@ export class WorldGrabVisualsSystem extends createSystem({
     );
 
     this.cleanupFuncs.push(() => {
+      this.rootEntity?.destroy();
       this.root.removeFromParent();
     });
   }

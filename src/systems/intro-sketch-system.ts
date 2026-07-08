@@ -1,10 +1,10 @@
 import {
+  AssetManager,
   Group,
   Mesh,
   MeshBasicMaterial,
   PlaneGeometry,
   SRGBColorSpace,
-  TextureLoader,
   createSystem,
 } from "@iwsdk/core";
 
@@ -133,7 +133,7 @@ export class IntroSketchSystem extends createSystem({
       if (this.removed) {
         return;
       }
-      root.add(this.createWordmark());
+      root.add(await this.createWordmark());
 
       root.scale.setScalar(INTRO_SCALE);
       root.visible = this.desiredVisible;
@@ -154,8 +154,8 @@ export class IntroSketchSystem extends createSystem({
   }
 
   /** The Brushspace wordmark, headlining the Tilt Brush signage. */
-  private createWordmark(): Mesh {
-    const texture = new TextureLoader().load(WORDMARK_URL);
+  private async createWordmark(): Promise<Mesh> {
+    const texture = await AssetManager.loadTexture(WORDMARK_URL);
     texture.colorSpace = SRGBColorSpace;
     const mesh = new Mesh(
       new PlaneGeometry(WORDMARK_WIDTH_DM, WORDMARK_HEIGHT_DM),

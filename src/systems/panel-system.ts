@@ -292,11 +292,14 @@ export class PanelSystem extends createSystem({
     // the ray leaves mid-press. Sweep them: on every click anywhere (across
     // ALL wand documents), the moment a panel regains hover (so leftovers
     // clear before they are seen), and for a few frames after hover ends.
-    for (const query of [
-      this.queries.wandToolsPanel,
-      this.queries.wandBrushPanel,
-      this.queries.wandColorFavoritesPanel,
-    ]) {
+    if (!this.sweepQueries) {
+      this.sweepQueries = [
+        this.queries.wandToolsPanel,
+        this.queries.wandBrushPanel,
+        this.queries.wandColorFavoritesPanel,
+      ];
+    }
+    for (const query of this.sweepQueries) {
       for (const entity of query.entities) {
         const document = PanelDocument.data.document[
           entity.index
@@ -377,11 +380,14 @@ export class PanelSystem extends createSystem({
   }
 
   private sweepAllWandDocuments(exceptTarget?: unknown): void {
-    for (const query of [
-      this.queries.wandToolsPanel,
-      this.queries.wandBrushPanel,
-      this.queries.wandColorFavoritesPanel,
-    ]) {
+    if (!this.sweepQueries) {
+      this.sweepQueries = [
+        this.queries.wandToolsPanel,
+        this.queries.wandBrushPanel,
+        this.queries.wandColorFavoritesPanel,
+      ];
+    }
+    for (const query of this.sweepQueries) {
       for (const entity of query.entities) {
         const document = PanelDocument.data.document[
           entity.index
@@ -780,25 +786,42 @@ export class PanelSystem extends createSystem({
     const redoDepth = strokeHistory
       ? Number(strokeHistory.getValue(StrokeHistoryState, "redoDepth"))
       : 0;
+    // Runs every frame: reuse the button-state object and only rebuild the
+    // history label string when the depths actually change.
+    const buttonState = this.wandButtonStateScratch;
+    buttonState.activeToolId = activeTool.id;
+    buttonState.straightEdgeEnabled = straightEdgeEnabled;
+    buttonState.undoDepth = undoDepth;
+    buttonState.redoDepth = redoDepth;
     for (const buttonId of PHASE_A_WAND_BUTTON_IDS) {
       this.applyPhaseAWandButtonStyle(
         document,
         buttonId,
-        resolvePhaseAWandButtonVisualState(buttonId, {
-          activeToolId: activeTool.id,
-          straightEdgeEnabled,
-          undoDepth,
-          redoDepth,
-        }),
+        resolvePhaseAWandButtonVisualState(buttonId, buttonState),
         panelHovered,
       );
     }
-    this.setText(
-      document,
-      "stroke-history-state",
-      `${undoDepth} undo | ${redoDepth} redo`,
-    );
+    if (
+      undoDepth !== this.historyLabelUndoDepth ||
+      redoDepth !== this.historyLabelRedoDepth
+    ) {
+      this.historyLabelUndoDepth = undoDepth;
+      this.historyLabelRedoDepth = redoDepth;
+      this.historyLabel = `${undoDepth} undo | ${redoDepth} redo`;
+    }
+    this.setText(document, "stroke-history-state", this.historyLabel);
   }
+
+  private sweepQueries?: Array<(typeof this.queries)[keyof typeof this.queries]>;
+  private readonly wandButtonStateScratch = {
+    activeToolId: "free-paint" as OpenBrushToolId,
+    straightEdgeEnabled: false,
+    undoDepth: 0,
+    redoDepth: 0,
+  };
+  private historyLabelUndoDepth = -1;
+  private historyLabelRedoDepth = -1;
+  private historyLabel = "";
 
   // This runs every frame, so only touch UIKit when the resolved style
   // actually changes (also keeps the style-object allocation off the hot
