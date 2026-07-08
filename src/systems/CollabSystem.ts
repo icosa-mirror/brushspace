@@ -24,13 +24,15 @@ import {
 } from "../components/OpenBrushCore.js";
 import {
   COLLAB_PROTOCOL_VERSION,
+  VISIBILITY_GUIDS_PER_MESSAGE,
+  chunkControlPoints,
   collabPeerId,
   generateCollabCode,
   isValidCollabCode,
   parseCollabMessage,
   type CollabMessage,
 } from "../openbrush/collab.js";
-import type { Quat, Vec3 } from "../openbrush/types.js";
+import type { Quat, StrokeData, Vec3 } from "../openbrush/types.js";
 import { clearUIKitInteractionStateExcept } from "../openbrush/uikit-interaction.js";
 import { AudioFeedbackSystem } from "./AudioFeedbackSystem.js";
 import { SketchLibrarySystem } from "./SketchLibrarySystem.js";
@@ -85,6 +87,11 @@ export class CollabSystem extends createSystem({
   private lastProgressGuid = "";
   private lastProgressPointCount = 0;
   private committedGuids = new Set<string>();
+  // Incoming begin/points/end stroke transfers, keyed by stroke guid.
+  private readonly assembling = new Map<
+    string,
+    { stroke: StrokeData; live: boolean }
+  >();
 
   // Remote peer tip presence.
   private tipTimer = 0;
@@ -129,11 +136,23 @@ export class CollabSystem extends createSystem({
       authoring.onLocalStrokesCommitted = (strokes) => {
         for (const stroke of strokes) {
           this.committedGuids.add(stroke.guid);
-          this.send({ t: "stroke-end", stroke });
+          this.sendCommittedStroke(stroke);
         }
       };
       authoring.onLocalStrokeVisibility = (guids, visible) => {
-        this.send({ t: "visibility", guids: [...guids], visible });
+        // Mass erase/undo can carry more guids than one wire message allows.
+        const all = [...guids];
+        for (
+          let start = 0;
+          start < all.length;
+          start += VISIBILITY_GUIDS_PER_MESSAGE
+        ) {
+          this.send({
+            t: "visibility",
+            guids: all.slice(start, start + VISIBILITY_GUIDS_PER_MESSAGE),
+            visible,
+          });
+        }
       };
     }
   }
@@ -217,6 +236,7 @@ export class CollabSystem extends createSystem({
       // Already dead.
     }
     this.world.getSystem(StrokeAuthoringSystem)?.clearRemoteActiveStrokes();
+    this.assembling.clear();
     if (this.clock - this.connectedAtClock >= RECONNECT_INTERVAL_SECONDS) {
       // A fresh disruption gets a full retry budget; a connection that died
       // within seconds of opening is a recovery that isn't sticking — keep
@@ -552,6 +572,7 @@ export class CollabSystem extends createSystem({
         `Guest left - code ${this.code} still active`,
       );
       this.world.getSystem(StrokeAuthoringSystem)?.clearRemoteActiveStrokes();
+      this.assembling.clear();
       return;
     }
     this.teardown(
@@ -583,6 +604,7 @@ export class CollabSystem extends createSystem({
     this.lastProgressGuid = "";
     this.committedGuids.clear();
     this.world.getSystem(StrokeAuthoringSystem)?.clearRemoteActiveStrokes();
+    this.assembling.clear();
     this.hideRemoteTip();
     this.setStatus(status, message);
   }
@@ -614,7 +636,7 @@ export class CollabSystem extends createSystem({
       strokeCount: strokes.length,
     });
     for (const stroke of strokes) {
-      this.conn.send({ t: "stroke-end", stroke });
+      this.sendCommittedStroke(stroke);
     }
   }
 
@@ -656,16 +678,60 @@ export class CollabSystem extends createSystem({
         this.setStatus("connected", `Connected - code ${this.code}`);
         break;
       }
-      case "stroke-progress":
-        authoring?.upsertRemoteStroke(message.stroke);
+      case "stroke-begin":
+        // Re-announcing a guid resets its assembly: a committed stroke
+        // replaces its own live preview this way.
+        this.assembling.set(message.stroke.guid, {
+          stroke: { ...message.stroke, controlPoints: [] },
+          live: message.live,
+        });
         break;
-      case "stroke-end":
-        authoring?.finalizeRemoteStroke(message.stroke);
+      case "stroke-points": {
+        const entry = this.assembling.get(message.guid);
+        if (!entry) {
+          // A transfer whose begin predates a reconnect; the snapshot
+          // replays the whole stroke, so dropping this chunk is safe.
+          break;
+        }
+        if (message.from !== entry.stroke.controlPoints.length) {
+          console.warn(
+            `[Collab] stroke ${message.guid} chunk gap (have ${entry.stroke.controlPoints.length}, got from=${message.from}) - dropping transfer`,
+          );
+          this.assembling.delete(message.guid);
+          if (entry.live) {
+            authoring?.dropRemoteStroke(message.guid);
+          }
+          break;
+        }
+        entry.stroke.controlPoints.push(...message.points);
+        if (entry.live && entry.stroke.controlPoints.length >= 2) {
+          authoring?.upsertRemoteStroke(entry.stroke);
+        }
+        break;
+      }
+      case "stroke-end": {
+        const entry = this.assembling.get(message.guid);
+        this.assembling.delete(message.guid);
         if (this.snapshotStrokesPending > 0) {
           this.snapshotStrokesPending -= 1;
         }
+        if (!entry) {
+          break;
+        }
+        if (entry.stroke.controlPoints.length !== message.totalPoints) {
+          console.warn(
+            `[Collab] stroke ${message.guid} incomplete (${entry.stroke.controlPoints.length}/${message.totalPoints}) - dropping`,
+          );
+          if (entry.live) {
+            authoring?.dropRemoteStroke(message.guid);
+          }
+          break;
+        }
+        authoring?.finalizeRemoteStroke(entry.stroke);
         break;
+      }
       case "stroke-drop":
+        this.assembling.delete(message.guid);
         authoring?.dropRemoteStroke(message.guid);
         break;
       case "visibility": {
@@ -729,9 +795,50 @@ export class CollabSystem extends createSystem({
     ) {
       return;
     }
-    this.lastProgressGuid = active.guid;
+    // Deltas keep every wire message small no matter how long the stroke
+    // gets (PeerJS kills JSON channels on ~16 KB messages).
+    if (active.guid !== this.lastProgressGuid) {
+      this.lastProgressGuid = active.guid;
+      this.lastProgressPointCount = 0;
+      this.send({
+        t: "stroke-begin",
+        stroke: { ...active, controlPoints: [] },
+        live: true,
+      });
+    }
+    this.sendStrokePointChunks(
+      active.guid,
+      this.lastProgressPointCount,
+      active.controlPoints.slice(this.lastProgressPointCount),
+    );
     this.lastProgressPointCount = active.controlPoints.length;
-    this.send({ t: "stroke-progress", stroke: active });
+  }
+
+  /** Streams a committed stroke as a begin/points/end sequence. */
+  private sendCommittedStroke(stroke: StrokeData): void {
+    this.send({
+      t: "stroke-begin",
+      stroke: { ...stroke, controlPoints: [] },
+      live: false,
+    });
+    this.sendStrokePointChunks(stroke.guid, 0, stroke.controlPoints);
+    this.send({
+      t: "stroke-end",
+      guid: stroke.guid,
+      totalPoints: stroke.controlPoints.length,
+    });
+  }
+
+  private sendStrokePointChunks(
+    guid: string,
+    from: number,
+    points: StrokeData["controlPoints"],
+  ): void {
+    let offset = from;
+    for (const chunk of chunkControlPoints(points)) {
+      this.send({ t: "stroke-points", guid, from: offset, points: chunk });
+      offset += chunk.length;
+    }
   }
 
   private broadcastTip(delta: number): void {
@@ -956,7 +1063,8 @@ export class CollabSystem extends createSystem({
       layerIndex: 0,
     };
     this.world.getSystem(StrokeAuthoringSystem)?.spawnStrokeFromData(stroke, true);
-    this.send({ t: "stroke-end", stroke });
+    this.committedGuids.add(guid);
+    this.sendCommittedStroke(stroke);
     return guid;
   }
 

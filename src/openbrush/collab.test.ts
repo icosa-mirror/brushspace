@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   COLLAB_CODE_LENGTH,
   COLLAB_PEER_ID_PREFIX,
+  STROKE_POINTS_PER_MESSAGE,
+  chunkControlPoints,
   collabPeerId,
   generateCollabCode,
   isValidCollabCode,
@@ -73,10 +75,20 @@ describe("collab message parsing", () => {
       })?.t,
     ).toBe("snapshot");
     expect(
-      parseCollabMessage({ t: "stroke-progress", stroke: testStroke() })?.t,
-    ).toBe("stroke-progress");
+      parseCollabMessage({ t: "stroke-begin", stroke: testStroke(), live: true })
+        ?.t,
+    ).toBe("stroke-begin");
     expect(
-      parseCollabMessage({ t: "stroke-end", stroke: testStroke() })?.t,
+      parseCollabMessage({
+        t: "stroke-points",
+        guid: "stroke-1",
+        from: 0,
+        points: testStroke().controlPoints,
+      })?.t,
+    ).toBe("stroke-points");
+    expect(
+      parseCollabMessage({ t: "stroke-end", guid: "stroke-1", totalPoints: 2 })
+        ?.t,
     ).toBe("stroke-end");
     expect(parseCollabMessage({ t: "stroke-drop", guid: "stroke-1" })?.t).toBe(
       "stroke-drop",
@@ -106,7 +118,29 @@ describe("collab message parsing", () => {
     expect(parseCollabMessage("hello")).toBeUndefined();
     expect(parseCollabMessage({})).toBeUndefined();
     expect(parseCollabMessage({ t: "unknown" })).toBeUndefined();
-    expect(parseCollabMessage({ t: "stroke-end", stroke: {} })).toBeUndefined();
+    expect(parseCollabMessage({ t: "stroke-begin", stroke: {} })).toBeUndefined();
+    expect(
+      parseCollabMessage({ t: "stroke-begin", stroke: testStroke() }),
+    ).toBeUndefined();
+    expect(
+      parseCollabMessage({ t: "stroke-end", guid: "stroke-1" }),
+    ).toBeUndefined();
+    expect(
+      parseCollabMessage({
+        t: "stroke-points",
+        guid: "stroke-1",
+        from: 0,
+        points: [],
+      }),
+    ).toBeUndefined();
+    expect(
+      parseCollabMessage({
+        t: "stroke-points",
+        guid: "stroke-1",
+        from: -1,
+        points: testStroke().controlPoints,
+      }),
+    ).toBeUndefined();
     expect(
       parseCollabMessage({ t: "visibility", guids: [42], visible: true }),
     ).toBeUndefined();
@@ -125,7 +159,57 @@ describe("collab message parsing", () => {
     (broken.controlPoints[1] as { position: unknown }).position = [0, 1];
     expect(isValidStrokeData(broken)).toBe(false);
     expect(
-      parseCollabMessage({ t: "stroke-progress", stroke: broken }),
+      parseCollabMessage({ t: "stroke-begin", stroke: broken, live: false }),
     ).toBeUndefined();
+    expect(
+      parseCollabMessage({
+        t: "stroke-points",
+        guid: "stroke-1",
+        from: 0,
+        points: broken.controlPoints,
+      }),
+    ).toBeUndefined();
+  });
+});
+
+describe("stroke chunking", () => {
+  it("splits long point lists into wire-safe chunks", () => {
+    const point = testStroke().controlPoints[0];
+    const points = Array.from({ length: 2 * STROKE_POINTS_PER_MESSAGE + 7 }, () => ({
+      ...point,
+    }));
+    const chunks = chunkControlPoints(points);
+    expect(chunks).toHaveLength(3);
+    expect(chunks[0]).toHaveLength(STROKE_POINTS_PER_MESSAGE);
+    expect(chunks[2]).toHaveLength(7);
+    expect(chunks.flat()).toHaveLength(points.length);
+  });
+
+  it("keeps every chunk under the PeerJS JSON channel ceiling", () => {
+    // The regression this protocol exists for: PeerJS kills json-serialized
+    // channels on any message >= ~16 KB, and strokes grow without bound.
+    const worstPoint = {
+      position: [-0.123456789012345, 1.123456789012345, -2.123456789012345],
+      orientation: [
+        -0.7071067811865476, 0.7071067811865476, -0.7071067811865476,
+        0.7071067811865476,
+      ],
+      pressure: 0.123456789012345,
+      timestampMs: 123456789.12345,
+    };
+    const points = Array.from({ length: STROKE_POINTS_PER_MESSAGE }, () => ({
+      ...worstPoint,
+    }));
+    const message = {
+      t: "stroke-points",
+      guid: "stroke-12345678-1234-1234-1234-123456789012",
+      from: 999999,
+      points,
+    };
+    expect(JSON.stringify(message).length).toBeLessThan(16000);
+  });
+
+  it("handles empty point lists", () => {
+    expect(chunkControlPoints([])).toHaveLength(0);
   });
 });

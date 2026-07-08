@@ -1,4 +1,4 @@
-import type { Quat, StrokeData, Vec3 } from "./types.js";
+import type { ControlPoint, Quat, StrokeData, Vec3 } from "./types.js";
 
 /**
  * Two-user collaboration protocol. Transport is a single reliable PeerJS
@@ -11,7 +11,16 @@ import type { Quat, StrokeData, Vec3 } from "./types.js";
  * frame), so each side's own world-grab pose never leaks into shared state.
  */
 
-export const COLLAB_PROTOCOL_VERSION = 1;
+export const COLLAB_PROTOCOL_VERSION = 2;
+/**
+ * PeerJS JSON data channels refuse (and KILL the connection on) any message
+ * over util.chunkedMTU (~16 KB), so strokes travel as a begin/points/end
+ * sequence with the points split into fixed-size chunks. 50 points is ~12 KB
+ * of JSON worst-case; a whole stroke can be any length.
+ */
+export const STROKE_POINTS_PER_MESSAGE = 50;
+/** Mass erase/undo can carry hundreds of guids; chunk those too. */
+export const VISIBILITY_GUIDS_PER_MESSAGE = 200;
 export const COLLAB_PEER_ID_PREFIX = "brushspace-";
 export const COLLAB_CODE_LENGTH = 6;
 
@@ -41,9 +50,9 @@ export interface CollabHelloMessage {
 }
 
 /**
- * Announces the initial sync. The strokes themselves stream as individual
- * stroke-end messages (strokeCount of them) so no single frame outgrows the
- * data channel's message-size ceiling.
+ * Announces the initial sync. The strokes themselves stream as
+ * begin/points/end sequences (strokeCount of them) so no single wire message
+ * outgrows the data channel's message-size ceiling.
  */
 export interface CollabSnapshotMessage {
   t: "snapshot";
@@ -53,18 +62,32 @@ export interface CollabSnapshotMessage {
 }
 
 /**
- * Whole-stroke progress for the sender's single in-progress stroke. Sending
- * the full stroke each time (throttled) keeps the receiver self-healing: a
- * lost or reordered update is corrected by the next one.
+ * Opens an incremental stroke transfer: carries the stroke metadata with an
+ * empty (or seed) point list. `live` strokes re-render on every points chunk
+ * (the peer is drawing right now); non-live ones only materialize at
+ * stroke-end (committed replay, snapshot sync). Re-announcing a guid resets
+ * its assembly, which is how a committed stroke replaces its own live
+ * preview.
  */
-export interface CollabStrokeProgressMessage {
-  t: "stroke-progress";
+export interface CollabStrokeBeginMessage {
+  t: "stroke-begin";
   stroke: StrokeData;
+  live: boolean;
 }
 
+/** Appends a chunk of control points to an announced stroke. */
+export interface CollabStrokePointsMessage {
+  t: "stroke-points";
+  guid: string;
+  from: number;
+  points: ControlPoint[];
+}
+
+/** Completes an announced stroke; totalPoints guards against gaps. */
 export interface CollabStrokeEndMessage {
   t: "stroke-end";
-  stroke: StrokeData;
+  guid: string;
+  totalPoints: number;
 }
 
 /** The in-progress stroke was discarded (e.g. below solid min length). */
@@ -104,7 +127,8 @@ export interface CollabByeMessage {
 export type CollabMessage =
   | CollabHelloMessage
   | CollabSnapshotMessage
-  | CollabStrokeProgressMessage
+  | CollabStrokeBeginMessage
+  | CollabStrokePointsMessage
   | CollabStrokeEndMessage
   | CollabStrokeDropMessage
   | CollabVisibilityMessage
@@ -115,7 +139,8 @@ export type CollabMessage =
 const MESSAGE_TYPES = new Set([
   "hello",
   "snapshot",
-  "stroke-progress",
+  "stroke-begin",
+  "stroke-points",
   "stroke-end",
   "stroke-drop",
   "visibility",
@@ -132,6 +157,17 @@ function isFiniteNumberArray(value: unknown, length: number): boolean {
   );
 }
 
+function isValidControlPoint(point: unknown): point is ControlPoint {
+  return (
+    !!point &&
+    typeof point === "object" &&
+    isFiniteNumberArray((point as ControlPoint).position, 3) &&
+    isFiniteNumberArray((point as ControlPoint).orientation, 4) &&
+    Number.isFinite((point as ControlPoint).pressure) &&
+    Number.isFinite((point as ControlPoint).timestampMs)
+  );
+}
+
 export function isValidStrokeData(value: unknown): value is StrokeData {
   if (!value || typeof value !== "object") {
     return false;
@@ -145,16 +181,20 @@ export function isValidStrokeData(value: unknown): value is StrokeData {
     Number.isFinite(stroke.brushScale) &&
     isFiniteNumberArray(stroke.color, 4) &&
     Array.isArray(stroke.controlPoints) &&
-    stroke.controlPoints.every(
-      (point) =>
-        point &&
-        typeof point === "object" &&
-        isFiniteNumberArray(point.position, 3) &&
-        isFiniteNumberArray(point.orientation, 4) &&
-        Number.isFinite(point.pressure) &&
-        Number.isFinite(point.timestampMs),
-    )
+    stroke.controlPoints.every(isValidControlPoint)
   );
+}
+
+/** Splits control points into wire-safe chunks (see STROKE_POINTS_PER_MESSAGE). */
+export function chunkControlPoints(
+  points: readonly ControlPoint[],
+  chunkSize: number = STROKE_POINTS_PER_MESSAGE,
+): ControlPoint[][] {
+  const chunks: ControlPoint[][] = [];
+  for (let start = 0; start < points.length; start += chunkSize) {
+    chunks.push(points.slice(start, start + chunkSize));
+  }
+  return chunks;
 }
 
 /**
@@ -178,9 +218,28 @@ export function parseCollabMessage(raw: unknown): CollabMessage | undefined {
         Number.isFinite(message.strokeCount)
         ? message
         : undefined;
-    case "stroke-progress":
+    case "stroke-begin":
+      return isValidStrokeData(message.stroke) &&
+        typeof message.live === "boolean"
+        ? message
+        : undefined;
+    case "stroke-points":
+      return typeof message.guid === "string" &&
+        message.guid.length > 0 &&
+        Number.isInteger(message.from) &&
+        message.from >= 0 &&
+        Array.isArray(message.points) &&
+        message.points.length > 0 &&
+        message.points.every(isValidControlPoint)
+        ? message
+        : undefined;
     case "stroke-end":
-      return isValidStrokeData(message.stroke) ? message : undefined;
+      return typeof message.guid === "string" &&
+        message.guid.length > 0 &&
+        Number.isInteger(message.totalPoints) &&
+        message.totalPoints >= 0
+        ? message
+        : undefined;
     case "stroke-drop":
       return typeof message.guid === "string" && message.guid.length > 0
         ? message
