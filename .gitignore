@@ -69,9 +69,7 @@ public/ui/
 reference/
 
 # Codex journey output.
-# Commit .codex/journal/session-*.jsonl, .codex/journal/checkpoints/, and
-# curated .codex/artifacts/ files. Ignore only mutable hook bookkeeping and
-# non-canonical recovery/cache output.
-.codex/journal/state/
+# Commit .codex/journal/ (sessions, checkpoints, state) and curated
+# .codex/artifacts/ files. Ignore only non-canonical recovery/cache output.
 .codex/recovered-checkpoint-images/
 .codex/hooks/__pycache__/
