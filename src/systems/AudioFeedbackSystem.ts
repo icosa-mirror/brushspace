@@ -40,6 +40,7 @@ const OPEN_BRUSH_SOUNDS = {
   connect: { file: "connect.wav", volume: 0.4 },
   "peer-left": { file: "peer-left.wav", volume: 0.45 },
   "load-sketch": { file: "load-sketch.wav", volume: 0.4 },
+  "stroke-end": { file: "stroke-end.wav", volume: 0.25 },
 } as const;
 
 export type OpenBrushSoundId = keyof typeof OPEN_BRUSH_SOUNDS;

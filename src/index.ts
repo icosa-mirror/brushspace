@@ -37,6 +37,7 @@ import { PanelSystem } from "./panel.js";
 import { setupOpenBrushShell } from "./openbrush/setup-shell.js";
 
 import { AudioFeedbackSystem } from "./systems/AudioFeedbackSystem.js";
+import { BrushAudioSystem } from "./systems/BrushAudioSystem.js";
 import { BrushCatalogSystem } from "./systems/BrushCatalogSystem.js";
 import { BrushPageSystem } from "./systems/BrushPageSystem.js";
 import { ColorPickerSystem } from "./systems/ColorPickerSystem.js";
@@ -181,6 +182,7 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .registerSystem(InputCommandSystem)
     .registerSystem(BrushSizeInputSystem)
     .registerSystem(AudioFeedbackSystem)
+    .registerSystem(BrushAudioSystem)
     .registerSystem(BrushCatalogSystem)
     .registerSystem(BrushPageSystem)
     .registerSystem(ColorPickerSystem)

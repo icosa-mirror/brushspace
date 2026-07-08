@@ -235,6 +235,17 @@ export class StrokeAuthoringSystem extends createSystem({
   };
   private activeStroke: RuntimeStroke | undefined;
   private strokeCounter = 0;
+  // Preview trail (Open Brush's preview line): a short decaying trail of the
+  // current brush behind the idle tip. Rebuilt every frame from a rolling
+  // buffer of recent tip poses.
+  private previewTrail: RuntimeStroke | undefined;
+  private previewBrushGuid = "";
+  private readonly previewBirths: number[] = [];
+  private previewClock = 0;
+  private readonly previewWorldPosition = new Vector3();
+  private readonly previewWorldQuaternion = new Quaternion();
+  private readonly previewPoseQuaternion = new Quaternion();
+  private readonly previewLocalPosition = new Vector3();
   private readonly strokeHistory = new StrokeEntityHistory<Entity>();
   // Remote peers' in-progress strokes (collab mode), keyed by stroke guid.
   private readonly remoteActiveStrokes = new Map<string, RuntimeStroke>();
@@ -273,6 +284,7 @@ export class StrokeAuthoringSystem extends createSystem({
     if (!commandEntity) {
       return;
     }
+    this.updatePreviewTrail(_delta);
 
     this.consumeStrokeHistoryRequests(this.getFirstEntity("appState"));
     if (commandEntity.getValue(InputCommandState, "undoDown")) {
@@ -910,10 +922,13 @@ export class StrokeAuthoringSystem extends createSystem({
     }
     stroke.geometry.setDrawRange(0, arrays.indexCount);
     this.copyGeneratedBounds(stroke, arrays.bounds.min, arrays.bounds.max);
-    stroke.entity.setValue(BrushStroke, "vertexCount", arrays.vertexCount);
-    stroke.entity.setValue(BrushStroke, "indexCount", arrays.indexCount);
-    if (arrays.warning) {
-      stroke.entity.setValue(BrushStroke, "renderWarning", arrays.warning);
+    // The preview trail reuses this path with a component-less entity.
+    if (stroke.entity.hasComponent(BrushStroke)) {
+      stroke.entity.setValue(BrushStroke, "vertexCount", arrays.vertexCount);
+      stroke.entity.setValue(BrushStroke, "indexCount", arrays.indexCount);
+      if (arrays.warning) {
+        stroke.entity.setValue(BrushStroke, "renderWarning", arrays.warning);
+      }
     }
   }
 
@@ -1020,6 +1035,223 @@ export class StrokeAuthoringSystem extends createSystem({
     }
   }
 
+  private static readonly PREVIEW_POINT_LIFE_SECONDS = 0.2;
+  private static readonly PREVIEW_IDEAL_LENGTH_METERS = 1;
+
+  /**
+   * Open Brush preview line: while the paint tool is idle, a short trail of
+   * the current brush follows the tip and decays after 0.2s, tapered toward
+   * the tail and thinned when the trail is short (Pointer_Main params).
+   */
+  private updatePreviewTrail(delta: number): void {
+    this.previewClock += delta;
+    const commandEntity = this.getFirstEntity("commands");
+    const appStateEntity = this.getFirstEntity("appState");
+    const settingsEntity = this.getFirstEntity("brushSettings");
+    const poseEntity = this.getFirstEntity("scenePoses");
+    const poseObject = poseEntity?.object3D;
+    const activeTool = this.getActiveTool();
+    const worldGrabActive = Boolean(
+      poseEntity?.getValue(OpenBrushScenePose, "grabActive"),
+    );
+    const commandSource = commandEntity
+      ? String(commandEntity.getValue(InputCommandState, "source"))
+      : "";
+    const show =
+      !!commandEntity &&
+      !!appStateEntity &&
+      !!settingsEntity &&
+      !!poseObject &&
+      String(appStateEntity.getValue(OpenBrushAppState, "mode")) === "ready" &&
+      activeTool.paints &&
+      !activeTool.erases &&
+      !this.activeStroke &&
+      !worldGrabActive &&
+      !this.getPaintStartBlockReason(commandSource);
+    if (!show) {
+      this.resetPreviewTrailPoints();
+      return;
+    }
+
+    const hand = this.resolveBrushPointerHand(commandEntity);
+    const anchor = this.getTipAnchorObject(hand);
+    if (!anchor) {
+      this.resetPreviewTrailPoints();
+      return;
+    }
+
+    const brushGuid = String(settingsEntity.getValue(BrushSettings, "brushGuid"));
+    const trail = this.ensurePreviewTrail(brushGuid);
+    if (!trail) {
+      return;
+    }
+
+    // Tip pose in canvas space, like strokes themselves.
+    anchor.getWorldPosition(this.previewWorldPosition);
+    anchor.getWorldQuaternion(this.previewWorldQuaternion);
+    this.previewLocalPosition.copy(this.previewWorldPosition);
+    poseObject.worldToLocal(this.previewLocalPosition);
+    poseObject.getWorldQuaternion(this.previewPoseQuaternion).invert();
+    this.previewWorldQuaternion.premultiply(this.previewPoseQuaternion);
+
+    const points = trail.strokeData.controlPoints;
+    points.push({
+      position: [
+        this.previewLocalPosition.x,
+        this.previewLocalPosition.y,
+        this.previewLocalPosition.z,
+      ],
+      orientation: [
+        this.previewWorldQuaternion.x,
+        this.previewWorldQuaternion.y,
+        this.previewWorldQuaternion.z,
+        this.previewWorldQuaternion.w,
+      ],
+      pressure: 1,
+      timestampMs: this.previewClock * 1000,
+    });
+    this.previewBirths.push(this.previewClock);
+    while (
+      this.previewBirths.length > 2 &&
+      this.previewClock - this.previewBirths[0] >
+        StrokeAuthoringSystem.PREVIEW_POINT_LIFE_SECONDS
+    ) {
+      this.previewBirths.shift();
+      points.shift();
+    }
+    if (points.length < 2) {
+      trail.mesh.visible = false;
+      return;
+    }
+    trail.mesh.visible = true;
+
+    // Width: taper toward the tail, and thin the whole trail when it is
+    // short relative to the ideal length (in room space).
+    const poseScale = poseObject.scale.x || 1;
+    let canvasLength = 0;
+    for (let i = 1; i < points.length; i += 1) {
+      const a = points[i - 1].position;
+      const b = points[i].position;
+      canvasLength += Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
+    }
+    const length01 = Math.min(
+      1,
+      (canvasLength * poseScale) /
+        StrokeAuthoringSystem.PREVIEW_IDEAL_LENGTH_METERS,
+    );
+    const fullWidthIndex = Math.max(1, points.length - 3);
+    for (let i = 0; i < points.length; i += 1) {
+      points[i].pressure = Math.min(1, i / fullWidthIndex) * length01;
+    }
+
+    const colorView = settingsEntity.getVectorView(
+      BrushSettings,
+      "color",
+    ) as Float32Array;
+    trail.strokeData.brushSize =
+      Number(settingsEntity.getValue(BrushSettings, "size")) / poseScale;
+    trail.strokeData.color[0] = colorView[0];
+    trail.strokeData.color[1] = colorView[1];
+    trail.strokeData.color[2] = colorView[2];
+    trail.strokeData.color[3] = colorView[3] > 0 ? colorView[3] : 1;
+    this.rebuildStrokeMesh(trail);
+  }
+
+  /** The preview entity carries NO BrushStroke component, so save, erase,
+   * collab, and sketch transitions never see it. */
+  private ensurePreviewTrail(brushGuid: string): RuntimeStroke | undefined {
+    if (this.previewTrail && this.previewBrushGuid === brushGuid) {
+      return this.previewTrail;
+    }
+    this.disposePreviewTrail();
+    const settingsEntity = this.getFirstEntity("brushSettings");
+    if (!settingsEntity) {
+      return undefined;
+    }
+    const brushEntry = findBrushByGuid(openBrushInventory, brushGuid);
+    const colorView = settingsEntity.getVectorView(
+      BrushSettings,
+      "color",
+    ) as Float32Array;
+    const color: Rgba = [
+      colorView[0],
+      colorView[1],
+      colorView[2],
+      colorView[3] > 0 ? colorView[3] : 1,
+    ];
+    const materialSpec = createBrushMaterialSpec(brushEntry, color);
+    const geometry = new BufferGeometry();
+    const material = this.createStrokeRenderMaterial(
+      brushEntry,
+      materialSpec,
+      color[3],
+    );
+    const mesh = new Mesh(geometry, material);
+    mesh.frustumCulled = false;
+    mesh.raycast = () => {};
+    mesh.name = "OpenBrushPreviewTrail";
+    mesh.visible = false;
+    const poseEntity = this.getFirstEntity("scenePoses");
+    const entity = poseEntity
+      ? this.world.createTransformEntity(mesh, poseEntity)
+      : this.world.createTransformEntity(mesh);
+    entity.object3D!.name = "OpenBrushPreviewTrailEntity";
+    const strokeData = createEmptyStrokeData({
+      guid: "preview-trail",
+      brushGuid,
+      brushSize: 0.01,
+      brushScale: 1,
+      color,
+      controlPoints: [],
+    });
+    this.previewTrail = {
+      entity,
+      mesh,
+      geometry,
+      geometryFamily: brushEntry?.geometryFamily ?? "unsupported",
+      pressureSizeRange: brushEntry?.pressureSizeRange,
+      pressureOpacityRange: brushEntry?.pressureOpacityRange,
+      toolId: "free-paint",
+      groupId: 0,
+      samplingMode: "freehand",
+      mirrorMode: "none",
+      snapMode: "none",
+      lazyMode: "none",
+      stencilMode: "none",
+      strokeData,
+      controlPoints: strokeData.controlPoints,
+      lastPosition: [0, 0, 0],
+      lastPointIsKeeper: false,
+      solidMinLengthMeters: 0,
+      geometryArrays: createBrushGeometryArrays(),
+      posePosition: [0, 0, 0],
+      poseOrientationInv: [0, 0, 0, 1],
+      poseScale: 1,
+      minBounds: new Float32Array(3),
+      maxBounds: new Float32Array(3),
+    };
+    this.previewBrushGuid = brushGuid;
+    return this.previewTrail;
+  }
+
+  private resetPreviewTrailPoints(): void {
+    if (this.previewTrail) {
+      this.previewTrail.strokeData.controlPoints.length = 0;
+      this.previewTrail.mesh.visible = false;
+    }
+    this.previewBirths.length = 0;
+  }
+
+  private disposePreviewTrail(): void {
+    if (this.previewTrail) {
+      this.previewTrail.geometry.dispose();
+      this.previewTrail.entity.destroy();
+      this.previewTrail = undefined;
+    }
+    this.previewBrushGuid = "";
+    this.previewBirths.length = 0;
+  }
+
   private finalizeActiveStroke(): void {
     const stroke = this.activeStroke;
     if (!stroke) {
@@ -1047,6 +1279,7 @@ export class StrokeAuthoringSystem extends createSystem({
     }
     this.strokeHistory.commit(strokeGroup);
     this.activeStroke = undefined;
+    this.world.getSystem(AudioFeedbackSystem)?.playSound("stroke-end");
     if (this.onLocalStrokesCommitted) {
       const committed: StrokeData[] = [];
       for (const entity of strokeGroup) {
