@@ -6,8 +6,8 @@
 //   public/openbrush/shaders/<vertex|fragment>.glsl   (includes resolved, defines injected)
 //   public/openbrush/textures/<manifest texture name>  (copied from Unity brush folders)
 //   public/openbrush/NOTICE
-//   src/openbrush/generated/exportManifest.json        (verbatim copy, bundled)
-//   src/openbrush/generated/brush-assets.json          (per-GUID shader/texture/geometry metadata)
+//   src/brushes/generated/exportManifest.json        (verbatim copy, bundled)
+//   src/brushes/generated/brush-assets.json          (per-GUID shader/texture/geometry metadata)
 //
 // Shader generation mirrors reference/Support/bin/gltf_export_shaders.py:
 // handcrafted generator files are used when present; otherwise the same

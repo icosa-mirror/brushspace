@@ -21,11 +21,11 @@ const introMaterialsDir = path.join(
 );
 const brushAssetsPath = path.join(
   repoRoot,
-  "src/openbrush/generated/brush-assets.json",
+  "src/brushes/generated/brush-assets.json",
 );
 const manifestPath = path.join(
   repoRoot,
-  "src/openbrush/generated/exportManifest.json",
+  "src/brushes/generated/exportManifest.json",
 );
 const outDir = path.join(repoRoot, "public/openbrush/intro");
 

@@ -3,7 +3,7 @@
 // descriptors (m_BrushAudioLayers) plus the volume envelope params, converts
 // the wavs to mono Ogg Opus (~15x smaller than the originals), and writes:
 //   public/audio/brushes/<clip>.ogg
-//   src/openbrush/generated/brush-audio.json
+//   src/brushes/generated/brush-audio.json
 //
 // Run: node scripts/extract-brush-audio.mjs   (requires ffmpeg)
 
@@ -21,7 +21,7 @@ const audioDirs = [
 const outAudioDir = path.join(repoRoot, "public/audio/brushes");
 const outJsonPath = path.join(
   repoRoot,
-  "src/openbrush/generated/brush-audio.json",
+  "src/brushes/generated/brush-audio.json",
 );
 
 // Meta-guid -> wav path for every BrushAudio clip.

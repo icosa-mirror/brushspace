@@ -26,39 +26,39 @@ import {
 
 import { PanelUI, RayInteractable } from "@iwsdk/core";
 
-import { OpenBrushDebug } from "./components/OpenBrushDebug.js";
+import { OpenBrushDebug } from "./components/debug.js";
 import {
   OpenBrushBrushPage,
   OpenBrushPanelAttachment,
-} from "./components/OpenBrushCore.js";
+} from "./components/core.js";
 
-import { PanelSystem } from "./panel.js";
+import { PanelSystem } from "./systems/panel-system.js";
 
-import { setupOpenBrushShell } from "./openbrush/setup-shell.js";
+import { setupOpenBrushShell } from "./app/setup-shell.js";
 
-import { AudioFeedbackSystem } from "./systems/AudioFeedbackSystem.js";
-import { BrushAudioSystem } from "./systems/BrushAudioSystem.js";
-import { BrushCatalogSystem } from "./systems/BrushCatalogSystem.js";
-import { BrushPageSystem } from "./systems/BrushPageSystem.js";
-import { ColorPickerSystem } from "./systems/ColorPickerSystem.js";
-import { BrushSizeInputSystem } from "./systems/BrushSizeInputSystem.js";
-import { CameraToolSystem } from "./systems/CameraToolSystem.js";
-import { CollabSystem } from "./systems/CollabSystem.js";
-import { BrushPointerVisualSystem } from "./systems/BrushPointerVisualSystem.js";
-import { EraserCursorSystem } from "./systems/EraserCursorSystem.js";
-import { InputCommandSystem } from "./systems/InputCommandSystem.js";
-import { IntroSketchSystem } from "./systems/IntroSketchSystem.js";
-import { LayerCanvasSystem } from "./systems/LayerCanvasSystem.js";
-import { PanelAttachmentSystem } from "./systems/PanelAttachmentSystem.js";
-import { PerformanceCounterSystem } from "./systems/PerformanceCounterSystem.js";
-import { RuntimeDebugSystem } from "./systems/RuntimeDebugSystem.js";
-import { SelectionSystem } from "./systems/SelectionSystem.js";
-import { SketchLibrarySystem } from "./systems/SketchLibrarySystem.js";
-import { StandardEnvironmentSystem } from "./systems/StandardEnvironmentSystem.js";
-import { StrokeAuthoringSystem } from "./systems/StrokeAuthoringSystem.js";
-import { TipAnchorTuningSystem } from "./systems/TipAnchorTuningSystem.js";
-import { WorldGrabSystem } from "./systems/WorldGrabSystem.js";
-import { WorldGrabVisualsSystem } from "./systems/WorldGrabVisualsSystem.js";
+import { AudioFeedbackSystem } from "./systems/audio-feedback-system.js";
+import { BrushAudioSystem } from "./systems/brush-audio-system.js";
+import { BrushCatalogSystem } from "./systems/brush-catalog-system.js";
+import { BrushPageSystem } from "./systems/brush-page-system.js";
+import { ColorPickerSystem } from "./systems/color-picker-system.js";
+import { BrushSizeInputSystem } from "./systems/brush-size-input-system.js";
+import { CameraToolSystem } from "./systems/camera-tool-system.js";
+import { CollabSystem } from "./systems/collab-system.js";
+import { BrushPointerVisualSystem } from "./systems/brush-pointer-visual-system.js";
+import { EraserCursorSystem } from "./systems/eraser-cursor-system.js";
+import { InputCommandSystem } from "./systems/input-command-system.js";
+import { IntroSketchSystem } from "./systems/intro-sketch-system.js";
+import { LayerCanvasSystem } from "./systems/layer-canvas-system.js";
+import { PanelAttachmentSystem } from "./systems/panel-attachment-system.js";
+import { PerformanceCounterSystem } from "./systems/performance-counter-system.js";
+import { RuntimeDebugSystem } from "./systems/runtime-debug-system.js";
+import { SelectionSystem } from "./systems/selection-system.js";
+import { SketchLibrarySystem } from "./systems/sketch-library-system.js";
+import { StandardEnvironmentSystem } from "./systems/standard-environment-system.js";
+import { StrokeAuthoringSystem } from "./systems/stroke-authoring-system.js";
+import { TipAnchorTuningSystem } from "./systems/tip-anchor-tuning-system.js";
+import { WorldGrabSystem } from "./systems/world-grab-system.js";
+import { WorldGrabVisualsSystem } from "./systems/world-grab-visuals-system.js";
 
 AnimatedController.useSimpleMaterial = true;
 
