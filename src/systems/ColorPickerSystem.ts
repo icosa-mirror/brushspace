@@ -25,7 +25,6 @@ import {
   OpenBrushColorPicker,
   OpenBrushCustomPanel,
   OpenBrushPanelAttachment,
-  OpenBrushTipAnchor,
   SettingsState,
 } from "../components/OpenBrushCore.js";
 import { openBrushInventory } from "../openbrush/brush-catalog.js";
@@ -130,7 +129,6 @@ export class ColorPickerSystem extends createSystem({
   brushSettings: { required: [BrushSettings] },
   commands: { required: [InputCommandState] },
   settings: { required: [SettingsState] },
-  tipAnchors: { required: [OpenBrushTipAnchor] },
 }) {
   private wheelMaterial!: ShaderMaterial;
   private sliderMaterial!: ShaderMaterial;
@@ -383,7 +381,10 @@ export class ColorPickerSystem extends createSystem({
       String(settings?.getValue(SettingsState, "dominantHand")) === "left"
         ? "left"
         : "right";
-    const raySpace = this.getTipAnchorObject(hand);
+    // Cast from the SAME ray the UI renders (raySpaces) — not the draw-tip
+    // anchor, whose deliberately rotated pose would put the reticle away
+    // from where the visible ray meets the panel.
+    const raySpace = this.player.raySpaces[hand];
     if (!raySpace) {
       return undefined;
     }
@@ -616,20 +617,6 @@ export class ColorPickerSystem extends createSystem({
         borderColor: "rgba(255, 255, 255, 0.55)",
       });
     }
-  }
-
-  private getTipAnchorObject(
-    hand: "left" | "right",
-  ): NonNullable<Entity["object3D"]> | undefined {
-    for (const anchor of this.queries.tipAnchors.entities) {
-      if (
-        String(anchor.getValue(OpenBrushTipAnchor, "hand")) === hand &&
-        anchor.object3D
-      ) {
-        return anchor.object3D;
-      }
-    }
-    return undefined;
   }
 
   private getFirstEntity(
