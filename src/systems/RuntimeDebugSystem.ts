@@ -24,6 +24,7 @@ import {
   OPEN_BRUSH_PORT_PHASE,
   OPEN_BRUSH_PORT_STATUS,
 } from "../app/port-phase.js";
+import { SketchLibrarySystem } from "./SketchLibrarySystem.js";
 import { createPhase1RuntimeSummary } from "../openbrush/fixtures.js";
 
 const phase1Summary = createPhase1RuntimeSummary();
@@ -73,7 +74,23 @@ export class RuntimeDebugSystem extends createSystem({
   private static readonly REFRESH_INTERVAL_SECONDS = 0.25;
   private refreshTimer = 0;
 
+  private consumedFreshSketchRevision = 0;
+
+  /** Debug shortcut: jump straight into a fresh blank sketch. */
+  private consumeFreshSketchRequests(): void {
+    for (const entity of this.queries.debug.entities) {
+      const revision = Math.trunc(
+        Number(entity.getValue(OpenBrushDebug, "freshSketchRequestRevision")),
+      );
+      if (revision > this.consumedFreshSketchRevision) {
+        this.consumedFreshSketchRevision = revision;
+        this.world.getSystem(SketchLibrarySystem)?.prepareForCollabJoin();
+      }
+    }
+  }
+
   update(delta: number) {
+    this.consumeFreshSketchRequests();
     this.refreshTimer += delta;
     if (this.refreshTimer < RuntimeDebugSystem.REFRESH_INTERVAL_SECONDS) {
       return;

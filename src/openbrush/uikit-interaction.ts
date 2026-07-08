@@ -26,7 +26,11 @@ export function clearUIKitInteractionStateExcept(
     keep.add(node);
     node = node.parent as UIKitInteractionElement | undefined;
   }
-  clearRecursive(root, keep);
+  // A UIKitDocument is not itself an element: enter through its root, or
+  // the walk silently clears nothing.
+  const documentRoot = (root as { rootElement?: unknown } | undefined)
+    ?.rootElement;
+  clearRecursive(documentRoot ?? root, keep);
 }
 
 function clearRecursive(element: unknown, keep: ReadonlySet<unknown>): void {

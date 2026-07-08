@@ -848,7 +848,11 @@ export class PanelSystem extends createSystem({
       return;
     }
     this.staleHoverSweepsLeft.set(panelEntity.index, sweepsLeft - 1);
-    this.clearUIKitInteractionState(document);
+    // Walk the whole document tree (clearUIKitInteractionStateExcept enters
+    // through document.rootElement) so EVERY element sheds stuck hover and
+    // pressed styling — the per-id list below is just a cheap direct pass
+    // for the buttons we know about.
+    clearUIKitInteractionStateExcept(document);
     for (const elementId of elementIds) {
       this.clearUIKitInteractionState(document.getElementById(elementId));
     }

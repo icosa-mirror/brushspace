@@ -1,6 +1,12 @@
 import { createComponent, Types } from "@iwsdk/core";
 
 export const OpenBrushDebug = createComponent("OpenBrushDebug", {
+  /**
+   * Debug shortcut: bump to jump straight into a fresh blank sketch
+   * (bypasses the intro gallery and hides the welcome sketch). Set via
+   * ecs_set_component from the emulator tooling.
+   */
+  freshSketchRequestRevision: { type: Types.Int32, default: 0 },
   phase: { type: Types.String, default: "phase-9" },
   status: { type: Types.String, default: "media-import" },
   planFile: { type: Types.String, default: "OPEN_BRUSH_IWSDK_PORT_PLAN.md" },
