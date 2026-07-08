@@ -11,6 +11,9 @@ import {
   createSystem,
 } from "@iwsdk/core";
 
+import type { Entity } from "@iwsdk/core";
+
+import { OpenBrushScenePose } from "../components/OpenBrushCore.js";
 import { openBrushInventory } from "../openbrush/brush-catalog.js";
 import { findBrushByGuid } from "../openbrush/brush-inventory.js";
 import {
@@ -52,8 +55,11 @@ const WORDMARK_POSITION_DM: readonly [number, number, number] = [0, 16, -40];
  * The SketchLibrarySystem controls when it shows: on the landing scene and
  * as the "Welcome Sketch" gallery entry; hidden once another sketch starts.
  */
-export class IntroSketchSystem extends createSystem({}) {
+export class IntroSketchSystem extends createSystem({
+  scenePoses: { required: [OpenBrushScenePose] },
+}) {
   private root?: Group;
+  private rootEntity?: Entity;
   private loaded = false;
   private removed = false;
   private desiredVisible = true;
@@ -153,7 +159,14 @@ export class IntroSketchSystem extends createSystem({}) {
       root.scale.setScalar(INTRO_SCALE);
       root.visible = this.desiredVisible;
       this.root = root;
-      this.world.scene.add(root);
+      // Under the scene pose, like strokes and the environment, so two-hand
+      // world grabs move and scale the welcome sketch too.
+      const poseNext = this.queries.scenePoses.entities.values().next();
+      const poseEntity = poseNext.done ? undefined : poseNext.value;
+      this.rootEntity = poseEntity
+        ? this.world.createTransformEntity(root, poseEntity)
+        : this.world.createTransformEntity(root);
+      this.rootEntity.object3D!.name = "OpenBrushIntroSketchEntity";
       this.loaded = true;
     } catch (error) {
       console.warn("Intro sketch failed to load:", error);
@@ -268,5 +281,7 @@ export class IntroSketchSystem extends createSystem({}) {
       }
       this.root = undefined;
     }
+    this.rootEntity?.destroy();
+    this.rootEntity = undefined;
   }
 }
