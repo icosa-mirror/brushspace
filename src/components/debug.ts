@@ -7,9 +7,6 @@ export const OpenBrushDebug = createComponent("OpenBrushDebug", {
    * ecs_set_component from the emulator tooling.
    */
   freshSketchRequestRevision: { type: Types.Int32, default: 0 },
-  phase: { type: Types.String, default: "phase-9" },
-  status: { type: Types.String, default: "media-import" },
-  planFile: { type: Types.String, default: "OPEN_BRUSH_IWSDK_PORT_PLAN.md" },
   visibilityState: { type: Types.String, default: "unknown" },
   appMode: { type: Types.String, default: "ready" },
   activeTool: { type: Types.String, default: "free-paint" },

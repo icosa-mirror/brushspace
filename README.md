@@ -3,12 +3,15 @@
 </p>
 
 <p align="center">
-  <strong>Paint in thin air, together — Open Brush reborn on the open web.</strong><br />
-  A WebXR 3D painting app built with the <a href="https://github.com/meta-quest/immersive-web-sdk">Immersive Web SDK</a>, no install required.
+  <strong>Paint in thin air, together.</strong><br />
+  A WebXR 3D painting app partially ported from <a href="https://openbrush.app/">Open Brush</a>
+  and adapted for the web, built with the
+  <a href="https://github.com/facebook/immersive-web-sdk">Immersive Web SDK</a>
+  (<a href="https://iwsdk.dev">iwsdk.dev</a>) — no install required.
 </p>
 
 <p align="center">
-  <a href="https://felixtrz.github.io/brushspace/">Live demo</a> — open it in a headset browser (Meta Quest) or any desktop browser.
+  Live at <a href="https://brushspace.elixr.games">brushspace.elixr.games</a> — open it in a headset browser (Meta Quest) or any desktop browser.
 </p>
 
 ---
@@ -83,24 +86,17 @@ src/
   app/            Shell setup, settings, sounds
 ui/               UIKitML panel markup (compiled by the vite plugin)
 public/openbrush/ Brush shaders/textures, audio, intro sketch (see NOTICE)
-scripts/          Asset extraction from an Open Brush checkout
+scripts/          Asset extraction pipelines (generated output is committed)
 ```
 
 The pure-logic folders are plain TypeScript with vitest coverage; the ECS
 systems in `src/systems/` glue them to IWSDK.
 
-### Regenerating assets
-
-The extraction scripts in `scripts/` (brush assets, brush audio, the intro
-sketch, the avatar head) read from an [Open Brush](https://github.com/icosa-foundation/open-brush)
-checkout at `reference/` (gitignored). The generated output is committed, so
-you only need this to change what gets extracted.
-
 ## License
 
-[Apache 2.0](LICENSE). Brushspace is a fan port of
+[Apache 2.0](LICENSE). Brushspace is partially ported from
 [Open Brush](https://openbrush.app/) — the community continuation of Google's
-[Tilt Brush](https://github.com/googlevr/tilt-brush) — and bundles brushes,
-shaders, sounds, and the intro sketch derived from those Apache-2.0 projects
-(see [NOTICE](NOTICE)). It is not affiliated with or endorsed by Google or the
-Icosa Foundation.
+[Tilt Brush](https://github.com/googlevr/tilt-brush) — and adapted for the
+web; it bundles brushes, shaders, sounds, and the intro sketch derived from
+those Apache-2.0 projects (see [NOTICE](NOTICE)). It is not affiliated with
+or endorsed by Google or the Icosa Foundation.

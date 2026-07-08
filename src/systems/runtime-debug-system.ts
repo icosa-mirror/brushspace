@@ -19,11 +19,6 @@ import {
   StrokeHistoryState,
   UiCommandHistoryState,
 } from "../components/core.js";
-import {
-  OPEN_BRUSH_PLAN_FILE,
-  OPEN_BRUSH_PORT_PHASE,
-  OPEN_BRUSH_PORT_STATUS,
-} from "../app/port-phase.js";
 import { SketchLibrarySystem } from "./sketch-library-system.js";
 import { createPhase1RuntimeSummary } from "../sketch/fixtures.js";
 
@@ -102,9 +97,6 @@ export class RuntimeDebugSystem extends createSystem({
   }
 
   private applyDebugValues(entity: Entity) {
-    entity.setValue(OpenBrushDebug, "phase", OPEN_BRUSH_PORT_PHASE);
-    entity.setValue(OpenBrushDebug, "status", OPEN_BRUSH_PORT_STATUS);
-    entity.setValue(OpenBrushDebug, "planFile", OPEN_BRUSH_PLAN_FILE);
     entity.setValue(OpenBrushDebug, "appMode", this.getAppString("mode", "ready"));
     entity.setValue(
       OpenBrushDebug,

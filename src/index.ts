@@ -35,6 +35,7 @@ import {
 import { PanelSystem } from "./systems/panel-system.js";
 
 import { setupOpenBrushShell } from "./app/setup-shell.js";
+import { version } from "../package.json";
 
 import { AudioFeedbackSystem } from "./systems/audio-feedback-system.js";
 import { BrushAudioSystem } from "./systems/brush-audio-system.js";
@@ -119,13 +120,21 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
   // Hidden while immersive; offer:"always" still covers browsers with
   // native Enter-VR UI.
   const enterVrButton = document.getElementById("enter-vr-button");
+  const landingFooter = document.getElementById("landing-footer");
+  const landingVersion = document.getElementById("landing-version");
+  if (landingVersion) {
+    landingVersion.textContent = `v${version}`;
+  }
   if (enterVrButton) {
     enterVrButton.addEventListener("click", () => {
       world.launchXR();
     });
     world.visibilityState.subscribe((state) => {
-      enterVrButton.style.display =
-        state === VisibilityState.NonImmersive ? "block" : "none";
+      const nonImmersive = state === VisibilityState.NonImmersive;
+      enterVrButton.style.display = nonImmersive ? "block" : "none";
+      if (landingFooter) {
+        landingFooter.style.display = nonImmersive ? "flex" : "none";
+      }
     });
   }
 
