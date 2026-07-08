@@ -50,7 +50,7 @@ const WELCOME_THUMB_URL = assetUrl("/openbrush/intro/thumbnail.png");
 // TEMP: gallery tile that previews the extracted collab avatar head.
 const AVATAR_HEAD_SKETCH_ID = "avatar-head-preview";
 const AVATAR_HEAD_THUMB_URL = assetUrl("/openbrush/avatar/head-thumb.png");
-// The baked asset is authored in decimeters with the bird facing +x.
+// The baked asset is authored in decimeters with the bird facing -z.
 const AVATAR_HEAD_SCALE = 0.1;
 const BLANK_THUMB_URL = assetUrl("/openbrush/blank-icon.png");
 const CELLS_PER_PAGE = 6;
@@ -507,7 +507,8 @@ export class SketchLibrarySystem extends createSystem({
     }
     group.scale.setScalar(AVATAR_HEAD_SCALE);
     group.position.set(0, 1.4, -1.2);
-    group.rotation.y = -Math.PI / 2;
+    // The asset faces -z; turn it around to face the spawn point.
+    group.rotation.y = Math.PI;
     const poseNext = this.queries.scenePoses.entities.values().next();
     const poseEntity = poseNext.done ? undefined : poseNext.value;
     this.avatarHeadEntity = poseEntity

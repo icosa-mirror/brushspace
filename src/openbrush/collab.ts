@@ -103,12 +103,20 @@ export interface CollabVisibilityMessage {
   visible: boolean;
 }
 
-/** Presence beacon: the peer's brush tip pose in canvas space. */
+/**
+ * Presence beacon: the peer's brush tip pose in canvas space, plus the
+ * peer's head pose driving the avatar. `head` is optional so a peer built
+ * before avatars simply renders no head.
+ */
 export interface CollabTipMessage {
   t: "tip";
   position: Vec3;
   orientation: Quat;
   drawing: boolean;
+  head?: {
+    position: Vec3;
+    orientation: Quat;
+  };
 }
 
 /**
@@ -255,7 +263,10 @@ export function parseCollabMessage(raw: unknown): CollabMessage | undefined {
     case "tip":
       return isFiniteNumberArray(message.position, 3) &&
         isFiniteNumberArray(message.orientation, 4) &&
-        typeof message.drawing === "boolean"
+        typeof message.drawing === "boolean" &&
+        (message.head === undefined ||
+          (isFiniteNumberArray(message.head.position, 3) &&
+            isFiniteNumberArray(message.head.orientation, 4)))
         ? message
         : undefined;
     case "ping":

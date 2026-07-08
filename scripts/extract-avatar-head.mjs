@@ -15,9 +15,12 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const introDir = path.join(repoRoot, "public/openbrush/intro");
 const outDir = path.join(repoRoot, "public/openbrush/avatar");
 
-// Head box in intro-local units (decimeters), from the shrinking-box pass.
-const BOX_CENTER = [-37.0, 4.75, -16.0];
-const BOX_HALF = [3.5, 3.85, 3.2];
+// Head box in intro-local units (decimeters), from the shrinking-box pass:
+// floor at the chin (the neck/chest feather mass reads as body), ceiling and
+// back-left reach covering the long crest feathers (they sweep up to y=10.5
+// and back to x=-40.9).
+const BOX_CENTER = [-37.35, 7.4, -15.85];
+const BOX_HALF = [3.85, 3.6, 3.35];
 // The bird's eyes; the sparkle quads next to them are tiny and must survive
 // the speck filter below.
 const EYES = [
@@ -205,14 +208,13 @@ for (const node of manifest.nodes) {
   });
 }
 
-// Recenter on the head-box center so the asset origin sits mid-head; keep
-// intro-local decimeter units (the spawner applies world scale).
-const origin = [
-  (headMin[0] + headMax[0]) / 2,
-  (headMin[1] + headMax[1]) / 2,
-  (headMin[2] + headMax[2]) / 2,
-];
+// Recenter on the vertex center of mass (a natural head pivot) and rotate
+// +90deg about Y so the bird faces -Z - the three.js camera/head forward -
+// letting consumers apply a viewer's head pose directly. Units stay
+// intro-local decimeters (the spawner applies world scale).
 const combined = Buffer.concat(outBuffers);
+const centerOfMass = [0, 0, 0];
+let vertexTotal = 0;
 for (const node of outNodes) {
   const positions = new Float32Array(
     combined.buffer,
@@ -220,9 +222,42 @@ for (const node of outNodes) {
     node.vertexCount * 3,
   );
   for (let v = 0; v < node.vertexCount; v += 1) {
-    positions[v * 3] -= origin[0];
-    positions[v * 3 + 1] -= origin[1];
-    positions[v * 3 + 2] -= origin[2];
+    centerOfMass[0] += positions[v * 3];
+    centerOfMass[1] += positions[v * 3 + 1];
+    centerOfMass[2] += positions[v * 3 + 2];
+  }
+  vertexTotal += node.vertexCount;
+}
+for (let axis = 0; axis < 3; axis += 1) {
+  centerOfMass[axis] /= vertexTotal;
+}
+// rotY(+90deg): (x, y, z) -> (z, y, -x)
+for (const node of outNodes) {
+  const positions = new Float32Array(
+    combined.buffer,
+    combined.byteOffset + node.positionsOffset,
+    node.vertexCount * 3,
+  );
+  for (let v = 0; v < node.vertexCount; v += 1) {
+    const x = positions[v * 3] - centerOfMass[0];
+    const y = positions[v * 3 + 1] - centerOfMass[1];
+    const z = positions[v * 3 + 2] - centerOfMass[2];
+    positions[v * 3] = z;
+    positions[v * 3 + 1] = y;
+    positions[v * 3 + 2] = -x;
+  }
+  if (node.normalsOffset >= 0) {
+    const normals = new Float32Array(
+      combined.buffer,
+      combined.byteOffset + node.normalsOffset,
+      node.vertexCount * 3,
+    );
+    for (let v = 0; v < node.vertexCount; v += 1) {
+      const x = normals[v * 3];
+      const z = normals[v * 3 + 2];
+      normals[v * 3] = z;
+      normals[v * 3 + 2] = -x;
+    }
   }
 }
 
@@ -232,10 +267,16 @@ fs.writeFileSync(
   path.join(outDir, "head.json"),
   JSON.stringify(
     {
-      // The bird faces +X in this local frame; units are decimeters.
-      forwardAxis: "+x",
+      // Origin at the vertex center of mass, bird facing -Z (three.js head
+      // forward); units are decimeters.
+      forwardAxis: "-z",
       units: "decimeters",
-      size: headMax.map((v, i) => Number((v - headMin[i]).toFixed(3))),
+      // Post-rotation extents: x picks up the old depth, z the old width.
+      size: [
+        Number((headMax[2] - headMin[2]).toFixed(3)),
+        Number((headMax[1] - headMin[1]).toFixed(3)),
+        Number((headMax[0] - headMin[0]).toFixed(3)),
+      ],
       nodes: outNodes,
     },
     null,

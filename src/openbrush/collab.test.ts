@@ -108,6 +108,15 @@ describe("collab message parsing", () => {
         drawing: true,
       })?.t,
     ).toBe("tip");
+    expect(
+      parseCollabMessage({
+        t: "tip",
+        position: [0, 1, -1],
+        orientation: [0, 0, 0, 1],
+        drawing: true,
+        head: { position: [0, 1.6, -1], orientation: [0, 0, 0, 1] },
+      })?.t,
+    ).toBe("tip");
     expect(parseCollabMessage({ t: "ping" })?.t).toBe("ping");
     expect(parseCollabMessage({ t: "bye" })?.t).toBe("bye");
   });
@@ -150,6 +159,15 @@ describe("collab message parsing", () => {
         position: [0, Number.NaN, 0],
         orientation: [0, 0, 0, 1],
         drawing: false,
+      }),
+    ).toBeUndefined();
+    expect(
+      parseCollabMessage({
+        t: "tip",
+        position: [0, 1, -1],
+        orientation: [0, 0, 0, 1],
+        drawing: false,
+        head: { position: [0, 1.6], orientation: [0, 0, 0, 1] },
       }),
     ).toBeUndefined();
   });

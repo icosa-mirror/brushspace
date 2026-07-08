@@ -33,6 +33,11 @@ import {
   type CollabMessage,
 } from "../openbrush/collab.js";
 import type { Quat, StrokeData, Vec3 } from "../openbrush/types.js";
+import {
+  disposeBakedSketchGroup,
+  loadBakedSketchGroup,
+} from "../openbrush/baked-sketch.js";
+import { assetUrl } from "../openbrush/asset-url.js";
 import { clearUIKitInteractionStateExcept } from "../openbrush/uikit-interaction.js";
 import { AudioFeedbackSystem } from "./AudioFeedbackSystem.js";
 import { SketchLibrarySystem } from "./SketchLibrarySystem.js";
@@ -50,6 +55,9 @@ type CollabPhase =
 const PROGRESS_INTERVAL_SECONDS = 0.1;
 const TIP_INTERVAL_SECONDS = 0.12;
 const TIP_STALE_SECONDS = 2;
+// The baked head asset is authored in decimeters, ~6.4 dm tall and facing
+// -Z; 0.05 renders a ~32 cm bird head - readable without blocking the view.
+const AVATAR_HEAD_SCALE = 0.05;
 // Keepalive pings go out on a timer (not the render loop) so they survive
 // rAF pauses — headset off, system menu, backgrounded tab. Silence on the
 // wire this long therefore means the peer is genuinely unreachable, and even
@@ -96,6 +104,11 @@ export class CollabSystem extends createSystem({
   // Remote peer tip presence.
   private tipTimer = 0;
   private tipEntity?: Entity;
+  private headEntity?: Entity;
+  private headLoadStarted = false;
+  private headTargetPosition = new Vector3();
+  private headTargetQuaternion = new Quaternion();
+  private headSeen = false;
   private tipTargetPosition = new Vector3();
   private tipTargetQuaternion = new Quaternion();
   private tipLastSeen = -Infinity;
@@ -749,6 +762,12 @@ export class CollabSystem extends createSystem({
         this.tipTargetQuaternion.set(...message.orientation);
         this.tipLastSeen = this.clock;
         this.showRemoteTip();
+        if (message.head) {
+          this.headTargetPosition.set(...message.head.position);
+          this.headTargetQuaternion.set(...message.head.orientation);
+          this.headSeen = true;
+          this.showRemoteHead();
+        }
         break;
       case "ping":
         // Keepalive: receipt alone refreshed lastRecvClock.
@@ -859,16 +878,33 @@ export class CollabSystem extends createSystem({
     this.tempVector.applyMatrix4(this.tempMatrix);
     poseObject.getWorldQuaternion(this.tempPoseQuaternion).invert();
     this.tempQuaternion.premultiply(this.tempPoseQuaternion);
+    const position = this.tempVector.toArray() as Vec3;
+    const orientation = [
+      this.tempQuaternion.x,
+      this.tempQuaternion.y,
+      this.tempQuaternion.z,
+      this.tempQuaternion.w,
+    ] as Quat;
+    // The viewer's head pose drives the peer-side avatar (same canvas-space
+    // convention; temps are free again once the tip arrays are built).
+    this.world.camera.getWorldPosition(this.tempVector);
+    this.world.camera.getWorldQuaternion(this.tempQuaternion);
+    this.tempVector.applyMatrix4(this.tempMatrix);
+    this.tempQuaternion.premultiply(this.tempPoseQuaternion);
     this.send({
       t: "tip",
-      position: this.tempVector.toArray() as Vec3,
-      orientation: [
-        this.tempQuaternion.x,
-        this.tempQuaternion.y,
-        this.tempQuaternion.z,
-        this.tempQuaternion.w,
-      ] as Quat,
+      position,
+      orientation,
       drawing: Boolean(this.lastProgressGuid),
+      head: {
+        position: this.tempVector.toArray() as Vec3,
+        orientation: [
+          this.tempQuaternion.x,
+          this.tempQuaternion.y,
+          this.tempQuaternion.z,
+          this.tempQuaternion.w,
+        ] as Quat,
+      },
     });
   }
 
@@ -916,6 +952,41 @@ export class CollabSystem extends createSystem({
     this.tipEntity?.dispose();
     this.tipEntity = undefined;
     this.tipLastSeen = -Infinity;
+    const headGroup = this.headEntity?.object3D;
+    if (headGroup) {
+      disposeBakedSketchGroup(headGroup);
+    }
+    this.headEntity?.destroy();
+    this.headEntity = undefined;
+    this.headLoadStarted = false;
+    this.headSeen = false;
+  }
+
+  /** The peer's avatar: the intro bird's head, tracking their headset. */
+  private showRemoteHead(): void {
+    if (this.headEntity || this.headLoadStarted) {
+      return;
+    }
+    this.headLoadStarted = true;
+    void loadBakedSketchGroup(
+      assetUrl("/openbrush/avatar/head.json"),
+      assetUrl("/openbrush/avatar/head.bin"),
+      "BrushspacePeerHead",
+    ).then((group) => {
+      // The connection may have ended (or restarted the visual) mid-load.
+      if (!group || !this.headLoadStarted || this.headEntity) {
+        return;
+      }
+      for (const entity of this.queries.scenePoses.entities) {
+        group.scale.setScalar(AVATAR_HEAD_SCALE);
+        group.position.copy(this.headTargetPosition);
+        group.quaternion.copy(this.headTargetQuaternion);
+        const headEntity = this.world.createTransformEntity(group, entity);
+        headEntity.object3D!.name = "BrushspacePeerHeadEntity";
+        this.headEntity = headEntity;
+        return;
+      }
+    });
   }
 
   private updateRemoteTip(delta: number): void {
@@ -925,12 +996,24 @@ export class CollabSystem extends createSystem({
     }
     if (this.clock - this.tipLastSeen > TIP_STALE_SECONDS) {
       tip.visible = false;
+      const staleHead = this.headEntity?.object3D;
+      if (staleHead) {
+        staleHead.visible = false;
+      }
       return;
     }
     tip.visible = true;
     const alpha = Math.min(1, delta * 12);
     tip.position.lerp(this.tipTargetPosition, alpha);
     tip.quaternion.slerp(this.tipTargetQuaternion, alpha);
+    const head = this.headEntity?.object3D;
+    if (head) {
+      head.visible = this.headSeen && this.clock - this.tipLastSeen <= TIP_STALE_SECONDS;
+      if (head.visible) {
+        head.position.lerp(this.headTargetPosition, alpha);
+        head.quaternion.slerp(this.headTargetQuaternion, alpha);
+      }
+    }
   }
 
   // -------------------------------------------------------------------------
