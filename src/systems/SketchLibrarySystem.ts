@@ -14,9 +14,14 @@ import {
   BrushStroke,
   CanvasLayer,
   OpenBrushAppState,
+  OpenBrushScenePose,
   PersistenceState,
   SettingsState,
 } from "../components/OpenBrushCore.js";
+import {
+  disposeBakedSketchGroup,
+  loadBakedSketchGroup,
+} from "../openbrush/baked-sketch.js";
 import {
   IndexedDbSketchCatalogStore,
   MemorySketchCatalogStore,
@@ -42,6 +47,11 @@ import { assetUrl } from "../openbrush/asset-url.js";
 
 const WELCOME_SKETCH_ID = "welcome-sketch";
 const WELCOME_THUMB_URL = assetUrl("/openbrush/intro/thumbnail.png");
+// TEMP: gallery tile that previews the extracted collab avatar head.
+const AVATAR_HEAD_SKETCH_ID = "avatar-head-preview";
+const AVATAR_HEAD_THUMB_URL = assetUrl("/openbrush/avatar/head-thumb.png");
+// The baked asset is authored in decimeters with the bird facing +x.
+const AVATAR_HEAD_SCALE = 0.1;
 const BLANK_THUMB_URL = assetUrl("/openbrush/blank-icon.png");
 const CELLS_PER_PAGE = 6;
 // Square, low-res thumbnails so captures stay cheap in-headset.
@@ -80,6 +90,7 @@ export class SketchLibrarySystem extends createSystem({
   strokes: { required: [BrushStroke] },
   canvases: { required: [CanvasLayer] },
   settings: { required: [SettingsState] },
+  scenePoses: { required: [OpenBrushScenePose] },
 }) {
   private store: SketchCatalogStore = createStore();
   private galleryEntity?: Entity;
@@ -95,6 +106,7 @@ export class SketchLibrarySystem extends createSystem({
   private thumbnailCamera?: PerspectiveCamera;
   private thumbnailPixels?: Uint8Array;
   private thumbnailCanvas?: HTMLCanvasElement;
+  private avatarHeadEntity?: Entity;
 
   init() {
     // The experience opens on the intro state.
@@ -292,6 +304,13 @@ export class SketchLibrarySystem extends createSystem({
       });
       return;
     }
+    if (entry.id === AVATAR_HEAD_SKETCH_ID) {
+      this.transitionOutStrokes(() => {
+        this.getIntroSketchSystem()?.setSketchVisible(false);
+        void this.spawnAvatarHeadPreview(appState);
+      });
+      return;
+    }
     void this.store
       .load(entry.id)
       .then((record) => {
@@ -475,6 +494,43 @@ export class SketchLibrarySystem extends createSystem({
     }
   }
 
+  /** TEMP preview: the extracted avatar head at eye height, facing you. */
+  private async spawnAvatarHeadPreview(appState: Entity): Promise<void> {
+    const group = await loadBakedSketchGroup(
+      assetUrl("/openbrush/avatar/head.json"),
+      assetUrl("/openbrush/avatar/head.bin"),
+      "OpenBrushAvatarHeadPreview",
+    );
+    if (!group) {
+      this.busy = false;
+      return;
+    }
+    group.scale.setScalar(AVATAR_HEAD_SCALE);
+    group.position.set(0, 1.4, -1.2);
+    group.rotation.y = -Math.PI / 2;
+    const poseNext = this.queries.scenePoses.entities.values().next();
+    const poseEntity = poseNext.done ? undefined : poseNext.value;
+    this.avatarHeadEntity = poseEntity
+      ? this.world.createTransformEntity(group, poseEntity)
+      : this.world.createTransformEntity(group);
+    appState.setValue(PersistenceState, "activeSketchId", AVATAR_HEAD_SKETCH_ID);
+    appState.setValue(PersistenceState, "activeSketchName", "Bird Head");
+    appState.setValue(OpenBrushAppState, "mode", "ready");
+    this.busy = false;
+  }
+
+  private disposeAvatarHeadPreview(): void {
+    if (!this.avatarHeadEntity) {
+      return;
+    }
+    const group = this.avatarHeadEntity.object3D;
+    if (group) {
+      disposeBakedSketchGroup(group);
+    }
+    this.avatarHeadEntity.destroy();
+    this.avatarHeadEntity = undefined;
+  }
+
   private async refreshEntries(): Promise<void> {
     const items = await this.store.list();
     items.sort((a, b) => b.updatedAtMs - a.updatedAtMs);
@@ -489,6 +545,8 @@ export class SketchLibrarySystem extends createSystem({
     this.blobUrls = [];
     const entries: GalleryEntry[] = [
       { id: WELCOME_SKETCH_ID, name: "Welcome Sketch", thumbUrl: WELCOME_THUMB_URL },
+      // TEMP: avatar head preview tile.
+      { id: AVATAR_HEAD_SKETCH_ID, name: "Bird Head", thumbUrl: AVATAR_HEAD_THUMB_URL },
     ];
     for (const item of items) {
       entries.push({
@@ -627,6 +685,7 @@ export class SketchLibrarySystem extends createSystem({
   // -------------------------------------------------------------------------
 
   private transitionOutStrokes(onDone: () => void): void {
+    this.disposeAvatarHeadPreview();
     const entities = [...this.queries.strokes.entities].filter((entity) =>
       Boolean(entity.getValue(BrushStroke, "visible")),
     );

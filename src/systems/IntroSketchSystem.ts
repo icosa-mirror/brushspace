@@ -1,7 +1,4 @@
 import {
-  BufferAttribute,
-  BufferGeometry,
-  DoubleSide,
   Group,
   Mesh,
   MeshBasicMaterial,
@@ -14,28 +11,12 @@ import {
 import type { Entity } from "@iwsdk/core";
 
 import { OpenBrushScenePose } from "../components/OpenBrushCore.js";
-import { openBrushInventory } from "../openbrush/brush-catalog.js";
-import { findBrushByGuid } from "../openbrush/brush-inventory.js";
 import {
-  applyBrushShaderAttributeAliases,
-  openBrushShaderLibrary,
-} from "../openbrush/brush-shader-library.js";
+  buildBakedSketchGeometry,
+  resolveBakedSketchMaterial,
+  type BakedSketchManifest,
+} from "../openbrush/baked-sketch.js";
 import { assetUrl } from "../openbrush/asset-url.js";
-
-interface IntroNode {
-  brushGuid: string;
-  materialName: string;
-  vertexCount: number;
-  indexCount: number;
-  positionsOffset: number;
-  normalsOffset: number;
-  colorsOffset: number;
-  uv0Offset: number;
-  uv0Dimension: number;
-  uv1Offset: number;
-  uv1Dimension: number;
-  indicesOffset: number;
-}
 
 // The intro geometry is authored in Tilt Brush units (decimeters), arranged
 // AROUND the viewer at the origin — present it in place, just rescaled.
@@ -131,9 +112,7 @@ export class IntroSketchSystem extends createSystem({
       if (!manifestResponse.ok || !binResponse.ok) {
         throw new Error("intro sketch assets missing");
       }
-      const manifest = (await manifestResponse.json()) as {
-        nodes: IntroNode[];
-      };
+      const manifest = (await manifestResponse.json()) as BakedSketchManifest;
       const bin = await binResponse.arrayBuffer();
       if (this.removed) {
         return;
@@ -143,8 +122,8 @@ export class IntroSketchSystem extends createSystem({
       root.name = "OpenBrushIntroSketch";
 
       for (const node of manifest.nodes) {
-        const geometry = this.buildGeometry(node, bin);
-        const material = await this.resolveMaterial(node);
+        const geometry = buildBakedSketchGeometry(node, bin);
+        const material = await resolveBakedSketchMaterial(node);
         const mesh = new Mesh(geometry, material);
         mesh.name = `OpenBrushIntro_${node.materialName}`;
         mesh.frustumCulled = false;
@@ -191,85 +170,6 @@ export class IntroSketchSystem extends createSystem({
     mesh.raycast = () => {};
     mesh.position.set(...WORDMARK_POSITION_DM);
     return mesh;
-  }
-
-  private buildGeometry(node: IntroNode, bin: ArrayBuffer): BufferGeometry {
-    const geometry = new BufferGeometry();
-    geometry.setAttribute(
-      "position",
-      new BufferAttribute(
-        new Float32Array(bin, node.positionsOffset, node.vertexCount * 3),
-        3,
-      ),
-    );
-    if (node.normalsOffset >= 0) {
-      geometry.setAttribute(
-        "normal",
-        new BufferAttribute(
-          new Float32Array(bin, node.normalsOffset, node.vertexCount * 3),
-          3,
-        ),
-      );
-    }
-    if (node.colorsOffset >= 0) {
-      geometry.setAttribute(
-        "color",
-        new BufferAttribute(
-          new Uint8Array(bin, node.colorsOffset, node.vertexCount * 4),
-          4,
-          true,
-        ),
-      );
-    }
-    if (node.uv0Offset >= 0 && node.uv0Dimension > 0) {
-      geometry.setAttribute(
-        "uv",
-        new BufferAttribute(
-          new Float32Array(
-            bin,
-            node.uv0Offset,
-            node.vertexCount * node.uv0Dimension,
-          ),
-          node.uv0Dimension,
-        ),
-      );
-    }
-    if (node.uv1Offset >= 0 && node.uv1Dimension > 0) {
-      geometry.setAttribute(
-        "uv1",
-        new BufferAttribute(
-          new Float32Array(
-            bin,
-            node.uv1Offset,
-            node.vertexCount * node.uv1Dimension,
-          ),
-          node.uv1Dimension,
-        ),
-      );
-    }
-    geometry.setIndex(
-      new BufferAttribute(
-        new Uint32Array(bin, node.indicesOffset, node.indexCount),
-        1,
-      ),
-    );
-    applyBrushShaderAttributeAliases(geometry);
-    return geometry;
-  }
-
-  private async resolveMaterial(node: IntroNode) {
-    if (node.brushGuid) {
-      const entry = findBrushByGuid(openBrushInventory, node.brushGuid);
-      if (entry) {
-        const material = await openBrushShaderLibrary.load(entry, {
-          allowAnyGeometry: true,
-        });
-        if (material) {
-          return material;
-        }
-      }
-    }
-    return new MeshBasicMaterial({ vertexColors: true, side: DoubleSide });
   }
 
   private removeIntro(): void {
