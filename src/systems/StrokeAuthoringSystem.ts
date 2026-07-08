@@ -1035,7 +1035,7 @@ export class StrokeAuthoringSystem extends createSystem({
     }
   }
 
-  private static readonly PREVIEW_POINT_LIFE_SECONDS = 0.2;
+  private static readonly PREVIEW_POINT_LIFE_SECONDS = 0.1;
   private static readonly PREVIEW_IDEAL_LENGTH_METERS = 1;
 
   /**
