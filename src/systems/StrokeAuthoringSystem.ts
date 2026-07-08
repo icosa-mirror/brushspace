@@ -133,8 +133,6 @@ const LAZY_INPUT_RADIUS = 0.08;
 const STENCIL_FRONT_PLANE_Z = -1.2;
 
 // Half extents of custom wand panels in panel units (RING_PANEL_MAX_* / 2).
-const CUSTOM_PANEL_HALF_WIDTH = 0.41;
-const CUSTOM_PANEL_HALF_HEIGHT = 0.52;
 type BrushPointerHand = "left" | "right";
 
 interface RuntimeStroke {
@@ -187,8 +185,6 @@ export class StrokeAuthoringSystem extends createSystem({
   hoveredCustomPanels: {
     required: [OpenBrushCustomPanel, OpenBrushPanelAttachment, Hovered],
   },
-  panels: { required: [PanelUI, OpenBrushPanelAttachment] },
-  customPanels: { required: [OpenBrushCustomPanel, OpenBrushPanelAttachment] },
   eraserCursors: { required: [OpenBrushEraserCursor] },
   scenePoses: { required: [OpenBrushScenePose, Transform] },
   tipAnchors: { required: [OpenBrushTipAnchor, Transform] },
@@ -198,13 +194,6 @@ export class StrokeAuthoringSystem extends createSystem({
   private readonly cameraPosition = new Vector3();
   private readonly sampleDirection = new Vector3();
   private readonly sampleNdc = new Vector3();
-  private readonly panelPosition = new Vector3();
-  private readonly panelQuaternion = new Quaternion();
-  private readonly panelRight = new Vector3();
-  private readonly panelUp = new Vector3();
-  private readonly panelNormal = new Vector3();
-  private readonly panelDelta = new Vector3();
-  private readonly panelHit = new Vector3();
   private readonly panelRayPosition = new Vector3();
   private readonly panelRayQuaternion = new Quaternion();
   private readonly rayDirection = new Vector3();
@@ -326,8 +315,15 @@ export class StrokeAuthoringSystem extends createSystem({
         this.finalizeActiveStroke();
       }
       // DropperTool previews the hovered stroke every frame, before any
-      // trigger press.
-      const hoverTarget = this.updateDropperHover(activeTool);
+      // trigger press — but not while the ray is on UI (the reticle reads
+      // as a tool cursor and the press belongs to the panel).
+      const pickerOnUi = this.isPanelInteractionBlocked(commandSource);
+      let hoverTarget: Entity | undefined;
+      if (pickerOnUi) {
+        this.clearDropperHover();
+      } else {
+        hoverTarget = this.updateDropperHover(activeTool);
+      }
       const paintDown = Boolean(
         commandEntity.getValue(InputCommandState, "paintDown"),
       );
@@ -474,7 +470,12 @@ export class StrokeAuthoringSystem extends createSystem({
 
   private isPanelInteractionBlocked(commandSource: string): boolean {
     if (commandSource === "xr-right" || commandSource === "xr-left") {
-      return this.isPointerRayIntersectingPanel();
+      // InputCommandSystem publishes the input system's own ray-pointer
+      // intersection — the same raycast that drives UIKit clicks — so this
+      // matches the visible ray exactly (the tip anchor points elsewhere by
+      // design) and covers every interactable panel, keypad included.
+      const commandEntity = this.getFirstEntity("commands");
+      return Boolean(commandEntity?.getValue(InputCommandState, "pointerOnUi"));
     }
     return this.isHoveringPanel();
   }
@@ -496,100 +497,6 @@ export class StrokeAuthoringSystem extends createSystem({
         );
       }
     }
-    return false;
-  }
-
-  private isPointerRayIntersectingPanel(): boolean {
-    this.rayDirection
-      .set(0, 0, -1)
-      .applyQuaternion(this.panelRayQuaternion)
-      .normalize();
-
-    for (const entity of this.queries.panels.entities) {
-      if (!this.isFocusablePanel(entity)) {
-        continue;
-      }
-      const panelObject = entity.object3D;
-      if (!panelObject) {
-        continue;
-      }
-
-      panelObject.getWorldPosition(this.panelPosition);
-      panelObject.getWorldQuaternion(this.panelQuaternion);
-      this.panelRight.set(1, 0, 0).applyQuaternion(this.panelQuaternion);
-      this.panelUp.set(0, 1, 0).applyQuaternion(this.panelQuaternion);
-      this.panelNormal.set(0, 0, 1).applyQuaternion(this.panelQuaternion);
-
-      const denominator = this.rayDirection.dot(this.panelNormal);
-      if (Math.abs(denominator) < 0.0001) {
-        continue;
-      }
-
-      this.panelDelta.copy(this.panelPosition).sub(this.panelRayPosition);
-      const distance = this.panelDelta.dot(this.panelNormal) / denominator;
-      if (distance < 0) {
-        continue;
-      }
-
-      this.panelHit
-        .copy(this.panelRayPosition)
-        .addScaledVector(this.rayDirection, distance);
-      this.panelDelta.copy(this.panelHit).sub(this.panelPosition);
-
-      const localX = this.panelDelta.dot(this.panelRight);
-      const localY = this.panelDelta.dot(this.panelUp);
-      const halfWidth = Number(entity.getValue(PanelUI, "maxWidth")) * 0.5;
-      const halfHeight = Number(entity.getValue(PanelUI, "maxHeight")) * 0.5;
-      if (Math.abs(localX) <= halfWidth && Math.abs(localY) <= halfHeight) {
-        return true;
-      }
-    }
-
-    // Custom (non-PanelUI) wand panels: geometry is authored in panel units
-    // on a scaled root, and they are front-facing only, so back-side rays
-    // paint through them like they are not there.
-    for (const entity of this.queries.customPanels.entities) {
-      const panelObject = entity.object3D;
-      if (
-        !panelObject ||
-        panelObject.visible === false ||
-        !entity.getValue(OpenBrushPanelAttachment, "visible")
-      ) {
-        continue;
-      }
-
-      panelObject.getWorldPosition(this.panelPosition);
-      panelObject.getWorldQuaternion(this.panelQuaternion);
-      this.panelRight.set(1, 0, 0).applyQuaternion(this.panelQuaternion);
-      this.panelUp.set(0, 1, 0).applyQuaternion(this.panelQuaternion);
-      this.panelNormal.set(0, 0, 1).applyQuaternion(this.panelQuaternion);
-
-      const denominator = this.rayDirection.dot(this.panelNormal);
-      if (denominator >= -0.0001) {
-        continue; // parallel or approaching from behind
-      }
-
-      this.panelDelta.copy(this.panelPosition).sub(this.panelRayPosition);
-      const distance = this.panelDelta.dot(this.panelNormal) / denominator;
-      if (distance < 0) {
-        continue;
-      }
-
-      this.panelHit
-        .copy(this.panelRayPosition)
-        .addScaledVector(this.rayDirection, distance);
-      this.panelDelta.copy(this.panelHit).sub(this.panelPosition);
-
-      const halfWidth = CUSTOM_PANEL_HALF_WIDTH * panelObject.scale.x;
-      const halfHeight = CUSTOM_PANEL_HALF_HEIGHT * panelObject.scale.x;
-      if (
-        Math.abs(this.panelDelta.dot(this.panelRight)) <= halfWidth &&
-        Math.abs(this.panelDelta.dot(this.panelUp)) <= halfHeight
-      ) {
-        return true;
-      }
-    }
-
     return false;
   }
 

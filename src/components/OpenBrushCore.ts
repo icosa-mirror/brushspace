@@ -51,6 +51,9 @@ export const InputCommandState = createComponent("InputCommandState", {
   pointerY: { type: Types.Float32, default: 0 },
   leftControllerConnected: { type: Types.Boolean, default: false },
   rightControllerConnected: { type: Types.Boolean, default: false },
+  // True while the brush hand's UI ray intersects an interactable surface;
+  // a trigger press then belongs to the UI, so tools must stand down.
+  pointerOnUi: { type: Types.Boolean, default: false },
   commandRevision: { type: Types.Int32, default: 0 },
 });
 

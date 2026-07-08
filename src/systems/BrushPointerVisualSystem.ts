@@ -13,6 +13,7 @@ import type { Entity } from "@iwsdk/core";
 import {
   BrushPointer,
   BrushSettings,
+  InputCommandState,
   OpenBrushAppState,
   OpenBrushScenePose,
   SettingsState,
@@ -45,6 +46,7 @@ export class BrushPointerVisualSystem extends createSystem({
   appState: { required: [OpenBrushAppState] },
   scenePoses: { required: [OpenBrushScenePose] },
   settings: { required: [SettingsState] },
+  commands: { required: [InputCommandState] },
 }) {
   private readonly sphereCursorScratch = {
     visible: false,
@@ -79,6 +81,9 @@ export class BrushPointerVisualSystem extends createSystem({
     // mesh.
     const replacedBySphereCursor = this.isTipReplacedBySphereCursor();
     const worldGrabActive = this.isWorldGrabActive();
+    // While the UI ray is on a panel the trigger belongs to the UI, so the
+    // drawing tip hides along with the rest of the tool affordances.
+    const pointerOnUi = this.isPointerOnUi();
     for (const entity of this.queries.pointers.entities) {
       const visual = this.getOrCreateVisual(entity);
       if (!visual) {
@@ -87,6 +92,7 @@ export class BrushPointerVisualSystem extends createSystem({
       const visible =
         !replacedBySphereCursor &&
         !worldGrabActive &&
+        !pointerOnUi &&
         String(entity.getValue(BrushPointer, "hand")) === activeHand;
       visual.root.visible = visible;
       if (visible) {
@@ -128,6 +134,12 @@ export class BrushPointerVisualSystem extends createSystem({
     const next = this.queries.scenePoses.entities.values().next();
     const pose = next.done ? undefined : next.value;
     return Boolean(pose?.getValue(OpenBrushScenePose, "grabActive"));
+  }
+
+  private isPointerOnUi(): boolean {
+    const next = this.queries.commands.entities.values().next();
+    const commands = next.done ? undefined : next.value;
+    return Boolean(commands?.getValue(InputCommandState, "pointerOnUi"));
   }
 
   private isTipReplacedBySphereCursor(): boolean {

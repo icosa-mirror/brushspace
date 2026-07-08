@@ -92,6 +92,11 @@ export class EraserCursorSystem extends createSystem({
       return;
     }
 
+    // While the UI ray is on a panel, the trigger belongs to the UI — hide
+    // the tool sphere so it does not read as an armed eraser/picker.
+    const pointerOnUi = Boolean(
+      commandState.getValue(InputCommandState, "pointerOnUi"),
+    );
     for (const cursor of this.queries.cursors.entities) {
       const eraserRadius = normalizeOpenBrushEraserRadius(
         Number(cursor.getValue(OpenBrushEraserCursor, "radius")),
@@ -102,6 +107,9 @@ export class EraserCursorSystem extends createSystem({
         eraserRadius,
         this.sphereCursor,
       );
+      if (pointerOnUi) {
+        sphere.visible = false;
+      }
       const hot =
         sphere.visible &&
         Boolean(commandState.getValue(InputCommandState, "paintPressed"));

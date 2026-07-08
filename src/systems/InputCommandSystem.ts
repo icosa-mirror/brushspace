@@ -68,6 +68,7 @@ export class InputCommandSystem extends createSystem({
   private browserPointerEnabled = true;
   private xrRayEnabled = true;
   private wandPanelThumbstickDirection: WandPanelThumbstickDirection = 0;
+  private pointerOnUi = false;
 
   init() {
     this.attachBrowserPointerEvents();
@@ -105,6 +106,7 @@ export class InputCommandSystem extends createSystem({
     );
     this.updateWandPanelRotation(settings);
     this.updateKeyboardInput(this.keyboardInput);
+    this.pointerOnUi = this.computeBrushRayOnUi();
 
     resolveOpenBrushCommandFrame(
       this.commandInputs,
@@ -218,6 +220,27 @@ export class InputCommandSystem extends createSystem({
       "rotate-wand-panel-ring",
     );
     settings.setValue(SettingsState, "settingsStatus", "applied");
+  }
+
+  /**
+   * Whether the brush hand's UI ray currently lands on an interactable
+   * surface. This reads the input system's own ray-pointer intersection —
+   * the exact raycast that drives UIKit clicks and the visible cursor — so
+   * it stays in lockstep with what a trigger press would actually do. (The
+   * tip anchor points elsewhere by design, so re-deriving this from tool
+   * poses drifts from the visible ray.)
+   */
+  private computeBrushRayOnUi(): boolean {
+    const pointer =
+      this.input?.xr?.multiPointers?.[this.commandRouting.brushHand];
+    if (!pointer || !pointer.getSubPointerState("ray").registered) {
+      return false;
+    }
+    const intersection = pointer.getPointer("ray").getIntersection();
+    return (
+      !!intersection &&
+      !(intersection.object as { isVoidObject?: boolean }).isVoidObject
+    );
   }
 
   private updateKeyboardInput(target: OpenBrushCommandInput): void {
@@ -375,6 +398,7 @@ export class InputCommandSystem extends createSystem({
       "rightControllerConnected",
       this.commandSnapshot.rightControllerConnected,
     );
+    entity.setValue(InputCommandState, "pointerOnUi", this.pointerOnUi);
     entity.setValue(
       InputCommandState,
       "commandRevision",

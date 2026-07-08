@@ -151,11 +151,19 @@ export class CameraToolSystem extends createSystem({
     if (parentObject && this.rig.parent !== parentObject) {
       parentObject.add(this.rig);
     }
-    this.rig.visible = true;
+    // While the UI ray is on a panel, the trigger belongs to the UI: hide
+    // the viewfinder and hold the shutter.
+    const pointerOnUi = Boolean(
+      commandState.getValue(InputCommandState, "pointerOnUi"),
+    );
+    this.rig.visible = !pointerOnUi;
 
     if (this.flashTimer > 0) {
       this.flashTimer = Math.max(0, this.flashTimer - delta);
       this.flashQuad.visible = this.flashTimer > 0;
+    }
+    if (pointerOnUi) {
+      return;
     }
 
     if (Boolean(commandState.getValue(InputCommandState, "paintDown"))) {
