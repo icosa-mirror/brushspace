@@ -1,0 +1,95 @@
+{
+  "forwardAxis": "+x",
+  "units": "decimeters",
+  "size": [
+    6.667,
+    6.874,
+    5.651
+  ],
+  "nodes": [
+    {
+      "brushGuid": "",
+      "materialName": "DiffuseNoTexture",
+      "vertexCount": 1644,
+      "indexCount": 4428,
+      "positionsOffset": 0,
+      "normalsOffset": 19728,
+      "colorsOffset": 39456,
+      "uv0Offset": 46032,
+      "uv0Dimension": 2,
+      "uv1Offset": 59184,
+      "uv1Dimension": 3,
+      "indicesOffset": 78912
+    },
+    {
+      "brushGuid": "4391385a-cf83-4396-9e33-31e4e4930b27",
+      "materialName": "Wire",
+      "vertexCount": 3684,
+      "indexCount": 17088,
+      "positionsOffset": 96624,
+      "normalsOffset": 140832,
+      "colorsOffset": 185040,
+      "uv0Offset": 199776,
+      "uv0Dimension": 3,
+      "uv1Offset": -1,
+      "uv1Dimension": 0,
+      "indicesOffset": 243984
+    },
+    {
+      "brushGuid": "4391385a-cf83-4396-9e33-31e4e4930b27",
+      "materialName": "Wire",
+      "vertexCount": 3336,
+      "indexCount": 15744,
+      "positionsOffset": 312336,
+      "normalsOffset": 352368,
+      "colorsOffset": 392400,
+      "uv0Offset": 405744,
+      "uv0Dimension": 3,
+      "uv1Offset": -1,
+      "uv1Dimension": 0,
+      "indicesOffset": 445776
+    },
+    {
+      "brushGuid": "c8ccb53d-ae13-45ef-8afb-b730d81394eb",
+      "materialName": "TaperedFlat",
+      "vertexCount": 76,
+      "indexCount": 222,
+      "positionsOffset": 508752,
+      "normalsOffset": 509664,
+      "colorsOffset": 510576,
+      "uv0Offset": 510880,
+      "uv0Dimension": 2,
+      "uv1Offset": -1,
+      "uv1Dimension": 0,
+      "indicesOffset": 511488
+    },
+    {
+      "brushGuid": "4391385a-cf83-4396-9e33-31e4e4930b27",
+      "materialName": "Wire",
+      "vertexCount": 6152,
+      "indexCount": 29568,
+      "positionsOffset": 512376,
+      "normalsOffset": 586200,
+      "colorsOffset": 660024,
+      "uv0Offset": 684632,
+      "uv0Dimension": 3,
+      "uv1Offset": -1,
+      "uv1Dimension": 0,
+      "indicesOffset": 758456
+    },
+    {
+      "brushGuid": "429ed64a-4e97-4466-84d3-145a861ef684",
+      "materialName": "Marker",
+      "vertexCount": 300,
+      "indexCount": 882,
+      "positionsOffset": 876728,
+      "normalsOffset": 880328,
+      "colorsOffset": 883928,
+      "uv0Offset": 885128,
+      "uv0Dimension": 2,
+      "uv1Offset": -1,
+      "uv1Dimension": 0,
+      "indicesOffset": 887528
+    }
+  ]
+}
