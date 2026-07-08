@@ -12,7 +12,10 @@ import {
   OpenBrushPanelAttachment,
 } from "../components/OpenBrushCore.js";
 import { selectableOpenBrushes } from "../openbrush/brush-catalog.js";
-import { clearUIKitInteractionStateExcept } from "../openbrush/uikit-interaction.js";
+import {
+  applyUIKitProperties,
+  clearUIKitInteractionStateExcept,
+} from "../openbrush/uikit-interaction.js";
 import type { BrushInventoryEntry } from "../openbrush/brush-inventory.js";
 import { assetUrl } from "../openbrush/asset-url.js";
 
@@ -160,14 +163,17 @@ export class BrushPageSystem extends createSystem({
         continue;
       }
       if (!entry) {
-        cell.setProperties({
+        applyUIKitProperties(cell, {
           borderColor: CELL_BORDER_EMPTY,
           backgroundColor: CELL_BORDER_EMPTY,
         });
         continue;
       }
       const selected = entry.guid === activeGuid;
-      cell.setProperties({
+      // Click restyles land while the cell is still hovered; the helper
+      // repairs the conditional reactivity that a plain setProperties would
+      // orphan (the stuck grey tile bug).
+      applyUIKitProperties(cell, {
         borderColor: selected ? CELL_BORDER_SELECTED : CELL_BORDER_DEFAULT,
         backgroundColor: selected
           ? CELL_BACKGROUND_SELECTED

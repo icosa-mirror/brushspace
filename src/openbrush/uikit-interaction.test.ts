@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { clearUIKitInteractionStateExcept } from "./uikit-interaction.js";
+import {
+  applyUIKitProperties,
+  clearUIKitInteractionStateExcept,
+} from "./uikit-interaction.js";
 
 interface FakeElement {
   hoveredList: { value: unknown[] };
@@ -49,5 +52,37 @@ describe("clearUIKitInteractionStateExcept", () => {
     clearUIKitInteractionStateExcept(fakeDocument);
     expect(cell.hoveredList.value).toHaveLength(0);
     expect(fakeDocument.rootElement.hoveredList.value).toHaveLength(0);
+  });
+});
+
+describe("applyUIKitProperties", () => {
+  it("sets properties, then repairs conditional reactivity via updateAll", () => {
+    // Regression: uikit-pub-sub's clearProvidedLayer (run inside every
+    // setProperties) orphans the effect watching hover/active conditional
+    // layers when the element is restyled while hovered, freezing the hover
+    // fill. updateAll() is uikit's own repair path and must run AFTER the
+    // write.
+    const calls: string[] = [];
+    const fakeElement = {
+      setProperties(properties: Record<string, unknown>) {
+        calls.push(`set:${String(properties.backgroundColor)}`);
+      },
+      properties: {
+        updateAll() {
+          calls.push("updateAll");
+        },
+      },
+    };
+    applyUIKitProperties(fakeElement, { backgroundColor: "red" });
+    expect(calls).toEqual(["set:red", "updateAll"]);
+  });
+
+  it("tolerates elements without a properties implementation", () => {
+    const fakeElement = {
+      setProperties() {},
+    };
+    expect(() =>
+      applyUIKitProperties(fakeElement, { backgroundColor: "red" }),
+    ).not.toThrow();
   });
 });

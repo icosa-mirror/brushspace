@@ -53,3 +53,27 @@ function clearRecursive(element: unknown, keep: ReadonlySet<unknown>): void {
     clearRecursive(child, keep);
   }
 }
+
+/**
+ * Restyles an element and repairs UIKit's conditional-style reactivity.
+ *
+ * uikit-pub-sub's `clearProvidedLayer` (run at the start of every
+ * `setProperties`) destroys the effect that watches hover/active conditional
+ * layers, but only re-installs it when the currently-published value came
+ * from the layer being rewritten. Restyling an element WHILE it is hovered
+ * therefore freezes the hover fill into the published signal forever — the
+ * stuck grey tile bug. `updateAll()` is uikit's own repair path (used by
+ * `setEnabled`): it re-selects every published property and re-installs the
+ * conditional effects, so hover-exit works again.
+ */
+export function applyUIKitProperties(
+  element: unknown,
+  properties: Record<string, unknown>,
+): void {
+  const styleElement = element as {
+    setProperties(properties: Record<string, unknown>): void;
+    properties?: { updateAll?: () => void };
+  };
+  styleElement.setProperties(properties);
+  styleElement.properties?.updateAll?.();
+}

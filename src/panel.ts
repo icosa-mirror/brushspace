@@ -83,7 +83,10 @@ import {
   type PhaseAWandButtonTone,
   type PhaseAWandButtonVisualState,
 } from "./openbrush/wand-panel-styles.js";
-import { clearUIKitInteractionStateExcept } from "./openbrush/uikit-interaction.js";
+import {
+  applyUIKitProperties,
+  clearUIKitInteractionStateExcept,
+} from "./openbrush/uikit-interaction.js";
 import {
   normalizeOpenBrushSettings,
   resolveOpenBrushSettingsCommand,
@@ -395,6 +398,10 @@ export class PanelSystem extends createSystem({
       return;
     }
     const document = PanelDocument.data.document[entity.index] as UIKitDocument;
+    // A rebuilt document starts with unstyled buttons; drop the style dedup
+    // cache so the first update pass restyles them all.
+    this.appliedWandButtonState.clear();
+    this.appliedWandButtonHovered.clear();
     this.nameElement(document, "tool-draw");
     this.nameElement(document, "tool-line");
     this.nameElement(document, "tool-erase");
@@ -793,6 +800,16 @@ export class PanelSystem extends createSystem({
     );
   }
 
+  // This runs every frame, so only touch UIKit when the resolved style
+  // actually changes (also keeps the style-object allocation off the hot
+  // path); each write repairs the hover/active conditional reactivity that
+  // setProperties orphans on hovered elements.
+  private readonly appliedWandButtonState = new Map<
+    string,
+    PhaseAWandButtonVisualState
+  >();
+  private readonly appliedWandButtonHovered = new Map<string, boolean>();
+
   private applyPhaseAWandButtonStyle(
     document: UIKitDocument,
     buttonId: PhaseAWandButtonId,
@@ -803,7 +820,16 @@ export class PanelSystem extends createSystem({
     if (!button) {
       return;
     }
-    button.setProperties(
+    if (
+      this.appliedWandButtonState.get(buttonId) === visualState &&
+      this.appliedWandButtonHovered.get(buttonId) === panelHovered
+    ) {
+      return;
+    }
+    this.appliedWandButtonState.set(buttonId, visualState);
+    this.appliedWandButtonHovered.set(buttonId, panelHovered);
+    applyUIKitProperties(
+      button,
       getPhaseAWandButtonStyle(
         visualState,
         resolvePhaseAWandButtonTone(buttonId),
@@ -815,7 +841,9 @@ export class PanelSystem extends createSystem({
   private resetWandBrushButtonStyles(document: UIKitDocument): void {
     for (const buttonId of WAND_BRUSH_BUTTON_IDS) {
       const button = document.getElementById(buttonId) as StyleElement;
-      button?.setProperties(WAND_BRUSH_BUTTON_STYLE);
+      if (button) {
+        applyUIKitProperties(button, WAND_BRUSH_BUTTON_STYLE);
+      }
     }
   }
 

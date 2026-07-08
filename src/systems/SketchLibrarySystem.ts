@@ -31,7 +31,10 @@ import {
   type SketchLayer,
 } from "../openbrush/document.js";
 import type { StrokeData } from "../openbrush/types.js";
-import { clearUIKitInteractionStateExcept } from "../openbrush/uikit-interaction.js";
+import {
+  applyUIKitProperties,
+  clearUIKitInteractionStateExcept,
+} from "../openbrush/uikit-interaction.js";
 import { AudioFeedbackSystem } from "./AudioFeedbackSystem.js";
 import { IntroSketchSystem } from "./IntroSketchSystem.js";
 import { StrokeAuthoringSystem } from "./StrokeAuthoringSystem.js";
@@ -426,9 +429,13 @@ export class SketchLibrarySystem extends createSystem({
         setProperties(properties: Record<string, unknown>): void;
       } | null;
       thumb?.setProperties({ src: entry ? entry.thumbUrl : BLANK_THUMB_URL });
-      button?.setProperties({
-        borderColor: entry ? "#ffffff" : "rgba(255, 255, 255, 0.15)",
-      });
+      if (button) {
+        // Repairs hover/active conditional reactivity: paging restyles can
+        // land while a tile is hovered, which would freeze its hover fill.
+        applyUIKitProperties(button, {
+          borderColor: entry ? "#ffffff" : "rgba(255, 255, 255, 0.15)",
+        });
+      }
     }
     setText(
       "gallery-label",
