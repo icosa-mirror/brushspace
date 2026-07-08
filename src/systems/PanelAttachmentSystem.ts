@@ -88,6 +88,7 @@ export class PanelAttachmentSystem extends createSystem({
       this.advanceWandPanelRotation(settings, deltaSeconds);
     }
     this.readSettingsSnapshot(settings);
+    this.syncOffHandRayPointer();
 
     const settingsRevision = Number(
       settings.getValue(SettingsState, "settingsRevision"),
@@ -118,6 +119,29 @@ export class PanelAttachmentSystem extends createSystem({
         this.applyXrIntroHidden(panel, settingsRevision);
       } else {
         this.applyXrAttachment(panel, settingsRevision, prism);
+      }
+    }
+  }
+
+  /**
+   * The wand hand carries the panels, so its own ray must not point at them:
+   * left to its defaults it rests on its own prism, permanently hovering a
+   * tile (grey fill that reads as a stuck highlight) and suppressing the
+   * stale-state sweeps. Open Brush's wand hand has no pointer at all — only
+   * the brush hand keeps its ray.
+   */
+  private syncOffHandRayPointer(): void {
+    const multiPointers = this.input?.xr?.multiPointers;
+    if (!multiPointers) {
+      return;
+    }
+    const dominant =
+      this.settingsSnapshot.dominantHand === "left" ? "left" : "right";
+    for (const hand of ["left", "right"] as const) {
+      const desired = hand === dominant;
+      const pointer = multiPointers[hand];
+      if (pointer.getSubPointerState("ray").registered !== desired) {
+        pointer.toggleSubPointer("ray", desired);
       }
     }
   }
