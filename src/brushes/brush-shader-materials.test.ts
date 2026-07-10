@@ -13,6 +13,7 @@ import {
 import { createEmptyStrokeData } from "../types.js";
 
 const LIGHT_GUID = "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62";
+const OIL_PAINT_GUID = "f72ec0e7-a844-4e38-82e3-140c44772699";
 const MARKER_GUID = "429ed64a-4e97-4466-84d3-145a861ef684";
 const MYLAR_TUBE_GUID = "8e58ceea-7830-49b4-aba9-6215104ab52a";
 const PETAL_GUID = "e0abbc80-0f80-e854-4970-8924a0863dcc";
@@ -95,6 +96,18 @@ describe("brush shader asset inventory", () => {
       tubePetalDisplacementAmount: 1.5,
     });
   });
+
+  it("preserves non-default texture importer settings", () => {
+    expect(getBrush(OIL_PAINT_GUID).shaderAssets?.textureImporters.MainTex).toEqual({
+      sRGB: true,
+      mipmaps: true,
+      filter: "bilinear",
+      wrapU: "clamp",
+      wrapV: "clamp",
+      anisotropy: 4,
+      mipBias: 0,
+    });
+  });
 });
 
 describe("brush shader eligibility", () => {
@@ -148,6 +161,15 @@ describe("brush shader material descriptors", () => {
       {
         uniform: "u_MainTex",
         url: "/openbrush/textures/Light-2241cd32-8ba2-48a5-9ee7-2caef7e9ed62-v10.0-MainTex.png",
+        importer: {
+          sRGB: false,
+          mipmaps: true,
+          filter: "bilinear",
+          wrapU: "repeat",
+          wrapV: "repeat",
+          anisotropy: 1,
+          mipBias: 0,
+        },
       },
     ]);
   });
@@ -160,6 +182,7 @@ describe("brush shader material descriptors", () => {
       depthWrite: true,
     });
     expect(descriptor?.uniforms.u_Cutoff).toBeCloseTo(0.067);
+    expect(descriptor?.textures[0]?.importer?.sRGB).toBe(true);
   });
 
   it("builds the MylarTube descriptor from the template pipeline", () => {

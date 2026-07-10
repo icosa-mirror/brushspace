@@ -50,6 +50,17 @@ export interface BrushShaderAssetInfo {
   fragmentShaderFile: string;
   /** Manifest texture param name (e.g. "MainTex") → extracted file under public/openbrush/textures/. */
   textureFiles: Record<string, string>;
+  textureImporters: Record<string, BrushTextureImporterSettings>;
+}
+
+export interface BrushTextureImporterSettings {
+  sRGB: boolean;
+  mipmaps: boolean;
+  filter: "point" | "bilinear" | "trilinear";
+  wrapU: "repeat" | "clamp" | "mirror" | "mirror-once";
+  wrapV: "repeat" | "clamp" | "mirror" | "mirror-once";
+  anisotropy: number;
+  mipBias: number;
 }
 
 export interface BrushGeometryParams {
@@ -91,7 +102,14 @@ export interface BrushAssetRecord {
   vertexIsDefault: boolean;
   vertexShader: string;
   fragmentShader: string;
-  textures: Record<string, { file: string; resolved: boolean }>;
+  textures: Record<
+    string,
+    {
+      file: string;
+      resolved: boolean;
+      importer?: BrushTextureImporterSettings;
+    }
+  >;
   geometry?: BrushGeometryParams & {
     brushSizeRange?: [number, number];
     pressureSizeRange?: [number, number];
@@ -254,9 +272,13 @@ function toShaderAssetInfo(
     return undefined;
   }
   const textureFiles: Record<string, string> = {};
+  const textureImporters: Record<string, BrushTextureImporterSettings> = {};
   for (const [param, texture] of Object.entries(record.textures ?? {})) {
     if (texture.resolved) {
       textureFiles[param] = texture.file;
+      if (texture.importer) {
+        textureImporters[param] = texture.importer;
+      }
     }
   }
   return {
@@ -265,6 +287,7 @@ function toShaderAssetInfo(
     vertexShaderFile: record.vertexShader,
     fragmentShaderFile: record.fragmentShader,
     textureFiles,
+    textureImporters,
   };
 }
 

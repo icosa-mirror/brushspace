@@ -342,6 +342,41 @@ function extractGeneratorGeometryParams(generator) {
   };
 }
 
+function extractTextureImporterSettings(sourcePath) {
+  const metaPath = `${sourcePath}.meta`;
+  if (!fs.existsSync(metaPath)) {
+    return undefined;
+  }
+  const text = fs.readFileSync(metaPath, "utf8");
+  const filterMode = parseYamlScalar(text, "filterMode");
+  const wrapU = parseYamlScalar(text, "wrapU");
+  const wrapV = parseYamlScalar(text, "wrapV");
+  const aniso = parseYamlScalar(text, "aniso");
+  const mipBias = parseYamlScalar(text, "mipBias");
+  const toWrapMode = (value) => {
+    switch (value) {
+      case 1:
+        return "clamp";
+      case 2:
+        return "mirror";
+      case 3:
+        return "mirror-once";
+      default:
+        return "repeat";
+    }
+  };
+  return {
+    sRGB: parseYamlScalar(text, "sRGBTexture") !== 0,
+    mipmaps: parseYamlScalar(text, "enableMipMap") !== 0,
+    filter:
+      filterMode === 0 ? "point" : filterMode === 2 ? "trilinear" : "bilinear",
+    wrapU: toWrapMode(wrapU),
+    wrapV: toWrapMode(wrapV),
+    anisotropy: typeof aniso === "number" && aniso > 0 ? aniso : 1,
+    mipBias: typeof mipBias === "number" && mipBias > -100 ? mipBias : 0,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -483,7 +518,11 @@ async function main() {
       const sourcePath = textureGuid ? metaGuidIndex.get(textureGuid) : undefined;
       if (sourcePath && fs.existsSync(sourcePath)) {
         fs.copyFileSync(sourcePath, path.join(outTextureDir, targetName));
-        record.textures[param] = { file: targetName, resolved: true };
+        record.textures[param] = {
+          file: targetName,
+          resolved: true,
+          importer: extractTextureImporterSettings(sourcePath),
+        };
         summary.texturesCopied += 1;
         if (path.extname(sourcePath).toLowerCase() !== ".png") {
           problems.push(

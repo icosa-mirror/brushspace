@@ -1,4 +1,7 @@
-import type { BrushInventoryEntry } from "./brush-inventory.js";
+import type {
+  BrushInventoryEntry,
+  BrushTextureImporterSettings,
+} from "./brush-inventory.js";
 import { assetUrl } from "../app/asset-url.js";
 
 export const OPENBRUSH_SHADER_BASE_URL = assetUrl("/openbrush/shaders/");
@@ -11,6 +14,7 @@ export interface BrushShaderTextureBinding {
   /** GLSL uniform name, e.g. "u_MainTex". */
   uniform: string;
   url: string;
+  importer?: BrushTextureImporterSettings;
 }
 
 export interface BrushShaderMaterialDescriptor {
@@ -115,6 +119,7 @@ export function createBrushShaderMaterialDescriptor(
     .map(([param, file]) => ({
       uniform: `u_${param}`,
       url: `${OPENBRUSH_TEXTURE_BASE_URL}${file}`,
+      importer: assets.textureImporters[param],
     }));
 
   const blending = resolveBrushShaderBlending(entry.blendMode);
