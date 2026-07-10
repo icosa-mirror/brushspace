@@ -533,6 +533,11 @@ function generateTubeGeometry(
   const v1 = (atlasRow + 1) / atlasRows;
   const usesStretchUvs = options.geometryParams?.tubeUvStyle === "stretch";
   const capAspect = normalizeTubeCapAspect(options.geometryParams?.tubeCapAspect);
+  const shapeModifier = normalizeTubeShapeModifier(
+    options.geometryParams?.tubeShapeModifier,
+  );
+  const totalStrokeLength = measureStrokeLength(stroke);
+  let runningDistance = 0;
   let u = random01;
 
   // Frame state: right/up transported along the stroke by the tangent-to-
@@ -544,6 +549,7 @@ function generateTubeGeometry(
   const frameUp: Vec3 = [0, 0, 0];
   const bootstrapUp: Vec3 = [0, 0, 0];
   const radial: Vec3 = [0, 0, 0];
+  const displacement: Vec3 = [0, 0, 0];
   const startTangent: Vec3 = [0, 0, 0];
   const startFrameRight: Vec3 = [0, 0, 0];
   const startFrameUp: Vec3 = [0, 0, 0];
@@ -566,9 +572,33 @@ function generateTubeGeometry(
         stroke.controlPoints[pointIndex - 1],
         point,
       );
+      runningDistance += segmentLength;
       const circumference = Math.max(2 * Math.PI * radius, EPSILON);
       u += (segmentLength * tileRate) / circumference;
     }
+    const progress =
+      totalStrokeLength > EPSILON ? runningDistance / totalStrokeLength : 0;
+    const shapeScale = getTubeShapeScale(
+      shapeModifier,
+      progress,
+      pointIndex,
+      pointCount,
+      options.geometryParams?.tubeTaperScalar,
+    );
+    const petalOffset =
+      shapeModifier === 5
+        ? Math.pow(
+            progress,
+            normalizeTubePetalExponent(
+              options.geometryParams?.tubePetalDisplacementExponent,
+            ),
+          ) *
+          normalizeTubePetalAmount(
+            options.geometryParams?.tubePetalDisplacementAmount,
+          ) *
+          stroke.brushSize *
+          clamp01(point.pressure)
+        : 0;
     const opacity = getPressureOpacityMultiplier(
       point.pressure,
       pressureOpacityMin,
@@ -629,19 +659,26 @@ function generateTubeGeometry(
       for (let side = 0; side < sideCount; side += 1) {
         const angle = (side / sideCount) * Math.PI * 2;
         setTubeRadial(frameRight, frameUp, angle, radial);
+        copyVec3(radial, displacement);
         for (let duplicate = 0; duplicate < 2; duplicate += 1) {
           const vertex = ringBase + side * 2 + duplicate;
-          writePosition(positions, vertex, [
-            point.position[0] + radial[0] * radius,
-            point.position[1] + radial[1] * radius,
-            point.position[2] + radial[2] * radius,
-          ]);
           setTubeRadial(
             frameRight,
             frameUp,
             angle + (duplicate === 0 ? -halfStep : halfStep),
             radial,
           );
+          writePosition(positions, vertex, [
+            point.position[0] +
+              displacement[0] * radius * shapeScale +
+              radial[0] * petalOffset,
+            point.position[1] +
+              displacement[1] * radius * shapeScale +
+              radial[1] * petalOffset,
+            point.position[2] +
+              displacement[2] * radius * shapeScale +
+              radial[2] * petalOffset,
+          ]);
           writeNormal(normals, vertex, radial);
           writeTangent(tangents, vertex, tangent, 1);
           writeColor(colors, vertex, stroke.color, opacity);
@@ -658,9 +695,9 @@ function generateTubeGeometry(
         const angle = (ringIndex === sideCount ? 0 : fraction * Math.PI * 2);
         setTubeRadial(frameRight, frameUp, angle, radial);
         writePosition(positions, vertex, [
-          point.position[0] + radial[0] * radius,
-          point.position[1] + radial[1] * radius,
-          point.position[2] + radial[2] * radius,
+          point.position[0] + radial[0] * (radius * shapeScale + petalOffset),
+          point.position[1] + radial[1] * (radius * shapeScale + petalOffset),
+          point.position[2] + radial[2] * (radius * shapeScale + petalOffset),
         ]);
         writeNormal(normals, vertex, radial);
         writeTangent(tangents, vertex, tangent, 1);
@@ -940,6 +977,71 @@ function normalizeTubeCapAspect(value: number | undefined): number {
   return typeof value === "number" && Number.isFinite(value)
     ? Math.max(0, value)
     : 0.8;
+}
+
+function normalizeTubeShapeModifier(value: number | undefined): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.min(5, Math.max(0, Math.floor(value)))
+    : 0;
+}
+
+function normalizeTubePetalAmount(value: number | undefined): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0.5;
+}
+
+function normalizeTubePetalExponent(value: number | undefined): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.max(0, value)
+    : 3;
+}
+
+function getTubeShapeScale(
+  modifier: number,
+  progress: number,
+  pointIndex: number,
+  pointCount: number,
+  taperScalar: number | undefined,
+): number {
+  switch (modifier) {
+    case 1:
+      return getLoftedTubeScale(pointIndex, pointCount);
+    case 2:
+    case 5:
+      return Math.abs(Math.sin(progress * Math.PI));
+    case 3:
+      return Math.sin(progress * 1.5 + 1.55);
+    case 4:
+      return (Number.isFinite(taperScalar) ? (taperScalar as number) : 1) *
+        (1 - progress);
+    default:
+      return 1;
+  }
+}
+
+function getLoftedTubeScale(pointIndex: number, pointCount: number): number {
+  if (pointCount < 3) {
+    return 0;
+  }
+  const halfCount = Math.ceil(Math.min(5, pointCount / 2));
+  const nextHalfCount = Math.ceil(Math.min(5, (pointCount + 1) / 2));
+  const reverseIndex = pointCount - pointIndex - 1;
+  const nextReverseIndex = pointCount + 1 - pointIndex - 1;
+  let current = 1;
+  let next = 1;
+  if (pointIndex < halfCount) {
+    current = pointIndex / Math.max(1, halfCount - 1);
+  } else if (reverseIndex < halfCount) {
+    current = Math.max(0, reverseIndex - 1) / Math.max(1, halfCount - 1);
+  }
+  if (pointIndex < nextHalfCount) {
+    next = pointIndex / Math.max(1, nextHalfCount - 1);
+  } else if (nextReverseIndex < nextHalfCount) {
+    next = Math.max(0, nextReverseIndex - 1) /
+      Math.max(1, nextHalfCount - 1);
+  }
+  current += (next - current) * 0.185;
+  const attenuation = clamp01((pointCount - 3) / 7);
+  return clamp01(current * attenuation);
 }
 
 function normalizeHueShift(value: number | undefined): number {

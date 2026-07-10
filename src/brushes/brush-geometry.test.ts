@@ -307,6 +307,46 @@ describe("brush geometry generation", () => {
     expect(geometry.uvs[40]).toBeCloseTo(1);
   });
 
+  it("applies the TubeBrush sine silhouette over physical stroke progress", () => {
+    const geometry = generateBrushGeometry(
+      createUnevenThreePointStroke(),
+      "tube",
+      {
+        geometryParams: {
+          tubeEndCaps: false,
+          tubeShapeModifier: 2,
+        },
+      },
+    );
+
+    expect(geometry.positions[1]).toBeCloseTo(0);
+    expect(geometry.positions[28]).toBeCloseTo(-0.5 * Math.sin(Math.PI / 3));
+    expect(geometry.positions[55]).toBeCloseTo(0);
+  });
+
+  it("applies taper and petal TubeBrush modifiers", () => {
+    const stroke = createUnevenThreePointStroke();
+    const tapered = generateBrushGeometry(stroke, "tube", {
+      geometryParams: {
+        tubeEndCaps: false,
+        tubeShapeModifier: 4,
+        tubeTaperScalar: 1.1,
+      },
+    });
+    const petal = generateBrushGeometry(stroke, "tube", {
+      geometryParams: {
+        tubeEndCaps: false,
+        tubeShapeModifier: 5,
+        tubePetalDisplacementAmount: 1.5,
+        tubePetalDisplacementExponent: 3,
+      },
+    });
+
+    expect(tapered.positions[1]).toBeCloseTo(-0.55);
+    expect(tapered.positions[55]).toBeCloseTo(0);
+    expect(petal.positions[55]).toBeCloseTo(-1.5);
+  });
+
   it("tiles tube UVs by circumference within a deterministic atlas row", () => {
     const geometry = generateBrushGeometry(
       createUnevenThreePointStroke(),
