@@ -497,12 +497,6 @@ function generateUnitizedRibbonGeometry(
   return reallocated;
 }
 
-// Open Brush TubeBrush: m_PointsInClosedCircle = 8 ring points on a
-// minimal-rotation (parallel transport) frame; one duplicated seam vertex per
-// ring keeps the around-the-ring UV continuous.
-const TUBE_RING_SIDES = 8;
-const TUBE_RING_VERTS = TUBE_RING_SIDES + 1;
-
 function generateTubeGeometry(
   stroke: StrokeData,
   options: BrushGeometryOptions,
@@ -510,11 +504,15 @@ function generateTubeGeometry(
 ): boolean {
   const pointCount = stroke.controlPoints.length;
   const segmentCount = Math.max(0, pointCount - 1);
-  const hasCaps = pointCount >= 2;
-  const capVertexCount = hasCaps ? 2 : 0;
-  const vertexCount = pointCount * TUBE_RING_VERTS + capVertexCount;
+  const sideCount = normalizeTubeSideCount(options.geometryParams?.tubeSideCount);
+  const hardEdges = options.geometryParams?.tubeHardEdges === true;
+  const ringVertexCount = hardEdges ? sideCount * 2 : sideCount + 1;
+  const hasCaps =
+    pointCount >= 2 && options.geometryParams?.tubeEndCaps !== false;
+  const capVertexCount = hasCaps ? sideCount * 2 : 0;
+  const vertexCount = pointCount * ringVertexCount + capVertexCount;
   const indexCount =
-    segmentCount * TUBE_RING_SIDES * 6 + (hasCaps ? 2 * TUBE_RING_SIDES * 3 : 0);
+    segmentCount * sideCount * 6 + (hasCaps ? 2 * sideCount * 3 : 0);
   const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
   const { positions, normals, tangents, colors, uvs, indices, bounds } = out;
   const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
@@ -533,6 +531,8 @@ function generateTubeGeometry(
   const atlasRow = Math.floor(random01 * 3331) % atlasRows;
   const v0 = atlasRow / atlasRows;
   const v1 = (atlasRow + 1) / atlasRows;
+  const usesStretchUvs = options.geometryParams?.tubeUvStyle === "stretch";
+  const capAspect = normalizeTubeCapAspect(options.geometryParams?.tubeCapAspect);
   let u = random01;
 
   // Frame state: right/up transported along the stroke by the tangent-to-
@@ -544,6 +544,16 @@ function generateTubeGeometry(
   const frameUp: Vec3 = [0, 0, 0];
   const bootstrapUp: Vec3 = [0, 0, 0];
   const radial: Vec3 = [0, 0, 0];
+  const startTangent: Vec3 = [0, 0, 0];
+  const startFrameRight: Vec3 = [0, 0, 0];
+  const startFrameUp: Vec3 = [0, 0, 0];
+  const endTangent: Vec3 = [0, 0, 0];
+  const endFrameRight: Vec3 = [0, 0, 0];
+  const endFrameUp: Vec3 = [0, 0, 0];
+  let startRadius = 0;
+  let endRadius = 0;
+  let startU = random01;
+  let endU = random01;
 
   for (let pointIndex = 0; pointIndex < pointCount; pointIndex += 1) {
     const point = stroke.controlPoints[pointIndex];
@@ -597,43 +607,83 @@ function generateTubeGeometry(
     previousTangent[1] = tangent[1];
     previousTangent[2] = tangent[2];
 
-    for (let ringIndex = 0; ringIndex < TUBE_RING_VERTS; ringIndex += 1) {
-      const vertex = pointIndex * TUBE_RING_VERTS + ringIndex;
-      const angle = ((ringIndex % TUBE_RING_SIDES) / TUBE_RING_SIDES) * Math.PI * 2;
-      const cos = Math.cos(angle);
-      const sin = Math.sin(angle);
-      radial[0] = frameRight[0] * cos + frameUp[0] * sin;
-      radial[1] = frameRight[1] * cos + frameUp[1] * sin;
-      radial[2] = frameRight[2] * cos + frameUp[2] * sin;
-      writePosition(positions, vertex, [
-        point.position[0] + radial[0] * radius,
-        point.position[1] + radial[1] * radius,
-        point.position[2] + radial[2] * radius,
-      ]);
-      writeNormal(normals, vertex, radial);
-      writeTangent(tangents, vertex, tangent, 1);
-      writeColor(colors, vertex, stroke.color, opacity);
-      // TubeBrush advances U by physical distance / current circumference and
-      // confines V to the deterministic texture-atlas row selected per stroke.
-      writeUv(uvs, vertex, [
-        u,
-        v0 + (v1 - v0) * (ringIndex / TUBE_RING_SIDES),
-      ]);
-      includeBounds(bounds, positions, vertex);
+    const ringU = usesStretchUvs
+      ? pointIndex / Math.max(pointCount - 1, 1)
+      : u;
+    if (pointIndex === 0) {
+      copyVec3(tangent, startTangent);
+      copyVec3(frameRight, startFrameRight);
+      copyVec3(frameUp, startFrameUp);
+      startRadius = radius;
+      startU = ringU;
+    }
+    copyVec3(tangent, endTangent);
+    copyVec3(frameRight, endFrameRight);
+    copyVec3(frameUp, endFrameUp);
+    endRadius = radius;
+    endU = ringU;
+
+    const ringBase = pointIndex * ringVertexCount;
+    if (hardEdges) {
+      const halfStep = Math.PI / sideCount;
+      for (let side = 0; side < sideCount; side += 1) {
+        const angle = (side / sideCount) * Math.PI * 2;
+        setTubeRadial(frameRight, frameUp, angle, radial);
+        for (let duplicate = 0; duplicate < 2; duplicate += 1) {
+          const vertex = ringBase + side * 2 + duplicate;
+          writePosition(positions, vertex, [
+            point.position[0] + radial[0] * radius,
+            point.position[1] + radial[1] * radius,
+            point.position[2] + radial[2] * radius,
+          ]);
+          setTubeRadial(
+            frameRight,
+            frameUp,
+            angle + (duplicate === 0 ? -halfStep : halfStep),
+            radial,
+          );
+          writeNormal(normals, vertex, radial);
+          writeTangent(tangents, vertex, tangent, 1);
+          writeColor(colors, vertex, stroke.color, opacity);
+          const vFraction = side === 0 && duplicate === 0 ? 1 : side / sideCount;
+          writeUv(uvs, vertex, [ringU, v0 + (v1 - v0) * vFraction]);
+          includeBounds(bounds, positions, vertex);
+          setTubeRadial(frameRight, frameUp, angle, radial);
+        }
+      }
+    } else {
+      for (let ringIndex = 0; ringIndex < ringVertexCount; ringIndex += 1) {
+        const vertex = ringBase + ringIndex;
+        const fraction = ringIndex / sideCount;
+        const angle = (ringIndex === sideCount ? 0 : fraction * Math.PI * 2);
+        setTubeRadial(frameRight, frameUp, angle, radial);
+        writePosition(positions, vertex, [
+          point.position[0] + radial[0] * radius,
+          point.position[1] + radial[1] * radius,
+          point.position[2] + radial[2] * radius,
+        ]);
+        writeNormal(normals, vertex, radial);
+        writeTangent(tangents, vertex, tangent, 1);
+        writeColor(colors, vertex, stroke.color, opacity);
+        writeUv(uvs, vertex, [ringU, v0 + (v1 - v0) * fraction]);
+        includeBounds(bounds, positions, vertex);
+      }
     }
   }
 
   let indexOffset = 0;
   for (let segment = 0; segment < segmentCount; segment += 1) {
-    const firstRing = segment * TUBE_RING_VERTS;
-    const secondRing = firstRing + TUBE_RING_VERTS;
-    for (let side = 0; side < TUBE_RING_SIDES; side += 1) {
-      indices[indexOffset] = firstRing + side;
-      indices[indexOffset + 1] = secondRing + side;
-      indices[indexOffset + 2] = firstRing + side + 1;
-      indices[indexOffset + 3] = firstRing + side + 1;
-      indices[indexOffset + 4] = secondRing + side;
-      indices[indexOffset + 5] = secondRing + side + 1;
+    const firstRing = segment * ringVertexCount;
+    const secondRing = firstRing + ringVertexCount;
+    for (let side = 0; side < sideCount; side += 1) {
+      const first = hardEdges ? side * 2 + 1 : side;
+      const next = hardEdges ? (first + 1) % ringVertexCount : side + 1;
+      indices[indexOffset] = firstRing + first;
+      indices[indexOffset + 1] = secondRing + first;
+      indices[indexOffset + 2] = firstRing + next;
+      indices[indexOffset + 3] = firstRing + next;
+      indices[indexOffset + 4] = secondRing + first;
+      indices[indexOffset + 5] = secondRing + next;
       indexOffset += 6;
     }
   }
@@ -641,8 +691,8 @@ function generateTubeGeometry(
   if (hasCaps) {
     const startPoint = stroke.controlPoints[0];
     const endPoint = stroke.controlPoints[pointCount - 1];
-    const startCenter = pointCount * TUBE_RING_VERTS;
-    const endCenter = startCenter + 1;
+    const firstCap = pointCount * ringVertexCount;
+    const secondCap = firstCap + sideCount;
     const startOpacity = getPressureOpacityMultiplier(
       startPoint.pressure,
       pressureOpacityMin,
@@ -653,39 +703,55 @@ function generateTubeGeometry(
       pressureOpacityMin,
       pressureOpacityMax,
     ) * descriptorOpacity;
-    writePosition(positions, startCenter, [
-      startPoint.position[0],
-      startPoint.position[1],
-      startPoint.position[2],
-    ]);
-    writePosition(positions, endCenter, [
-      endPoint.position[0],
-      endPoint.position[1],
-      endPoint.position[2],
-    ]);
-    // Cap centers face outward along the stroke ends; tangent currently
-    // holds the frame of the last point.
-    writeNormal(normals, endCenter, tangent);
-    writeCentralDifferenceTangent(stroke, 0, tangent, radial);
-    writeNormal(normals, startCenter, [-radial[0], -radial[1], -radial[2]]);
-    writeTangent(tangents, startCenter, frameRight, 1);
-    writeTangent(tangents, endCenter, frameRight, 1);
-    writeColor(colors, startCenter, stroke.color, startOpacity);
-    writeColor(colors, endCenter, stroke.color, endOpacity);
-    writeUv(uvs, startCenter, [0, 0.5]);
-    writeUv(uvs, endCenter, [1, 0.5]);
-    includeBounds(bounds, positions, startCenter);
-    includeBounds(bounds, positions, endCenter);
+    const capRadial: Vec3 = [0, 0, 0];
+    const capTip: Vec3 = [0, 0, 0];
+    for (let capIndex = 0; capIndex < 2; capIndex += 1) {
+      const isStart = capIndex === 0;
+      const point = isStart ? startPoint : endPoint;
+      const capBase = isStart ? firstCap : secondCap;
+      const ringBase = isStart ? 0 : (pointCount - 1) * ringVertexCount;
+      const capTangent = isStart ? startTangent : endTangent;
+      const capRight = isStart ? startFrameRight : endFrameRight;
+      const capUp = isStart ? startFrameUp : endFrameUp;
+      const radius = isStart ? startRadius : endRadius;
+      const ringU = isStart ? startU : endU;
+      const opacity = isStart ? startOpacity : endOpacity;
+      const direction = isStart ? -1 : 1;
+      capTip[0] = point.position[0] + capTangent[0] * radius * capAspect * direction;
+      capTip[1] = point.position[1] + capTangent[1] * radius * capAspect * direction;
+      capTip[2] = point.position[2] + capTangent[2] * radius * capAspect * direction;
+      const diagonal = radius * Math.hypot(1, capAspect);
+      const uRate = tileRate / Math.max(2 * Math.PI * radius, EPSILON);
+      const capU = usesStretchUvs ? ringU : ringU + direction * uRate * diagonal;
 
-    const lastRing = (pointCount - 1) * TUBE_RING_VERTS;
-    for (let side = 0; side < TUBE_RING_SIDES; side += 1) {
-      indices[indexOffset] = startCenter;
-      indices[indexOffset + 1] = side + 1;
-      indices[indexOffset + 2] = side;
-      indices[indexOffset + 3] = endCenter;
-      indices[indexOffset + 4] = lastRing + side;
-      indices[indexOffset + 5] = lastRing + side + 1;
-      indexOffset += 6;
+      for (let side = 0; side < sideCount; side += 1) {
+        const vertex = capBase + side;
+        const fraction = (side + 0.5) / sideCount;
+        setTubeRadial(capRight, capUp, fraction * Math.PI * 2, capRadial);
+        writePosition(positions, vertex, capTip);
+        writeNormal(
+          normals,
+          vertex,
+          hardEdges
+            ? capRadial
+            : [
+                capTangent[0] * direction,
+                capTangent[1] * direction,
+                capTangent[2] * direction,
+              ],
+        );
+        writeTangent(tangents, vertex, capRadial, 1);
+        writeColor(colors, vertex, stroke.color, opacity);
+        writeUv(uvs, vertex, [capU, v0 + (v1 - v0) * fraction]);
+        includeBounds(bounds, positions, vertex);
+
+        const first = hardEdges ? side * 2 + 1 : side;
+        const next = hardEdges ? (first + 1) % ringVertexCount : side + 1;
+        indices[indexOffset] = vertex;
+        indices[indexOffset + 1] = ringBase + (isStart ? first : next);
+        indices[indexOffset + 2] = ringBase + (isStart ? next : first);
+        indexOffset += 3;
+      }
     }
   }
 
@@ -864,6 +930,18 @@ function normalizeAtlasRows(value: number | undefined): number {
     : 1;
 }
 
+function normalizeTubeSideCount(value: number | undefined): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.min(12, Math.max(3, Math.floor(value)))
+    : 8;
+}
+
+function normalizeTubeCapAspect(value: number | undefined): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.max(0, value)
+    : 0.8;
+}
+
 function normalizeHueShift(value: number | undefined): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
@@ -1008,6 +1086,19 @@ function cross(a: Vec3, b: Vec3, out: Vec3): void {
   out[0] = x;
   out[1] = y;
   out[2] = z;
+}
+
+function setTubeRadial(
+  right: Vec3,
+  up: Vec3,
+  angle: number,
+  out: Vec3,
+): void {
+  const rightScale = -Math.sin(angle);
+  const upScale = -Math.cos(angle);
+  out[0] = right[0] * rightScale + up[0] * upScale;
+  out[1] = right[1] * rightScale + up[1] * upScale;
+  out[2] = right[2] * rightScale + up[2] * upScale;
 }
 
 function copyVec3(source: Vec3, target: Vec3): void {

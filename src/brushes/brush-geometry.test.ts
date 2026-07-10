@@ -262,10 +262,49 @@ describe("brush geometry generation", () => {
     const geometry = generateBrushGeometry(stroke, family ?? "unsupported");
 
     expect(geometry.family).toBe("tube");
-    // 3 control points x 9 ring verts (8 sides + UV seam) + 2 cap centers.
-    expect(getGeneratedVertexCount(geometry)).toBe(29);
+    // 3 control points x 9 ring verts plus 8 duplicated tip verts per cap.
+    expect(getGeneratedVertexCount(geometry)).toBe(43);
     // 2 segments x 8 sides x 6 + 2 caps x 8 fan triangles x 3.
     expect(getGeneratedIndexCount(geometry)).toBe(144);
+  });
+
+  it("uses source-style tube cap tips instead of center vertices", () => {
+    const geometry = generateBrushGeometry(
+      createUnevenThreePointStroke(),
+      "tube",
+      { geometryParams: { tubeCapAspect: 0.8 } },
+    );
+    const firstCapPosition = 3 * 9 * 3;
+    const secondCapPosition = (3 * 9 + 8) * 3;
+
+    expect(geometry.positions[firstCapPosition]).toBeCloseTo(-0.4);
+    expect(geometry.positions[secondCapPosition]).toBeCloseTo(3.4);
+  });
+
+  it("duplicates hard tube edges and omits disabled caps", () => {
+    const geometry = generateBrushGeometry(
+      createUnevenThreePointStroke(),
+      "tube",
+      {
+        geometryParams: {
+          tubeSideCount: 5,
+          tubeHardEdges: true,
+          tubeEndCaps: false,
+          tubeUvStyle: "stretch",
+        },
+      },
+    );
+
+    expect(getGeneratedVertexCount(geometry)).toBe(30);
+    expect(getGeneratedIndexCount(geometry)).toBe(60);
+    expect(Array.from(geometry.positions.slice(0, 3))).toEqual(
+      Array.from(geometry.positions.slice(3, 6)),
+    );
+    expect(Array.from(geometry.normals.slice(0, 3))).not.toEqual(
+      Array.from(geometry.normals.slice(3, 6)),
+    );
+    expect(geometry.uvs[0]).toBeCloseTo(0);
+    expect(geometry.uvs[40]).toBeCloseTo(1);
   });
 
   it("tiles tube UVs by circumference within a deterministic atlas row", () => {
