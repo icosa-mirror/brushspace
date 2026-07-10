@@ -150,7 +150,8 @@ export function createBrushShaderMaterialDescriptor(
  * rewrites them to per-view arrays under multiview), so the shader's own
  * declarations must be dropped to avoid duplicate/broken declarations.
  * Derivative functions are core in GLSL ES 3.00, so the old extension
- * directive is dropped too.
+ * directive becomes a feature define. The exported bump shaders use the
+ * extension macro to choose between real perturbation and a no-op fallback.
  */
 export function prepareBrushShaderSource(source: string): string {
   return (
@@ -159,7 +160,10 @@ export function prepareBrushShaderSource(source: string): string {
         /^[ \t]*uniform[ \t]+(?:highp[ \t]+|mediump[ \t]+|lowp[ \t]+)?(?:mat4[ \t]+(?:modelViewMatrix|projectionMatrix|viewMatrix|modelMatrix)|mat3[ \t]+normalMatrix|vec3[ \t]+cameraPosition)[ \t]*;[^\n]*\n?/gm,
         "",
       )
-      .replace(/^[ \t]*#extension[ \t]+GL_OES_standard_derivatives[^\n]*\n?/gm, "")
+      .replace(
+        /^[ \t]*#extension[ \t]+GL_OES_standard_derivatives[^\n]*\n?/gm,
+        "#define GL_OES_standard_derivatives 1\n",
+      )
       // The particle shaders ship their own mat4 inverse(), legal in the
       // exported GLSL 1.00 but a redeclaration of the built-in once three
       // promotes the source to GLSL ES 3.00 — rename definition and calls.

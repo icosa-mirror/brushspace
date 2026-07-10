@@ -242,11 +242,19 @@ describe("shader source preparation for non-raw ShaderMaterial", () => {
     );
   });
 
-  it("strips the derivatives extension directive (core in GLSL ES 3.00)", () => {
+  it("preserves the derivatives feature macro for bump shaders", () => {
     const prepared = prepareBrushShaderSource(
-      "#extension GL_OES_standard_derivatives : enable\nvoid main() { float w = fwidth(1.0); }",
+      [
+        "#extension GL_OES_standard_derivatives : enable",
+        "#ifndef GL_OES_standard_derivatives",
+        "float perturb() { return 0.0; }",
+        "#else",
+        "float perturb() { return fwidth(1.0); }",
+        "#endif",
+      ].join("\n"),
     );
     expect(prepared).not.toContain("#extension");
+    expect(prepared).toContain("#define GL_OES_standard_derivatives 1");
     expect(prepared).toContain("fwidth");
   });
 
