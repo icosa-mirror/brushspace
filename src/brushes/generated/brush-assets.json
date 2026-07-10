@@ -1917,7 +1917,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "distance",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "default",
@@ -2046,7 +2056,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "distance",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "default",
@@ -2084,7 +2104,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "distance",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "default",
@@ -2167,7 +2197,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 5,
+        "tubeEndCaps": false,
+        "tubeHardEdges": true,
+        "tubeUvStyle": "stretch",
+        "tubeShapeModifier": 5,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 1.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "default"
@@ -2209,7 +2249,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "distance",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "whiteboard",
@@ -2247,7 +2297,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "distance",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "whiteboard",
@@ -2286,7 +2346,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "distance",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "whiteboard",
@@ -2324,7 +2394,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0,
+        "tubeSideCount": 3,
+        "tubeEndCaps": true,
+        "tubeHardEdges": true,
+        "tubeUvStyle": "stretch",
+        "tubeShapeModifier": 4,
+        "tubeTaperScalar": 1.1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "default"
@@ -2361,7 +2441,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0,
+        "tubeSideCount": 4,
+        "tubeEndCaps": false,
+        "tubeHardEdges": true,
+        "tubeUvStyle": "stretch",
+        "tubeShapeModifier": 1,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 4
       },
       "tags": [
         "default"
@@ -2398,7 +2488,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "distance",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "default",
@@ -2445,7 +2545,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.1,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "stretch",
+        "tubeShapeModifier": 3,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "default",
@@ -3173,7 +3283,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "stretch",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "experimental"
@@ -3215,7 +3335,17 @@
         "pressureOpacityRange": [
           0.4,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 6,
+        "tubeEndCaps": false,
+        "tubeHardEdges": true,
+        "tubeUvStyle": "stretch",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "experimental"
@@ -3349,7 +3479,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "stretch",
+        "tubeShapeModifier": 3,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "experimental"
@@ -3476,7 +3616,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "stretch",
+        "tubeShapeModifier": 4,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "experimental"
@@ -3800,7 +3950,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "distance",
+        "tubeShapeModifier": 2,
+        "tubeTaperScalar": 0.1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "experimental"
@@ -3846,7 +4006,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "distance",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "experimental"
@@ -3930,7 +4100,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "distance",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "experimental"
@@ -3967,7 +4147,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "distance",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "experimental"
@@ -4052,7 +4242,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "stretch",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "experimental"
@@ -4137,7 +4337,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "distance",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "experimental",
@@ -4301,7 +4511,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "distance",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "experimental",
@@ -4618,7 +4838,17 @@
         "pressureOpacityRange": [
           0,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "distance",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "experimental"
@@ -4655,7 +4885,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "stretch",
+        "tubeShapeModifier": 1,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "experimental",
@@ -4693,7 +4933,17 @@
         "pressureOpacityRange": [
           1,
           1
-        ]
+        ],
+        "tubeCapAspect": 0.8,
+        "tubeSideCount": 8,
+        "tubeEndCaps": true,
+        "tubeHardEdges": false,
+        "tubeUvStyle": "distance",
+        "tubeShapeModifier": 0,
+        "tubeTaperScalar": 1,
+        "tubePetalDisplacementAmount": 0.5,
+        "tubePetalDisplacementExponent": 3,
+        "tubeBreakAngleMultiplier": 8
       },
       "tags": [
         "experimental"

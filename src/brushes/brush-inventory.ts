@@ -58,6 +58,16 @@ export interface BrushGeometryParams {
   renderBackfaces?: boolean;
   backfaceHueShift?: number;
   tubeStoreRadiusInTexcoord0Z?: boolean;
+  tubeCapAspect?: number;
+  tubeSideCount?: number;
+  tubeEndCaps?: boolean;
+  tubeHardEdges?: boolean;
+  tubeUvStyle?: "distance" | "stretch";
+  tubeShapeModifier?: number;
+  tubeTaperScalar?: number;
+  tubePetalDisplacementAmount?: number;
+  tubePetalDisplacementExponent?: number;
+  tubeBreakAngleMultiplier?: number;
   opacity?: number;
   solidMinLengthMeters?: number;
   audioReactive?: boolean;

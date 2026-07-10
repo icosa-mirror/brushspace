@@ -15,6 +15,7 @@ import { createEmptyStrokeData } from "../types.js";
 const LIGHT_GUID = "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62";
 const MARKER_GUID = "429ed64a-4e97-4466-84d3-145a861ef684";
 const MYLAR_TUBE_GUID = "8e58ceea-7830-49b4-aba9-6215104ab52a";
+const PETAL_GUID = "e0abbc80-0f80-e854-4970-8924a0863dcc";
 const SMOKE_GUID = "70d79cca-b159-4f35-990c-f02193947fe8";
 
 function getBrush(guid: string) {
@@ -74,6 +75,25 @@ describe("brush shader asset inventory", () => {
     expect(light.geometryParams?.textureAtlasV).toBe(1);
     expect(light.geometryParams?.renderBackfaces).toBe(true);
     expect(light.geometryParams?.audioReactive).toBe(true);
+  });
+
+  it("extracts TubeBrush prefab settings per brush", () => {
+    expect(getBrush(MYLAR_TUBE_GUID).geometryParams).toMatchObject({
+      tubeSideCount: 8,
+      tubeEndCaps: true,
+      tubeHardEdges: false,
+      tubeUvStyle: "stretch",
+      tubeShapeModifier: 0,
+      tubeCapAspect: 0.8,
+    });
+    expect(getBrush(PETAL_GUID).geometryParams).toMatchObject({
+      tubeSideCount: 5,
+      tubeEndCaps: false,
+      tubeHardEdges: true,
+      tubeUvStyle: "stretch",
+      tubeShapeModifier: 5,
+      tubePetalDisplacementAmount: 1.5,
+    });
   });
 });
 

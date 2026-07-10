@@ -239,7 +239,7 @@ const GENERATOR_CLASS_FAMILIES = {
  * m_BrushPrefab → prefab MonoBehaviour m_Script GUIDs → class names,
  * keeping the first class with a known family mapping.
  */
-function resolveGeneratorClass(descriptorText, metaGuidIndex, scriptGuidIndex) {
+function resolveGenerator(descriptorText, metaGuidIndex, scriptGuidIndex) {
   const prefabMatch = descriptorText.match(
     /m_BrushPrefab: \{fileID: \d+, guid: ([0-9a-f]{32}),\s+type: \d+\}/,
   );
@@ -260,9 +260,9 @@ function resolveGeneratorClass(descriptorText, metaGuidIndex, scriptGuidIndex) {
       classNames.push(className);
     }
   }
-  return (
-    classNames.find((name) => name in GENERATOR_CLASS_FAMILIES) ?? classNames[0]
-  );
+  const generatorClass =
+    classNames.find((name) => name in GENERATOR_CLASS_FAMILIES) ?? classNames[0];
+  return generatorClass ? { generatorClass, prefabText } : undefined;
 }
 
 function parseMaterialTextures(matText) {
@@ -310,6 +310,35 @@ function extractGeometryParams(descriptorText) {
     brushSizeRange: parseYamlVec2(descriptorText, "m_BrushSizeRange"),
     pressureSizeRange: parseYamlVec2(descriptorText, "m_PressureSizeRange"),
     pressureOpacityRange: parseYamlVec2(descriptorText, "m_PressureOpacityRange"),
+  };
+}
+
+function extractGeneratorGeometryParams(generator) {
+  if (generator?.generatorClass !== "TubeBrush") {
+    return {};
+  }
+  const prefabText = generator.prefabText;
+  const uvStyle = parseYamlScalar(prefabText, "m_uvStyle");
+  return {
+    tubeCapAspect: parseYamlScalar(prefabText, "m_CapAspect"),
+    tubeSideCount: parseYamlScalar(prefabText, "m_PointsInClosedCircle"),
+    tubeEndCaps: parseYamlScalar(prefabText, "m_EndCaps") === 1,
+    tubeHardEdges: parseYamlScalar(prefabText, "m_HardEdges") === 1,
+    tubeUvStyle: uvStyle === 1 ? "stretch" : "distance",
+    tubeShapeModifier: parseYamlScalar(prefabText, "m_ShapeModifier"),
+    tubeTaperScalar: parseYamlScalar(prefabText, "m_TaperScalar"),
+    tubePetalDisplacementAmount: parseYamlScalar(
+      prefabText,
+      "m_PetalDisplacementAmt",
+    ),
+    tubePetalDisplacementExponent: parseYamlScalar(
+      prefabText,
+      "m_PetalDisplacementExp",
+    ),
+    tubeBreakAngleMultiplier: parseYamlScalar(
+      prefabText,
+      "m_BreakAngleMultiplier",
+    ),
   };
 }
 
@@ -404,7 +433,6 @@ async function main() {
       summary.descriptorsMissing += 1;
       problems.push(`${brush.name} (${guid}): no BrushDescriptor .asset found`);
     } else {
-      record.geometry = extractGeometryParams(descriptor.text);
       record.tags = extractBrushTags(descriptor.text);
       // Brush picker button icon (BrushDescriptor.m_ButtonTexture).
       const buttonTextureMatch = descriptor.text.match(
@@ -423,11 +451,16 @@ async function main() {
       } else {
         problems.push(`${brush.name} (${guid}): button icon unresolved`);
       }
-      const generatorClass = resolveGeneratorClass(
+      const generator = resolveGenerator(
         descriptor.text,
         metaGuidIndex,
         scriptGuidIndex,
       );
+      const generatorClass = generator?.generatorClass;
+      record.geometry = {
+        ...extractGeometryParams(descriptor.text),
+        ...extractGeneratorGeometryParams(generator),
+      };
       record.generatorClass = generatorClass;
       record.generatorFamily = generatorClass
         ? GENERATOR_CLASS_FAMILIES[generatorClass]
