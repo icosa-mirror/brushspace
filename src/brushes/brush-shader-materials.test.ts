@@ -258,12 +258,13 @@ describe("stroke UV orientation for shader textures", () => {
     const generated = generateBrushGeometry(stroke, "tube");
     const ringSides = 8;
     const ringVerts = ringSides + 1; // UV seam duplicate
+    const initialU = generated.uvs[0];
     for (let ringIndex = 0; ringIndex < ringVerts; ringIndex += 1) {
       const offset = ringIndex * 2;
-      expect(generated.uvs[offset]).toBe(0);
+      expect(generated.uvs[offset]).toBe(initialU);
       expect(generated.uvs[offset + 1]).toBeCloseTo(ringIndex / ringSides);
     }
     const lastRingOffset = 2 * ringVerts * 2;
-    expect(generated.uvs[lastRingOffset]).toBe(1);
+    expect(generated.uvs[lastRingOffset] - initialU).toBeCloseTo(4 / Math.PI);
   });
 });

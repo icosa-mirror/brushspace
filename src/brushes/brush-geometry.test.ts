@@ -268,6 +268,21 @@ describe("brush geometry generation", () => {
     expect(getGeneratedIndexCount(geometry)).toBe(144);
   });
 
+  it("tiles tube UVs by circumference within a deterministic atlas row", () => {
+    const geometry = generateBrushGeometry(
+      createUnevenThreePointStroke(),
+      "tube",
+      { geometryParams: { tileRate: 2, textureAtlasV: 4 } },
+    );
+
+    const firstRingU = geometry.uvs[0];
+    expect(geometry.uvs[18] - firstRingU).toBeCloseTo(2 / Math.PI);
+    expect(geometry.uvs[36] - firstRingU).toBeCloseTo(6 / Math.PI);
+    expect(geometry.uvs[1]).toBeCloseTo(0);
+    expect(geometry.uvs[17]).toBeCloseTo(0.25);
+    expect(geometry.tangents[3]).toBe(1);
+  });
+
   it("generates emissive geometry with ribbon topology", () => {
     const stroke = withBrushGuid(fixtureStroke, "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62");
     const family = findBrushByGuid(inventory, stroke.brushGuid)?.geometryFamily;

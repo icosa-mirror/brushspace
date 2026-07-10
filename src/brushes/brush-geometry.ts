@@ -274,7 +274,6 @@ function generateRibbonGeometry(
     writeColor(colors, rightVertex, stroke.color, opacity);
     // Open Brush distance ribbons advance by tileRate * segmentLength / size;
     // stretch ribbons normalize accumulated physical length across the stroke.
-    // The deterministic random starting U and V-atlas row remain follow-up work.
     if (index > 0) {
       runningLength += distanceBetweenControlPoints(
         stroke.controlPoints[index - 1],
@@ -528,6 +527,13 @@ function generateTubeGeometry(
   const descriptorOpacity = normalizeDescriptorOpacity(
     options.geometryParams?.opacity,
   );
+  const tileRate = normalizeTileRate(options.geometryParams?.tileRate);
+  const random01 = statelessRandom01(stroke.seed, 0);
+  const atlasRows = normalizeAtlasRows(options.geometryParams?.textureAtlasV);
+  const atlasRow = Math.floor(random01 * 3331) % atlasRows;
+  const v0 = atlasRow / atlasRows;
+  const v1 = (atlasRow + 1) / atlasRows;
+  let u = random01;
 
   // Frame state: right/up transported along the stroke by the tangent-to-
   // tangent rotation (MathUtils.ComputeMinimalRotationFrame), bootstrapped
@@ -545,6 +551,14 @@ function generateTubeGeometry(
       stroke.brushSize *
       getPressureSizeMultiplier(point.pressure, pressureSizeMin) *
       0.5;
+    if (pointIndex > 0) {
+      const segmentLength = distanceBetweenControlPoints(
+        stroke.controlPoints[pointIndex - 1],
+        point,
+      );
+      const circumference = Math.max(2 * Math.PI * radius, EPSILON);
+      u += (segmentLength * tileRate) / circumference;
+    }
     const opacity = getPressureOpacityMultiplier(
       point.pressure,
       pressureOpacityMin,
@@ -583,7 +597,6 @@ function generateTubeGeometry(
     previousTangent[1] = tangent[1];
     previousTangent[2] = tangent[2];
 
-    const lengthFraction = pointCount <= 1 ? 0 : pointIndex / (pointCount - 1);
     for (let ringIndex = 0; ringIndex < TUBE_RING_VERTS; ringIndex += 1) {
       const vertex = pointIndex * TUBE_RING_VERTS + ringIndex;
       const angle = ((ringIndex % TUBE_RING_SIDES) / TUBE_RING_SIDES) * Math.PI * 2;
@@ -598,10 +611,14 @@ function generateTubeGeometry(
         point.position[2] + radial[2] * radius,
       ]);
       writeNormal(normals, vertex, radial);
-      writeTangent(tangents, vertex, tangent, -1);
+      writeTangent(tangents, vertex, tangent, 1);
       writeColor(colors, vertex, stroke.color, opacity);
-      // u along the stroke length, v around the ring (Open Brush TubeBrush).
-      writeUv(uvs, vertex, [lengthFraction, ringIndex / TUBE_RING_SIDES]);
+      // TubeBrush advances U by physical distance / current circumference and
+      // confines V to the deterministic texture-atlas row selected per stroke.
+      writeUv(uvs, vertex, [
+        u,
+        v0 + (v1 - v0) * (ringIndex / TUBE_RING_SIDES),
+      ]);
       includeBounds(bounds, positions, vertex);
     }
   }
