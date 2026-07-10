@@ -829,14 +829,16 @@ export class StrokeAuthoringSystem extends createSystem({
     if (reallocated || !stroke.geometry.getAttribute("position")) {
       const position = new BufferAttribute(arrays.positions, 3);
       const normal = new BufferAttribute(arrays.normals, 3);
+      const tangent = new BufferAttribute(arrays.tangents, 4);
       const color = new BufferAttribute(arrays.colors, 4);
       const uv = new BufferAttribute(arrays.uvs, 2);
       const index = new BufferAttribute(arrays.indices, 1);
-      for (const attribute of [position, normal, color, uv, index]) {
+      for (const attribute of [position, normal, tangent, color, uv, index]) {
         attribute.setUsage(DynamicDrawUsage);
       }
       stroke.geometry.setAttribute("position", position);
       stroke.geometry.setAttribute("normal", normal);
+      stroke.geometry.setAttribute("tangent", tangent);
       stroke.geometry.setAttribute("color", color);
       stroke.geometry.setAttribute("uv", uv);
       applyBrushShaderAttributeAliases(stroke.geometry);
@@ -844,6 +846,7 @@ export class StrokeAuthoringSystem extends createSystem({
     } else {
       (stroke.geometry.getAttribute("position") as BufferAttribute).needsUpdate = true;
       (stroke.geometry.getAttribute("normal") as BufferAttribute).needsUpdate = true;
+      (stroke.geometry.getAttribute("tangent") as BufferAttribute).needsUpdate = true;
       (stroke.geometry.getAttribute("color") as BufferAttribute).needsUpdate = true;
       (stroke.geometry.getAttribute("uv") as BufferAttribute).needsUpdate = true;
       const index = stroke.geometry.getIndex();

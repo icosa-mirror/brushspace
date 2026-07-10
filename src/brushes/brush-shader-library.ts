@@ -260,6 +260,7 @@ export function applyBrushShaderAttributeAliases(geometry: BufferGeometry): void
   const aliases: ReadonlyArray<[string, string]> = [
     ["position", "a_position"],
     ["normal", "a_normal"],
+    ["tangent", "a_tangent"],
     ["color", "a_color"],
     ["uv", "a_texcoord0"],
     ["uv1", "a_texcoord1"],
@@ -276,6 +277,7 @@ function createWarmupGeometry(): BufferGeometry {
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new BufferAttribute(new Float32Array(9), 3));
   geometry.setAttribute("normal", new BufferAttribute(new Float32Array(9), 3));
+  geometry.setAttribute("tangent", new BufferAttribute(new Float32Array(12), 4));
   geometry.setAttribute("color", new BufferAttribute(new Float32Array(12), 4));
   geometry.setAttribute("uv", new BufferAttribute(new Float32Array(6), 2));
   geometry.setIndex(new BufferAttribute(new Uint32Array([0, 1, 2]), 1));

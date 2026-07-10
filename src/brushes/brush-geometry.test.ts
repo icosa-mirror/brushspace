@@ -32,6 +32,7 @@ describe("brush geometry generation", () => {
     expect(getGeneratedIndexCount(geometry)).toBe(12);
     expect(geometry.positions).toHaveLength(18);
     expect(geometry.normals).toHaveLength(18);
+    expect(geometry.tangents).toHaveLength(24);
     expect(geometry.colors).toHaveLength(24);
     expect(geometry.uvs).toHaveLength(12);
     expect(geometry.bounds.min[0]).toBeLessThan(-0.2);
@@ -196,10 +197,47 @@ describe("brush geometry generation", () => {
     expect(geometry.normals[12]).toBeCloseTo(-geometry.normals[0]);
     expect(geometry.normals[13]).toBeCloseTo(-geometry.normals[1]);
     expect(geometry.normals[14]).toBeCloseTo(-geometry.normals[2]);
+    expect(geometry.tangents[19]).toBeCloseTo(-geometry.tangents[3]);
     expect(geometry.colors[16]).toBeCloseTo(0);
     expect(geometry.colors[17]).toBeCloseTo(1);
     expect(geometry.colors[18]).toBeCloseTo(0);
     expect(geometry.colors[19]).toBeCloseTo(0.75);
+  });
+
+  it("emits longitudinal ribbon tangents with handedness", () => {
+    const geometry = generateBrushGeometry(
+      createTwoPointStroke({
+        guid: "straight-ribbon-tangents",
+        brushSize: 0.2,
+        pressure: 1,
+      }),
+      "ribbon",
+    );
+
+    for (let vertex = 0; vertex < 4; vertex += 1) {
+      const offset = vertex * 4;
+      expect(geometry.tangents[offset]).toBeCloseTo(1);
+      expect(geometry.tangents[offset + 1]).toBeCloseTo(0);
+      expect(geometry.tangents[offset + 2]).toBeCloseTo(0);
+      expect(geometry.tangents[offset + 3]).toBe(1);
+    }
+  });
+
+  it("resets unitized ribbon UVs for every segment", () => {
+    const geometry = generateBrushGeometry(
+      createUnevenThreePointStroke(),
+      "ribbon",
+      { generatorClass: "QuadStripUnitizedUVBrush" },
+    );
+
+    expect(getGeneratedVertexCount(geometry)).toBe(8);
+    expect(getGeneratedIndexCount(geometry)).toBe(12);
+    expect(Array.from(geometry.uvs.slice(0, 8))).toEqual([
+      0, 0, 0, 1, 1, 0, 1, 1,
+    ]);
+    expect(Array.from(geometry.uvs.slice(8, 16))).toEqual([
+      0, 0, 0, 1, 1, 0, 1, 1,
+    ]);
   });
 
   it("uses full width for brushes with fixed pressure size", () => {

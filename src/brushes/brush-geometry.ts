@@ -15,6 +15,7 @@ export interface GeneratedBrushGeometry {
   family: BrushGeometryFamily;
   positions: Float32Array;
   normals: Float32Array;
+  tangents: Float32Array;
   colors: Float32Array;
   uvs: Float32Array;
   indices: Uint32Array;
@@ -39,6 +40,7 @@ export interface BrushGeometryArrays {
   family: BrushGeometryFamily;
   positions: Float32Array;
   normals: Float32Array;
+  tangents: Float32Array;
   colors: Float32Array;
   uvs: Float32Array;
   indices: Uint32Array;
@@ -57,6 +59,7 @@ export function createBrushGeometryArrays(): BrushGeometryArrays {
     family: "ribbon",
     positions: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
     normals: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
+    tangents: new Float32Array(INITIAL_VERTEX_CAPACITY * 4),
     colors: new Float32Array(INITIAL_VERTEX_CAPACITY * 4),
     uvs: new Float32Array(INITIAL_VERTEX_CAPACITY * 2),
     indices: new Uint32Array(INITIAL_INDEX_CAPACITY),
@@ -87,6 +90,7 @@ function ensureGeometryCapacity(
   }
   out.positions = new Float32Array(vertexCapacity * 3);
   out.normals = new Float32Array(vertexCapacity * 3);
+  out.tangents = new Float32Array(vertexCapacity * 4);
   out.colors = new Float32Array(vertexCapacity * 4);
   out.uvs = new Float32Array(vertexCapacity * 2);
   out.indices = new Uint32Array(indexCapacity);
@@ -142,6 +146,7 @@ export function generateBrushGeometry(
     family: arrays.family,
     positions: arrays.positions.subarray(0, arrays.vertexCount * 3),
     normals: arrays.normals.subarray(0, arrays.vertexCount * 3),
+    tangents: arrays.tangents.subarray(0, arrays.vertexCount * 4),
     colors: arrays.colors.subarray(0, arrays.vertexCount * 4),
     uvs: arrays.uvs.subarray(0, arrays.vertexCount * 2),
     indices: arrays.indices.subarray(0, arrays.indexCount),
@@ -164,6 +169,9 @@ function generateRibbonGeometry(
   options: BrushGeometryOptions,
   out: BrushGeometryArrays,
 ): boolean {
+  if (options.generatorClass === "QuadStripUnitizedUVBrush") {
+    return generateUnitizedRibbonGeometry(stroke, family, options, out);
+  }
   const pointCount = stroke.controlPoints.length;
   const frontVertexCount = pointCount * 2;
   const segmentCount = Math.max(0, pointCount - 1);
@@ -172,7 +180,7 @@ function generateRibbonGeometry(
   const vertexCount = frontVertexCount * (hasBackfaces ? 2 : 1);
   const indexCount = frontIndexCount * (hasBackfaces ? 2 : 1);
   const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
-  const { positions, normals, colors, uvs, indices, bounds } = out;
+  const { positions, normals, tangents, colors, uvs, indices, bounds } = out;
   const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
   const pressureOpacityMin = normalizePressureOpacityMin(
     options.pressureOpacityRange,
@@ -255,6 +263,8 @@ function generateRibbonGeometry(
     ]);
     writeNormal(normals, leftVertex, normal);
     writeNormal(normals, rightVertex, normal);
+    writeTangent(tangents, leftVertex, tangent, 1);
+    writeTangent(tangents, rightVertex, tangent, 1);
     const opacity = getPressureOpacityMultiplier(
       point.pressure,
       pressureOpacityMin,
@@ -303,6 +313,7 @@ function generateRibbonGeometry(
       const backVertex = frontVertexCount + vertex;
       copyPosition(positions, vertex, backVertex);
       copyNegatedNormal(normals, vertex, backVertex);
+      copyTangent(tangents, vertex, backVertex, true);
       copyUv(uvs, vertex, backVertex);
       writeColorFromAlpha(
         colors,
@@ -321,6 +332,163 @@ function generateRibbonGeometry(
       indices[offset + 3] = vertex + 1;
       indices[offset + 4] = vertex + 3;
       indices[offset + 5] = vertex + 2;
+    }
+  }
+
+  out.family = family;
+  out.vertexCount = vertexCount;
+  out.indexCount = indexCount;
+  return reallocated;
+}
+
+function generateUnitizedRibbonGeometry(
+  stroke: StrokeData,
+  family: BrushGeometryFamily,
+  options: BrushGeometryOptions,
+  out: BrushGeometryArrays,
+): boolean {
+  const pointCount = stroke.controlPoints.length;
+  const segmentCount = Math.max(0, pointCount - 1);
+  const frontVertexCount = segmentCount * 4;
+  const frontIndexCount = segmentCount * 6;
+  const hasBackfaces = options.geometryParams?.renderBackfaces === true;
+  const vertexCount = frontVertexCount * (hasBackfaces ? 2 : 1);
+  const indexCount = frontIndexCount * (hasBackfaces ? 2 : 1);
+  const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
+  const { positions, normals, tangents, colors, uvs, indices, bounds } = out;
+  const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
+  const pressureOpacityMin = normalizePressureOpacityMin(
+    options.pressureOpacityRange,
+  );
+  const pressureOpacityMax = normalizePressureOpacityMax(
+    options.pressureOpacityRange,
+  );
+  const descriptorOpacity = normalizeDescriptorOpacity(
+    options.geometryParams?.opacity,
+  );
+
+  const previousFrameRight: Vec3 = [0, 0, 0];
+  const previousFallbackTangent: Vec3 = [0, 0, 0];
+  const tangent: Vec3 = [0, 0, 0];
+  const pointerForward: Vec3 = [0, 0, 0];
+  const pointerUp: Vec3 = [0, 0, 0];
+  const right: Vec3 = [0, 0, 0];
+  const normal: Vec3 = [0, 0, 0];
+  const leftPosition: Vec3 = [0, 0, 0];
+  const rightPosition: Vec3 = [0, 0, 0];
+  const previousLeftPosition: Vec3 = [0, 0, 0];
+  const previousRightPosition: Vec3 = [0, 0, 0];
+  const previousNormal: Vec3 = [0, 0, 0];
+  const previousVertexTangent: Vec3 = [0, 0, 0];
+  let previousOpacity = 1;
+
+  for (let pointIndex = 0; pointIndex < pointCount; pointIndex += 1) {
+    const point = stroke.controlPoints[pointIndex];
+    const width =
+      stroke.brushSize *
+      getPressureSizeMultiplier(point.pressure, pressureSizeMin) *
+      0.5;
+    const opacity =
+      getPressureOpacityMultiplier(
+        point.pressure,
+        pressureOpacityMin,
+        pressureOpacityMax,
+      ) * descriptorOpacity;
+
+    writeCentralDifferenceTangent(
+      stroke,
+      pointIndex,
+      previousFallbackTangent,
+      tangent,
+    );
+    rotateByQuaternion(point.orientation, VEC_FORWARD, pointerForward);
+    rotateByQuaternion(point.orientation, VEC_UP, pointerUp);
+    computeSurfaceFrame(
+      previousFrameRight,
+      tangent,
+      pointerForward,
+      pointerUp,
+      pointIndex === 0,
+      right,
+      normal,
+    );
+    leftPosition[0] = point.position[0] - right[0] * width;
+    leftPosition[1] = point.position[1] - right[1] * width;
+    leftPosition[2] = point.position[2] - right[2] * width;
+    rightPosition[0] = point.position[0] + right[0] * width;
+    rightPosition[1] = point.position[1] + right[1] * width;
+    rightPosition[2] = point.position[2] + right[2] * width;
+
+    if (pointIndex > 0) {
+      const vertex = (pointIndex - 1) * 4;
+      writePosition(positions, vertex, previousLeftPosition);
+      writePosition(positions, vertex + 1, previousRightPosition);
+      writePosition(positions, vertex + 2, leftPosition);
+      writePosition(positions, vertex + 3, rightPosition);
+      writeNormal(normals, vertex, previousNormal);
+      writeNormal(normals, vertex + 1, previousNormal);
+      writeNormal(normals, vertex + 2, normal);
+      writeNormal(normals, vertex + 3, normal);
+      writeTangent(tangents, vertex, previousVertexTangent, 1);
+      writeTangent(tangents, vertex + 1, previousVertexTangent, 1);
+      writeTangent(tangents, vertex + 2, tangent, 1);
+      writeTangent(tangents, vertex + 3, tangent, 1);
+      writeColor(colors, vertex, stroke.color, previousOpacity);
+      writeColor(colors, vertex + 1, stroke.color, previousOpacity);
+      writeColor(colors, vertex + 2, stroke.color, opacity);
+      writeColor(colors, vertex + 3, stroke.color, opacity);
+      writeUv(uvs, vertex, [0, 0]);
+      writeUv(uvs, vertex + 1, [0, 1]);
+      writeUv(uvs, vertex + 2, [1, 0]);
+      writeUv(uvs, vertex + 3, [1, 1]);
+      for (let offset = 0; offset < 4; offset += 1) {
+        includeBounds(bounds, positions, vertex + offset);
+      }
+      const indexOffset = (pointIndex - 1) * 6;
+      indices[indexOffset] = vertex;
+      indices[indexOffset + 1] = vertex + 2;
+      indices[indexOffset + 2] = vertex + 1;
+      indices[indexOffset + 3] = vertex + 1;
+      indices[indexOffset + 4] = vertex + 2;
+      indices[indexOffset + 5] = vertex + 3;
+    }
+
+    copyVec3(leftPosition, previousLeftPosition);
+    copyVec3(rightPosition, previousRightPosition);
+    copyVec3(normal, previousNormal);
+    copyVec3(tangent, previousVertexTangent);
+    copyVec3(right, previousFrameRight);
+    copyVec3(tangent, previousFallbackTangent);
+    previousOpacity = opacity;
+  }
+
+  if (hasBackfaces) {
+    const backfaceColor = shiftHue(
+      stroke.color,
+      normalizeHueShift(options.geometryParams?.backfaceHueShift),
+    );
+    for (let vertex = 0; vertex < frontVertexCount; vertex += 1) {
+      const backVertex = frontVertexCount + vertex;
+      copyPosition(positions, vertex, backVertex);
+      copyNegatedNormal(normals, vertex, backVertex);
+      copyTangent(tangents, vertex, backVertex, true);
+      copyUv(uvs, vertex, backVertex);
+      writeColorFromAlpha(
+        colors,
+        backVertex,
+        backfaceColor,
+        colors[vertex * 4 + 3],
+      );
+    }
+    for (let segment = 0; segment < segmentCount; segment += 1) {
+      const vertex = frontVertexCount + segment * 4;
+      const indexOffset = frontIndexCount + segment * 6;
+      indices[indexOffset] = vertex;
+      indices[indexOffset + 1] = vertex + 1;
+      indices[indexOffset + 2] = vertex + 2;
+      indices[indexOffset + 3] = vertex + 1;
+      indices[indexOffset + 4] = vertex + 3;
+      indices[indexOffset + 5] = vertex + 2;
     }
   }
 
@@ -349,7 +517,7 @@ function generateTubeGeometry(
   const indexCount =
     segmentCount * TUBE_RING_SIDES * 6 + (hasCaps ? 2 * TUBE_RING_SIDES * 3 : 0);
   const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
-  const { positions, normals, colors, uvs, indices, bounds } = out;
+  const { positions, normals, tangents, colors, uvs, indices, bounds } = out;
   const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
   const pressureOpacityMin = normalizePressureOpacityMin(
     options.pressureOpacityRange,
@@ -430,6 +598,7 @@ function generateTubeGeometry(
         point.position[2] + radial[2] * radius,
       ]);
       writeNormal(normals, vertex, radial);
+      writeTangent(tangents, vertex, tangent, -1);
       writeColor(colors, vertex, stroke.color, opacity);
       // u along the stroke length, v around the ring (Open Brush TubeBrush).
       writeUv(uvs, vertex, [lengthFraction, ringIndex / TUBE_RING_SIDES]);
@@ -482,6 +651,8 @@ function generateTubeGeometry(
     writeNormal(normals, endCenter, tangent);
     writeCentralDifferenceTangent(stroke, 0, tangent, radial);
     writeNormal(normals, startCenter, [-radial[0], -radial[1], -radial[2]]);
+    writeTangent(tangents, startCenter, frameRight, 1);
+    writeTangent(tangents, endCenter, frameRight, 1);
     writeColor(colors, startCenter, stroke.color, startOpacity);
     writeColor(colors, endCenter, stroke.color, endOpacity);
     writeUv(uvs, startCenter, [0, 0.5]);
@@ -516,7 +687,7 @@ function generateParticleGeometry(
   const vertexCount = pointCount * 4;
   const indexCount = pointCount * 6;
   const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
-  const { positions, normals, colors, uvs, indices, bounds } = out;
+  const { positions, normals, tangents, colors, uvs, indices, bounds } = out;
   const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
   const pressureOpacityMin = normalizePressureOpacityMin(
     options.pressureOpacityRange,
@@ -543,6 +714,7 @@ function generateParticleGeometry(
     writeParticleVertex(
       positions,
       normals,
+      tangents,
       colors,
       uvs,
       bounds,
@@ -558,6 +730,7 @@ function generateParticleGeometry(
     writeParticleVertex(
       positions,
       normals,
+      tangents,
       colors,
       uvs,
       bounds,
@@ -573,6 +746,7 @@ function generateParticleGeometry(
     writeParticleVertex(
       positions,
       normals,
+      tangents,
       colors,
       uvs,
       bounds,
@@ -588,6 +762,7 @@ function generateParticleGeometry(
     writeParticleVertex(
       positions,
       normals,
+      tangents,
       colors,
       uvs,
       bounds,
@@ -774,6 +949,7 @@ function clamp01(value: number): number {
 function writeParticleVertex(
   positions: Float32Array,
   normals: Float32Array,
+  tangents: Float32Array,
   colors: Float32Array,
   uvs: Float32Array,
   bounds: BrushGeometryBounds,
@@ -792,6 +968,7 @@ function writeParticleVertex(
     center[2],
   ]);
   writeNormal(normals, vertex, [0, 0, 1]);
+  writeTangent(tangents, vertex, [1, 0, 0], 1);
   writeColor(colors, vertex, color, opacityMultiplier);
   writeUv(uvs, vertex, [u, v]);
   includeBounds(bounds, positions, vertex);
@@ -814,6 +991,12 @@ function cross(a: Vec3, b: Vec3, out: Vec3): void {
   out[0] = x;
   out[1] = y;
   out[2] = z;
+}
+
+function copyVec3(source: Vec3, target: Vec3): void {
+  target[0] = source[0];
+  target[1] = source[1];
+  target[2] = source[2];
 }
 
 function normalizeInPlace(v: Vec3): boolean {
@@ -1018,6 +1201,34 @@ function copyNegatedNormal(
   target[targetOffset] = -target[sourceOffset];
   target[targetOffset + 1] = -target[sourceOffset + 1];
   target[targetOffset + 2] = -target[sourceOffset + 2];
+}
+
+function writeTangent(
+  target: Float32Array,
+  vertex: number,
+  value: Vec3,
+  handedness: number,
+): void {
+  const offset = vertex * 4;
+  target[offset] = value[0];
+  target[offset + 1] = value[1];
+  target[offset + 2] = value[2];
+  target[offset + 3] = handedness;
+}
+
+function copyTangent(
+  target: Float32Array,
+  sourceVertex: number,
+  targetVertex: number,
+  flipHandedness: boolean,
+): void {
+  const sourceOffset = sourceVertex * 4;
+  const targetOffset = targetVertex * 4;
+  target[targetOffset] = target[sourceOffset];
+  target[targetOffset + 1] = target[sourceOffset + 1];
+  target[targetOffset + 2] = target[sourceOffset + 2];
+  target[targetOffset + 3] =
+    target[sourceOffset + 3] * (flipHandedness ? -1 : 1);
 }
 
 function writeColor(

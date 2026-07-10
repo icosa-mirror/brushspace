@@ -43,8 +43,14 @@ describe("Open Brush GLB export", () => {
     expect(primitive.attributes).toEqual({
       POSITION: expect.any(Number),
       NORMAL: expect.any(Number),
+      TANGENT: expect.any(Number),
       COLOR_0: expect.any(Number),
       TEXCOORD_0: expect.any(Number),
+    });
+    const tangentAccessor = parsed.json.accessors[primitive.attributes.TANGENT];
+    expect(tangentAccessor).toMatchObject({
+      type: "VEC4",
+      count: parsed.json.accessors[primitive.attributes.POSITION].count,
     });
     expect(primitive.extras).toMatchObject({
       openBrushBrushGuid: PHASE1_FIXTURE_BRUSH_GUID,

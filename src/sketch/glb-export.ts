@@ -193,6 +193,15 @@ export function exportSketchDocumentToGlb(
       "VEC4",
       ARRAY_BUFFER,
     );
+    const tangentAccessor = addAccessor(
+      writer,
+      bufferViews,
+      accessors,
+      geometry.tangents,
+      COMPONENT_FLOAT,
+      "VEC4",
+      ARRAY_BUFFER,
+    );
     const uvAccessor = addAccessor(
       writer,
       bufferViews,
@@ -238,6 +247,7 @@ export function exportSketchDocumentToGlb(
           attributes: {
             POSITION: positionAccessor,
             NORMAL: normalAccessor,
+            TANGENT: tangentAccessor,
             COLOR_0: colorAccessor,
             TEXCOORD_0: uvAccessor,
           },
