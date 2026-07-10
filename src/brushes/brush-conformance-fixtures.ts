@@ -26,6 +26,19 @@ export interface BrushConformanceFixture {
 
 const FIXTURE_BRUSH_GUID = "429ed64a-4e97-4466-84d3-145a861ef684";
 const POINT_INTERVAL_MS = 10;
+const FIXTURE_STROKE_GUIDS: Readonly<Record<string, string>> = {
+  line: "c0ffee00-0000-4000-8000-000000000001",
+  arc: "c0ffee00-0000-4000-8000-000000000002",
+  helix: "c0ffee00-0000-4000-8000-000000000003",
+  "sharp-corner": "c0ffee00-0000-4000-8000-000000000004",
+  reversal: "c0ffee00-0000-4000-8000-000000000005",
+  "pressure-ramp": "c0ffee00-0000-4000-8000-000000000006",
+  twist: "c0ffee00-0000-4000-8000-000000000007",
+  dot: "c0ffee00-0000-4000-8000-000000000008",
+  "long-stroke": "c0ffee00-0000-4000-8000-000000000009",
+  "segment-break-a": "c0ffee00-0000-4000-8000-00000000000a",
+  "segment-break-b": "c0ffee00-0000-4000-8000-00000000000b",
+};
 
 /** Deterministic inputs shared by mesh dumps and fixed-camera render tests. */
 export function createBrushConformanceFixtures(): BrushConformanceFixture[] {
@@ -103,6 +116,10 @@ function makeStroke(
   controlPoints: ControlPoint[],
   overrides: Partial<StrokeData> = {},
 ): StrokeData {
+  const guid = FIXTURE_STROKE_GUIDS[id];
+  if (!guid) {
+    throw new Error(`Missing deterministic conformance GUID for ${id}.`);
+  }
   return createEmptyStrokeData({
     brushGuid: FIXTURE_BRUSH_GUID,
     brushSize: 0.1,
@@ -110,7 +127,7 @@ function makeStroke(
     color: [0.25, 0.5, 0.75, 1],
     controlPoints,
     seed: 0x5eed,
-    guid: `conformance-${id}`,
+    guid,
     ...overrides,
   });
 }
