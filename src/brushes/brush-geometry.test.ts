@@ -111,6 +111,49 @@ describe("brush geometry generation", () => {
     },
   );
 
+  it("multiplies pressure opacity by descriptor opacity", () => {
+    const stroke = createTwoPointStroke({
+      guid: "descriptor-opacity",
+      brushSize: 0.2,
+      pressure: 0.5,
+    });
+    stroke.color[3] = 0.8;
+
+    const geometry = generateBrushGeometry(stroke, "ribbon", {
+      pressureOpacityRange: [0.5, 1],
+      geometryParams: { opacity: 0.4 },
+    });
+
+    for (let index = 3; index < geometry.colors.length; index += 4) {
+      expect(geometry.colors[index]).toBeCloseTo(0.24);
+    }
+  });
+
+  it("uses Open Brush distance UV scaling for distance ribbons", () => {
+    const stroke = createUnevenThreePointStroke();
+
+    const geometry = generateBrushGeometry(stroke, "ribbon", {
+      generatorClass: "QuadStripBrushDistanceUV",
+      geometryParams: { tileRate: 2 },
+    });
+
+    expect(geometry.uvs[0]).toBeCloseTo(0);
+    expect(geometry.uvs[4]).toBeCloseTo(2);
+    expect(geometry.uvs[8]).toBeCloseTo(6);
+  });
+
+  it("normalizes stretch ribbon UVs by physical stroke length", () => {
+    const geometry = generateBrushGeometry(
+      createUnevenThreePointStroke(),
+      "ribbon",
+      { generatorClass: "QuadStripBrushStretchUV" },
+    );
+
+    expect(geometry.uvs[0]).toBeCloseTo(0);
+    expect(geometry.uvs[4]).toBeCloseTo(1 / 3);
+    expect(geometry.uvs[8]).toBeCloseTo(1);
+  });
+
   it("uses full width for brushes with fixed pressure size", () => {
     const stroke = createTwoPointStroke({
       guid: "fixed-pressure-flat",
@@ -323,4 +366,19 @@ function createTwoPointStroke({
       },
     ],
   };
+}
+
+function createUnevenThreePointStroke(): StrokeData {
+  const stroke = createTwoPointStroke({
+    guid: "uneven-three-point",
+    brushSize: 1,
+    pressure: 1,
+  });
+  stroke.controlPoints.push({
+    position: [3, 0, 0],
+    orientation: [0, 0, 0, 1],
+    pressure: 1,
+    timestampMs: 32,
+  });
+  return stroke;
 }

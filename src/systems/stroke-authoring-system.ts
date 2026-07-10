@@ -36,6 +36,7 @@ import { initialLoad } from "../app/initial-load.js";
 import { openBrushInventory } from "../brushes/brush-catalog.js";
 import {
   findBrushByGuid,
+  type BrushGeometryParams,
   type BrushGeometryFamily,
   type BrushInventoryEntry,
   type BrushPressureOpacityRange,
@@ -141,6 +142,8 @@ interface RuntimeStroke {
   mesh: Mesh;
   geometry: BufferGeometry;
   geometryFamily: BrushGeometryFamily;
+  geometryParams: BrushGeometryParams | undefined;
+  generatorClass: string | undefined;
   pressureSizeRange: BrushPressureSizeRange | undefined;
   pressureOpacityRange: BrushPressureOpacityRange | undefined;
   toolId: OpenBrushToolId;
@@ -611,6 +614,8 @@ export class StrokeAuthoringSystem extends createSystem({
       mesh,
       geometry,
       geometryFamily,
+      geometryParams: brushEntry?.geometryParams,
+      generatorClass: brushEntry?.generatorClass,
       pressureSizeRange: brushEntry?.pressureSizeRange,
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
       toolId: activeTool.id,
@@ -813,6 +818,8 @@ export class StrokeAuthoringSystem extends createSystem({
       {
         pressureSizeRange: stroke.pressureSizeRange,
         pressureOpacityRange: stroke.pressureOpacityRange,
+        geometryParams: stroke.geometryParams,
+        generatorClass: stroke.generatorClass,
       },
       arrays,
     );
@@ -1140,6 +1147,8 @@ export class StrokeAuthoringSystem extends createSystem({
       mesh,
       geometry,
       geometryFamily: brushEntry?.geometryFamily ?? "unsupported",
+      geometryParams: brushEntry?.geometryParams,
+      generatorClass: brushEntry?.generatorClass,
       pressureSizeRange: brushEntry?.pressureSizeRange,
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
       toolId: "free-paint",
@@ -1869,6 +1878,8 @@ export class StrokeAuthoringSystem extends createSystem({
       mesh,
       geometry,
       geometryFamily,
+      geometryParams: brushEntry?.geometryParams,
+      generatorClass: brushEntry?.generatorClass,
       pressureSizeRange: brushEntry?.pressureSizeRange,
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
       toolId: "free-paint",
@@ -1948,6 +1959,8 @@ export class StrokeAuthoringSystem extends createSystem({
       mesh,
       geometry,
       geometryFamily: source.geometryFamily,
+      geometryParams: brushEntry?.geometryParams,
+      generatorClass: brushEntry?.generatorClass,
       pressureSizeRange: brushEntry?.pressureSizeRange,
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
       toolId: source.toolId,

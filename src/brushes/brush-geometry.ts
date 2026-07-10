@@ -1,4 +1,5 @@
 import type {
+  BrushGeometryParams,
   BrushGeometryFamily,
   BrushPressureOpacityRange,
   BrushPressureSizeRange,
@@ -24,6 +25,8 @@ export interface GeneratedBrushGeometry {
 export interface BrushGeometryOptions {
   pressureSizeRange?: BrushPressureSizeRange;
   pressureOpacityRange?: BrushPressureOpacityRange;
+  geometryParams?: BrushGeometryParams;
+  generatorClass?: string;
 }
 
 /**
@@ -174,6 +177,16 @@ function generateRibbonGeometry(
   const pressureOpacityMax = normalizePressureOpacityMax(
     options.pressureOpacityRange,
   );
+  const descriptorOpacity = normalizeDescriptorOpacity(
+    options.geometryParams?.opacity,
+  );
+  const tileRate = normalizeTileRate(options.geometryParams?.tileRate);
+  const usesDistanceUvs =
+    options.generatorClass === "QuadStripBrushDistanceUV";
+  const totalStrokeLength = usesDistanceUvs
+    ? 0
+    : measureStrokeLength(stroke);
+  let runningLength = 0;
 
   // Ribbon surface frames per Open Brush's ComputeSurfaceFrameNew
   // (BaseBrushScript.cs): the frame follows the pointer orientation and the
@@ -231,14 +244,25 @@ function generateRibbonGeometry(
       point.pressure,
       pressureOpacityMin,
       pressureOpacityMax,
-    );
+    ) * descriptorOpacity;
     writeColor(colors, leftVertex, stroke.color, opacity);
     writeColor(colors, rightVertex, stroke.color, opacity);
-    // Open Brush UV convention: u runs along the stroke length, v across the
-    // ribbon width (QuadStripBrush; the exported brush textures assume this).
-    const lengthFraction = pointCount <= 1 ? 0 : index / (pointCount - 1);
-    writeUv(uvs, leftVertex, [lengthFraction, 0]);
-    writeUv(uvs, rightVertex, [lengthFraction, 1]);
+    // Open Brush distance ribbons advance by tileRate * segmentLength / size;
+    // stretch ribbons normalize accumulated physical length across the stroke.
+    // The deterministic random starting U and V-atlas row remain follow-up work.
+    if (index > 0) {
+      runningLength += distanceBetweenControlPoints(
+        stroke.controlPoints[index - 1],
+        point,
+      );
+    }
+    const u = usesDistanceUvs
+      ? (runningLength / Math.max(stroke.brushSize, EPSILON)) * tileRate
+      : totalStrokeLength > EPSILON
+        ? runningLength / totalStrokeLength
+        : 0;
+    writeUv(uvs, leftVertex, [u, 0]);
+    writeUv(uvs, rightVertex, [u, 1]);
     includeBounds(bounds, positions, leftVertex);
     includeBounds(bounds, positions, rightVertex);
   }
@@ -287,6 +311,9 @@ function generateTubeGeometry(
   const pressureOpacityMax = normalizePressureOpacityMax(
     options.pressureOpacityRange,
   );
+  const descriptorOpacity = normalizeDescriptorOpacity(
+    options.geometryParams?.opacity,
+  );
 
   // Frame state: right/up transported along the stroke by the tangent-to-
   // tangent rotation (MathUtils.ComputeMinimalRotationFrame), bootstrapped
@@ -308,7 +335,7 @@ function generateTubeGeometry(
       point.pressure,
       pressureOpacityMin,
       pressureOpacityMax,
-    );
+    ) * descriptorOpacity;
 
     writeCentralDifferenceTangent(stroke, pointIndex, previousTangent, tangent);
     if (pointIndex === 0) {
@@ -388,12 +415,12 @@ function generateTubeGeometry(
       startPoint.pressure,
       pressureOpacityMin,
       pressureOpacityMax,
-    );
+    ) * descriptorOpacity;
     const endOpacity = getPressureOpacityMultiplier(
       endPoint.pressure,
       pressureOpacityMin,
       pressureOpacityMax,
-    );
+    ) * descriptorOpacity;
     writePosition(positions, startCenter, [
       startPoint.position[0],
       startPoint.position[1],
@@ -451,6 +478,9 @@ function generateParticleGeometry(
   const pressureOpacityMax = normalizePressureOpacityMax(
     options.pressureOpacityRange,
   );
+  const descriptorOpacity = normalizeDescriptorOpacity(
+    options.geometryParams?.opacity,
+  );
 
   for (let pointIndex = 0; pointIndex < pointCount; pointIndex += 1) {
     const point = stroke.controlPoints[pointIndex];
@@ -463,7 +493,7 @@ function generateParticleGeometry(
       point.pressure,
       pressureOpacityMin,
       pressureOpacityMax,
-    );
+    ) * descriptorOpacity;
     writeParticleVertex(
       positions,
       normals,
@@ -576,6 +606,40 @@ function normalizePressureOpacityMax(
   range: BrushPressureOpacityRange | undefined,
 ): number {
   return range && Number.isFinite(range[1]) ? clamp01(range[1]) : 1;
+}
+
+function normalizeDescriptorOpacity(value: number | undefined): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? clamp01(value)
+    : 1;
+}
+
+function normalizeTileRate(value: number | undefined): number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? value
+    : 1;
+}
+
+function measureStrokeLength(stroke: StrokeData): number {
+  let length = 0;
+  for (let index = 1; index < stroke.controlPoints.length; index += 1) {
+    length += distanceBetweenControlPoints(
+      stroke.controlPoints[index - 1],
+      stroke.controlPoints[index],
+    );
+  }
+  return length;
+}
+
+function distanceBetweenControlPoints(
+  left: StrokeData["controlPoints"][number],
+  right: StrokeData["controlPoints"][number],
+): number {
+  return Math.hypot(
+    right.position[0] - left.position[0],
+    right.position[1] - left.position[1],
+    right.position[2] - left.position[2],
+  );
 }
 
 function clamp01(value: number): number {

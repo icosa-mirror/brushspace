@@ -148,6 +148,8 @@ export function exportSketchDocumentToGlb(
     const geometry = generateBrushGeometry(stroke, geometryFamily, {
       pressureSizeRange: brush?.pressureSizeRange,
       pressureOpacityRange: brush?.pressureOpacityRange,
+      geometryParams: brush?.geometryParams,
+      generatorClass: brush?.generatorClass,
     });
     const vertexCount = geometry.positions.length / 3;
     if (vertexCount === 0 || geometry.indices.length === 0) {

@@ -43,7 +43,7 @@ const outPublicDir = path.join(repoRoot, "public", "openbrush");
 const outShaderDir = path.join(outPublicDir, "shaders");
 const outTextureDir = path.join(outPublicDir, "textures");
 const outIconDir = path.join(outPublicDir, "icons");
-const outGeneratedDir = path.join(repoRoot, "src", "openbrush", "generated");
+const outGeneratedDir = path.join(repoRoot, "src", "brushes", "generated");
 
 // ---------------------------------------------------------------------------
 // GLSL preprocessing (port of preprocess_lite from gltf_export_shaders.py)
