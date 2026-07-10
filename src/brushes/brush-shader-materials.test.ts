@@ -170,9 +170,7 @@ describe("brush shader material descriptors", () => {
       blending: "opaque",
       transparent: false,
       depthWrite: true,
-      // Tube geometry stays double-sided until the SH6 tube rewrite
-      // validates ring winding against enableCull.
-      doubleSided: true,
+      doubleSided: false,
     });
     expect(descriptor?.uniforms.u_Shininess).toBeCloseTo(0.68);
     expect(descriptor?.uniforms.u_SpecColor).toEqual([0.75, 0.75, 0.75, 0]);

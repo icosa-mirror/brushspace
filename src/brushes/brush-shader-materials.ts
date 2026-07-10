@@ -118,9 +118,7 @@ export function createBrushShaderMaterialDescriptor(
     }));
 
   const blending = resolveBrushShaderBlending(entry.blendMode);
-  // The interim 4-sided tube prism has unvalidated winding, so culling would
-  // drop visible faces; render tubes double-sided until the SH6 tube rewrite.
-  const doubleSided = !entry.enableCull || entry.geometryFamily === "tube";
+  const doubleSided = !entry.enableCull;
   return {
     guid: entry.guid,
     name: entry.name,
