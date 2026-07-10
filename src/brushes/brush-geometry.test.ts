@@ -137,9 +137,9 @@ describe("brush geometry generation", () => {
       geometryParams: { tileRate: 2 },
     });
 
-    expect(geometry.uvs[0]).toBeCloseTo(0);
-    expect(geometry.uvs[4]).toBeCloseTo(2);
-    expect(geometry.uvs[8]).toBeCloseTo(6);
+    const initialU = geometry.uvs[0];
+    expect(geometry.uvs[4] - initialU).toBeCloseTo(2);
+    expect(geometry.uvs[8] - initialU).toBeCloseTo(6);
   });
 
   it("normalizes stretch ribbon UVs by physical stroke length", () => {
@@ -152,6 +152,54 @@ describe("brush geometry generation", () => {
     expect(geometry.uvs[0]).toBeCloseTo(0);
     expect(geometry.uvs[4]).toBeCloseTo(1 / 3);
     expect(geometry.uvs[8]).toBeCloseTo(1);
+  });
+
+  it("selects a deterministic texture atlas row from the stroke seed", () => {
+    const options = {
+      generatorClass: "QuadStripBrushStretchUV",
+      geometryParams: { textureAtlasV: 4 },
+    } as const;
+    const first = generateBrushGeometry(
+      createUnevenThreePointStroke(),
+      "ribbon",
+      options,
+    );
+    const repeated = generateBrushGeometry(
+      createUnevenThreePointStroke(),
+      "ribbon",
+      options,
+    );
+
+    expect(first.uvs).toEqual(repeated.uvs);
+    expect(first.uvs[1]).toBeCloseTo(0.25);
+    expect(first.uvs[3]).toBeCloseTo(0.5);
+  });
+
+  it("emits reversed hue-shifted backface geometry", () => {
+    const stroke = createTwoPointStroke({
+      guid: "hue-shifted-backface",
+      brushSize: 0.2,
+      pressure: 1,
+    });
+    stroke.color = [1, 0, 0, 0.75];
+
+    const geometry = generateBrushGeometry(stroke, "ribbon", {
+      geometryParams: {
+        renderBackfaces: true,
+        backfaceHueShift: 120,
+      },
+    });
+
+    expect(getGeneratedVertexCount(geometry)).toBe(8);
+    expect(getGeneratedIndexCount(geometry)).toBe(12);
+    expect(Array.from(geometry.indices.slice(6))).toEqual([4, 5, 6, 5, 7, 6]);
+    expect(geometry.normals[12]).toBeCloseTo(-geometry.normals[0]);
+    expect(geometry.normals[13]).toBeCloseTo(-geometry.normals[1]);
+    expect(geometry.normals[14]).toBeCloseTo(-geometry.normals[2]);
+    expect(geometry.colors[16]).toBeCloseTo(0);
+    expect(geometry.colors[17]).toBeCloseTo(1);
+    expect(geometry.colors[18]).toBeCloseTo(0);
+    expect(geometry.colors[19]).toBeCloseTo(0.75);
   });
 
   it("uses full width for brushes with fixed pressure size", () => {

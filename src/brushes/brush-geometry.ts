@@ -165,9 +165,12 @@ function generateRibbonGeometry(
   out: BrushGeometryArrays,
 ): boolean {
   const pointCount = stroke.controlPoints.length;
-  const vertexCount = pointCount * 2;
+  const frontVertexCount = pointCount * 2;
   const segmentCount = Math.max(0, pointCount - 1);
-  const indexCount = segmentCount * 6;
+  const frontIndexCount = segmentCount * 6;
+  const hasBackfaces = options.geometryParams?.renderBackfaces === true;
+  const vertexCount = frontVertexCount * (hasBackfaces ? 2 : 1);
+  const indexCount = frontIndexCount * (hasBackfaces ? 2 : 1);
   const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
   const { positions, normals, colors, uvs, indices, bounds } = out;
   const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
@@ -183,9 +186,21 @@ function generateRibbonGeometry(
   const tileRate = normalizeTileRate(options.geometryParams?.tileRate);
   const usesDistanceUvs =
     options.generatorClass === "QuadStripBrushDistanceUV";
+  const usesUnitizedUvs =
+    options.generatorClass === "QuadStripUnitizedUVBrush";
   const totalStrokeLength = usesDistanceUvs
     ? 0
     : measureStrokeLength(stroke);
+  const random01 = statelessRandom01(stroke.seed, 0);
+  const atlasRows = normalizeAtlasRows(options.geometryParams?.textureAtlasV);
+  const atlasRow = usesUnitizedUvs
+    ? 0
+    : usesDistanceUvs
+      ? Math.floor(random01 * 3331) % atlasRows
+      : Math.floor(random01 * atlasRows);
+  const v0 = atlasRow / atlasRows;
+  const v1 = (atlasRow + 1) / atlasRows;
+  const initialU = usesDistanceUvs ? random01 : 0;
   let runningLength = 0;
 
   // Ribbon surface frames per Open Brush's ComputeSurfaceFrameNew
@@ -257,12 +272,13 @@ function generateRibbonGeometry(
       );
     }
     const u = usesDistanceUvs
-      ? (runningLength / Math.max(stroke.brushSize, EPSILON)) * tileRate
+      ? initialU +
+        (runningLength / Math.max(stroke.brushSize, EPSILON)) * tileRate
       : totalStrokeLength > EPSILON
         ? runningLength / totalStrokeLength
         : 0;
-    writeUv(uvs, leftVertex, [u, 0]);
-    writeUv(uvs, rightVertex, [u, 1]);
+    writeUv(uvs, leftVertex, [u, v0]);
+    writeUv(uvs, rightVertex, [u, v1]);
     includeBounds(bounds, positions, leftVertex);
     includeBounds(bounds, positions, rightVertex);
   }
@@ -276,6 +292,36 @@ function generateRibbonGeometry(
     indices[offset + 3] = vertex + 1;
     indices[offset + 4] = vertex + 2;
     indices[offset + 5] = vertex + 3;
+  }
+
+  if (hasBackfaces) {
+    const hueShift = normalizeHueShift(
+      options.geometryParams?.backfaceHueShift,
+    );
+    const backfaceColor = shiftHue(stroke.color, hueShift);
+    for (let vertex = 0; vertex < frontVertexCount; vertex += 1) {
+      const backVertex = frontVertexCount + vertex;
+      copyPosition(positions, vertex, backVertex);
+      copyNegatedNormal(normals, vertex, backVertex);
+      copyUv(uvs, vertex, backVertex);
+      writeColorFromAlpha(
+        colors,
+        backVertex,
+        backfaceColor,
+        colors[vertex * 4 + 3],
+      );
+    }
+
+    for (let segment = 0; segment < segmentCount; segment += 1) {
+      const vertex = frontVertexCount + segment * 2;
+      const offset = frontIndexCount + segment * 6;
+      indices[offset] = vertex;
+      indices[offset + 1] = vertex + 1;
+      indices[offset + 2] = vertex + 2;
+      indices[offset + 3] = vertex + 1;
+      indices[offset + 4] = vertex + 3;
+      indices[offset + 5] = vertex + 2;
+    }
   }
 
   out.family = family;
@@ -620,6 +666,76 @@ function normalizeTileRate(value: number | undefined): number {
     : 1;
 }
 
+function normalizeAtlasRows(value: number | undefined): number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 1
+    ? Math.max(1, Math.floor(value))
+    : 1;
+}
+
+function normalizeHueShift(value: number | undefined): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function statelessRandom01(seed: number, salt: number): number {
+  let value = (seed ^ salt) >>> 0;
+  value = Math.imul(value ^ (value >>> 16), 0x7feb352d) >>> 0;
+  value = Math.imul(value ^ (value >>> 15), 0x846ca68b) >>> 0;
+  value = (value ^ (value >>> 16)) >>> 0;
+  return Math.min(Math.fround(value) / 0x1_0000_0000, 1 - 2 ** -24);
+}
+
+function shiftHue(color: Rgba, hueDegrees: number): Rgba {
+  if (hueDegrees === 0) {
+    return [color[0], color[1], color[2], color[3]];
+  }
+  const max = Math.max(color[0], color[1], color[2]);
+  const min = Math.min(color[0], color[1], color[2]);
+  const lightness = (max + min) * 0.5;
+  const delta = max - min;
+  if (delta <= EPSILON) {
+    return [color[0], color[1], color[2], color[3]];
+  }
+
+  const saturation =
+    delta / (1 - Math.abs(2 * lightness - 1));
+  let hue: number;
+  if (max === color[0]) {
+    hue = 60 * (((color[1] - color[2]) / delta) % 6);
+  } else if (max === color[1]) {
+    hue = 60 * ((color[2] - color[0]) / delta + 2);
+  } else {
+    hue = 60 * ((color[0] - color[1]) / delta + 4);
+  }
+  hue = ((hue + hueDegrees) % 360 + 360) % 360;
+
+  const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
+  const x = chroma * (1 - Math.abs(((hue / 60) % 2) - 1));
+  const match = lightness - chroma * 0.5;
+  let red = 0;
+  let green = 0;
+  let blue = 0;
+  if (hue < 60) {
+    red = chroma;
+    green = x;
+  } else if (hue < 120) {
+    red = x;
+    green = chroma;
+  } else if (hue < 180) {
+    green = chroma;
+    blue = x;
+  } else if (hue < 240) {
+    green = x;
+    blue = chroma;
+  } else if (hue < 300) {
+    red = x;
+    blue = chroma;
+  } else {
+    red = chroma;
+    blue = x;
+  }
+  return [red + match, green + match, blue + match, color[3]];
+}
+
 function measureStrokeLength(stroke: StrokeData): number {
   let length = 0;
   for (let index = 1; index < stroke.controlPoints.length; index += 1) {
@@ -880,6 +996,30 @@ function writeNormal(target: Float32Array, vertex: number, value: Vec3): void {
   writePosition(target, vertex, value);
 }
 
+function copyPosition(
+  target: Float32Array,
+  sourceVertex: number,
+  targetVertex: number,
+): void {
+  const sourceOffset = sourceVertex * 3;
+  const targetOffset = targetVertex * 3;
+  target[targetOffset] = target[sourceOffset];
+  target[targetOffset + 1] = target[sourceOffset + 1];
+  target[targetOffset + 2] = target[sourceOffset + 2];
+}
+
+function copyNegatedNormal(
+  target: Float32Array,
+  sourceVertex: number,
+  targetVertex: number,
+): void {
+  const sourceOffset = sourceVertex * 3;
+  const targetOffset = targetVertex * 3;
+  target[targetOffset] = -target[sourceOffset];
+  target[targetOffset + 1] = -target[sourceOffset + 1];
+  target[targetOffset + 2] = -target[sourceOffset + 2];
+}
+
 function writeColor(
   target: Float32Array,
   vertex: number,
@@ -893,10 +1033,34 @@ function writeColor(
   target[offset + 3] = clamp01(value[3] * opacityMultiplier);
 }
 
+function writeColorFromAlpha(
+  target: Float32Array,
+  vertex: number,
+  value: Rgba,
+  alpha: number,
+): void {
+  const offset = vertex * 4;
+  target[offset] = value[0];
+  target[offset + 1] = value[1];
+  target[offset + 2] = value[2];
+  target[offset + 3] = clamp01(alpha);
+}
+
 function writeUv(target: Float32Array, vertex: number, value: [number, number]): void {
   const offset = vertex * 2;
   target[offset] = value[0];
   target[offset + 1] = value[1];
+}
+
+function copyUv(
+  target: Float32Array,
+  sourceVertex: number,
+  targetVertex: number,
+): void {
+  const sourceOffset = sourceVertex * 2;
+  const targetOffset = targetVertex * 2;
+  target[targetOffset] = target[sourceOffset];
+  target[targetOffset + 1] = target[sourceOffset + 1];
 }
 
 function createEmptyBounds(): BrushGeometryBounds {
