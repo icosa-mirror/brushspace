@@ -211,6 +211,17 @@ export function exportSketchDocumentToGlb(
       "VEC2",
       ARRAY_BUFFER,
     );
+    const packedUvAccessor = geometry.packedUvs
+      ? addAccessor(
+          writer,
+          bufferViews,
+          accessors,
+          geometry.packedUvs,
+          COMPONENT_FLOAT,
+          "VEC3",
+          ARRAY_BUFFER,
+        )
+      : undefined;
     const indexAccessor = addAccessor(
       writer,
       bufferViews,
@@ -250,6 +261,9 @@ export function exportSketchDocumentToGlb(
             TANGENT: tangentAccessor,
             COLOR_0: colorAccessor,
             TEXCOORD_0: uvAccessor,
+            ...(packedUvAccessor === undefined
+              ? {}
+              : { _TB_TEXCOORD_0: packedUvAccessor }),
           },
           indices: indexAccessor,
           material: materialIndex,

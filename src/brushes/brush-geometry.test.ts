@@ -362,6 +362,20 @@ describe("brush geometry generation", () => {
     expect(geometry.tangents[3]).toBe(1);
   });
 
+  it("packs tube radius into UV0.z when required by the descriptor", () => {
+    const geometry = generateBrushGeometry(
+      createUnevenThreePointStroke(),
+      "tube",
+      { geometryParams: { tubeStoreRadiusInTexcoord0Z: true } },
+    );
+
+    expect(geometry.uv0Size).toBe(3);
+    expect(geometry.packedUvs).toHaveLength(getGeneratedVertexCount(geometry) * 3);
+    expect(geometry.packedUvs?.[2]).toBeCloseTo(0.5);
+    // TubeBrush packs zero at the duplicated cap-tip vertices.
+    expect(geometry.packedUvs?.[3 * 27 + 2]).toBe(0);
+  });
+
   it("generates emissive geometry with ribbon topology", () => {
     const stroke = withBrushGuid(fixtureStroke, "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62");
     const family = findBrushByGuid(inventory, stroke.brushGuid)?.geometryFamily;

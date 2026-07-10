@@ -825,15 +825,32 @@ export class StrokeAuthoringSystem extends createSystem({
     );
 
     // Rebuilds run every sampled frame while drawing: reuse the GPU-bound
-    // attributes and only rebind when the backing storage grew.
-    if (reallocated || !stroke.geometry.getAttribute("position")) {
+    // attributes and rebind only when storage grows or the UV layout changes.
+    const currentShaderUv = stroke.geometry.getAttribute("a_texcoord0");
+    if (
+      reallocated ||
+      !stroke.geometry.getAttribute("position") ||
+      currentShaderUv?.itemSize !== arrays.uv0Size
+    ) {
       const position = new BufferAttribute(arrays.positions, 3);
       const normal = new BufferAttribute(arrays.normals, 3);
       const tangent = new BufferAttribute(arrays.tangents, 4);
       const color = new BufferAttribute(arrays.colors, 4);
       const uv = new BufferAttribute(arrays.uvs, 2);
+      const shaderUv =
+        arrays.uv0Size === 3
+          ? new BufferAttribute(arrays.packedUvs, 3)
+          : uv;
       const index = new BufferAttribute(arrays.indices, 1);
-      for (const attribute of [position, normal, tangent, color, uv, index]) {
+      for (const attribute of [
+        position,
+        normal,
+        tangent,
+        color,
+        uv,
+        shaderUv,
+        index,
+      ]) {
         attribute.setUsage(DynamicDrawUsage);
       }
       stroke.geometry.setAttribute("position", position);
@@ -842,6 +859,7 @@ export class StrokeAuthoringSystem extends createSystem({
       stroke.geometry.setAttribute("color", color);
       stroke.geometry.setAttribute("uv", uv);
       applyBrushShaderAttributeAliases(stroke.geometry);
+      stroke.geometry.setAttribute("a_texcoord0", shaderUv);
       stroke.geometry.setIndex(index);
     } else {
       (stroke.geometry.getAttribute("position") as BufferAttribute).needsUpdate = true;
@@ -849,6 +867,10 @@ export class StrokeAuthoringSystem extends createSystem({
       (stroke.geometry.getAttribute("tangent") as BufferAttribute).needsUpdate = true;
       (stroke.geometry.getAttribute("color") as BufferAttribute).needsUpdate = true;
       (stroke.geometry.getAttribute("uv") as BufferAttribute).needsUpdate = true;
+      const shaderUv = stroke.geometry.getAttribute("a_texcoord0");
+      if (shaderUv && shaderUv !== stroke.geometry.getAttribute("uv")) {
+        (shaderUv as BufferAttribute).needsUpdate = true;
+      }
       const index = stroke.geometry.getIndex();
       if (index) {
         index.needsUpdate = true;

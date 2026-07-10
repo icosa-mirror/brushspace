@@ -18,6 +18,8 @@ export interface GeneratedBrushGeometry {
   tangents: Float32Array;
   colors: Float32Array;
   uvs: Float32Array;
+  uv0Size: 2 | 3;
+  packedUvs?: Float32Array;
   indices: Uint32Array;
   bounds: BrushGeometryBounds;
   warning?: string;
@@ -43,6 +45,8 @@ export interface BrushGeometryArrays {
   tangents: Float32Array;
   colors: Float32Array;
   uvs: Float32Array;
+  packedUvs: Float32Array;
+  uv0Size: 2 | 3;
   indices: Uint32Array;
   vertexCount: number;
   indexCount: number;
@@ -62,6 +66,8 @@ export function createBrushGeometryArrays(): BrushGeometryArrays {
     tangents: new Float32Array(INITIAL_VERTEX_CAPACITY * 4),
     colors: new Float32Array(INITIAL_VERTEX_CAPACITY * 4),
     uvs: new Float32Array(INITIAL_VERTEX_CAPACITY * 2),
+    packedUvs: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
+    uv0Size: 2,
     indices: new Uint32Array(INITIAL_INDEX_CAPACITY),
     vertexCount: 0,
     indexCount: 0,
@@ -93,6 +99,7 @@ function ensureGeometryCapacity(
   out.tangents = new Float32Array(vertexCapacity * 4);
   out.colors = new Float32Array(vertexCapacity * 4);
   out.uvs = new Float32Array(vertexCapacity * 2);
+  out.packedUvs = new Float32Array(vertexCapacity * 3);
   out.indices = new Uint32Array(indexCapacity);
   return true;
 }
@@ -149,6 +156,11 @@ export function generateBrushGeometry(
     tangents: arrays.tangents.subarray(0, arrays.vertexCount * 4),
     colors: arrays.colors.subarray(0, arrays.vertexCount * 4),
     uvs: arrays.uvs.subarray(0, arrays.vertexCount * 2),
+    uv0Size: arrays.uv0Size,
+    packedUvs:
+      arrays.uv0Size === 3
+        ? arrays.packedUvs.subarray(0, arrays.vertexCount * 3)
+        : undefined,
     indices: arrays.indices.subarray(0, arrays.indexCount),
     bounds: arrays.bounds,
     warning: arrays.warning,
@@ -169,6 +181,7 @@ function generateRibbonGeometry(
   options: BrushGeometryOptions,
   out: BrushGeometryArrays,
 ): boolean {
+  out.uv0Size = 2;
   if (options.generatorClass === "QuadStripUnitizedUVBrush") {
     return generateUnitizedRibbonGeometry(stroke, family, options, out);
   }
@@ -346,6 +359,7 @@ function generateUnitizedRibbonGeometry(
   options: BrushGeometryOptions,
   out: BrushGeometryArrays,
 ): boolean {
+  out.uv0Size = 2;
   const pointCount = stroke.controlPoints.length;
   const segmentCount = Math.max(0, pointCount - 1);
   const frontVertexCount = segmentCount * 4;
@@ -502,6 +516,9 @@ function generateTubeGeometry(
   options: BrushGeometryOptions,
   out: BrushGeometryArrays,
 ): boolean {
+  const storesRadius =
+    options.geometryParams?.tubeStoreRadiusInTexcoord0Z === true;
+  out.uv0Size = storesRadius ? 3 : 2;
   const pointCount = stroke.controlPoints.length;
   const segmentCount = Math.max(0, pointCount - 1);
   const sideCount = normalizeTubeSideCount(options.geometryParams?.tubeSideCount);
@@ -514,7 +531,16 @@ function generateTubeGeometry(
   const indexCount =
     segmentCount * sideCount * 6 + (hasCaps ? 2 * sideCount * 3 : 0);
   const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
-  const { positions, normals, tangents, colors, uvs, indices, bounds } = out;
+  const {
+    positions,
+    normals,
+    tangents,
+    colors,
+    uvs,
+    packedUvs,
+    indices,
+    bounds,
+  } = out;
   const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
   const pressureOpacityMin = normalizePressureOpacityMin(
     options.pressureOpacityRange,
@@ -683,7 +709,11 @@ function generateTubeGeometry(
           writeTangent(tangents, vertex, tangent, 1);
           writeColor(colors, vertex, stroke.color, opacity);
           const vFraction = side === 0 && duplicate === 0 ? 1 : side / sideCount;
-          writeUv(uvs, vertex, [ringU, v0 + (v1 - v0) * vFraction]);
+          const v = v0 + (v1 - v0) * vFraction;
+          writeUv(uvs, vertex, [ringU, v]);
+          if (storesRadius) {
+            writePackedUv(packedUvs, vertex, ringU, v, radius);
+          }
           includeBounds(bounds, positions, vertex);
           setTubeRadial(frameRight, frameUp, angle, radial);
         }
@@ -702,7 +732,11 @@ function generateTubeGeometry(
         writeNormal(normals, vertex, radial);
         writeTangent(tangents, vertex, tangent, 1);
         writeColor(colors, vertex, stroke.color, opacity);
-        writeUv(uvs, vertex, [ringU, v0 + (v1 - v0) * fraction]);
+        const v = v0 + (v1 - v0) * fraction;
+        writeUv(uvs, vertex, [ringU, v]);
+        if (storesRadius) {
+          writePackedUv(packedUvs, vertex, ringU, v, radius);
+        }
         includeBounds(bounds, positions, vertex);
       }
     }
@@ -779,7 +813,11 @@ function generateTubeGeometry(
         );
         writeTangent(tangents, vertex, capRadial, 1);
         writeColor(colors, vertex, stroke.color, opacity);
-        writeUv(uvs, vertex, [capU, v0 + (v1 - v0) * fraction]);
+        const v = v0 + (v1 - v0) * fraction;
+        writeUv(uvs, vertex, [capU, v]);
+        if (storesRadius) {
+          writePackedUv(packedUvs, vertex, capU, v, 0);
+        }
         includeBounds(bounds, positions, vertex);
 
         const first = hardEdges ? side * 2 + 1 : side;
@@ -803,6 +841,7 @@ function generateParticleGeometry(
   options: BrushGeometryOptions,
   out: BrushGeometryArrays,
 ): boolean {
+  out.uv0Size = 2;
   const pointCount = stroke.controlPoints.length;
   const vertexCount = pointCount * 4;
   const indexCount = pointCount * 6;
@@ -1471,6 +1510,19 @@ function writeUv(target: Float32Array, vertex: number, value: [number, number]):
   const offset = vertex * 2;
   target[offset] = value[0];
   target[offset + 1] = value[1];
+}
+
+function writePackedUv(
+  target: Float32Array,
+  vertex: number,
+  u: number,
+  v: number,
+  radius: number,
+): void {
+  const offset = vertex * 3;
+  target[offset] = u;
+  target[offset + 1] = v;
+  target[offset + 2] = radius;
 }
 
 function copyUv(
