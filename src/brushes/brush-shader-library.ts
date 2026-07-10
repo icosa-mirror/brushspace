@@ -32,6 +32,10 @@ import {
 
 import type { BrushInventoryEntry } from "./brush-inventory.js";
 import {
+  openBrushShaderCompatibility,
+  type BrushShaderCompatibilityContext,
+} from "./brush-shader-compatibility.js";
+import {
   createBrushShaderMaterialDescriptor,
   prepareBrushShaderSource,
   OPENBRUSH_AMBIENT_LIGHT_COLOR,
@@ -128,7 +132,14 @@ export class BrushShaderLibrary {
    * Pre-compile all cached materials so the first stroke of each brush does
    * not hitch. Uses KHR_parallel_shader_compile when available.
    */
-  async warmUp(renderer: WebGLRenderer, scene: Scene, camera: Camera): Promise<number> {
+  async warmUp(
+    renderer: WebGLRenderer,
+    scene: Scene,
+    camera: Camera,
+    context: BrushShaderCompatibilityContext = renderer.xr.isPresenting
+      ? "immersive-xr"
+      : "browser",
+  ): Promise<number> {
     const group = new Group();
     for (const material of this.materials.values()) {
       const mesh = new Mesh(createWarmupGeometry(), material);
@@ -150,8 +161,32 @@ export class BrushShaderLibrary {
       } else {
         renderer.compile(group, camera, scene);
       }
+      const rendererName = resolveRendererName(renderer);
+      for (const [guid, material] of this.materials) {
+        const failure = getMaterialCompileFailure(renderer, material);
+        openBrushShaderCompatibility.record({
+          guid,
+          name: material.name.replace(/^OpenBrushShader_/, ""),
+          context,
+          status: failure ? "compile-failed" : "ready",
+          renderer: rendererName,
+          message: failure,
+        });
+      }
     } catch (error) {
       console.warn("OpenBrush shader warmup failed:", error);
+      const message = toErrorMessage(error);
+      const rendererName = resolveRendererName(renderer);
+      for (const [guid, material] of this.materials) {
+        openBrushShaderCompatibility.record({
+          guid,
+          name: material.name.replace(/^OpenBrushShader_/, ""),
+          context,
+          status: "compile-failed",
+          renderer: rendererName,
+          message,
+        });
+      }
     }
     for (const child of [...group.children]) {
       (child as Mesh).geometry.dispose();
@@ -197,12 +232,25 @@ export class BrushShaderLibrary {
         material.blending = NormalBlending;
       }
       this.materials.set(entry.guid, material);
+      openBrushShaderCompatibility.record({
+        guid: entry.guid,
+        name: entry.name,
+        context: "asset-load",
+        status: "ready",
+      });
       return material;
     } catch (error) {
       console.warn(
         `OpenBrush shader material for ${descriptor.name} (${entry.guid}) failed to load; using fallback material.`,
         error,
       );
+      openBrushShaderCompatibility.record({
+        guid: entry.guid,
+        name: entry.name,
+        context: "asset-load",
+        status: "load-failed",
+        message: toErrorMessage(error),
+      });
       return undefined;
     }
   }
@@ -228,6 +276,64 @@ export class BrushShaderLibrary {
     }
     return uniforms;
   }
+}
+
+interface WebGLProgramDiagnostics {
+  runnable: boolean;
+  programLog: string;
+  vertexShader?: { log?: string };
+  fragmentShader?: { log?: string };
+}
+
+interface InspectableWebGLProgram {
+  program?: WebGLProgram;
+  diagnostics?: WebGLProgramDiagnostics;
+  getAttributes?: () => unknown;
+}
+
+function getMaterialCompileFailure(
+  renderer: WebGLRenderer,
+  material: ShaderMaterial,
+): string | undefined {
+  const properties = renderer.properties.get(material) as {
+    programs?: Map<unknown, InspectableWebGLProgram>;
+  };
+  const programs = properties.programs;
+  if (!programs || programs.size === 0) {
+    return "No WebGL program was produced during shader warmup.";
+  }
+  const gl = renderer.getContext();
+  for (const program of programs.values()) {
+    program.getAttributes?.();
+    const linked = program.program
+      ? Boolean(gl.getProgramParameter(program.program, gl.LINK_STATUS))
+      : program.diagnostics?.runnable !== false;
+    if (!linked || program.diagnostics?.runnable === false) {
+      const diagnostics = program.diagnostics;
+      return [
+        diagnostics?.programLog,
+        diagnostics?.vertexShader?.log,
+        diagnostics?.fragmentShader?.log,
+      ]
+        .filter(Boolean)
+        .join("\n") || "WebGL shader program failed to link.";
+    }
+  }
+  return undefined;
+}
+
+function resolveRendererName(renderer: WebGLRenderer): string {
+  try {
+    const gl = renderer.getContext();
+    return String(gl.getParameter(gl.RENDERER) ?? "unknown");
+  } catch {
+    return "unknown";
+  }
+}
+
+function toErrorMessage(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.slice(0, 4000);
 }
 
 async function fetchShaderSource(url: string): Promise<string> {

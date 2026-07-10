@@ -13,6 +13,7 @@ import {
   Quaternion,
   Transform,
   Vector3,
+  VisibilityState,
   createSystem,
 } from "@iwsdk/core";
 import type { Entity, Material } from "@iwsdk/core";
@@ -249,12 +250,21 @@ export class StrokeAuthoringSystem extends createSystem({
   private consumedStrokeUndoRequestRevision = 0;
   private consumedStrokeRedoRequestRevision = 0;
   private eraseHoldErasedCount = 0;
+  private shaderMaterialsReady = false;
+  private xrShaderWarmupStarted = false;
 
   init() {
     let disposed = false;
     this.cleanupFuncs.push(() => {
       disposed = true;
     });
+    this.cleanupFuncs.push(
+      this.world.visibilityState.subscribe((state) => {
+        if (state === VisibilityState.Visible) {
+          void this.warmUpImmersiveShaders();
+        }
+      }),
+    );
     // The full-catalog warmup fetches tens of MB of shader textures, so it
     // waits out the landing-critical downloads (the intro sketch loads its
     // own brushes directly; the shader library cache dedups the overlap).
@@ -277,13 +287,35 @@ export class StrokeAuthoringSystem extends createSystem({
         }
         const loadedCount = materials.filter(Boolean).length;
         if (loadedCount > 0) {
-          await openBrushShaderLibrary.warmUp(this.renderer, this.scene, this.camera);
+          await openBrushShaderLibrary.warmUp(
+            this.renderer,
+            this.scene,
+            this.camera,
+            "browser",
+          );
+        }
+        this.shaderMaterialsReady = true;
+        if (this.renderer.xr.isPresenting) {
+          await this.warmUpImmersiveShaders();
         }
         console.log(
           `OpenBrush brush shader materials ready: ${loadedCount}/${loads.length} supported brushes.`,
         );
       });
     });
+  }
+
+  private async warmUpImmersiveShaders(): Promise<void> {
+    if (!this.shaderMaterialsReady || this.xrShaderWarmupStarted) {
+      return;
+    }
+    this.xrShaderWarmupStarted = true;
+    await openBrushShaderLibrary.warmUp(
+      this.renderer,
+      this.scene,
+      this.camera,
+      "immersive-xr",
+    );
   }
 
   update(_delta: number, time: number) {
