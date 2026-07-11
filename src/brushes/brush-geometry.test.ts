@@ -192,6 +192,31 @@ describe("brush geometry generation", () => {
     expect(geometry.uvs[8]).toBeCloseTo(1);
   });
 
+  it("breaks reversing ribbon strips and restarts stretch UVs", () => {
+    const stroke = createUnevenThreePointStroke();
+    stroke.controlPoints[2].position = [0, 0, 0];
+
+    const geometry = generateBrushGeometry(stroke, "ribbon", {
+      generatorClass: "QuadStripBrushStretchUV",
+    });
+
+    expect(getGeneratedIndexCount(geometry)).toBe(6);
+    expect(Array.from(geometry.indices)).toEqual([0, 2, 1, 1, 2, 3]);
+    expect(geometry.uvs[0]).toBeCloseTo(0);
+    expect(geometry.uvs[4]).toBeCloseTo(1);
+    expect(geometry.uvs[8]).toBeCloseTo(0);
+  });
+
+  it("omits sub-millimeter ribbon connections", () => {
+    const stroke = createUnevenThreePointStroke();
+    stroke.controlPoints[1].position = [0.0001, 0, 0];
+
+    const geometry = generateBrushGeometry(stroke, "ribbon");
+
+    expect(getGeneratedIndexCount(geometry)).toBe(6);
+    expect(Array.from(geometry.indices)).toEqual([2, 4, 3, 3, 4, 5]);
+  });
+
   it("selects a deterministic texture atlas row from the stroke seed", () => {
     const options = {
       generatorClass: "QuadStripBrushStretchUV",

@@ -53,6 +53,9 @@ export interface BrushGeometryArrays {
   tubeRadii: Float32Array;
   tubeRingUs: Float32Array;
   tubeOpacities: Float32Array;
+  ribbonBreakBefore: Uint8Array;
+  ribbonRunningLengths: Float32Array;
+  ribbonSectionLengths: Float32Array;
   uv0Size: 2 | 3;
   indices: Uint32Array;
   vertexCount: number;
@@ -81,6 +84,9 @@ export function createBrushGeometryArrays(): BrushGeometryArrays {
     tubeRadii: new Float32Array(INITIAL_VERTEX_CAPACITY),
     tubeRingUs: new Float32Array(INITIAL_VERTEX_CAPACITY),
     tubeOpacities: new Float32Array(INITIAL_VERTEX_CAPACITY),
+    ribbonBreakBefore: new Uint8Array(INITIAL_VERTEX_CAPACITY),
+    ribbonRunningLengths: new Float32Array(INITIAL_VERTEX_CAPACITY),
+    ribbonSectionLengths: new Float32Array(INITIAL_VERTEX_CAPACITY),
     uv0Size: 2,
     indices: new Uint32Array(INITIAL_INDEX_CAPACITY),
     vertexCount: 0,
@@ -137,6 +143,28 @@ function ensureTubeScratchCapacity(
   out.tubeRadii = new Float32Array(capacity);
   out.tubeRingUs = new Float32Array(capacity);
   out.tubeOpacities = new Float32Array(capacity);
+}
+
+function ensureRibbonScratchCapacity(
+  out: BrushGeometryArrays,
+  pointCount: number,
+): void {
+  if (pointCount > out.ribbonBreakBefore.length) {
+    let capacity = Math.max(
+      out.ribbonBreakBefore.length,
+      INITIAL_VERTEX_CAPACITY,
+    );
+    while (capacity < pointCount) {
+      capacity *= 2;
+    }
+    out.ribbonBreakBefore = new Uint8Array(capacity);
+    out.ribbonRunningLengths = new Float32Array(capacity);
+    out.ribbonSectionLengths = new Float32Array(capacity);
+  } else {
+    out.ribbonBreakBefore.fill(0, 0, pointCount);
+    out.ribbonRunningLengths.fill(0, 0, pointCount);
+    out.ribbonSectionLengths.fill(0, 0, pointCount);
+  }
 }
 
 function resetBounds(bounds: BrushGeometryBounds): void {
@@ -223,12 +251,24 @@ function generateRibbonGeometry(
   const pointCount = stroke.controlPoints.length;
   const frontVertexCount = pointCount * 2;
   const segmentCount = Math.max(0, pointCount - 1);
-  const frontIndexCount = segmentCount * 6;
+  const connectedSegmentCount = prepareRibbonSections(stroke, out);
+  const frontIndexCount = connectedSegmentCount * 6;
   const hasBackfaces = options.geometryParams?.renderBackfaces === true;
   const vertexCount = frontVertexCount * (hasBackfaces ? 2 : 1);
   const indexCount = frontIndexCount * (hasBackfaces ? 2 : 1);
   const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
-  const { positions, normals, tangents, colors, uvs, indices, bounds } = out;
+  const {
+    positions,
+    normals,
+    tangents,
+    colors,
+    uvs,
+    indices,
+    bounds,
+    ribbonBreakBefore,
+    ribbonRunningLengths,
+    ribbonSectionLengths,
+  } = out;
   const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
   const pressureOpacityMin = normalizePressureOpacityMin(
     options.pressureOpacityRange,
@@ -243,22 +283,13 @@ function generateRibbonGeometry(
   const tileRate = normalizeTileRate(options.geometryParams?.tileRate);
   const usesDistanceUvs =
     options.generatorClass === "QuadStripBrushDistanceUV";
-  const usesUnitizedUvs =
-    options.generatorClass === "QuadStripUnitizedUVBrush";
-  const totalStrokeLength = usesDistanceUvs
-    ? 0
-    : measureStrokeLength(stroke);
-  const random01 = statelessRandom01(stroke.seed, 0);
   const atlasRows = normalizeAtlasRows(options.geometryParams?.textureAtlasV);
-  const atlasRow = usesUnitizedUvs
-    ? 0
-    : usesDistanceUvs
-      ? Math.floor(random01 * 3331) % atlasRows
-      : Math.floor(random01 * atlasRows);
-  const v0 = atlasRow / atlasRows;
-  const v1 = (atlasRow + 1) / atlasRows;
-  const initialU = usesDistanceUvs ? random01 : 0;
-  let runningLength = 0;
+  let sectionRandom = statelessRandom01(stroke.seed, 0);
+  let atlasRow = usesDistanceUvs
+    ? Math.floor(sectionRandom * 3331) % atlasRows
+    : Math.floor(sectionRandom * atlasRows);
+  let v0 = atlasRow / atlasRows;
+  let v1 = (atlasRow + 1) / atlasRows;
 
   // Ribbon surface frames per Open Brush's ComputeSurfaceFrameNew
   // (BaseBrushScript.cs): the frame follows the pointer orientation and the
@@ -274,6 +305,14 @@ function generateRibbonGeometry(
 
   for (let index = 0; index < pointCount; index += 1) {
     const point = stroke.controlPoints[index];
+    if (ribbonBreakBefore[index] === 1) {
+      sectionRandom = statelessRandom01(stroke.seed, index);
+      atlasRow = usesDistanceUvs
+        ? Math.floor(sectionRandom * 3331) % atlasRows
+        : Math.floor(sectionRandom * atlasRows);
+      v0 = atlasRow / atlasRows;
+      v1 = (atlasRow + 1) / atlasRows;
+    }
     const width =
       localBrushSize *
       getPressureSizeMultiplier(point.pressure, pressureSizeMin) *
@@ -323,17 +362,13 @@ function generateRibbonGeometry(
     writeColor(colors, rightVertex, stroke.color, opacity);
     // Open Brush distance ribbons advance by tileRate * segmentLength / size;
     // stretch ribbons normalize accumulated physical length across the stroke.
-    if (index > 0) {
-      runningLength += distanceBetweenControlPoints(
-        stroke.controlPoints[index - 1],
-        point,
-      );
-    }
+    const runningLength = ribbonRunningLengths[index];
+    const sectionLength = ribbonSectionLengths[index];
     const u = usesDistanceUvs
-      ? initialU +
+      ? sectionRandom +
         (runningLength / Math.max(localBrushSize, EPSILON)) * tileRate
-      : totalStrokeLength > EPSILON
-        ? runningLength / totalStrokeLength
+      : sectionLength > EPSILON
+        ? runningLength / sectionLength
         : 0;
     writeUv(uvs, leftVertex, [u, v0]);
     writeUv(uvs, rightVertex, [u, v1]);
@@ -341,15 +376,19 @@ function generateRibbonGeometry(
     includeBounds(bounds, positions, rightVertex);
   }
 
+  let indexOffset = 0;
   for (let segment = 0; segment < segmentCount; segment += 1) {
+    if (ribbonBreakBefore[segment + 1] === 1) {
+      continue;
+    }
     const vertex = segment * 2;
-    const offset = segment * 6;
-    indices[offset] = vertex;
-    indices[offset + 1] = vertex + 2;
-    indices[offset + 2] = vertex + 1;
-    indices[offset + 3] = vertex + 1;
-    indices[offset + 4] = vertex + 2;
-    indices[offset + 5] = vertex + 3;
+    indices[indexOffset] = vertex;
+    indices[indexOffset + 1] = vertex + 2;
+    indices[indexOffset + 2] = vertex + 1;
+    indices[indexOffset + 3] = vertex + 1;
+    indices[indexOffset + 4] = vertex + 2;
+    indices[indexOffset + 5] = vertex + 3;
+    indexOffset += 6;
   }
 
   if (hasBackfaces) {
@@ -371,15 +410,19 @@ function generateRibbonGeometry(
       );
     }
 
+    let backIndexOffset = frontIndexCount;
     for (let segment = 0; segment < segmentCount; segment += 1) {
+      if (ribbonBreakBefore[segment + 1] === 1) {
+        continue;
+      }
       const vertex = frontVertexCount + segment * 2;
-      const offset = frontIndexCount + segment * 6;
-      indices[offset] = vertex;
-      indices[offset + 1] = vertex + 1;
-      indices[offset + 2] = vertex + 2;
-      indices[offset + 3] = vertex + 1;
-      indices[offset + 4] = vertex + 3;
-      indices[offset + 5] = vertex + 2;
+      indices[backIndexOffset] = vertex;
+      indices[backIndexOffset + 1] = vertex + 1;
+      indices[backIndexOffset + 2] = vertex + 2;
+      indices[backIndexOffset + 3] = vertex + 1;
+      indices[backIndexOffset + 4] = vertex + 3;
+      indices[backIndexOffset + 5] = vertex + 2;
+      backIndexOffset += 6;
     }
   }
 
@@ -1260,6 +1303,71 @@ function measureStrokeLength(stroke: StrokeData): number {
   return length;
 }
 
+function prepareRibbonSections(
+  stroke: StrokeData,
+  out: BrushGeometryArrays,
+): number {
+  const pointCount = stroke.controlPoints.length;
+  ensureRibbonScratchCapacity(out, pointCount);
+  const {
+    ribbonBreakBefore,
+    ribbonRunningLengths,
+    ribbonSectionLengths,
+  } = out;
+  let connectedSegmentCount = 0;
+  let sectionStart = 0;
+  let runningLength = 0;
+  let previousDirectionX = 0;
+  let previousDirectionY = 0;
+  let previousDirectionZ = 0;
+  let hasPreviousDirection = false;
+
+  for (let index = 1; index < pointCount; index += 1) {
+    const previous = stroke.controlPoints[index - 1].position;
+    const current = stroke.controlPoints[index].position;
+    const deltaX = current[0] - previous[0];
+    const deltaY = current[1] - previous[1];
+    const deltaZ = current[2] - previous[2];
+    const segmentLength = Math.hypot(deltaX, deltaY, deltaZ);
+    const inverseLength =
+      segmentLength > EPSILON ? 1 / segmentLength : 0;
+    const directionX = deltaX * inverseLength;
+    const directionY = deltaY * inverseLength;
+    const directionZ = deltaZ * inverseLength;
+    const reverses =
+      hasPreviousDirection &&
+      previousDirectionX * directionX +
+        previousDirectionY * directionY +
+        previousDirectionZ * directionZ <=
+        0;
+    const breaks =
+      segmentLength < OPEN_BRUSH_RIBBON_MINIMUM_MOVE_METERS || reverses;
+
+    if (breaks) {
+      ribbonBreakBefore[index] = 1;
+      for (let sectionIndex = sectionStart; sectionIndex < index; sectionIndex += 1) {
+        ribbonSectionLengths[sectionIndex] = runningLength;
+      }
+      sectionStart = index;
+      runningLength = 0;
+    } else {
+      runningLength += segmentLength;
+      connectedSegmentCount += 1;
+    }
+    ribbonRunningLengths[index] = runningLength;
+    if (segmentLength >= OPEN_BRUSH_RIBBON_MINIMUM_MOVE_METERS) {
+      previousDirectionX = directionX;
+      previousDirectionY = directionY;
+      previousDirectionZ = directionZ;
+      hasPreviousDirection = true;
+    }
+  }
+  for (let sectionIndex = sectionStart; sectionIndex < pointCount; sectionIndex += 1) {
+    ribbonSectionLengths[sectionIndex] = runningLength;
+  }
+  return connectedSegmentCount;
+}
+
 function distanceBetweenControlPoints(
   left: StrokeData["controlPoints"][number],
   right: StrokeData["controlPoints"][number],
@@ -1317,6 +1425,7 @@ const VEC_FORWARD: Vec3 = [0, 0, -1];
 const VEC_UP: Vec3 = [0, 1, 0];
 const VEC_RIGHT: Vec3 = [1, 0, 0];
 const EPSILON = 1e-6;
+const OPEN_BRUSH_RIBBON_MINIMUM_MOVE_METERS = 5e-4;
 const OPEN_BRUSH_TUBE_MINIMUM_MOVE_METERS = 5e-4;
 
 function getLocalBrushSize(stroke: StrokeData): number {
