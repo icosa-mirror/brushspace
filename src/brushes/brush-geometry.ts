@@ -993,6 +993,9 @@ function generateParticleGeometry(
   if (options.generatorClass === "GeniusParticlesBrush") {
     return generateGeniusParticleGeometry(stroke, options, out);
   }
+  if (options.generatorClass === "SprayBrush") {
+    return generateSprayParticleGeometry(stroke, options, out);
+  }
   out.uv0Size = 2;
   const pointCount = stroke.controlPoints.length;
   const vertexCount = pointCount * 4;
@@ -1095,6 +1098,211 @@ function generateParticleGeometry(
     indices[indexOffset + 3] = vertex;
     indices[indexOffset + 4] = vertex + 2;
     indices[indexOffset + 5] = vertex + 3;
+  }
+
+  out.family = "particle";
+  out.vertexCount = vertexCount;
+  out.indexCount = indexCount;
+  return reallocated;
+}
+
+function generateSprayParticleGeometry(
+  stroke: StrokeData,
+  options: BrushGeometryOptions,
+  out: BrushGeometryArrays,
+): boolean {
+  out.uv0Size = 2;
+  const localBrushSize = getLocalBrushSize(stroke);
+  const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
+  const particleRate = normalizePositive(options.geometryParams?.particleRate, 1);
+  let quadCount = 0;
+  for (let pointIndex = 1; pointIndex < stroke.controlPoints.length; pointIndex += 1) {
+    const point = stroke.controlPoints[pointIndex];
+    const segmentLength = distanceBetweenControlPoints(
+      stroke.controlPoints[pointIndex - 1],
+      point,
+    );
+    const pressuredSize =
+      localBrushSize * getPressureSizeMultiplier(point.pressure, pressureSizeMin);
+    const spawnInterval = pressuredSize / particleRate;
+    if (spawnInterval > EPSILON) {
+      quadCount += Math.min(500, Math.floor(segmentLength / spawnInterval));
+    }
+  }
+
+  const hasBackfaces = options.geometryParams?.renderBackfaces === true;
+  const frontVertexCount = quadCount * 4;
+  const frontIndexCount = quadCount * 6;
+  const vertexCount = frontVertexCount * (hasBackfaces ? 2 : 1);
+  const indexCount = frontIndexCount * (hasBackfaces ? 2 : 1);
+  const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
+  const { positions, normals, tangents, colors, uvs, indices, bounds } = out;
+  const pressureOpacityMin = normalizePressureOpacityMin(
+    options.pressureOpacityRange,
+  );
+  const pressureOpacityMax = normalizePressureOpacityMax(
+    options.pressureOpacityRange,
+  );
+  const descriptorOpacity = normalizeDescriptorOpacity(
+    options.geometryParams?.opacity,
+  );
+  const sizeVariance = normalizeNonNegative(
+    options.geometryParams?.particleSizeVariance,
+  );
+  const positionVariance = normalizeNonNegative(
+    options.geometryParams?.particlePositionVariance,
+  );
+  const rotationVarianceRadians =
+    (normalizeNonNegative(options.geometryParams?.particleRotationVariance) *
+      Math.PI) /
+    180;
+  const sizeRatioX = normalizePositive(
+    options.geometryParams?.particleSizeRatio?.[0],
+    1,
+  );
+  const sizeRatioY = normalizePositive(
+    options.geometryParams?.particleSizeRatio?.[1],
+    1,
+  );
+  const randomizeAlpha =
+    options.geometryParams?.particleRandomizeAlpha === true;
+  const usesAtlas = normalizeAtlasRows(options.geometryParams?.textureAtlasV) > 1;
+  const pointerForward: Vec3 = [0, 0, 0];
+  const pointerUp: Vec3 = [0, 0, 0];
+  const preferredRight: Vec3 = [0, 0, 0];
+  const segmentDirection: Vec3 = [0, 0, 0];
+  const frameRight: Vec3 = [0, 0, 0];
+  const frameNormal: Vec3 = [0, 0, 0];
+  const rotatedRight: Vec3 = [0, 0, 0];
+  const rotatedFacing: Vec3 = [0, 0, 0];
+  const randomOffset: Vec3 = [0, 0, 0];
+  const center: Vec3 = [0, 0, 0];
+  let quadIndex = 0;
+
+  for (let pointIndex = 1; pointIndex < stroke.controlPoints.length; pointIndex += 1) {
+    const previousPoint = stroke.controlPoints[pointIndex - 1];
+    const point = stroke.controlPoints[pointIndex];
+    segmentDirection[0] = point.position[0] - previousPoint.position[0];
+    segmentDirection[1] = point.position[1] - previousPoint.position[1];
+    segmentDirection[2] = point.position[2] - previousPoint.position[2];
+    const segmentLength = Math.hypot(
+      segmentDirection[0],
+      segmentDirection[1],
+      segmentDirection[2],
+    );
+    if (segmentLength <= EPSILON) {
+      continue;
+    }
+    segmentDirection[0] /= segmentLength;
+    segmentDirection[1] /= segmentLength;
+    segmentDirection[2] /= segmentLength;
+    const pressuredSize =
+      localBrushSize * getPressureSizeMultiplier(point.pressure, pressureSizeMin);
+    const spawnInterval = pressuredSize / particleRate;
+    const segmentQuadCount =
+      spawnInterval > EPSILON
+        ? Math.min(500, Math.floor(segmentLength / spawnInterval))
+        : 0;
+    if (segmentQuadCount === 0) {
+      continue;
+    }
+    rotateByQuaternion(point.orientation, VEC_FORWARD, pointerForward);
+    rotateByQuaternion(point.orientation, VEC_UP, pointerUp);
+    preferredRight[0] = 0;
+    preferredRight[1] = 0;
+    preferredRight[2] = 0;
+    computeSurfaceFrame(
+      preferredRight,
+      segmentDirection,
+      pointerForward,
+      pointerUp,
+      true,
+      frameRight,
+      frameNormal,
+    );
+    const baseOpacity =
+      getPressureOpacityMultiplier(
+        point.pressure,
+        pressureOpacityMin,
+        pressureOpacityMax,
+      ) * descriptorOpacity;
+
+    for (let segmentQuad = 0; segmentQuad < segmentQuadCount; segmentQuad += 1) {
+      const salt = 10 * (pointIndex * 12 + (segmentQuad % 12));
+      const rotation =
+        (statelessRandom01(stroke.seed, salt + 1) * 2 - 1) *
+        rotationVarianceRadians;
+      rotateAroundAxis(frameRight, frameNormal, rotation, rotatedRight);
+      rotateAroundAxis(segmentDirection, frameNormal, rotation, rotatedFacing);
+      const size =
+        pressuredSize *
+        (1 + statelessRandom01(stroke.seed, salt) * sizeVariance);
+      center[0] =
+        previousPoint.position[0] +
+        segmentDirection[0] * spawnInterval * segmentQuad;
+      center[1] =
+        previousPoint.position[1] +
+        segmentDirection[1] * spawnInterval * segmentQuad;
+      center[2] =
+        previousPoint.position[2] +
+        segmentDirection[2] * spawnInterval * segmentQuad;
+      writeRandomInsideSphere(stroke.seed, salt + 2, randomOffset);
+      center[0] += randomOffset[0] * size * positionVariance;
+      center[1] += randomOffset[1] * size * positionVariance;
+      center[2] += randomOffset[2] * size * positionVariance;
+      const opacity = randomizeAlpha
+        ? statelessRandom01(stroke.seed, salt + 5)
+        : baseOpacity;
+      const atlasCell = usesAtlas
+        ? Math.min(3, Math.floor(statelessRandom01(stroke.seed, salt + 6) * 4))
+        : 0;
+      writeSprayParticleQuad(
+        positions,
+        normals,
+        tangents,
+        colors,
+        uvs,
+        indices,
+        bounds,
+        quadIndex,
+        center,
+        rotatedFacing,
+        rotatedRight,
+        frameNormal,
+        size * sizeRatioX * 0.5,
+        size * sizeRatioY * 0.5,
+        stroke.color,
+        opacity,
+        usesAtlas,
+        atlasCell,
+      );
+      quadIndex += 1;
+    }
+  }
+
+  if (hasBackfaces) {
+    const backfaceColor = shiftHue(
+      stroke.color,
+      normalizeHueShift(options.geometryParams?.backfaceHueShift),
+    );
+    for (let vertex = 0; vertex < frontVertexCount; vertex += 1) {
+      const backVertex = frontVertexCount + vertex;
+      copyPosition(positions, vertex, backVertex);
+      copyNegatedNormal(normals, vertex, backVertex);
+      copyTangent(tangents, vertex, backVertex, true);
+      copyUv(uvs, vertex, backVertex);
+      writeColorFromAlpha(colors, backVertex, backfaceColor, colors[vertex * 4 + 3]);
+    }
+    for (let quad = 0; quad < quadCount; quad += 1) {
+      const vertex = frontVertexCount + quad * 4;
+      const indexOffset = frontIndexCount + quad * 6;
+      indices[indexOffset] = vertex;
+      indices[indexOffset + 1] = vertex + 3;
+      indices[indexOffset + 2] = vertex + 1;
+      indices[indexOffset + 3] = vertex;
+      indices[indexOffset + 4] = vertex + 2;
+      indices[indexOffset + 5] = vertex + 3;
+    }
   }
 
   out.family = "particle";
@@ -1461,6 +1669,41 @@ function writeRandomUnitSphere(
   out[2] = z;
 }
 
+function writeRandomInsideSphere(
+  seed: number,
+  salt: number,
+  out: Vec3,
+): void {
+  writeRandomUnitSphere(seed, salt, out);
+  const radius = Math.cbrt(statelessRandom01(seed, salt + 2));
+  out[0] *= radius;
+  out[1] *= radius;
+  out[2] *= radius;
+}
+
+function rotateAroundAxis(
+  input: Vec3,
+  axis: Vec3,
+  angle: number,
+  out: Vec3,
+): void {
+  const cosine = Math.cos(angle);
+  const sine = Math.sin(angle);
+  const projection = dot(axis, input) * (1 - cosine);
+  out[0] =
+    input[0] * cosine +
+    (axis[1] * input[2] - axis[2] * input[1]) * sine +
+    axis[0] * projection;
+  out[1] =
+    input[1] * cosine +
+    (axis[2] * input[0] - axis[0] * input[2]) * sine +
+    axis[1] * projection;
+  out[2] =
+    input[2] * cosine +
+    (axis[0] * input[1] - axis[1] * input[0]) * sine +
+    axis[2] * projection;
+}
+
 function writeRandomRotation(
   seed: number,
   salt: number,
@@ -1626,6 +1869,96 @@ function clamp01(value: number): number {
     return 1;
   }
   return value;
+}
+
+function writeSprayParticleQuad(
+  positions: Float32Array,
+  normals: Float32Array,
+  tangents: Float32Array,
+  colors: Float32Array,
+  uvs: Float32Array,
+  indices: Uint32Array,
+  bounds: BrushGeometryBounds,
+  quadIndex: number,
+  center: Vec3,
+  facing: Vec3,
+  right: Vec3,
+  normal: Vec3,
+  forwardScale: number,
+  rightScale: number,
+  color: Rgba,
+  opacity: number,
+  usesAtlas: boolean,
+  atlasCell: number,
+): void {
+  const vertex = quadIndex * 4;
+  const atlasScale = usesAtlas ? 0.5 : 1;
+  const atlasU = usesAtlas ? (atlasCell % 2) * 0.5 : 0;
+  const atlasV = usesAtlas ? Math.floor(atlasCell / 2) * 0.5 : 0;
+  writeSprayParticleVertex(
+    positions, normals, tangents, colors, uvs, bounds,
+    vertex, center, facing, right, normal, -forwardScale, rightScale,
+    color, opacity, atlasU, atlasV + atlasScale,
+  );
+  writeSprayParticleVertex(
+    positions, normals, tangents, colors, uvs, bounds,
+    vertex + 1, center, facing, right, normal, -forwardScale, -rightScale,
+    color, opacity, atlasU, atlasV,
+  );
+  writeSprayParticleVertex(
+    positions, normals, tangents, colors, uvs, bounds,
+    vertex + 2, center, facing, right, normal, forwardScale, rightScale,
+    color, opacity, atlasU + atlasScale, atlasV + atlasScale,
+  );
+  writeSprayParticleVertex(
+    positions, normals, tangents, colors, uvs, bounds,
+    vertex + 3, center, facing, right, normal, forwardScale, -rightScale,
+    color, opacity, atlasU + atlasScale, atlasV,
+  );
+  const indexOffset = quadIndex * 6;
+  indices[indexOffset] = vertex;
+  indices[indexOffset + 1] = vertex + 1;
+  indices[indexOffset + 2] = vertex + 3;
+  indices[indexOffset + 3] = vertex;
+  indices[indexOffset + 4] = vertex + 3;
+  indices[indexOffset + 5] = vertex + 2;
+}
+
+function writeSprayParticleVertex(
+  positions: Float32Array,
+  normals: Float32Array,
+  tangents: Float32Array,
+  colors: Float32Array,
+  uvs: Float32Array,
+  bounds: BrushGeometryBounds,
+  vertex: number,
+  center: Vec3,
+  facing: Vec3,
+  right: Vec3,
+  normal: Vec3,
+  forwardScale: number,
+  rightScale: number,
+  color: Rgba,
+  opacity: number,
+  u: number,
+  v: number,
+): void {
+  const positionOffset = vertex * 3;
+  positions[positionOffset] =
+    center[0] + facing[0] * forwardScale + right[0] * rightScale;
+  positions[positionOffset + 1] =
+    center[1] + facing[1] * forwardScale + right[1] * rightScale;
+  positions[positionOffset + 2] =
+    center[2] + facing[2] * forwardScale + right[2] * rightScale;
+  normals[positionOffset] = normal[0];
+  normals[positionOffset + 1] = normal[1];
+  normals[positionOffset + 2] = normal[2];
+  writeTangent(tangents, vertex, facing, 1);
+  writeColor(colors, vertex, color, opacity);
+  const uvOffset = vertex * 2;
+  uvs[uvOffset] = u;
+  uvs[uvOffset + 1] = v;
+  includeBounds(bounds, positions, vertex);
 }
 
 function writeGeniusParticleQuad(

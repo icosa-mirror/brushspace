@@ -536,6 +536,52 @@ describe("brush geometry generation", () => {
     }
   });
 
+  it("spawns Spray quads at pressure-sized source intervals", () => {
+    const stroke = createTwoPointStroke({
+      guid: "spray-distance-particles",
+      brushSize: 0.2,
+      pressure: 1,
+    });
+    stroke.controlPoints[1].position = [0.5, 0, 0];
+    const options = {
+      generatorClass: "SprayBrush",
+      pressureSizeRange: [0.2, 1] as const,
+      pressureOpacityRange: [1, 1] as const,
+      geometryParams: {
+        particleRate: 1,
+        particleSizeVariance: 0,
+        particlePositionVariance: 0,
+        particleRotationVariance: 0,
+        particleSizeRatio: [1, 1] as [number, number],
+        textureAtlasV: 4,
+        renderBackfaces: true,
+      },
+    };
+
+    const geometry = generateBrushGeometry(stroke, "particle", options);
+    const repeated = generateBrushGeometry(stroke, "particle", options);
+
+    expect(getGeneratedVertexCount(geometry)).toBe(16);
+    expect(getGeneratedIndexCount(geometry)).toBe(24);
+    expect(geometry.positions).toEqual(repeated.positions);
+    expect(geometry.uvs).toEqual(repeated.uvs);
+    for (let quad = 0; quad < 2; quad += 1) {
+      let centerX = 0;
+      for (let corner = 0; corner < 4; corner += 1) {
+        centerX += geometry.positions[(quad * 4 + corner) * 3];
+      }
+      expect(centerX / 4).toBeCloseTo(quad * 0.2);
+    }
+    for (let vertex = 0; vertex < 8; vertex += 1) {
+      expect(geometry.positions.slice(vertex * 3, vertex * 3 + 3)).toEqual(
+        geometry.positions.slice((vertex + 8) * 3, (vertex + 8) * 3 + 3),
+      );
+      expect(geometry.normals[(vertex + 8) * 3]).toBeCloseTo(
+        -geometry.normals[vertex * 3],
+      );
+    }
+  });
+
   it("uses the Genius single-particle pressure floor", () => {
     const stroke = createTwoPointStroke({
       guid: "genius-single-particle",
