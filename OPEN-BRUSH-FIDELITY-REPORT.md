@@ -145,6 +145,26 @@ Current unit tests validate array shapes, simple frames, pressure multipliers, i
 5. Compiles and screenshots on desktop WebGL and immersive XR/Quest.
 6. Publishes per-GUID results for mesh contract, browser/XR compile, image error, animation, ordering, and performance.
 
+Do not create a second synthetic visual baseline. The pinned Open Brush checkout
+already contains the authoritative brush fixture generator at
+`Assets/Editor/UiScreenshotter.cs` and material reference images under
+`Support/Screenshots/postfx-disabled/` (for example `brush-OilPaint.png` and
+`brush-DuctTape.png`). `Generate Brush Screenshots` draws the same deterministic
+path for every catalog brush, uses the black environment
+`580b4529-ac50-4fe9-b8d2-635765a14893`, fixes shader time at 0.5 seconds, disables
+post-processing, renders at 2x supersampling with 4x MSAA, and downsamples to
+1024x1024. Browser reference renders should reproduce that path, framing,
+environment, time, resolution, and post-processing state before image comparison.
+
+Use IWSDK's live runtime inspection for browser verification. Locate the actual
+`BrushStroke` entity by brush GUID, inspect its ECS fields, scene transform,
+generated geometry, assigned material, shader uniforms, and compatibility result,
+then capture the real application render. A synthetic quad may be used only as a
+coarse shader-compilation/effect smoke check; it is not evidence that a generated
+brush stroke looks correct. The minimum debugging sequence is typecheck, connect
+to the existing IWSDK runtime, inspect the real stroke entity/material, check all
+browser logs, and screenshot the live scene.
+
 Suggested gates:
 
 - Do not label a brush `supported` without mesh-contract and browser/XR compile passes.
@@ -160,7 +180,9 @@ Suggested gates:
 2. Fix extraction output and regenerate through a temporary-directory byte comparison in CI.
 3. Extract every required prefab field, vertex layout, texture importer setting, render state, keyword, and environment dependency.
 4. Replace broad support labels with evidence states: asset-ready, mesh-contract-passing, browser compile, XR compile, and visually validated.
-5. Build Unity mesh-dump and browser reference-render fixtures.
+5. Add mesh dumping to the existing Open Brush `UiScreenshotter` fixture and
+   reproduce its deterministic brush path in the browser; do not replace the
+   existing screenshot corpus with a new visual target.
 
 Exit: CI explains exactly why every GUID passes or fails.
 
@@ -262,6 +284,9 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 - [`GeniusParticlesBrush.cs`](https://github.com/icosa-foundation/open-brush/blob/4786d55ad398bfc957d8e8eb26438920026aeaf6/Assets/Scripts/Brushes/GeniusParticlesBrush.cs)
 - [Export shader sources](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6/Support/GlTFShaders)
 - [Export manifest](https://github.com/icosa-foundation/open-brush/blob/4786d55ad398bfc957d8e8eb26438920026aeaf6/Support/exportManifest.json)
+- [Brush screenshot generator](https://github.com/icosa-foundation/open-brush/blob/4786d55ad398bfc957d8e8eb26438920026aeaf6/Assets/Editor/UiScreenshotter.cs)
+- Open Brush reference corpus path: `Support/Screenshots/postfx-disabled/`
+- [IWSDK](https://iwsdk.dev/) live scene/ECS inspection and browser/XR runtime tools
 
 ## Verification note
 
