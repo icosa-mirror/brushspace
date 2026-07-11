@@ -977,6 +977,9 @@ function generateParticleGeometry(
   options: BrushGeometryOptions,
   out: BrushGeometryArrays,
 ): boolean {
+  if (options.generatorClass === "GeniusParticlesBrush") {
+    return generateGeniusParticleGeometry(stroke, options, out);
+  }
   out.uv0Size = 2;
   const pointCount = stroke.controlPoints.length;
   const vertexCount = pointCount * 4;
@@ -1087,6 +1090,156 @@ function generateParticleGeometry(
   return reallocated;
 }
 
+function generateGeniusParticleGeometry(
+  stroke: StrokeData,
+  options: BrushGeometryOptions,
+  out: BrushGeometryArrays,
+): boolean {
+  out.uv0Size = 2;
+  const pointCount = stroke.controlPoints.length;
+  const totalLength = measureStrokeLength(stroke);
+  const particleRate = normalizePositive(
+    options.geometryParams?.particleRate,
+    1,
+  );
+  const spawnInterval = OPEN_BRUSH_GENIUS_PARTICLE_INTERVAL / particleRate;
+  const particleCount =
+    pointCount === 0 ? 0 : Math.floor(totalLength / spawnInterval) + 1;
+  const vertexCount = particleCount * 4;
+  const indexCount = particleCount * 6;
+  const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
+  const { positions, normals, tangents, colors, uvs, indices, bounds } = out;
+  const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
+  const pressureOpacityMin = normalizePressureOpacityMin(
+    options.pressureOpacityRange,
+  );
+  const pressureOpacityMax = normalizePressureOpacityMax(
+    options.pressureOpacityRange,
+  );
+  const descriptorOpacity = normalizeDescriptorOpacity(
+    options.geometryParams?.opacity,
+  );
+  const localBrushSize = getLocalBrushSize(stroke);
+  const sizeVariance = normalizeNonNegative(
+    options.geometryParams?.particleSizeVariance,
+  );
+  const particleSpeed = normalizeNonNegative(
+    options.geometryParams?.particleSpeed,
+  );
+  const minimumBrushSize = normalizePositive(
+    options.geometryParams?.brushSizeRange?.[0],
+    1,
+  );
+  const positionScale = particleSpeed / minimumBrushSize;
+  const randomizeAlpha =
+    options.geometryParams?.particleRandomizeAlpha === true;
+  const atlasRows = normalizeAtlasRows(options.geometryParams?.textureAtlasV);
+  const center: Vec3 = [0, 0, 0];
+  const sphereOffset: Vec3 = [0, 0, 0];
+  const particleUp: Vec3 = [0, 0, 0];
+  const particleRight: Vec3 = [0, 0, 0];
+  const particleRotation: Quat = [0, 0, 0, 1];
+  let segmentIndex = Math.min(1, pointCount - 1);
+  let segmentStartLength = 0;
+  let segmentEndLength =
+    pointCount > 1
+      ? distanceBetweenControlPoints(
+          stroke.controlPoints[0],
+          stroke.controlPoints[1],
+        )
+      : 0;
+  let particleWithinKnot = 0;
+
+  for (let particleIndex = 0; particleIndex < particleCount; particleIndex += 1) {
+    const distanceOnStroke = particleIndex * spawnInterval;
+    while (
+      segmentIndex < pointCount - 1 &&
+      distanceOnStroke > segmentEndLength
+    ) {
+      segmentStartLength = segmentEndLength;
+      segmentIndex += 1;
+      segmentEndLength += distanceBetweenControlPoints(
+        stroke.controlPoints[segmentIndex - 1],
+        stroke.controlPoints[segmentIndex],
+      );
+      particleWithinKnot = 0;
+    }
+    const previousPoint =
+      stroke.controlPoints[Math.max(0, segmentIndex - 1)] ??
+      stroke.controlPoints[0];
+    const currentPoint =
+      stroke.controlPoints[segmentIndex] ?? stroke.controlPoints[0];
+    const segmentLength = Math.max(
+      segmentEndLength - segmentStartLength,
+      EPSILON,
+    );
+    const ratio = clamp01(
+      (distanceOnStroke - segmentStartLength) / segmentLength,
+    );
+    center[0] =
+      previousPoint.position[0] +
+      (currentPoint.position[0] - previousPoint.position[0]) * ratio;
+    center[1] =
+      previousPoint.position[1] +
+      (currentPoint.position[1] - previousPoint.position[1]) * ratio;
+    center[2] =
+      previousPoint.position[2] +
+      (currentPoint.position[2] - previousPoint.position[2]) * ratio;
+
+    const pressure =
+      particleCount === 1
+        ? Math.max(0.8, currentPoint.pressure)
+        : currentPoint.pressure;
+    const salt = 16 * (segmentIndex * 16 + particleWithinKnot);
+    const size =
+      localBrushSize *
+      getPressureSizeMultiplier(pressure, pressureSizeMin) *
+      (1 + statelessRandom01(stroke.seed, salt) * sizeVariance);
+    writeRandomUnitSphere(stroke.seed, salt + 2, sphereOffset);
+    center[0] += sphereOffset[0] * size * positionScale;
+    center[1] += sphereOffset[1] * size * positionScale;
+    center[2] += sphereOffset[2] * size * positionScale;
+    writeRandomRotation(stroke.seed, salt + 4, particleRotation);
+    rotateByQuaternion(particleRotation, VEC_UP, particleUp);
+    rotateByQuaternion(particleRotation, VEC_RIGHT, particleRight);
+    const opacity = randomizeAlpha
+      ? statelessRandom01(stroke.seed, salt + 1)
+      : getPressureOpacityMultiplier(
+          pressure,
+          pressureOpacityMin,
+          pressureOpacityMax,
+        ) * descriptorOpacity;
+    const atlasCell =
+      atlasRows > 1
+        ? Math.min(3, Math.floor(statelessRandom01(stroke.seed, salt + 8) * 4))
+        : 0;
+    writeGeniusParticleQuad(
+      positions,
+      normals,
+      tangents,
+      colors,
+      uvs,
+      indices,
+      bounds,
+      particleIndex,
+      center,
+      particleUp,
+      particleRight,
+      size,
+      stroke.color,
+      opacity,
+      atlasRows > 1,
+      atlasCell,
+    );
+    particleWithinKnot += 1;
+  }
+
+  out.family = "particle";
+  out.vertexCount = vertexCount;
+  out.indexCount = indexCount;
+  return reallocated;
+}
+
 function getPressureSizeMultiplier(
   pressure: number,
   pressureSizeMin: number,
@@ -1129,6 +1282,21 @@ function normalizeDescriptorOpacity(value: number | undefined): number {
   return typeof value === "number" && Number.isFinite(value)
     ? clamp01(value)
     : 1;
+}
+
+function normalizePositive(
+  value: number | undefined,
+  fallback: number,
+): number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? value
+    : fallback;
+}
+
+function normalizeNonNegative(value: number | undefined): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.max(0, value)
+    : 0;
 }
 
 function normalizeTileRate(value: number | undefined): number {
@@ -1238,6 +1406,34 @@ function statelessRandom01(seed: number, salt: number): number {
   value = Math.imul(value ^ (value >>> 15), 0x846ca68b) >>> 0;
   value = (value ^ (value >>> 16)) >>> 0;
   return Math.min(Math.fround(value) / 0x1_0000_0000, 1 - 2 ** -24);
+}
+
+function writeRandomUnitSphere(
+  seed: number,
+  salt: number,
+  out: Vec3,
+): void {
+  const z = statelessRandom01(seed, salt) * 2 - 1;
+  const angle = statelessRandom01(seed, salt + 1) * Math.PI * 2;
+  const radius = Math.sqrt(Math.max(0, 1 - z * z));
+  out[0] = radius * Math.cos(angle);
+  out[1] = radius * Math.sin(angle);
+  out[2] = z;
+}
+
+function writeRandomRotation(
+  seed: number,
+  salt: number,
+  out: Quat,
+): void {
+  const firstRadius = Math.sqrt(statelessRandom01(seed, salt + 1));
+  const firstAngle = statelessRandom01(seed, salt) * Math.PI * 2;
+  const secondRadius = Math.sqrt(Math.max(0, 1 - firstRadius * firstRadius));
+  const secondAngle = statelessRandom01(seed, salt + 2) * Math.PI * 2;
+  out[0] = Math.sin(firstAngle) * firstRadius;
+  out[1] = Math.cos(firstAngle) * firstRadius;
+  out[2] = Math.sin(secondAngle) * secondRadius;
+  out[3] = Math.cos(secondAngle) * secondRadius;
 }
 
 function shiftHue(color: Rgba, hueDegrees: number): Rgba {
@@ -1392,6 +1588,153 @@ function clamp01(value: number): number {
   return value;
 }
 
+function writeGeniusParticleQuad(
+  positions: Float32Array,
+  normals: Float32Array,
+  tangents: Float32Array,
+  colors: Float32Array,
+  uvs: Float32Array,
+  indices: Uint32Array,
+  bounds: BrushGeometryBounds,
+  particleIndex: number,
+  center: Vec3,
+  up: Vec3,
+  right: Vec3,
+  size: number,
+  color: Rgba,
+  opacity: number,
+  usesAtlas: boolean,
+  atlasCell: number,
+): void {
+  const vertex = particleIndex * 4;
+  const halfSize = size * 0.5;
+  const atlasScale = usesAtlas ? 0.5 : 1;
+  const atlasU = usesAtlas ? (atlasCell % 2) * 0.5 : 0;
+  const atlasV = usesAtlas ? Math.floor(atlasCell / 2) * 0.5 : 0;
+  writeGeniusParticleVertex(
+    positions,
+    normals,
+    tangents,
+    colors,
+    uvs,
+    bounds,
+    vertex,
+    center,
+    up,
+    right,
+    -halfSize,
+    halfSize,
+    color,
+    opacity,
+    atlasU,
+    atlasV + atlasScale,
+  );
+  writeGeniusParticleVertex(
+    positions,
+    normals,
+    tangents,
+    colors,
+    uvs,
+    bounds,
+    vertex + 1,
+    center,
+    up,
+    right,
+    -halfSize,
+    -halfSize,
+    color,
+    opacity,
+    atlasU,
+    atlasV,
+  );
+  writeGeniusParticleVertex(
+    positions,
+    normals,
+    tangents,
+    colors,
+    uvs,
+    bounds,
+    vertex + 2,
+    center,
+    up,
+    right,
+    halfSize,
+    halfSize,
+    color,
+    opacity,
+    atlasU + atlasScale,
+    atlasV + atlasScale,
+  );
+  writeGeniusParticleVertex(
+    positions,
+    normals,
+    tangents,
+    colors,
+    uvs,
+    bounds,
+    vertex + 3,
+    center,
+    up,
+    right,
+    halfSize,
+    -halfSize,
+    color,
+    opacity,
+    atlasU + atlasScale,
+    atlasV,
+  );
+  const indexOffset = particleIndex * 6;
+  indices[indexOffset] = vertex;
+  indices[indexOffset + 1] = vertex + 1;
+  indices[indexOffset + 2] = vertex + 3;
+  indices[indexOffset + 3] = vertex;
+  indices[indexOffset + 4] = vertex + 3;
+  indices[indexOffset + 5] = vertex + 2;
+}
+
+function writeGeniusParticleVertex(
+  positions: Float32Array,
+  normals: Float32Array,
+  tangents: Float32Array,
+  colors: Float32Array,
+  uvs: Float32Array,
+  bounds: BrushGeometryBounds,
+  vertex: number,
+  center: Vec3,
+  up: Vec3,
+  right: Vec3,
+  upScale: number,
+  rightScale: number,
+  color: Rgba,
+  opacity: number,
+  u: number,
+  v: number,
+): void {
+  const positionOffset = vertex * 3;
+  positions[positionOffset] =
+    center[0] + up[0] * upScale + right[0] * rightScale;
+  positions[positionOffset + 1] =
+    center[1] + up[1] * upScale + right[1] * rightScale;
+  positions[positionOffset + 2] =
+    center[2] + up[2] * upScale + right[2] * rightScale;
+  const normalX = right[1] * up[2] - right[2] * up[1];
+  const normalY = right[2] * up[0] - right[0] * up[2];
+  const normalZ = right[0] * up[1] - right[1] * up[0];
+  normals[positionOffset] = normalX;
+  normals[positionOffset + 1] = normalY;
+  normals[positionOffset + 2] = normalZ;
+  const tangentOffset = vertex * 4;
+  tangents[tangentOffset] = right[0];
+  tangents[tangentOffset + 1] = right[1];
+  tangents[tangentOffset + 2] = right[2];
+  tangents[tangentOffset + 3] = 1;
+  writeColor(colors, vertex, color, opacity);
+  const uvOffset = vertex * 2;
+  uvs[uvOffset] = u;
+  uvs[uvOffset + 1] = 1 - v;
+  includeBounds(bounds, positions, vertex);
+}
+
 function writeParticleVertex(
   positions: Float32Array,
   normals: Float32Array,
@@ -1427,6 +1770,7 @@ const VEC_RIGHT: Vec3 = [1, 0, 0];
 const EPSILON = 1e-6;
 const OPEN_BRUSH_RIBBON_MINIMUM_MOVE_METERS = 5e-4;
 const OPEN_BRUSH_TUBE_MINIMUM_MOVE_METERS = 5e-4;
+const OPEN_BRUSH_GENIUS_PARTICLE_INTERVAL = 0.0025;
 
 function getLocalBrushSize(stroke: StrokeData): number {
   const brushScale = Number.isFinite(stroke.brushScale)

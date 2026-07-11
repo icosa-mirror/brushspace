@@ -64,6 +64,7 @@ export interface BrushTextureImporterSettings {
 }
 
 export interface BrushGeometryParams {
+  brushSizeRange?: BrushSizeRange;
   tileRate?: number;
   textureAtlasV?: number;
   renderBackfaces?: boolean;

@@ -484,6 +484,67 @@ describe("brush geometry generation", () => {
     expect(getGeneratedIndexCount(geometry)).toBe(18);
   });
 
+  it("spawns Genius particles at source distance intervals", () => {
+    const stroke = createTwoPointStroke({
+      guid: "genius-distance-particles",
+      brushSize: 0.2,
+      pressure: 1,
+    });
+    stroke.controlPoints[1].position = [0.1, 0, 0];
+    const options = {
+      generatorClass: "GeniusParticlesBrush",
+      pressureSizeRange: [0.2, 1] as const,
+      geometryParams: {
+        brushSizeRange: [1, 2] as [number, number],
+        particleRate: 0.1,
+        particleSpeed: 0,
+        particleSizeVariance: 0,
+        textureAtlasV: 4,
+      },
+    };
+
+    const geometry = generateBrushGeometry(stroke, "particle", options);
+    const repeated = generateBrushGeometry(stroke, "particle", options);
+
+    expect(getGeneratedVertexCount(geometry)).toBe(20);
+    expect(getGeneratedIndexCount(geometry)).toBe(30);
+    expect(geometry.positions).toEqual(repeated.positions);
+    for (let particle = 0; particle < 5; particle += 1) {
+      let centerX = 0;
+      for (let corner = 0; corner < 4; corner += 1) {
+        centerX += geometry.positions[(particle * 4 + corner) * 3];
+      }
+      expect(centerX / 4).toBeCloseTo(particle * 0.025);
+    }
+  });
+
+  it("uses the Genius single-particle pressure floor", () => {
+    const stroke = createTwoPointStroke({
+      guid: "genius-single-particle",
+      brushSize: 0.2,
+      pressure: 0,
+    });
+    stroke.controlPoints[1].position = [0, 0, 0];
+
+    const geometry = generateBrushGeometry(stroke, "particle", {
+      generatorClass: "GeniusParticlesBrush",
+      pressureSizeRange: [0.2, 1],
+      geometryParams: {
+        brushSizeRange: [1, 2],
+        particleRate: 0.1,
+        particleSpeed: 0,
+      },
+    });
+
+    const edgeLength = Math.hypot(
+      geometry.positions[3] - geometry.positions[0],
+      geometry.positions[4] - geometry.positions[1],
+      geometry.positions[5] - geometry.positions[2],
+    );
+    expect(getGeneratedVertexCount(geometry)).toBe(4);
+    expect(edgeLength).toBeCloseTo(0.168);
+  });
+
   it("creates fallback geometry and warning for unsupported brushes", () => {
     const stroke = withBrushGuid(fixtureStroke, "00000000-0000-0000-0000-000000000000");
     const geometry = generateBrushGeometry(stroke, "unsupported");
