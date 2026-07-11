@@ -71,6 +71,7 @@ function resolveRequestedBumpMappingMode(): BrushBumpMappingMode {
  */
 export class BrushShaderLibrary {
   private readonly materials = new Map<string, ShaderMaterial>();
+  private readonly bakedMaterials = new Map<string, ShaderMaterial>();
   private readonly pending = new Map<string, Promise<ShaderMaterial | undefined>>();
   private readonly materialLoadedListeners = new Set<
     (guid: string, material: ShaderMaterial) => void
@@ -126,14 +127,19 @@ export class BrushShaderLibrary {
     entry: BrushInventoryEntry,
     options?: { allowAnyGeometry?: boolean },
   ): Promise<ShaderMaterial | undefined> {
-    const cached = this.materials.get(entry.guid);
+    const allowAnyGeometry = options?.allowAnyGeometry === true;
+    const targetMaterials = allowAnyGeometry
+      ? this.bakedMaterials
+      : this.materials;
+    const cached = targetMaterials.get(entry.guid);
     if (cached) {
       return cached;
     }
-    let promise = this.pending.get(entry.guid);
+    const pendingKey = `${allowAnyGeometry ? "baked" : "generated"}:${entry.guid}`;
+    let promise = this.pending.get(pendingKey);
     if (!promise) {
-      promise = this.createMaterial(entry, options);
-      this.pending.set(entry.guid, promise);
+      promise = this.createMaterial(entry, options, targetMaterials);
+      this.pending.set(pendingKey, promise);
     }
     return promise;
   }
@@ -229,6 +235,7 @@ export class BrushShaderLibrary {
   private async createMaterial(
     entry: BrushInventoryEntry,
     options?: { allowAnyGeometry?: boolean },
+    targetMaterials: Map<string, ShaderMaterial> = this.materials,
   ): Promise<ShaderMaterial | undefined> {
     const descriptor = createBrushShaderMaterialDescriptor(entry, options);
     if (!descriptor) {
@@ -268,15 +275,17 @@ export class BrushShaderLibrary {
       } else if (descriptor.blending === "alpha") {
         material.blending = NormalBlending;
       }
-      this.materials.set(entry.guid, material);
-      for (const listener of this.materialLoadedListeners) {
-        try {
-          listener(entry.guid, material);
-        } catch (error) {
-          console.warn(
-            `[BrushMaterialUpgrade] listener failed for ${entry.guid}:`,
-            error,
-          );
+      targetMaterials.set(entry.guid, material);
+      if (targetMaterials === this.materials) {
+        for (const listener of this.materialLoadedListeners) {
+          try {
+            listener(entry.guid, material);
+          } catch (error) {
+            console.warn(
+              `[BrushMaterialUpgrade] listener failed for ${entry.guid}:`,
+              error,
+            );
+          }
         }
       }
       openBrushShaderCompatibility.record({
