@@ -66,29 +66,28 @@ Open Brush generators consume knots containing raw and smoothed pose/pressure, f
 
 ### Ribbons
 
-The local ribbon is two indexed vertices per control point. Important differences are:
+The local ribbon now distinguishes distance, stretch, and unitized UV modes; uses
+physical length and tile rate where required; selects atlas rows deterministically;
+emits explicit hue-shifted backfaces; and supplies normals and tangents. Generated
+Unity UVs are converted to the glTF convention consumed by the exported shaders.
+Important remaining differences are:
 
-- Distance, stretch, and unitized UV brushes are not distinct.
-- U is point-index fraction, not accumulated distance times `m_TileRate`.
-- `m_TextureAtlasV` and deterministic atlas selection are ignored.
-- Explicit backface geometry and `m_BackfaceHueShift` are replaced by `DoubleSide`.
-- Tangents are absent, so normal-mapped lighting cannot match.
-- Several extracted descriptor fields do not affect generation.
+- Open Brush knot smoothing, break/restart, discard, and adjacent-knot rebuild rules are absent.
+- The shared indexed strip does not reproduce every source generator's triangle-soup topology and seams.
+- Head/tail simplification and per-generator minimum-length rules are incomplete.
 - Custom vertex layouts for DoubleTapered, Electricity, and Waveform are absent.
 
 ### Tubes
 
-The eight-sided parallel-transport tube captures the broad shape, but not upstream `TubeBrush` behavior:
+The parallel-transport tube now consumes extracted side count, end-cap, hard-edge,
+UV-style, cap-aspect, atlas, radius-packing, taper, and petal settings. It uses
+circumference-dependent distance UVs and emits tangents. Remaining differences are:
 
-- Fixed side count instead of prefab `m_PointsInClosedCircle`.
-- Center-fan caps instead of source cap topology and `m_CapAspect` extension.
-- No `m_EndCaps`, `m_HardEdges`, distance/stretch mode, random U, or V atlas.
-- No circumference-dependent UV rate.
-- No radius in UV0.z.
-- No double-taper, sine, comet, taper, or petal modifiers.
-- No break-angle logic or exact tangents/normals.
-
-The material code still describes an interim four-sided tube although generation now uses eight sides, so culling policy should be revalidated.
+- Cap/ring topology has not been byte-compared against each upstream `TubeBrush` variant.
+- Generator break angles, knot smoothing, and incremental rebuild semantics are absent.
+- Modifier behavior is approximate rather than validated against Unity mesh dumps.
+- Disco and LightWire still require custom vertex layouts.
+- Culling and seam behavior need per-brush visual validation.
 
 ### Particles
 
@@ -114,15 +113,21 @@ Finalized strokes remain separate meshes and draw calls, frustum culling is disa
 
 ### Vertex data is the limiting contract
 
-The current gate checks `vertexIsDefault` and a broad geometry family. Even default shaders only match if attribute values have the correct semantics. The six excluded custom-vertex ribbon/tube brushes are DoubleTaperedFlat, DoubleTaperedMarker, Electricity, Waveform, Disco, and LightWire. Particles and special brushes also require UV1, 4D UV0, vertex IDs, or packed deformation data. The runtime buffer supplies only position, normal, color, 2D UV, and index.
+The current gate checks `vertexIsDefault` and a broad geometry family. Even default shaders only match if attribute values have the correct semantics. The six excluded custom-vertex ribbon/tube brushes are DoubleTaperedFlat, DoubleTaperedMarker, Electricity, Waveform, Disco, and LightWire. Particles and special brushes also require UV1, 4D UV0, vertex IDs, or packed deformation data. The runtime supplies position, normal, tangent, color, 2D or packed 3D UV0, and index, but not the remaining custom layouts.
 
 ### Descriptor data is extracted but unused
 
-Records contain tile rate, atlas count, backface settings, radius packing, opacity, audio-reactive flags, color constraints, pressure ranges, and solid minimum length. Much of this is metadata only. Thirty-two records are marked audio-reactive, but brush materials have no beat/FFT/waveform input pipeline; draw sounds are a separate feature.
+Records contain tile rate, atlas count, backface settings, radius packing, opacity, audio-reactive flags, color constraints, pressure ranges, and solid minimum length. Ribbon and tube generation now consumes many of these fields, but head/tail rules and several special-generator settings remain metadata only. Thirty-two records are marked audio-reactive, but brush materials have no beat/FFT/waveform input pipeline; draw sounds are a separate feature.
 
 ### Texture semantics are flattened
 
-Every texture is loaded with no color-space conversion, repeat wrapping, and default filtering. Extraction does not preserve Unity sRGB/linear intent, normal-map treatment, per-axis wrap, filtering, mipmaps, anisotropy, alpha handling, scale/offset, or compression policy. These differences matter for masks, normal maps, displacement, and atlases.
+Extraction and loading preserve sRGB/linear intent, per-axis wrapping, filter mode,
+mipmap generation, and anisotropy, and runtime `_TexelSize` uniforms now use the
+actual loaded image dimensions. Texture scale/offset, compression/transcoding,
+platform overrides, and full Unity alpha/import semantics remain unported.
+Derivative bump mapping is deliberately disabled: enabling the exported derivative
+branch made lit brushes render entirely black on physical Quest hardware. Normal-map
+support must remain classified as incomplete until a replacement is verified on-headset.
 
 ### Render state and environment are partial
 
@@ -130,9 +135,11 @@ The runtime maps broad blend mode, culling, transparency, and depth write. It do
 
 ### Diagnostics and extraction regression
 
-Shader failures fall back after a generic warning, without a durable per-GUID compatibility result or device compile matrix. Existing fallback meshes are not explicitly upgraded when a shader loads later.
-
-There is also a concrete extraction bug: the script header and runtime imports use `src/brushes/generated`, but `outGeneratedDir` is `src/openbrush/generated`. Running the documented extractor would write an unused second catalog and leave runtime data stale.
+Shader loads and warmups record durable per-GUID compatibility results, and existing
+fallback meshes are upgraded when their shader material becomes available. The
+remaining diagnostic gap is a persisted browser/Quest compile matrix tied to the
+visual reference corpus. Extraction now writes the catalog consumed by the runtime
+and checks generated additive shaders for unresolved emission macros.
 
 ## Required fidelity harness
 
