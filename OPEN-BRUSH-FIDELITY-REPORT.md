@@ -135,6 +135,10 @@ platform overrides, and full Unity alpha/import semantics remain unported.
 Derivative bump mapping is deliberately disabled: enabling the exported derivative
 branch made lit brushes render entirely black on physical Quest hardware. Normal-map
 support must remain classified as incomplete until a replacement is verified on-headset.
+A guarded replacement can be exercised with `?bump-mapping=guarded`; it clamps
+degenerate gradients, passes the Oil Paint pixel A/B check, and renders in desktop
+and emulated immersive XR, but is not the default while physical-Quest evidence is
+absent.
 
 ### Render state and environment are partial
 
