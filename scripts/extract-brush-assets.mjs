@@ -313,6 +313,24 @@ function extractGeometryParams(descriptorText) {
     brushSizeRange: parseYamlVec2(descriptorText, "m_BrushSizeRange"),
     pressureSizeRange: parseYamlVec2(descriptorText, "m_PressureSizeRange"),
     pressureOpacityRange: parseYamlVec2(descriptorText, "m_PressureOpacityRange"),
+    particleRate: parseYamlScalar(descriptorText, "m_ParticleRate"),
+    particleSpeed: parseYamlScalar(descriptorText, "m_ParticleSpeed"),
+    particleInitialRotationRange: parseYamlScalar(
+      descriptorText,
+      "m_ParticleInitialRotationRange",
+    ),
+    particleRandomizeAlpha:
+      parseYamlScalar(descriptorText, "m_RandomizeAlpha") === 1,
+    particleSizeVariance: parseYamlScalar(descriptorText, "m_SizeVariance"),
+    particlePositionVariance: parseYamlScalar(
+      descriptorText,
+      "m_PositionVariance",
+    ),
+    particleRotationVariance: parseYamlScalar(
+      descriptorText,
+      "m_RotationVariance",
+    ),
+    particleSizeRatio: parseYamlVec2(descriptorText, "m_SizeRatio"),
   };
 }
 

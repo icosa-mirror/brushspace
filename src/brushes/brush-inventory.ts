@@ -84,6 +84,14 @@ export interface BrushGeometryParams {
   audioReactive?: boolean;
   colorLuminanceMin?: number;
   colorSaturationMax?: number;
+  particleRate?: number;
+  particleSpeed?: number;
+  particleInitialRotationRange?: number;
+  particleRandomizeAlpha?: boolean;
+  particleSizeVariance?: number;
+  particlePositionVariance?: number;
+  particleRotationVariance?: number;
+  particleSizeRatio?: [number, number];
 }
 
 /** Geometry generator family resolved from the Unity brush prefab. */

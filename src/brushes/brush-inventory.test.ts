@@ -91,6 +91,16 @@ describe("Open Brush brush inventory", () => {
       brushSizeRange: [1, 2],
       pressureSizeRange: [0.2, 1],
       pressureOpacityRange: [1, 1],
+      geometryParams: {
+        particleRate: 0.05,
+        particleSpeed: 0.1,
+        particleInitialRotationRange: 360,
+        particleRandomizeAlpha: false,
+        particleSizeVariance: 0,
+        particlePositionVariance: 0,
+        particleRotationVariance: 360,
+        particleSizeRatio: [1, 1],
+      },
     });
   });
 
