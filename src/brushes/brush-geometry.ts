@@ -1114,7 +1114,10 @@ function generateSprayParticleGeometry(
   out.uv0Size = 2;
   const localBrushSize = getLocalBrushSize(stroke);
   const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
-  const particleRate = normalizePositive(options.geometryParams?.particleRate, 1);
+  const particleRate = normalizePositive(
+    options.geometryParams?.sprayRateMultiplier,
+    1,
+  );
   let quadCount = 0;
   for (let pointIndex = 1; pointIndex < stroke.controlPoints.length; pointIndex += 1) {
     const point = stroke.controlPoints[pointIndex];

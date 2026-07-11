@@ -351,6 +351,10 @@ function extractGeometryParams(descriptorText) {
     pressureSizeRange: parseYamlVec2(descriptorText, "m_PressureSizeRange"),
     pressureOpacityRange: parseYamlVec2(descriptorText, "m_PressureOpacityRange"),
     particleRate: parseYamlScalar(descriptorText, "m_ParticleRate"),
+    sprayRateMultiplier: parseYamlScalar(
+      descriptorText,
+      "m_SprayRateMultiplier",
+    ),
     particleSpeed: parseYamlScalar(descriptorText, "m_ParticleSpeed"),
     particleInitialRotationRange: parseYamlScalar(
       descriptorText,

@@ -548,7 +548,7 @@ describe("brush geometry generation", () => {
       pressureSizeRange: [0.2, 1] as const,
       pressureOpacityRange: [1, 1] as const,
       geometryParams: {
-        particleRate: 1,
+        sprayRateMultiplier: 1,
         particleSizeVariance: 0,
         particlePositionVariance: 0,
         particleRotationVariance: 0,

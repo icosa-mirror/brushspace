@@ -66,6 +66,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -143,6 +144,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -217,6 +219,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -294,6 +297,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -368,6 +372,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -445,6 +450,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -519,6 +525,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": true,
@@ -596,6 +603,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": true,
@@ -657,6 +665,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -722,6 +731,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -787,6 +797,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -838,6 +849,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -902,6 +914,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -952,6 +965,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -1002,6 +1016,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -1049,6 +1064,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -1110,6 +1126,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -1174,6 +1191,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -1221,6 +1239,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -1285,6 +1304,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -1351,6 +1371,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -1416,6 +1437,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -1481,6 +1503,7 @@
           1
         ],
         "particleRate": 0.35,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": true,
@@ -1547,6 +1570,7 @@
           1
         ],
         "particleRate": 0.05,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0.1,
         "particleInitialRotationRange": 360,
         "particleRandomizeAlpha": false,
@@ -1612,6 +1636,7 @@
           1
         ],
         "particleRate": 0.35,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 1,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": true,
@@ -1664,6 +1689,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -1729,6 +1755,7 @@
           1
         ],
         "particleRate": 0.3,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0.65,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": true,
@@ -1795,6 +1822,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": true,
@@ -1860,6 +1888,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -1925,6 +1954,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 3,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -1989,6 +2019,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 3,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -2063,6 +2094,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -2140,6 +2172,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -2214,6 +2247,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -2291,6 +2325,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -2352,6 +2387,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 2,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -2416,6 +2452,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 2,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -2477,6 +2514,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -2542,6 +2580,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -2589,6 +2628,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -2654,6 +2694,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -2732,6 +2773,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -2810,6 +2852,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -2873,6 +2916,7 @@
           1
         ],
         "particleRate": 0.15,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0.65,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": true,
@@ -2924,6 +2968,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -2999,6 +3044,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -3064,6 +3110,7 @@
           1
         ],
         "particleRate": 0,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -3129,6 +3176,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -3190,6 +3238,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -3265,6 +3314,7 @@
           1
         ],
         "particleRate": 0.1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": true,
@@ -3318,6 +3368,7 @@
           1
         ],
         "particleRate": 0,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 1,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -3392,6 +3443,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -3453,6 +3505,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -3515,6 +3568,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -3576,6 +3630,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -3636,6 +3691,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -3696,6 +3752,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -3784,6 +3841,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -3845,6 +3903,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -3897,6 +3956,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -3949,6 +4009,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -4015,6 +4076,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -4093,6 +4155,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 2,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -4154,6 +4217,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 3,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -4218,6 +4282,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -4283,6 +4348,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -4329,6 +4395,7 @@
           0
         ],
         "particleRate": 0,
+        "sprayRateMultiplier": 0,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -4373,6 +4440,7 @@
           0
         ],
         "particleRate": 0,
+        "sprayRateMultiplier": 0,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -4417,6 +4485,7 @@
           0
         ],
         "particleRate": 0,
+        "sprayRateMultiplier": 0,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -4461,6 +4530,7 @@
           0
         ],
         "particleRate": 0,
+        "sprayRateMultiplier": 0,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -4505,6 +4575,7 @@
           0
         ],
         "particleRate": 0,
+        "sprayRateMultiplier": 0,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -4549,6 +4620,7 @@
           0
         ],
         "particleRate": 0,
+        "sprayRateMultiplier": 0,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -4593,6 +4665,7 @@
           0
         ],
         "particleRate": 0,
+        "sprayRateMultiplier": 0,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -4637,6 +4710,7 @@
           0
         ],
         "particleRate": 0,
+        "sprayRateMultiplier": 0,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -4708,6 +4782,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": true,
@@ -4785,6 +4860,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": true,
@@ -4846,6 +4922,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -4920,6 +4997,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -5007,6 +5085,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -5084,6 +5163,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": true,
@@ -5148,6 +5228,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -5222,6 +5303,7 @@
           1
         ],
         "particleRate": 0,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 1,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -5286,6 +5368,7 @@
           1
         ],
         "particleRate": 0.35,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0.05,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": true,
@@ -5351,6 +5434,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -5438,6 +5522,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -5515,6 +5600,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -5565,6 +5651,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -5616,6 +5703,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -5666,6 +5754,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -5716,6 +5805,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -5766,6 +5856,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -5843,6 +5934,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": true,
@@ -5930,6 +6022,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": true,
@@ -6017,6 +6110,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -6068,6 +6162,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -6128,6 +6223,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -6202,6 +6298,7 @@
           1
         ],
         "particleRate": 0,
+        "sprayRateMultiplier": 4,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -6267,6 +6364,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -6341,6 +6439,7 @@
           1
         ],
         "particleRate": 0,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -6406,6 +6505,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -6481,6 +6581,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -6545,6 +6646,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -6609,6 +6711,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -6659,6 +6762,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -6734,6 +6838,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -6812,6 +6917,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -6876,6 +6982,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": true,
@@ -6967,6 +7074,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -7057,6 +7165,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -7135,6 +7244,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -7185,6 +7295,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -7245,6 +7356,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -7306,6 +7418,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -7380,6 +7493,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -7431,6 +7545,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -7482,6 +7597,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -7533,6 +7649,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -7583,6 +7700,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -7633,6 +7751,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -7711,6 +7830,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 2,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -7788,6 +7908,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -7838,6 +7959,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,
@@ -7888,6 +8010,7 @@
           1
         ],
         "particleRate": 1,
+        "sprayRateMultiplier": 1,
         "particleSpeed": 0,
         "particleInitialRotationRange": 0,
         "particleRandomizeAlpha": false,

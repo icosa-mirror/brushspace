@@ -86,6 +86,7 @@ export interface BrushGeometryParams {
   colorLuminanceMin?: number;
   colorSaturationMax?: number;
   particleRate?: number;
+  sprayRateMultiplier?: number;
   particleSpeed?: number;
   particleInitialRotationRange?: number;
   particleRandomizeAlpha?: boolean;

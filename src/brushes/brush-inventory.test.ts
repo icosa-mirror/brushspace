@@ -102,6 +102,15 @@ describe("Open Brush brush inventory", () => {
         particleSizeRatio: [1, 1],
       },
     });
+    expect(
+      findBrushByGuid(inventory, "8dc4a70c-d558-4efd-a5ed-d4e860f40dc3"),
+    ).toMatchObject({
+      name: "Splatter",
+      generatorClass: "SprayBrush",
+      geometryParams: {
+        sprayRateMultiplier: 3,
+      },
+    });
   });
 
   it("preserves standard then experimental Open Brush manifest order", () => {
