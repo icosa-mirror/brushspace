@@ -85,7 +85,7 @@ export function getBrushShaderEligibility(
   const hasMidpointParticleContract =
     entry.geometryFamily === "particle" &&
     entry.generatorClass === "MidpointPlusLifetimeSprayBrush" &&
-    entry.shaderAssets.vertexIsDefault;
+    (entry.shaderAssets.vertexIsDefault || entry.name === "HyperGrid");
   const hasWaveformContract =
     entry.geometryFamily === "emissive" &&
     entry.name === "Waveform" &&
@@ -108,6 +108,7 @@ export function getBrushShaderEligibility(
   if (
     !entry.shaderAssets.vertexIsDefault &&
     !hasGeniusParticleContract &&
+    !hasMidpointParticleContract &&
     !hasWaveformContract &&
     !hasDoubleTaperedContract &&
     !hasElectricityContract &&

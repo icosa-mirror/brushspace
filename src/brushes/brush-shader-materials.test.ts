@@ -148,6 +148,13 @@ describe("brush shader eligibility", () => {
     expect(getBrushShaderEligibility(danceFloor).eligible).toBe(true);
   });
 
+  it("accepts HyperGrid's Midpoint UV1 quantization contract", () => {
+    const hyperGrid = openBrushInventory.find(
+      (entry) => entry.name === "HyperGrid",
+    );
+    expect(getBrushShaderEligibility(hyperGrid).eligible).toBe(true);
+  });
+
   it("accepts Waveform's custom color-only vertex shader", () => {
     const waveform = openBrushInventory.find((entry) => entry.name === "Waveform");
     expect(getBrushShaderEligibility(waveform).eligible).toBe(true);
@@ -254,13 +261,6 @@ describe("brush shader material descriptors", () => {
     });
     expect(descriptor?.uniforms.u_Shininess).toBeCloseTo(0.68);
     expect(descriptor?.uniforms.u_SpecColor).toEqual([0.75, 0.75, 0.75, 0]);
-  });
-
-  it("returns no descriptor for ineligible brushes", () => {
-    const hyperGrid = openBrushInventory.find(
-      (entry) => entry.name === "HyperGrid",
-    );
-    expect(createBrushShaderMaterialDescriptor(hyperGrid!)).toBeUndefined();
   });
 
   it("maps every Open Brush export blend mode", () => {

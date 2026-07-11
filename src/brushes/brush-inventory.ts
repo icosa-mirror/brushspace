@@ -275,7 +275,7 @@ function resolveBrushSupport(
       record.generatorClass === "SprayBrush" && record.vertexIsDefault;
     const hasMidpointParticleContract =
       record.generatorClass === "MidpointPlusLifetimeSprayBrush" &&
-      record.vertexIsDefault;
+      (record.vertexIsDefault || brush.name === "HyperGrid");
     const hasParticleContract =
       hasGeniusParticleContract ||
       hasSprayParticleContract ||
