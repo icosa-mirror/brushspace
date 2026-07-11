@@ -60,6 +60,9 @@ interface UniformHolder {
 export class BrushShaderLibrary {
   private readonly materials = new Map<string, ShaderMaterial>();
   private readonly pending = new Map<string, Promise<ShaderMaterial | undefined>>();
+  private readonly materialLoadedListeners = new Set<
+    (guid: string, material: ShaderMaterial) => void
+  >();
   private readonly lightWorld0 = new Matrix4().fromArray(OPENBRUSH_SCENE_LIGHT_0_MATRIX);
   private readonly lightWorld1 = new Matrix4().fromArray(OPENBRUSH_SCENE_LIGHT_1_MATRIX);
   private readonly viewMatrix = new Matrix4();
@@ -89,6 +92,22 @@ export class BrushShaderLibrary {
 
   get(guid: string): ShaderMaterial | undefined {
     return this.materials.get(guid);
+  }
+
+  isManaged(material: unknown): boolean {
+    for (const managed of this.materials.values()) {
+      if (managed === material) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  subscribeMaterialLoaded(
+    listener: (guid: string, material: ShaderMaterial) => void,
+  ): () => void {
+    this.materialLoadedListeners.add(listener);
+    return () => this.materialLoadedListeners.delete(listener);
   }
 
   async load(
@@ -232,6 +251,16 @@ export class BrushShaderLibrary {
         material.blending = NormalBlending;
       }
       this.materials.set(entry.guid, material);
+      for (const listener of this.materialLoadedListeners) {
+        try {
+          listener(entry.guid, material);
+        } catch (error) {
+          console.warn(
+            `[BrushMaterialUpgrade] listener failed for ${entry.guid}:`,
+            error,
+          );
+        }
+      }
       openBrushShaderCompatibility.record({
         guid: entry.guid,
         name: entry.name,

@@ -41,6 +41,7 @@ import { version } from "../package.json";
 
 import { AudioFeedbackSystem } from "./systems/audio-feedback-system.js";
 import { BrushAudioSystem } from "./systems/brush-audio-system.js";
+import { BrushMaterialUpgradeSystem } from "./systems/brush-material-upgrade-system.js";
 import { BrushCatalogSystem } from "./systems/brush-catalog-system.js";
 import { BrushPageSystem } from "./systems/brush-page-system.js";
 import { ColorPickerSystem } from "./systems/color-picker-system.js";
@@ -222,6 +223,7 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .registerSystem(StandardEnvironmentSystem)
     .registerSystem(IntroSketchSystem)
     .registerSystem(StrokeAuthoringSystem)
+    .registerSystem(BrushMaterialUpgradeSystem)
     .registerSystem(BrushPointerVisualSystem)
     .registerSystem(TipAnchorTuningSystem)
     .registerSystem(SelectionSystem)
