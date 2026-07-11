@@ -81,7 +81,7 @@ export function createBrushGeometryArrays(): BrushGeometryArrays {
     uvs: new Float32Array(INITIAL_VERTEX_CAPACITY * 2),
     packedUvs: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
     particleUvs: new Float32Array(INITIAL_VERTEX_CAPACITY * 4),
-    uv1s: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
+    uv1s: new Float32Array(INITIAL_VERTEX_CAPACITY * 4),
     tubeBreakBefore: new Uint8Array(INITIAL_VERTEX_CAPACITY),
     tubeFrameRights: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
     tubeFrameUps: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
@@ -126,7 +126,7 @@ function ensureGeometryCapacity(
   out.uvs = new Float32Array(vertexCapacity * 2);
   out.packedUvs = new Float32Array(vertexCapacity * 3);
   out.particleUvs = new Float32Array(vertexCapacity * 4);
-  out.uv1s = new Float32Array(vertexCapacity * 3);
+  out.uv1s = new Float32Array(vertexCapacity * 4);
   out.indices = new Uint32Array(indexCapacity);
   return true;
 }
@@ -235,7 +235,7 @@ export function generateBrushGeometry(
           : undefined,
     uv1:
       arrays.uv0Size === 4
-        ? arrays.uv1s.subarray(0, arrays.vertexCount * 3)
+        ? arrays.uv1s.subarray(0, arrays.vertexCount * 4)
         : undefined,
     indices: arrays.indices.subarray(0, arrays.indexCount),
     bounds: arrays.bounds,
@@ -1745,15 +1745,17 @@ function writeGeniusParticleVertex(
   particleUvs[packedUvOffset + 1] = 1 - v;
   particleUvs[packedUvOffset + 2] = initialRotation;
   particleUvs[packedUvOffset + 3] = birthTimeSeconds;
-  uv1s[positionOffset] =
+  const uv1Offset = vertex * 4;
+  uv1s[uv1Offset] =
     previousPosition[0] +
     (currentPosition[0] - previousPosition[0]) * positionRatio;
-  uv1s[positionOffset + 1] =
+  uv1s[uv1Offset + 1] =
     previousPosition[1] +
     (currentPosition[1] - previousPosition[1]) * positionRatio;
-  uv1s[positionOffset + 2] =
+  uv1s[uv1Offset + 2] =
     previousPosition[2] +
     (currentPosition[2] - previousPosition[2]) * positionRatio;
+  uv1s[uv1Offset + 3] = vertex;
   includeBounds(bounds, positions, vertex);
 }
 

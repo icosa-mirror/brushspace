@@ -907,7 +907,7 @@ export class StrokeAuthoringSystem extends createSystem({
           : arrays.uv0Size === 4
             ? new BufferAttribute(arrays.particleUvs, 4)
             : uv;
-      const shaderUv1 = new BufferAttribute(arrays.uv1s, 3);
+      const shaderUv1 = new BufferAttribute(arrays.uv1s, 4);
       const index = new BufferAttribute(arrays.indices, 1);
       for (const attribute of [
         position,

@@ -512,7 +512,7 @@ describe("brush geometry generation", () => {
     expect(geometry.positions).toEqual(repeated.positions);
     expect(geometry.uv0Size).toBe(4);
     expect(geometry.packedUvs).toHaveLength(80);
-    expect(geometry.uv1).toHaveLength(60);
+    expect(geometry.uv1).toHaveLength(80);
     expect(geometry.packedUvs).toEqual(repeated.packedUvs);
     expect(geometry.uv1).toEqual(repeated.uv1);
     for (let particle = 0; particle < 5; particle += 1) {
@@ -526,8 +526,11 @@ describe("brush geometry generation", () => {
         expect(geometry.normals[(vertexOffset + corner) * 3]).toBeCloseTo(
           particle * 0.025,
         );
-        expect(geometry.uv1?.[(vertexOffset + corner) * 3]).toBeCloseTo(
+        expect(geometry.uv1?.[(vertexOffset + corner) * 4]).toBeCloseTo(
           particle * 0.025,
+        );
+        expect(geometry.uv1?.[(vertexOffset + corner) * 4 + 3]).toBe(
+          vertexOffset + corner,
         );
       }
     }
