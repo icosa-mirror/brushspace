@@ -25,8 +25,15 @@ const ASSET_WITH_TILT = {
       isPreferredForDownload: true,
     },
     {
+      // Non-CORS mirror listed first — must NOT be chosen over the B2 copy.
+      formatType: "TILT",
+      root: { url: "https://web.archive.org/sketch.tilt" },
+      isCorsAllowed: false,
+    },
+    {
       formatType: "TILT",
       root: { url: "https://cdn.example/sketch.tilt" },
+      isCorsAllowed: true,
     },
   ],
 };
@@ -65,7 +72,7 @@ describe("buildIcosaAssetsUrl", () => {
 });
 
 describe("parseIcosaAssetsPage", () => {
-  it("maps assets to entries and picks the TILT format url", () => {
+  it("maps assets to entries and prefers the CORS-enabled TILT url", () => {
     const page = parseIcosaAssetsPage({
       assets: [ASSET_WITH_TILT],
       totalSize: 1,
@@ -77,12 +84,32 @@ describe("parseIcosaAssetsPage", () => {
         name: "Trainscape",
         authorName: "Tilt Brush",
         thumbnailUrl: "https://cdn.example/poly/dIDpf7IS_5S/thumbnail.png",
+        // The B2 (isCorsAllowed) copy wins over the archive.org mirror.
         tiltUrl: "https://cdn.example/sketch.tilt",
         triangleCount: 374296,
       },
     ]);
     expect(page.nextPageToken).toBe("next");
     expect(page.totalSize).toBe(1);
+  });
+
+  it("falls back to the only .tilt when none is flagged CORS-enabled", () => {
+    const page = parseIcosaAssetsPage({
+      assets: [
+        {
+          assetId: "mirror-only",
+          displayName: "Mirror Only",
+          formats: [
+            {
+              formatType: "TILT",
+              root: { url: "https://web.archive.org/only.tilt" },
+              isCorsAllowed: false,
+            },
+          ],
+        },
+      ],
+    });
+    expect(page.entries[0].tiltUrl).toBe("https://web.archive.org/only.tilt");
   });
 
   it("skips assets that have no downloadable .tilt", () => {

@@ -10,10 +10,12 @@
  * - The `/v1/assets` listing endpoint and the thumbnail hosts both send
  *   permissive `Access-Control-Allow-Origin` headers, so they can be read
  *   directly from any origin.
- * - The `.tilt` downloads are mirrored from the original Google Poly files on
- *   hosts that do NOT send CORS headers. Pass a `tiltProxy` in the browser to
- *   route those requests through a same-origin or CORS-enabled proxy. In Node
- *   (tests, tooling) the download works directly.
+ * - Most assets ship the `.tilt` twice: a CORS-enabled copy on Backblaze B2
+ *   and a mirror on web.archive.org that sends no CORS headers. We prefer the
+ *   B2 copy (see `selectTiltUrl`) so the browser can download it directly. For
+ *   the rare asset that only has the non-CORS mirror, pass a `tiltProxy` to
+ *   route the download through a same-origin or CORS-enabled proxy. In Node
+ *   (tests, tooling) either copy downloads directly.
  */
 
 import type { SketchDocument } from "./document.js";
@@ -237,17 +239,28 @@ function selectTiltUrl(formats: unknown): string | undefined {
   if (!Array.isArray(formats)) {
     return undefined;
   }
+  // Most assets carry the .tilt twice: a CORS-enabled copy on Backblaze B2 and
+  // a mirror on web.archive.org that sends no CORS headers. Prefer the former
+  // (isCorsAllowed) so the browser can download it directly; fall back to any
+  // .tilt url for the rare asset that only has the mirror.
+  let fallback: string | undefined;
   for (const format of formats) {
     const record = asRecord(format);
     if (record.formatType !== "TILT") {
       continue;
     }
     const root = asRecord(record.root);
-    if (typeof root.url === "string" && root.url.length > 0) {
-      return root.url;
+    const url =
+      typeof root.url === "string" && root.url.length > 0 ? root.url : undefined;
+    if (!url) {
+      continue;
     }
+    if (record.isCorsAllowed === true) {
+      return url;
+    }
+    fallback ??= url;
   }
-  return undefined;
+  return fallback;
 }
 
 function selectThumbnailUrl(thumbnail: unknown): string {
