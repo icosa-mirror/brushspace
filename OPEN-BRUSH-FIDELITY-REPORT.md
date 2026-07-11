@@ -2,7 +2,7 @@
 
 Date: 2026-07-11
 
-Brushspace: `b2131da`
+Brushspace: `7c131c4`
 
 Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6)
 
@@ -83,7 +83,7 @@ distance/stretch UVs restarted per section. Important remaining differences are:
   adjacent-knot rebuild rules are absent.
 - The shared indexed strip does not reproduce every source generator's triangle-soup topology and seams.
 - Head/tail simplification and per-generator minimum-length rules are incomplete.
-- The DoubleTapered edge-vector layout is present; Electricity remains absent.
+- DoubleTapered and Electricity now consume the emitted edge-vector layout.
 
 ### Tubes
 
@@ -139,7 +139,7 @@ Finalized strokes remain separate meshes and draw calls, frustum culling is disa
 
 ### Vertex data is the limiting contract
 
-The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, Waveform, and DoubleTapered contracts. Even default shaders only match if attribute values have the correct semantics. The remaining excluded custom-vertex ribbon/tube brushes are Electricity, Disco, and LightWire. HyperGrid and special brushes still require additional deformation/audio data. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 3D/4D UV1, vertex IDs, and index where the selected generator defines those semantics.
+The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, Waveform, DoubleTapered, and Electricity contracts. Even default shaders only match if attribute values have the correct semantics. The remaining excluded custom-vertex tube brushes are Disco and LightWire. HyperGrid and special brushes still require additional deformation/audio data. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 3D/4D UV1, vertex IDs, and index where the selected generator defines those semantics.
 
 ### Descriptor data is extracted but unused
 
@@ -230,7 +230,7 @@ Exit: CI explains exactly why every GUID passes or fails.
 3. Add physical-length UVs, tile rate, atlas rows, deterministic offsets, and segment restart.
 4. Emit explicit backfaces/hue shift, normals, tangents, and source vertex layouts.
 5. Apply opacity and color constraints.
-6. Port the remaining Electricity layout; DoubleTapered now emits its source edge-vector contract.
+6. Validate DoubleTapered and Electricity against Unity mesh/image fixtures.
 
 Exit: default ribbon fixtures pass mesh and image gates.
 
