@@ -73,9 +73,11 @@ The local ribbon now distinguishes distance, stretch, and unitized UV modes; use
 physical length and tile rate where required; selects atlas rows deterministically;
 emits explicit hue-shifted backfaces; and supplies normals and tangents. Generated
 Unity UVs are converted to the glTF convention consumed by the exported shaders.
-Important remaining differences are:
+Sub-millimetre moves and direction reversals now split the indexed strip, with
+distance/stretch UVs restarted per section. Important remaining differences are:
 
-- Open Brush knot smoothing, break/restart, discard, and adjacent-knot rebuild rules are absent.
+- Open Brush knot smoothing, self-intersection width shrinking, discard, and
+  adjacent-knot rebuild rules are absent.
 - The shared indexed strip does not reproduce every source generator's triangle-soup topology and seams.
 - Head/tail simplification and per-generator minimum-length rules are incomplete.
 - Custom vertex layouts for DoubleTapered, Electricity, and Waveform are absent.
