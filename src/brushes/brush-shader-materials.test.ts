@@ -304,11 +304,11 @@ describe("stroke UV orientation for shader textures", () => {
 
   it("runs u along the ribbon length and v across the width", () => {
     const generated = generateBrushGeometry(stroke, "ribbon");
-    // Vertex pairs (left,right) per control point: u = length fraction on both,
-    // v = 0 on the left edge and 1 on the right edge.
-    expect(Array.from(generated.uvs.slice(0, 4))).toEqual([0, 0, 0, 1]);
-    expect(Array.from(generated.uvs.slice(4, 8))).toEqual([0.5, 0, 0.5, 1]);
-    expect(Array.from(generated.uvs.slice(8, 12))).toEqual([1, 0, 1, 1]);
+    // Vertex pairs (left,right) per control point: u = length fraction on both.
+    // V is flipped to the glTF convention consumed by the exported shaders.
+    expect(Array.from(generated.uvs.slice(0, 4))).toEqual([0, 1, 0, 0]);
+    expect(Array.from(generated.uvs.slice(4, 8))).toEqual([0.5, 1, 0.5, 0]);
+    expect(Array.from(generated.uvs.slice(8, 12))).toEqual([1, 1, 1, 0]);
   });
 
   it("runs u along the tube length and v around the ring", () => {
@@ -319,7 +319,7 @@ describe("stroke UV orientation for shader textures", () => {
     for (let ringIndex = 0; ringIndex < ringVerts; ringIndex += 1) {
       const offset = ringIndex * 2;
       expect(generated.uvs[offset]).toBe(initialU);
-      expect(generated.uvs[offset + 1]).toBeCloseTo(ringIndex / ringSides);
+      expect(generated.uvs[offset + 1]).toBeCloseTo(1 - ringIndex / ringSides);
     }
     const lastRingOffset = 2 * ringVerts * 2;
     expect(generated.uvs[lastRingOffset] - initialU).toBeCloseTo(4 / Math.PI);

@@ -1509,7 +1509,11 @@ function writeColorFromAlpha(
 function writeUv(target: Float32Array, vertex: number, value: [number, number]): void {
   const offset = vertex * 2;
   target[offset] = value[0];
-  target[offset + 1] = value[1];
+  // Open Brush authors UVs in Unity's bottom-left convention. Its glTF
+  // exporter flips Y, and the extracted browser shaders/textures consume
+  // those exported coordinates with texture.flipY disabled. Generated strokes
+  // must cross the same boundary or they sample a mirrored atlas/bump field.
+  target[offset + 1] = 1 - value[1];
 }
 
 function writePackedUv(
@@ -1521,7 +1525,7 @@ function writePackedUv(
 ): void {
   const offset = vertex * 3;
   target[offset] = u;
-  target[offset + 1] = v;
+  target[offset + 1] = 1 - v;
   target[offset + 2] = radius;
 }
 

@@ -172,7 +172,7 @@ describe("brush geometry generation", () => {
     );
 
     expect(first.uvs).toEqual(repeated.uvs);
-    expect(first.uvs[1]).toBeCloseTo(0.25);
+    expect(first.uvs[1]).toBeCloseTo(0.75);
     expect(first.uvs[3]).toBeCloseTo(0.5);
   });
 
@@ -233,10 +233,10 @@ describe("brush geometry generation", () => {
     expect(getGeneratedVertexCount(geometry)).toBe(8);
     expect(getGeneratedIndexCount(geometry)).toBe(12);
     expect(Array.from(geometry.uvs.slice(0, 8))).toEqual([
-      0, 0, 0, 1, 1, 0, 1, 1,
+      0, 1, 0, 0, 1, 1, 1, 0,
     ]);
     expect(Array.from(geometry.uvs.slice(8, 16))).toEqual([
-      0, 0, 0, 1, 1, 0, 1, 1,
+      0, 1, 0, 0, 1, 1, 1, 0,
     ]);
   });
 
@@ -357,8 +357,8 @@ describe("brush geometry generation", () => {
     const firstRingU = geometry.uvs[0];
     expect(geometry.uvs[18] - firstRingU).toBeCloseTo(2 / Math.PI);
     expect(geometry.uvs[36] - firstRingU).toBeCloseTo(6 / Math.PI);
-    expect(geometry.uvs[1]).toBeCloseTo(0);
-    expect(geometry.uvs[17]).toBeCloseTo(0.25);
+    expect(geometry.uvs[1]).toBeCloseTo(1);
+    expect(geometry.uvs[17]).toBeCloseTo(0.75);
     expect(geometry.tangents[3]).toBe(1);
   });
 
