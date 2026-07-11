@@ -2,7 +2,7 @@
 
 Date: 2026-07-11
 
-Brushspace: `541d14d`
+Brushspace: `5f6304a`
 
 Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6)
 
@@ -139,7 +139,7 @@ Finalized strokes remain separate meshes and draw calls, frustum culling is disa
 
 ### Vertex data is the limiting contract
 
-The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, Waveform, DoubleTapered, Electricity, Disco, and LightWire contracts. Even default shaders only match if attribute values have the correct semantics. HyperGrid remains the only fallback-classified custom vertex contract and still requires additional audio-reactive behavior. Special generator families remain unsupported. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 3D/4D UV1, vertex IDs, and index where the selected generator defines those semantics.
+The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, HyperGrid, Waveform, DoubleTapered, Electricity, Disco, and LightWire contracts. Even default shaders only match if attribute values have the correct semantics. No extracted brush remains in the `fallback` classification; 21 special generator records remain `unsupported`. HyperGrid renders its non-audio export behavior, but real audio-reactive inputs remain absent. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 3D/4D UV1, vertex IDs, and index where the selected generator defines those semantics.
 
 ### Descriptor data is extracted but unused
 
