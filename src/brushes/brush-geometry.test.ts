@@ -344,6 +344,30 @@ describe("brush geometry generation", () => {
     expect(geometry.uvs[40]).toBeCloseTo(1);
   });
 
+  it("splits and caps tubes at Open Brush frame-angle breaks", () => {
+    const stroke = createSharpTubeStroke();
+    const geometry = generateBrushGeometry(stroke, "tube", {
+      geometryParams: {
+        tubeBreakAngleMultiplier: 0,
+        tubeEndCaps: true,
+      },
+    });
+
+    // Four 9-vertex rings plus two 8-vertex caps for each section.
+    expect(getGeneratedVertexCount(geometry)).toBe(68);
+    // No triangle may bridge the rings on opposite sides of the break.
+    for (let index = 0; index < geometry.indices.length; index += 3) {
+      const triangle = geometry.indices.slice(index, index + 3);
+      const touchesBefore = triangle.some(
+        (vertex) => vertex >= 9 && vertex < 18,
+      );
+      const touchesAfter = triangle.some(
+        (vertex) => vertex >= 18 && vertex < 27,
+      );
+      expect(touchesBefore && touchesAfter).toBe(false);
+    }
+  });
+
   it("applies the TubeBrush sine silhouette over physical stroke progress", () => {
     const geometry = generateBrushGeometry(
       createUnevenThreePointStroke(),
@@ -611,5 +635,28 @@ function createUnevenThreePointStroke(): StrokeData {
     pressure: 1,
     timestampMs: 32,
   });
+  return stroke;
+}
+
+function createSharpTubeStroke(): StrokeData {
+  const stroke = createTwoPointStroke({
+    guid: "sharp-tube",
+    brushSize: 0.2,
+    pressure: 1,
+  });
+  stroke.controlPoints.push(
+    {
+      position: [1, 1, 0],
+      orientation: [0, 0, 0, 1],
+      pressure: 1,
+      timestampMs: 32,
+    },
+    {
+      position: [2, 1, 0],
+      orientation: [0, 0, 0, 1],
+      pressure: 1,
+      timestampMs: 48,
+    },
+  );
   return stroke;
 }

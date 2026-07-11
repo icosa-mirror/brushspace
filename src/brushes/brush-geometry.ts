@@ -4,7 +4,7 @@ import type {
   BrushPressureOpacityRange,
   BrushPressureSizeRange,
 } from "./brush-inventory.js";
-import type { Rgba, StrokeData, Vec3 } from "../types.js";
+import type { Quat, Rgba, StrokeData, Vec3 } from "../types.js";
 
 export interface BrushGeometryBounds {
   min: Vec3;
@@ -46,6 +46,13 @@ export interface BrushGeometryArrays {
   colors: Float32Array;
   uvs: Float32Array;
   packedUvs: Float32Array;
+  tubeBreakBefore: Uint8Array;
+  tubeFrameRights: Float32Array;
+  tubeFrameUps: Float32Array;
+  tubeTangents: Float32Array;
+  tubeRadii: Float32Array;
+  tubeRingUs: Float32Array;
+  tubeOpacities: Float32Array;
   uv0Size: 2 | 3;
   indices: Uint32Array;
   vertexCount: number;
@@ -67,6 +74,13 @@ export function createBrushGeometryArrays(): BrushGeometryArrays {
     colors: new Float32Array(INITIAL_VERTEX_CAPACITY * 4),
     uvs: new Float32Array(INITIAL_VERTEX_CAPACITY * 2),
     packedUvs: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
+    tubeBreakBefore: new Uint8Array(INITIAL_VERTEX_CAPACITY),
+    tubeFrameRights: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
+    tubeFrameUps: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
+    tubeTangents: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
+    tubeRadii: new Float32Array(INITIAL_VERTEX_CAPACITY),
+    tubeRingUs: new Float32Array(INITIAL_VERTEX_CAPACITY),
+    tubeOpacities: new Float32Array(INITIAL_VERTEX_CAPACITY),
     uv0Size: 2,
     indices: new Uint32Array(INITIAL_INDEX_CAPACITY),
     vertexCount: 0,
@@ -102,6 +116,27 @@ function ensureGeometryCapacity(
   out.packedUvs = new Float32Array(vertexCapacity * 3);
   out.indices = new Uint32Array(indexCapacity);
   return true;
+}
+
+function ensureTubeScratchCapacity(
+  out: BrushGeometryArrays,
+  pointCount: number,
+): void {
+  if (pointCount <= out.tubeBreakBefore.length) {
+    out.tubeBreakBefore.fill(0, 0, pointCount);
+    return;
+  }
+  let capacity = Math.max(out.tubeBreakBefore.length, INITIAL_VERTEX_CAPACITY);
+  while (capacity < pointCount) {
+    capacity *= 2;
+  }
+  out.tubeBreakBefore = new Uint8Array(capacity);
+  out.tubeFrameRights = new Float32Array(capacity * 3);
+  out.tubeFrameUps = new Float32Array(capacity * 3);
+  out.tubeTangents = new Float32Array(capacity * 3);
+  out.tubeRadii = new Float32Array(capacity);
+  out.tubeRingUs = new Float32Array(capacity);
+  out.tubeOpacities = new Float32Array(capacity);
 }
 
 function resetBounds(bounds: BrushGeometryBounds): void {
@@ -528,11 +563,23 @@ function generateTubeGeometry(
   const ringVertexCount = hardEdges ? sideCount * 2 : sideCount + 1;
   const hasCaps =
     pointCount >= 2 && options.geometryParams?.tubeEndCaps !== false;
-  const capVertexCount = hasCaps ? sideCount * 2 : 0;
-  const vertexCount = pointCount * ringVertexCount + capVertexCount;
-  const indexCount =
-    segmentCount * sideCount * 6 + (hasCaps ? 2 * sideCount * 3 : 0);
-  const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
+  // A sharp turn can split every connection into its own capped section.
+  // Reserve that upper bound, then publish only the counts actually written.
+  const maximumSectionCount = segmentCount;
+  const maximumCapVertexCount = hasCaps
+    ? maximumSectionCount * sideCount * 2
+    : 0;
+  const maximumVertexCount =
+    pointCount * ringVertexCount + maximumCapVertexCount;
+  const maximumIndexCount =
+    segmentCount * sideCount * 6 +
+    (hasCaps ? maximumSectionCount * 2 * sideCount * 3 : 0);
+  const reallocated = ensureGeometryCapacity(
+    out,
+    maximumVertexCount,
+    maximumIndexCount,
+  );
+  ensureTubeScratchCapacity(out, pointCount);
   const {
     positions,
     normals,
@@ -542,6 +589,13 @@ function generateTubeGeometry(
     packedUvs,
     indices,
     bounds,
+    tubeBreakBefore,
+    tubeFrameRights,
+    tubeFrameUps,
+    tubeTangents,
+    tubeRadii,
+    tubeRingUs,
+    tubeOpacities,
   } = out;
   const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
   const pressureOpacityMin = normalizePressureOpacityMin(
@@ -565,6 +619,9 @@ function generateTubeGeometry(
   const shapeModifier = normalizeTubeShapeModifier(
     options.geometryParams?.tubeShapeModifier,
   );
+  const breakAngleMultiplier = normalizeTubeBreakAngleMultiplier(
+    options.geometryParams?.tubeBreakAngleMultiplier,
+  );
   const totalStrokeLength = measureStrokeLength(stroke);
   let runningDistance = 0;
   let u = random01;
@@ -577,18 +634,10 @@ function generateTubeGeometry(
   const frameRight: Vec3 = [0, 0, 0];
   const frameUp: Vec3 = [0, 0, 0];
   const bootstrapUp: Vec3 = [0, 0, 0];
+  const priorFrameRight: Vec3 = [0, 0, 0];
+  const priorFrameUp: Vec3 = [0, 0, 0];
   const radial: Vec3 = [0, 0, 0];
   const displacement: Vec3 = [0, 0, 0];
-  const startTangent: Vec3 = [0, 0, 0];
-  const startFrameRight: Vec3 = [0, 0, 0];
-  const startFrameUp: Vec3 = [0, 0, 0];
-  const endTangent: Vec3 = [0, 0, 0];
-  const endFrameRight: Vec3 = [0, 0, 0];
-  const endFrameUp: Vec3 = [0, 0, 0];
-  let startRadius = 0;
-  let endRadius = 0;
-  let startU = random01;
-  let endU = random01;
 
   for (let pointIndex = 0; pointIndex < pointCount; pointIndex += 1) {
     const point = stroke.controlPoints[pointIndex];
@@ -596,8 +645,9 @@ function generateTubeGeometry(
       localBrushSize *
       getPressureSizeMultiplier(point.pressure, pressureSizeMin) *
       0.5;
+    let segmentLength = 0;
     if (pointIndex > 0) {
-      const segmentLength = distanceBetweenControlPoints(
+      segmentLength = distanceBetweenControlPoints(
         stroke.controlPoints[pointIndex - 1],
         point,
       );
@@ -636,19 +686,16 @@ function generateTubeGeometry(
 
     writeCentralDifferenceTangent(stroke, pointIndex, previousTangent, tangent);
     if (pointIndex === 0) {
-      // Bootstrap: pick the second axis from the pointer orientation, like
-      // ComputeMinimalRotationFrame does when there is no previous frame.
-      rotateByQuaternion(point.orientation, VEC_UP, bootstrapUp);
-      if (Math.abs(dot(bootstrapUp, tangent)) > 0.99) {
-        rotateByQuaternion(point.orientation, VEC_RIGHT, bootstrapUp);
-      }
-      cross(bootstrapUp, tangent, frameRight);
-      if (!normalizeInPlace(frameRight)) {
-        anyPerpendicular(tangent, frameRight);
-      }
-      cross(tangent, frameRight, frameUp);
-      normalizeInPlace(frameUp);
+      initializeTubeFrame(
+        point.orientation,
+        tangent,
+        bootstrapUp,
+        frameRight,
+        frameUp,
+      );
     } else {
+      copyVec3(frameRight, priorFrameRight);
+      copyVec3(frameUp, priorFrameUp);
       rotateBetweenTangents(previousTangent, tangent, frameRight);
       rotateBetweenTangents(previousTangent, tangent, frameUp);
       // Re-orthonormalize against drift.
@@ -661,6 +708,33 @@ function generateTubeGeometry(
       }
       cross(tangent, frameRight, frameUp);
       normalizeInPlace(frameUp);
+
+      const previousSectionContinues = tubeBreakBefore[pointIndex - 1] === 0;
+      const pressuredDiameter = Math.max(radius * 2, EPSILON);
+      const breakAngle =
+        Math.atan(segmentLength / pressuredDiameter) * breakAngleMultiplier;
+      const frameAngle = getFrameRotationAngle(
+        priorFrameRight,
+        priorFrameUp,
+        previousTangent,
+        frameRight,
+        frameUp,
+        tangent,
+      );
+      if (
+        segmentLength < OPEN_BRUSH_TUBE_MINIMUM_MOVE_METERS ||
+        (pointIndex > 1 && previousSectionContinues && frameAngle > breakAngle)
+      ) {
+        tubeBreakBefore[pointIndex] = 1;
+        initializeTubeFrame(
+          point.orientation,
+          tangent,
+          bootstrapUp,
+          frameRight,
+          frameUp,
+        );
+        u = statelessRandom01(stroke.seed, pointIndex);
+      }
     }
     previousTangent[0] = tangent[0];
     previousTangent[1] = tangent[1];
@@ -669,19 +743,12 @@ function generateTubeGeometry(
     const ringU = usesStretchUvs
       ? pointIndex / Math.max(pointCount - 1, 1)
       : u;
-    if (pointIndex === 0) {
-      copyVec3(tangent, startTangent);
-      copyVec3(frameRight, startFrameRight);
-      copyVec3(frameUp, startFrameUp);
-      startRadius = radius;
-      startU = ringU;
-    }
-    copyVec3(tangent, endTangent);
-    copyVec3(frameRight, endFrameRight);
-    copyVec3(frameUp, endFrameUp);
-    endRadius = radius;
-    endU = ringU;
-
+    writeScratchVec3(tubeFrameRights, pointIndex, frameRight);
+    writeScratchVec3(tubeFrameUps, pointIndex, frameUp);
+    writeScratchVec3(tubeTangents, pointIndex, tangent);
+    tubeRadii[pointIndex] = radius;
+    tubeRingUs[pointIndex] = ringU;
+    tubeOpacities[pointIndex] = opacity;
     const ringBase = pointIndex * ringVertexCount;
     if (hardEdges) {
       const halfStep = Math.PI / sideCount;
@@ -747,6 +814,9 @@ function generateTubeGeometry(
 
   let indexOffset = 0;
   for (let segment = 0; segment < segmentCount; segment += 1) {
+    if (tubeBreakBefore[segment + 1] === 1) {
+      continue;
+    }
     const firstRing = segment * ringVertexCount;
     const secondRing = firstRing + ringVertexCount;
     for (let side = 0; side < sideCount; side += 1) {
@@ -762,80 +832,100 @@ function generateTubeGeometry(
     }
   }
 
+  let capVertexCount = 0;
   if (hasCaps) {
-    const startPoint = stroke.controlPoints[0];
-    const endPoint = stroke.controlPoints[pointCount - 1];
-    const firstCap = pointCount * ringVertexCount;
-    const secondCap = firstCap + sideCount;
-    const startOpacity = getPressureOpacityMultiplier(
-      startPoint.pressure,
-      pressureOpacityMin,
-      pressureOpacityMax,
-    ) * descriptorOpacity;
-    const endOpacity = getPressureOpacityMultiplier(
-      endPoint.pressure,
-      pressureOpacityMin,
-      pressureOpacityMax,
-    ) * descriptorOpacity;
     const capRadial: Vec3 = [0, 0, 0];
     const capTip: Vec3 = [0, 0, 0];
-    for (let capIndex = 0; capIndex < 2; capIndex += 1) {
-      const isStart = capIndex === 0;
-      const point = isStart ? startPoint : endPoint;
-      const capBase = isStart ? firstCap : secondCap;
-      const ringBase = isStart ? 0 : (pointCount - 1) * ringVertexCount;
-      const capTangent = isStart ? startTangent : endTangent;
-      const capRight = isStart ? startFrameRight : endFrameRight;
-      const capUp = isStart ? startFrameUp : endFrameUp;
-      const radius = isStart ? startRadius : endRadius;
-      const ringU = isStart ? startU : endU;
-      const opacity = isStart ? startOpacity : endOpacity;
-      const direction = isStart ? -1 : 1;
-      capTip[0] = point.position[0] + capTangent[0] * radius * capAspect * direction;
-      capTip[1] = point.position[1] + capTangent[1] * radius * capAspect * direction;
-      capTip[2] = point.position[2] + capTangent[2] * radius * capAspect * direction;
-      const diagonal = radius * Math.hypot(1, capAspect);
-      const uRate = tileRate / Math.max(2 * Math.PI * radius, EPSILON);
-      const capU = usesStretchUvs ? ringU : ringU + direction * uRate * diagonal;
-
-      for (let side = 0; side < sideCount; side += 1) {
-        const vertex = capBase + side;
-        const fraction = (side + 0.5) / sideCount;
-        setTubeRadial(capRight, capUp, fraction * Math.PI * 2, capRadial);
-        writePosition(positions, vertex, capTip);
-        writeNormal(
-          normals,
-          vertex,
-          hardEdges
-            ? capRadial
-            : [
-                capTangent[0] * direction,
-                capTangent[1] * direction,
-                capTangent[2] * direction,
-              ],
-        );
-        writeTangent(tangents, vertex, capRadial, 1);
-        writeColor(colors, vertex, stroke.color, opacity);
-        const v = v0 + (v1 - v0) * fraction;
-        writeUv(uvs, vertex, [capU, v]);
-        if (storesRadius) {
-          writePackedUv(packedUvs, vertex, capU, v, 0);
-        }
-        includeBounds(bounds, positions, vertex);
-
-        const first = hardEdges ? side * 2 + 1 : side;
-        const next = hardEdges ? (first + 1) % ringVertexCount : side + 1;
-        indices[indexOffset] = vertex;
-        indices[indexOffset + 1] = ringBase + (isStart ? first : next);
-        indices[indexOffset + 2] = ringBase + (isStart ? next : first);
-        indexOffset += 3;
+    const capTangent: Vec3 = [0, 0, 0];
+    const capRight: Vec3 = [0, 0, 0];
+    const capUp: Vec3 = [0, 0, 0];
+    let sectionStart = 0;
+    for (let boundary = 1; boundary <= pointCount; boundary += 1) {
+      const sectionEnds =
+        boundary === pointCount || tubeBreakBefore[boundary] === 1;
+      if (!sectionEnds) {
+        continue;
       }
+      const sectionEnd = boundary - 1;
+      if (sectionEnd > sectionStart) {
+        for (let capIndex = 0; capIndex < 2; capIndex += 1) {
+          const isStart = capIndex === 0;
+          const pointIndex = isStart ? sectionStart : sectionEnd;
+          const point = stroke.controlPoints[pointIndex];
+          const capBase =
+            pointCount * ringVertexCount + capVertexCount;
+          capVertexCount += sideCount;
+          const ringBase = pointIndex * ringVertexCount;
+          readScratchVec3(tubeTangents, pointIndex, capTangent);
+          readScratchVec3(tubeFrameRights, pointIndex, capRight);
+          readScratchVec3(tubeFrameUps, pointIndex, capUp);
+          const radius = tubeRadii[pointIndex];
+          const ringU = tubeRingUs[pointIndex];
+          const opacity = tubeOpacities[pointIndex];
+          const direction = isStart ? -1 : 1;
+          capTip[0] =
+            point.position[0] +
+            capTangent[0] * radius * capAspect * direction;
+          capTip[1] =
+            point.position[1] +
+            capTangent[1] * radius * capAspect * direction;
+          capTip[2] =
+            point.position[2] +
+            capTangent[2] * radius * capAspect * direction;
+          const diagonal = radius * Math.hypot(1, capAspect);
+          const uRate = tileRate / Math.max(2 * Math.PI * radius, EPSILON);
+          const capU = usesStretchUvs
+            ? ringU
+            : ringU + direction * uRate * diagonal;
+
+          for (let side = 0; side < sideCount; side += 1) {
+            const vertex = capBase + side;
+            const fraction = (side + 0.5) / sideCount;
+            setTubeRadial(
+              capRight,
+              capUp,
+              fraction * Math.PI * 2,
+              capRadial,
+            );
+            writePosition(positions, vertex, capTip);
+            writeNormal(
+              normals,
+              vertex,
+              hardEdges
+                ? capRadial
+                : [
+                    capTangent[0] * direction,
+                    capTangent[1] * direction,
+                    capTangent[2] * direction,
+                  ],
+            );
+            writeTangent(tangents, vertex, capRadial, 1);
+            writeColor(colors, vertex, stroke.color, opacity);
+            const v = v0 + (v1 - v0) * fraction;
+            writeUv(uvs, vertex, [capU, v]);
+            if (storesRadius) {
+              writePackedUv(packedUvs, vertex, capU, v, 0);
+            }
+            includeBounds(bounds, positions, vertex);
+
+            const first = hardEdges ? side * 2 + 1 : side;
+            const next = hardEdges ? (first + 1) % ringVertexCount : side + 1;
+            indices[indexOffset] = vertex;
+            indices[indexOffset + 1] =
+              ringBase + (isStart ? first : next);
+            indices[indexOffset + 2] =
+              ringBase + (isStart ? next : first);
+            indexOffset += 3;
+          }
+        }
+      }
+      sectionStart = boundary;
     }
   }
 
   out.family = "tube";
-  out.vertexCount = vertexCount;
-  out.indexCount = indexCount;
+  out.vertexCount = pointCount * ringVertexCount + capVertexCount;
+  out.indexCount = indexOffset;
   return reallocated;
 }
 
@@ -1020,6 +1110,14 @@ function normalizeTubeCapAspect(value: number | undefined): number {
   return typeof value === "number" && Number.isFinite(value)
     ? Math.max(0, value)
     : 0.8;
+}
+
+function normalizeTubeBreakAngleMultiplier(
+  value: number | undefined,
+): number {
+  return typeof value === "number" && Number.isFinite(value)
+    ? Math.max(0, value)
+    : 2;
 }
 
 function normalizeTubeShapeModifier(value: number | undefined): number {
@@ -1219,12 +1317,71 @@ const VEC_FORWARD: Vec3 = [0, 0, -1];
 const VEC_UP: Vec3 = [0, 1, 0];
 const VEC_RIGHT: Vec3 = [1, 0, 0];
 const EPSILON = 1e-6;
+const OPEN_BRUSH_TUBE_MINIMUM_MOVE_METERS = 5e-4;
 
 function getLocalBrushSize(stroke: StrokeData): number {
   const brushScale = Number.isFinite(stroke.brushScale)
     ? Math.max(0, stroke.brushScale)
     : 1;
   return Math.max(0, stroke.brushSize) * brushScale;
+}
+
+function initializeTubeFrame(
+  orientation: Quat,
+  tangent: Vec3,
+  bootstrapUp: Vec3,
+  frameRight: Vec3,
+  frameUp: Vec3,
+): void {
+  // ComputeMinimalRotationFrame uses the pointer orientation to choose the
+  // roll around a new section's tangent.
+  rotateByQuaternion(orientation, VEC_UP, bootstrapUp);
+  if (Math.abs(dot(bootstrapUp, tangent)) > 0.99) {
+    rotateByQuaternion(orientation, VEC_RIGHT, bootstrapUp);
+  }
+  cross(bootstrapUp, tangent, frameRight);
+  if (!normalizeInPlace(frameRight)) {
+    anyPerpendicular(tangent, frameRight);
+  }
+  cross(tangent, frameRight, frameUp);
+  normalizeInPlace(frameUp);
+}
+
+function getFrameRotationAngle(
+  previousRight: Vec3,
+  previousUp: Vec3,
+  previousTangent: Vec3,
+  right: Vec3,
+  up: Vec3,
+  tangent: Vec3,
+): number {
+  const trace =
+    dot(previousRight, right) +
+    dot(previousUp, up) +
+    dot(previousTangent, tangent);
+  return Math.acos(Math.min(1, Math.max(-1, (trace - 1) * 0.5)));
+}
+
+function writeScratchVec3(
+  target: Float32Array,
+  index: number,
+  value: Vec3,
+): void {
+  const offset = index * 3;
+  target[offset] = value[0];
+  target[offset + 1] = value[1];
+  target[offset + 2] = value[2];
+}
+
+function readScratchVec3(
+  source: Float32Array,
+  index: number,
+  out: Vec3,
+): void {
+  const offset = index * 3;
+  out[0] = source[offset];
+  out[1] = source[offset + 1];
+  out[2] = source[offset + 2];
 }
 
 function dot(a: Vec3, b: Vec3): number {
