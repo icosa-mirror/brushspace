@@ -160,12 +160,12 @@ describe("brush shader eligibility", () => {
     expect(getBrushShaderEligibility(tapered).eligible).toBe(true);
   });
 
-  it("rejects brushes whose handcrafted vertex shader needs extra vertex data", () => {
+  it("accepts Electricity's packed edge-offset vertex contract", () => {
     const electricity = openBrushInventory.find(
       (entry) => entry.name === "Electricity",
     );
     expect(electricity?.shaderAssets?.vertexIsDefault).toBe(false);
-    expect(getBrushShaderEligibility(electricity).eligible).toBe(false);
+    expect(getBrushShaderEligibility(electricity).eligible).toBe(true);
   });
 
   it("rejects brushes without extracted assets", () => {
@@ -248,10 +248,10 @@ describe("brush shader material descriptors", () => {
   });
 
   it("returns no descriptor for ineligible brushes", () => {
-    const electricity = openBrushInventory.find(
-      (entry) => entry.name === "Electricity",
+    const disco = openBrushInventory.find(
+      (entry) => entry.name === "Disco",
     );
-    expect(createBrushShaderMaterialDescriptor(electricity!)).toBeUndefined();
+    expect(createBrushShaderMaterialDescriptor(disco!)).toBeUndefined();
   });
 
   it("maps every Open Brush export blend mode", () => {

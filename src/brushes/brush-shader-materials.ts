@@ -95,11 +95,17 @@ export function getBrushShaderEligibility(
     (entry.name === "DoubleTaperedMarker" ||
       entry.name === "DoubleTaperedFlat") &&
     entry.geometryParams?.ribbonOffsetInTexcoord1 === true;
+  const hasElectricityContract =
+    entry.geometryFamily === "emissive" &&
+    entry.name === "Electricity" &&
+    entry.generatorClass === "FlatGeometryBrush" &&
+    entry.geometryParams?.ribbonOffsetInTexcoord1 === true;
   if (
     !entry.shaderAssets.vertexIsDefault &&
     !hasGeniusParticleContract &&
     !hasWaveformContract &&
-    !hasDoubleTaperedContract
+    !hasDoubleTaperedContract &&
+    !hasElectricityContract
   ) {
     return {
       eligible: false,

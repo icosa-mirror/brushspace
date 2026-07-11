@@ -230,10 +230,15 @@ function resolveBrushSupport(
         brush.name === "DoubleTaperedFlat") &&
       record.generatorClass === "FlatGeometryBrush" &&
       record.geometry?.ribbonOffsetInTexcoord1 === true;
+    const hasElectricityContract =
+      brush.name === "Electricity" &&
+      record.generatorClass === "FlatGeometryBrush" &&
+      record.geometry?.ribbonOffsetInTexcoord1 === true;
     if (
       !record.vertexIsDefault &&
       !hasWaveformContract &&
-      !hasDoubleTaperedContract
+      !hasDoubleTaperedContract &&
+      !hasElectricityContract
     ) {
       return {
         supportStatus: "fallback",

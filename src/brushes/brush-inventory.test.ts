@@ -26,8 +26,8 @@ describe("Open Brush brush inventory", () => {
     // Extrusion (ribbon/tube) brushes with the default vertex stage are
     // supported; custom-vertex extrusion and particle brushes render via
     // fallback; hulls/templates/specials stay unsupported.
-    expect(summary.supported).toBe(98);
-    expect(summary.fallback).toBe(4);
+    expect(summary.supported).toBe(99);
+    expect(summary.fallback).toBe(3);
     expect(summary.unsupported).toBe(21);
   });
 
