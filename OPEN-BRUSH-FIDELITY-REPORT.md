@@ -2,7 +2,7 @@
 
 Date: 2026-07-11
 
-Brushspace: `5f6304a`
+Brushspace: `ede05f1`
 
 Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6)
 
@@ -52,9 +52,10 @@ Open Brush has 32 C# files under `Assets/Scripts/Brushes`. Brushspace maps only:
 - Four quad-strip/flat classes to one `ribbon` generator.
 - `TubeBrush` to one fixed `tube` generator.
 - Three particle classes to an ineligible placeholder.
+- `SquareBrush` to a hard-edged rectangular-prism specialization of the tube builder.
 - Everything else to unsupported or unmapped.
 
-Missing families include hull/concave hull, square and thick geometry, blocks, CandyCane, HolidayTree, Plait/Braid, Snowflake, 3D print, SVG, PBR/environment, and other special generators.
+Missing required families include hull/concave hull, thick geometry, and 3D print. SquarePaper now emits SquareBrush's four hard-edged sides, 0.375 cross-section aspect, caps, and constant center UVs. Compatibility-only blocks, holiday, braid, SVG, PBR/environment, and other special generators are retained for old sketches but are outside the 95-brush target.
 
 ### Knot and sampling semantics
 
