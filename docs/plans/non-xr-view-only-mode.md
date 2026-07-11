@@ -139,15 +139,23 @@ New `src/systems/viewer-navigation-system.ts`, active only when
     with one code path;
   - gamepad right stick (`world.input.browserGamepads`), squared response,
     R3 toggles invert-look.
-- **Move → `world.camera.position`**, camera-relative: WASD + `Q`/`E`
+- **Move → the scene pose**, exactly like Open Brush: translation is applied
+  inversely to the `OpenBrushScenePose` object
+  (`pose.position -= cameraRotation * input * speed`). WASD + `Q`/`E`
   up/down on `world.input.keyboard`, gamepad left stick + triggers, Shift/L3
   sprint ×5. Frame-rate-independent (`delta`-scaled), no allocations in
   `update()` (scratch `Vector3`s allocated in `init()`).
-- Deliberate divergence from Open Brush: translation moves the **camera**,
-  not the scene pose. `OpenBrushScenePose` is semantically "the user grabbed
-  the world" — it's captured in saves and mirrored by collab, so navigation
-  must not leak into it. Same on-screen result, cleaner state.
-- Clamp translation to a generous bounds radius (analog of
+- Why the scene pose and not the camera: `OpenBrushScenePose` is Brushspace's
+  `App.Scene.Pose` — a *local* view transform. Canvases/strokes live under it
+  in canvas space, collab publishes tips and strokes in canvas space
+  precisely so each side's grab pose stays local, and save/load never touches
+  it. Navigating through it keeps one source of truth for "where the world
+  is" (world grab, eraser radius scaling, brush-size-vs-scale, and collab
+  conversion all read it) and means flying in the browser then entering VR
+  leaves you where you flew, matching Open Brush's flatscreen→VR behavior.
+  Arbitration with `WorldGrabSystem` is free: grab runs only in XR,
+  viewer nav only in `NonImmersive`.
+- Clamp the resulting pose to a generous bounds radius (analog of
   `MakeValidScenePose`) so users can't fly to infinity.
 
 Key conflict resolution: in `viewOnly`, LMB-drag = look (paint input is
@@ -225,11 +233,32 @@ When `viewOnly`:
   drops view-only, `?join` unaffected. Emulator always claims XR support, so
   auto-entry is verified by stubbing `navigator.xr` in a unit test.
 
+### Tool-architecture alignment
+
+View-only gating should reuse the existing tool-policy pattern instead of
+ad-hoc checks. Brushspace's analog of `BaseTool`/`SketchSurfacePanel` is the
+`OpenBrushToolDescriptor` table (`src/tools/tools.ts`) plus
+`resolveEffectiveOpenBrushTool` (`src/tools/tool-modes.ts`); Open Brush's
+`EnsureViewOnlyNavigationTool`/`IsViewOnlyNavigationTool` maps onto:
+
+- a capability field on the descriptor (e.g. `allowedInViewOnly` or a
+  `kind: "editing" | "navigation" | "picker"` discriminant), the analog of
+  `BaseTool` virtuals like `AvailableDuringLoading()`;
+- `resolveEffectiveOpenBrushTool` growing a mode argument so
+  `(activeTool, { straightEdge, viewOnly })` resolves to the effective tool —
+  view-only resolves every editing tool away, which is how the input gate in
+  §4 should be implemented rather than as scattered `viewOnly` checks.
+
+This keeps the door open for centralizing tool switching later (one
+`switchTool()` owner for `previousTool`/`toolRevision`/status side effects)
+without porting Open Brush's class hierarchy into ECS.
+
 ### Risks / notes
 
-- `world.camera.position` is player-local; fine while the player sits at the
-  origin, but any future browser locomotion that moves `world.player` must
-  compose with it (use `getWorldPosition` where world-space matters).
+- Viewer nav writes the same scene-pose object as `WorldGrabSystem`; they are
+  mutually exclusive by visibility state (XR vs `NonImmersive`), but any
+  future in-VR fly tool should go through a shared pose-write helper with the
+  bounds clamp.
 - Canvas pointer events are also consumed by IWSDK's
   `input.canvasPointerEvents`; the paint path already coexists with it, and
   viewer mode has no `ScreenSpace` UI, so no ray-vs-drag conflict is
