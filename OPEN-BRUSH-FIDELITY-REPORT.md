@@ -98,10 +98,13 @@ differences are:
 
 ### Particles
 
-The placeholder creates one static world-XY quad per control point. Open Brush instead:
+The seven `GeniusParticlesBrush` entries now create deterministic finalized
+particles at the source `0.0025 / particleRate` distance interval. Placement
+uses the source salt layout, pressure sizing/floor, size variance, spherical
+spread, random orientation/alpha, and atlas selection. The seven `SprayBrush`
+and three `MidpointPlusLifetimeSprayBrush` entries still create one static
+world-XY quad per control point. All particle families still lack:
 
-- Spawns at distance intervals, possibly multiple times between knots.
-- Uses seeded salted RNG for size, alpha, position, rotation, roll, and atlas.
 - Packs center, birth time, rotation, and other data into normals, 4D UV0, UV1, and vertex IDs.
 - Billboards and animates in the vertex shader.
 - Applies rate, speed, lifetime, preview decay, and finalization rules.
