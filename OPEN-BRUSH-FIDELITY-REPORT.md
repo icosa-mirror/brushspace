@@ -62,7 +62,10 @@ Open Brush generators consume knots containing raw and smoothed pose/pressure, f
 - Minimum-motion and sharp-turn strip breaks.
 - Adjacent-knot rebuild and segment restart rules.
 - Generator discard, finalization, and vertex-limit splitting.
-- Full use of `brushScale` in generated geometry.
+
+Serialized `brushScale` is now applied to local ribbon width, tube radius and
+modifiers, particle size, bounds, and distance-UV density. This matches Open
+Brush's `brushSize * brushScale` conversion from pointer to canvas space.
 
 ### Ribbons
 
