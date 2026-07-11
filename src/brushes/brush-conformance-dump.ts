@@ -30,7 +30,8 @@ export interface BrowserStrokeMeshDump {
   tangents: number[];
   colors: number[];
   uv0: number[];
-  uv0Size: 2 | 3;
+  uv0Size: 2 | 3 | 4;
+  uv1?: number[];
   bounds: BrushGeometryBounds;
   warning?: string;
 }
@@ -70,6 +71,7 @@ export function dumpBrowserBrushFixture(
         colors: Array.from(geometry.colors),
         uv0: Array.from(geometry.packedUvs ?? geometry.uvs),
         uv0Size: geometry.uv0Size,
+        uv1: geometry.uv1 ? Array.from(geometry.uv1) : undefined,
         bounds: {
           min: [...geometry.bounds.min],
           max: [...geometry.bounds.max],

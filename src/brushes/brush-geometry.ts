@@ -18,8 +18,9 @@ export interface GeneratedBrushGeometry {
   tangents: Float32Array;
   colors: Float32Array;
   uvs: Float32Array;
-  uv0Size: 2 | 3;
+  uv0Size: 2 | 3 | 4;
   packedUvs?: Float32Array;
+  uv1?: Float32Array;
   indices: Uint32Array;
   bounds: BrushGeometryBounds;
   warning?: string;
@@ -46,6 +47,8 @@ export interface BrushGeometryArrays {
   colors: Float32Array;
   uvs: Float32Array;
   packedUvs: Float32Array;
+  particleUvs: Float32Array;
+  uv1s: Float32Array;
   tubeBreakBefore: Uint8Array;
   tubeFrameRights: Float32Array;
   tubeFrameUps: Float32Array;
@@ -56,7 +59,7 @@ export interface BrushGeometryArrays {
   ribbonBreakBefore: Uint8Array;
   ribbonRunningLengths: Float32Array;
   ribbonSectionLengths: Float32Array;
-  uv0Size: 2 | 3;
+  uv0Size: 2 | 3 | 4;
   indices: Uint32Array;
   vertexCount: number;
   indexCount: number;
@@ -77,6 +80,8 @@ export function createBrushGeometryArrays(): BrushGeometryArrays {
     colors: new Float32Array(INITIAL_VERTEX_CAPACITY * 4),
     uvs: new Float32Array(INITIAL_VERTEX_CAPACITY * 2),
     packedUvs: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
+    particleUvs: new Float32Array(INITIAL_VERTEX_CAPACITY * 4),
+    uv1s: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
     tubeBreakBefore: new Uint8Array(INITIAL_VERTEX_CAPACITY),
     tubeFrameRights: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
     tubeFrameUps: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
@@ -120,6 +125,8 @@ function ensureGeometryCapacity(
   out.colors = new Float32Array(vertexCapacity * 4);
   out.uvs = new Float32Array(vertexCapacity * 2);
   out.packedUvs = new Float32Array(vertexCapacity * 3);
+  out.particleUvs = new Float32Array(vertexCapacity * 4);
+  out.uv1s = new Float32Array(vertexCapacity * 3);
   out.indices = new Uint32Array(indexCapacity);
   return true;
 }
@@ -223,6 +230,12 @@ export function generateBrushGeometry(
     packedUvs:
       arrays.uv0Size === 3
         ? arrays.packedUvs.subarray(0, arrays.vertexCount * 3)
+        : arrays.uv0Size === 4
+          ? arrays.particleUvs.subarray(0, arrays.vertexCount * 4)
+          : undefined,
+    uv1:
+      arrays.uv0Size === 4
+        ? arrays.uv1s.subarray(0, arrays.vertexCount * 3)
         : undefined,
     indices: arrays.indices.subarray(0, arrays.indexCount),
     bounds: arrays.bounds,
@@ -1095,7 +1108,7 @@ function generateGeniusParticleGeometry(
   options: BrushGeometryOptions,
   out: BrushGeometryArrays,
 ): boolean {
-  out.uv0Size = 2;
+  out.uv0Size = 4;
   const pointCount = stroke.controlPoints.length;
   const totalLength = measureStrokeLength(stroke);
   const particleRate = normalizePositive(
@@ -1108,7 +1121,17 @@ function generateGeniusParticleGeometry(
   const vertexCount = particleCount * 4;
   const indexCount = particleCount * 6;
   const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
-  const { positions, normals, tangents, colors, uvs, indices, bounds } = out;
+  const {
+    positions,
+    normals,
+    tangents,
+    colors,
+    uvs,
+    particleUvs,
+    uv1s,
+    indices,
+    bounds,
+  } = out;
   const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
   const pressureOpacityMin = normalizePressureOpacityMin(
     options.pressureOpacityRange,
@@ -1213,12 +1236,24 @@ function generateGeniusParticleGeometry(
       atlasRows > 1
         ? Math.min(3, Math.floor(statelessRandom01(stroke.seed, salt + 8) * 4))
         : 0;
+    const halfRotationRange =
+      (normalizeNonNegative(
+        options.geometryParams?.particleInitialRotationRange,
+      ) *
+        Math.PI) /
+      360;
+    const initialRotation =
+      (statelessRandom01(stroke.seed, salt + 7) * 2 - 1) *
+      halfRotationRange;
+    const birthTimeSeconds = currentPoint.timestampMs * 0.001;
     writeGeniusParticleQuad(
       positions,
       normals,
       tangents,
       colors,
       uvs,
+      particleUvs,
+      uv1s,
       indices,
       bounds,
       particleIndex,
@@ -1230,6 +1265,11 @@ function generateGeniusParticleGeometry(
       opacity,
       atlasRows > 1,
       atlasCell,
+      initialRotation,
+      birthTimeSeconds,
+      previousPoint.position,
+      currentPoint.position,
+      ratio,
     );
     particleWithinKnot += 1;
   }
@@ -1594,6 +1634,8 @@ function writeGeniusParticleQuad(
   tangents: Float32Array,
   colors: Float32Array,
   uvs: Float32Array,
+  particleUvs: Float32Array,
+  uv1s: Float32Array,
   indices: Uint32Array,
   bounds: BrushGeometryBounds,
   particleIndex: number,
@@ -1605,84 +1647,46 @@ function writeGeniusParticleQuad(
   opacity: number,
   usesAtlas: boolean,
   atlasCell: number,
+  initialRotation: number,
+  birthTimeSeconds: number,
+  previousPosition: Vec3,
+  currentPosition: Vec3,
+  positionRatio: number,
 ): void {
   const vertex = particleIndex * 4;
   const halfSize = size * 0.5;
   const atlasScale = usesAtlas ? 0.5 : 1;
   const atlasU = usesAtlas ? (atlasCell % 2) * 0.5 : 0;
   const atlasV = usesAtlas ? Math.floor(atlasCell / 2) * 0.5 : 0;
-  writeGeniusParticleVertex(
-    positions,
-    normals,
-    tangents,
-    colors,
-    uvs,
-    bounds,
-    vertex,
-    center,
-    up,
-    right,
-    -halfSize,
-    halfSize,
-    color,
-    opacity,
-    atlasU,
-    atlasV + atlasScale,
-  );
-  writeGeniusParticleVertex(
-    positions,
-    normals,
-    tangents,
-    colors,
-    uvs,
-    bounds,
-    vertex + 1,
-    center,
-    up,
-    right,
-    -halfSize,
-    -halfSize,
-    color,
-    opacity,
-    atlasU,
-    atlasV,
-  );
-  writeGeniusParticleVertex(
-    positions,
-    normals,
-    tangents,
-    colors,
-    uvs,
-    bounds,
-    vertex + 2,
-    center,
-    up,
-    right,
-    halfSize,
-    halfSize,
-    color,
-    opacity,
-    atlasU + atlasScale,
-    atlasV + atlasScale,
-  );
-  writeGeniusParticleVertex(
-    positions,
-    normals,
-    tangents,
-    colors,
-    uvs,
-    bounds,
-    vertex + 3,
-    center,
-    up,
-    right,
-    halfSize,
-    -halfSize,
-    color,
-    opacity,
-    atlasU + atlasScale,
-    atlasV,
-  );
+  for (let corner = 0; corner < 4; corner += 1) {
+    const isTop = corner >= 2;
+    const isRight = corner % 2 === 0;
+    writeGeniusParticleVertex(
+      positions,
+      normals,
+      tangents,
+      colors,
+      uvs,
+      particleUvs,
+      uv1s,
+      bounds,
+      vertex + corner,
+      center,
+      up,
+      right,
+      isTop ? halfSize : -halfSize,
+      isRight ? halfSize : -halfSize,
+      color,
+      opacity,
+      atlasU + (isTop ? atlasScale : 0),
+      atlasV + (isRight ? atlasScale : 0),
+      initialRotation,
+      birthTimeSeconds,
+      previousPosition,
+      currentPosition,
+      positionRatio,
+    );
+  }
   const indexOffset = particleIndex * 6;
   indices[indexOffset] = vertex;
   indices[indexOffset + 1] = vertex + 1;
@@ -1698,6 +1702,8 @@ function writeGeniusParticleVertex(
   tangents: Float32Array,
   colors: Float32Array,
   uvs: Float32Array,
+  particleUvs: Float32Array,
+  uv1s: Float32Array,
   bounds: BrushGeometryBounds,
   vertex: number,
   center: Vec3,
@@ -1709,6 +1715,11 @@ function writeGeniusParticleVertex(
   opacity: number,
   u: number,
   v: number,
+  initialRotation: number,
+  birthTimeSeconds: number,
+  previousPosition: Vec3,
+  currentPosition: Vec3,
+  positionRatio: number,
 ): void {
   const positionOffset = vertex * 3;
   positions[positionOffset] =
@@ -1717,12 +1728,9 @@ function writeGeniusParticleVertex(
     center[1] + up[1] * upScale + right[1] * rightScale;
   positions[positionOffset + 2] =
     center[2] + up[2] * upScale + right[2] * rightScale;
-  const normalX = right[1] * up[2] - right[2] * up[1];
-  const normalY = right[2] * up[0] - right[0] * up[2];
-  const normalZ = right[0] * up[1] - right[1] * up[0];
-  normals[positionOffset] = normalX;
-  normals[positionOffset + 1] = normalY;
-  normals[positionOffset + 2] = normalZ;
+  normals[positionOffset] = center[0];
+  normals[positionOffset + 1] = center[1];
+  normals[positionOffset + 2] = center[2];
   const tangentOffset = vertex * 4;
   tangents[tangentOffset] = right[0];
   tangents[tangentOffset + 1] = right[1];
@@ -1732,6 +1740,20 @@ function writeGeniusParticleVertex(
   const uvOffset = vertex * 2;
   uvs[uvOffset] = u;
   uvs[uvOffset + 1] = 1 - v;
+  const packedUvOffset = vertex * 4;
+  particleUvs[packedUvOffset] = u;
+  particleUvs[packedUvOffset + 1] = 1 - v;
+  particleUvs[packedUvOffset + 2] = initialRotation;
+  particleUvs[packedUvOffset + 3] = birthTimeSeconds;
+  uv1s[positionOffset] =
+    previousPosition[0] +
+    (currentPosition[0] - previousPosition[0]) * positionRatio;
+  uv1s[positionOffset + 1] =
+    previousPosition[1] +
+    (currentPosition[1] - previousPosition[1]) * positionRatio;
+  uv1s[positionOffset + 2] =
+    previousPosition[2] +
+    (currentPosition[2] - previousPosition[2]) * positionRatio;
   includeBounds(bounds, positions, vertex);
 }
 

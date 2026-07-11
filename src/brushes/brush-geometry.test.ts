@@ -498,6 +498,7 @@ describe("brush geometry generation", () => {
         brushSizeRange: [1, 2] as [number, number],
         particleRate: 0.1,
         particleSpeed: 0,
+        particleInitialRotationRange: 180,
         particleSizeVariance: 0,
         textureAtlasV: 4,
       },
@@ -509,12 +510,26 @@ describe("brush geometry generation", () => {
     expect(getGeneratedVertexCount(geometry)).toBe(20);
     expect(getGeneratedIndexCount(geometry)).toBe(30);
     expect(geometry.positions).toEqual(repeated.positions);
+    expect(geometry.uv0Size).toBe(4);
+    expect(geometry.packedUvs).toHaveLength(80);
+    expect(geometry.uv1).toHaveLength(60);
+    expect(geometry.packedUvs).toEqual(repeated.packedUvs);
+    expect(geometry.uv1).toEqual(repeated.uv1);
     for (let particle = 0; particle < 5; particle += 1) {
       let centerX = 0;
       for (let corner = 0; corner < 4; corner += 1) {
         centerX += geometry.positions[(particle * 4 + corner) * 3];
       }
       expect(centerX / 4).toBeCloseTo(particle * 0.025);
+      const vertexOffset = particle * 4;
+      for (let corner = 0; corner < 4; corner += 1) {
+        expect(geometry.normals[(vertexOffset + corner) * 3]).toBeCloseTo(
+          particle * 0.025,
+        );
+        expect(geometry.uv1?.[(vertexOffset + corner) * 3]).toBeCloseTo(
+          particle * 0.025,
+        );
+      }
     }
   });
 

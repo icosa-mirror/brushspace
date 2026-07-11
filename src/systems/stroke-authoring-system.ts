@@ -904,7 +904,10 @@ export class StrokeAuthoringSystem extends createSystem({
       const shaderUv =
         arrays.uv0Size === 3
           ? new BufferAttribute(arrays.packedUvs, 3)
-          : uv;
+          : arrays.uv0Size === 4
+            ? new BufferAttribute(arrays.particleUvs, 4)
+            : uv;
+      const shaderUv1 = new BufferAttribute(arrays.uv1s, 3);
       const index = new BufferAttribute(arrays.indices, 1);
       for (const attribute of [
         position,
@@ -913,6 +916,7 @@ export class StrokeAuthoringSystem extends createSystem({
         color,
         uv,
         shaderUv,
+        shaderUv1,
         index,
       ]) {
         attribute.setUsage(DynamicDrawUsage);
@@ -924,6 +928,13 @@ export class StrokeAuthoringSystem extends createSystem({
       stroke.geometry.setAttribute("uv", uv);
       applyBrushShaderAttributeAliases(stroke.geometry);
       stroke.geometry.setAttribute("a_texcoord0", shaderUv);
+      if (arrays.uv0Size === 4) {
+        stroke.geometry.setAttribute("uv1", shaderUv1);
+        stroke.geometry.setAttribute("a_texcoord1", shaderUv1);
+      } else {
+        stroke.geometry.deleteAttribute("uv1");
+        stroke.geometry.deleteAttribute("a_texcoord1");
+      }
       stroke.geometry.setIndex(index);
     } else {
       (stroke.geometry.getAttribute("position") as BufferAttribute).needsUpdate = true;
@@ -934,6 +945,10 @@ export class StrokeAuthoringSystem extends createSystem({
       const shaderUv = stroke.geometry.getAttribute("a_texcoord0");
       if (shaderUv && shaderUv !== stroke.geometry.getAttribute("uv")) {
         (shaderUv as BufferAttribute).needsUpdate = true;
+      }
+      const shaderUv1 = stroke.geometry.getAttribute("a_texcoord1");
+      if (shaderUv1) {
+        (shaderUv1 as BufferAttribute).needsUpdate = true;
       }
       const index = stroke.geometry.getIndex();
       if (index) {
