@@ -242,13 +242,19 @@ function resolveBrushSupport(
   }
 
   if (generatorFamily === "particle") {
+    const hasGeniusParticleContract =
+      record.generatorClass === "GeniusParticlesBrush";
     return {
-      supportStatus: "fallback",
+      supportStatus: hasGeniusParticleContract ? "supported" : "fallback",
       geometryFamily: "particle",
       materialFamily,
-      pickerVisible: false,
-      unsupportedReason:
-        "Particle brushes are deferred until a proper particle system exists.",
+      pickerVisible:
+        hasGeniusParticleContract &&
+        record.supersededByGuid === undefined &&
+        (record.tags ?? []).includes("default"),
+      unsupportedReason: hasGeniusParticleContract
+        ? undefined
+        : "Spray particle brushes are deferred until their packed vertex contract exists.",
     };
   }
 

@@ -45,6 +45,7 @@ import {
 } from "../brushes/brush-inventory.js";
 import {
   createBrushGeometryArrays,
+  generateBrushGeometry,
   generateBrushGeometryInto,
   type BrushGeometryArrays,
 } from "../brushes/brush-geometry.js";
@@ -59,7 +60,9 @@ import {
 import {
   BRUSH_VISUAL_CONFORMANCE_PREFIX,
   runBumpVisualConformance,
+  runParticleVisualConformance,
   showBumpVisualConformance,
+  showParticleVisualConformance,
 } from "../brushes/brush-visual-conformance.js";
 import {
   createMirroredStrokeDataX,
@@ -325,10 +328,14 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private runRequestedVisualConformance(): void {
-    if (
-      new URLSearchParams(window.location.search).get("visual-conformance") !==
-      "bump"
-    ) {
+    const mode = new URLSearchParams(window.location.search).get(
+      "visual-conformance",
+    );
+    if (mode === "particle") {
+      this.runParticleVisualConformance();
+      return;
+    }
+    if (mode !== "bump") {
       return;
     }
     const oilPaint = openBrushShaderLibrary.get(
@@ -347,6 +354,53 @@ export class StrokeAuthoringSystem extends createSystem({
       : "fail";
     console.log(
       `${BRUSH_VISUAL_CONFORMANCE_PREFIX} ${result.passed ? "PASS" : "FAIL"} changed=${(result.changedPixelRatio * 100).toFixed(2)}% rms=${result.rootMeanSquareDifference.toFixed(2)} mean=${result.meanAbsoluteDifference.toFixed(2)}`,
+    );
+  }
+
+  private runParticleVisualConformance(): void {
+    const smokeGuid = "70d79cca-b159-4f35-990c-f02193947fe8";
+    const smoke = openBrushShaderLibrary.get(smokeGuid);
+    const entry = findBrushByGuid(openBrushInventory, smokeGuid);
+    if (!smoke || !entry) {
+      console.error(`${BRUSH_VISUAL_CONFORMANCE_PREFIX} Smoke did not load.`);
+      document.documentElement.dataset.brushVisualConformance = "fail";
+      return;
+    }
+    const stroke = createEmptyStrokeData({
+      guid: "brush-visual-conformance-smoke",
+      brushGuid: smokeGuid,
+      brushSize: 0.2,
+      color: [0.1, 0.8, 1, 1],
+      seed: 23,
+      controlPoints: [
+        {
+          position: [-0.1, 0, 0],
+          orientation: [0, 0, 0, 1],
+          pressure: 1,
+          timestampMs: 0,
+        },
+        {
+          position: [0.1, 0, 0],
+          orientation: [0, 0, 0, 1],
+          pressure: 1,
+          timestampMs: 100,
+        },
+      ],
+    });
+    const geometry = generateBrushGeometry(stroke, entry.geometryFamily, {
+      pressureSizeRange: entry.pressureSizeRange,
+      pressureOpacityRange: entry.pressureOpacityRange,
+      geometryParams: entry.geometryParams,
+      generatorClass: entry.generatorClass,
+    });
+    openBrushShaderLibrary.updateFrame(1, this.camera);
+    const result = runParticleVisualConformance(this.renderer, smoke, geometry);
+    showParticleVisualConformance(result);
+    document.documentElement.dataset.brushVisualConformance = result.passed
+      ? "pass"
+      : "fail";
+    console.log(
+      `${BRUSH_VISUAL_CONFORMANCE_PREFIX} ${result.passed ? "PASS" : "FAIL"} particleCoverage=${(result.coveredPixelRatio * 100).toFixed(2)}%`,
     );
   }
 

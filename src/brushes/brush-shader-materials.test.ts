@@ -43,10 +43,10 @@ describe("brush shader asset inventory", () => {
     expect(template.length).toBe(49);
   });
 
-  it("offers only Open Brush's default-tagged extrusion brushes in the picker", () => {
+  it("offers only Open Brush's supported default-tagged brushes in the picker", () => {
     // Matches Open Brush's own curation: experimental-tagged variants
     // (DuctTapeGeometry, DoubleFlat, Fire2, …) stay supported but hidden.
-    expect(selectableOpenBrushes.length).toBe(29);
+    expect(selectableOpenBrushes.length).toBe(35);
     for (const entry of selectableOpenBrushes) {
       expect(entry.tags, entry.name).toContain("default");
       expect(entry.supersededByGuid, entry.name).toBeUndefined();
@@ -55,7 +55,7 @@ describe("brush shader asset inventory", () => {
     const names = selectableOpenBrushes.map((entry) => entry.name);
     expect(names).toContain("Light");
     expect(names).toContain("Marker");
-    expect(names).not.toContain("Smoke");
+    expect(names).toContain("Smoke");
     expect(names).not.toContain("DuctTapeGeometry");
     expect(names).not.toContain("Fire2");
   });
@@ -118,10 +118,9 @@ describe("brush shader eligibility", () => {
     expect(getBrushShaderEligibility(getBrush(MYLAR_TUBE_GUID)).eligible).toBe(true);
   });
 
-  it("rejects particle brushes until the packed vertex contract exists", () => {
+  it("accepts Genius particles with the packed vertex contract", () => {
     const smoke = getBrushShaderEligibility(getBrush(SMOKE_GUID));
-    expect(smoke.eligible).toBe(false);
-    expect(smoke.reason).toMatch(/vertex/);
+    expect(smoke.eligible).toBe(true);
   });
 
   it("rejects brushes whose handcrafted vertex shader needs extra vertex data", () => {
@@ -212,7 +211,10 @@ describe("brush shader material descriptors", () => {
   });
 
   it("returns no descriptor for ineligible brushes", () => {
-    expect(createBrushShaderMaterialDescriptor(getBrush(SMOKE_GUID))).toBeUndefined();
+    const electricity = openBrushInventory.find(
+      (entry) => entry.name === "Electricity",
+    );
+    expect(createBrushShaderMaterialDescriptor(electricity!)).toBeUndefined();
   });
 
   it("maps every Open Brush export blend mode", () => {

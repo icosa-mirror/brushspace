@@ -26,8 +26,8 @@ describe("Open Brush brush inventory", () => {
     // Extrusion (ribbon/tube) brushes with the default vertex stage are
     // supported; custom-vertex extrusion and particle brushes render via
     // fallback; hulls/templates/specials stay unsupported.
-    expect(summary.supported).toBe(79);
-    expect(summary.fallback).toBe(23);
+    expect(summary.supported).toBe(86);
+    expect(summary.fallback).toBe(16);
     expect(summary.unsupported).toBe(21);
   });
 
@@ -84,10 +84,10 @@ describe("Open Brush brush inventory", () => {
       findBrushByGuid(inventory, "70d79cca-b159-4f35-990c-f02193947fe8"),
     ).toMatchObject({
       name: "Smoke",
-      supportStatus: "fallback",
+      supportStatus: "supported",
       geometryFamily: "particle",
       materialFamily: "particle",
-      pickerVisible: false,
+      pickerVisible: true,
       brushSizeRange: [1, 2],
       pressureSizeRange: [0.2, 1],
       pressureOpacityRange: [1, 1],

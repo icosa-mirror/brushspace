@@ -96,7 +96,7 @@ describe("brush material conversion", () => {
     );
   });
 
-  it("surfaces fallback particle brush warnings while keeping texture slots", () => {
+  it("uses the real Genius particle shader while keeping texture slots", () => {
     const spec = createBrushMaterialSpec(
       getBrush("70d79cca-b159-4f35-990c-f02193947fe8"),
       [1, 1, 1, 1],
@@ -104,13 +104,13 @@ describe("brush material conversion", () => {
 
     expect(spec).toMatchObject({
       materialFamily: "particle",
-      shaderRewrite: "fallback",
+      shaderRewrite: "semantic-family",
       sourceBlendMode: 2,
       blending: "additive",
       transparent: true,
       depthWrite: false,
     });
-    expect(spec.warning).toContain("Particle brushes are deferred");
+    expect(spec.warning).toBeUndefined();
     expect(spec.textureSlots[0]).toMatchObject({
       name: "MainTex",
       size: [512, 512],

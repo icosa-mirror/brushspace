@@ -66,8 +66,8 @@ export function resolveLoadedTextureTexelSize(
  * A brush can use its exported GLSL program only when the port's generated
  * geometry satisfies the shader's vertex contract. VertDefault consumes
  * position/normal/color/texcoord0, which ribbon/tube geometry provides;
- * particle shaders need packed center/rotation/birth-time data that the
- * geometry generator does not emit yet.
+ * Genius particle shaders consume the packed center, rotation, birth time,
+ * source position, and vertex ID emitted by their dedicated generator.
  */
 export function getBrushShaderEligibility(
   entry: BrushInventoryEntry | undefined,
@@ -75,13 +75,17 @@ export function getBrushShaderEligibility(
   if (!entry?.shaderAssets) {
     return { eligible: false, reason: "Brush has no extracted GLSL shader assets." };
   }
-  if (!entry.shaderAssets.vertexIsDefault) {
+  const hasGeniusParticleContract =
+    entry.geometryFamily === "particle" &&
+    entry.generatorClass === "GeniusParticlesBrush";
+  if (!entry.shaderAssets.vertexIsDefault && !hasGeniusParticleContract) {
     return {
       eligible: false,
       reason: "Brush vertex shader needs vertex data the geometry generator does not emit yet.",
     };
   }
   if (
+    !hasGeniusParticleContract &&
     entry.geometryFamily !== "ribbon" &&
     entry.geometryFamily !== "emissive" &&
     entry.geometryFamily !== "tube"
