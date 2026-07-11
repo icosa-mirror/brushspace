@@ -100,12 +100,18 @@ export function getBrushShaderEligibility(
     entry.name === "Electricity" &&
     entry.generatorClass === "FlatGeometryBrush" &&
     entry.geometryParams?.ribbonOffsetInTexcoord1 === true;
+  const hasRadiusPackedTubeContract =
+    entry.geometryFamily === "tube" &&
+    (entry.name === "Disco" || entry.name === "LightWire") &&
+    entry.generatorClass === "TubeBrush" &&
+    entry.geometryParams?.tubeStoreRadiusInTexcoord0Z === true;
   if (
     !entry.shaderAssets.vertexIsDefault &&
     !hasGeniusParticleContract &&
     !hasWaveformContract &&
     !hasDoubleTaperedContract &&
-    !hasElectricityContract
+    !hasElectricityContract &&
+    !hasRadiusPackedTubeContract
   ) {
     return {
       eligible: false,

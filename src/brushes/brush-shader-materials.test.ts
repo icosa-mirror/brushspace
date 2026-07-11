@@ -168,6 +168,15 @@ describe("brush shader eligibility", () => {
     expect(getBrushShaderEligibility(electricity).eligible).toBe(true);
   });
 
+  it.each(["Disco", "LightWire"])(
+    "accepts %s's radius-packed tube contract",
+    (name) => {
+      const entry = openBrushInventory.find((brush) => brush.name === name);
+      expect(entry?.geometryParams?.tubeStoreRadiusInTexcoord0Z).toBe(true);
+      expect(getBrushShaderEligibility(entry).eligible).toBe(true);
+    },
+  );
+
   it("rejects brushes without extracted assets", () => {
     expect(getBrushShaderEligibility(undefined).eligible).toBe(false);
   });
@@ -248,10 +257,10 @@ describe("brush shader material descriptors", () => {
   });
 
   it("returns no descriptor for ineligible brushes", () => {
-    const disco = openBrushInventory.find(
-      (entry) => entry.name === "Disco",
+    const hyperGrid = openBrushInventory.find(
+      (entry) => entry.name === "HyperGrid",
     );
-    expect(createBrushShaderMaterialDescriptor(disco!)).toBeUndefined();
+    expect(createBrushShaderMaterialDescriptor(hyperGrid!)).toBeUndefined();
   });
 
   it("maps every Open Brush export blend mode", () => {

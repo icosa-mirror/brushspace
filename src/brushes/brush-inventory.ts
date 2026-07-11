@@ -234,11 +234,16 @@ function resolveBrushSupport(
       brush.name === "Electricity" &&
       record.generatorClass === "FlatGeometryBrush" &&
       record.geometry?.ribbonOffsetInTexcoord1 === true;
+    const hasRadiusPackedTubeContract =
+      (brush.name === "Disco" || brush.name === "LightWire") &&
+      record.generatorClass === "TubeBrush" &&
+      record.geometry?.tubeStoreRadiusInTexcoord0Z === true;
     if (
       !record.vertexIsDefault &&
       !hasWaveformContract &&
       !hasDoubleTaperedContract &&
-      !hasElectricityContract
+      !hasElectricityContract &&
+      !hasRadiusPackedTubeContract
     ) {
       return {
         supportStatus: "fallback",
