@@ -641,8 +641,11 @@ function generateTubeGeometry(
   out.uv0Size = storesRadius ? 3 : 2;
   const pointCount = stroke.controlPoints.length;
   const segmentCount = Math.max(0, pointCount - 1);
-  const sideCount = normalizeTubeSideCount(options.geometryParams?.tubeSideCount);
-  const hardEdges = options.geometryParams?.tubeHardEdges === true;
+  const isSquareBrush = options.generatorClass === "SquareBrush";
+  const sideCount = isSquareBrush
+    ? 4
+    : normalizeTubeSideCount(options.geometryParams?.tubeSideCount);
+  const hardEdges = isSquareBrush || options.geometryParams?.tubeHardEdges === true;
   const ringVertexCount = hardEdges ? sideCount * 2 : sideCount + 1;
   const hasCaps =
     pointCount >= 2 && options.geometryParams?.tubeEndCaps !== false;
@@ -836,8 +839,15 @@ function generateTubeGeometry(
     if (hardEdges) {
       const halfStep = Math.PI / sideCount;
       for (let side = 0; side < sideCount; side += 1) {
-        const angle = (side / sideCount) * Math.PI * 2;
-        setTubeRadial(frameRight, frameUp, angle, radial);
+        const angle =
+          (side / sideCount) * Math.PI * 2 + (isSquareBrush ? Math.PI / 4 : 0);
+        setTubeRadialScaled(
+          frameRight,
+          frameUp,
+          angle,
+          isSquareBrush ? 0.375 : 1,
+          radial,
+        );
         copyVec3(radial, displacement);
         for (let duplicate = 0; duplicate < 2; duplicate += 1) {
           const vertex = ringBase + side * 2 + duplicate;
@@ -863,7 +873,7 @@ function generateTubeGeometry(
           writeColor(colors, vertex, stroke.color, opacity);
           const vFraction = side === 0 && duplicate === 0 ? 1 : side / sideCount;
           const v = v0 + (v1 - v0) * vFraction;
-          writeUv(uvs, vertex, [ringU, v]);
+          writeUv(uvs, vertex, isSquareBrush ? [0.5, 0.5] : [ringU, v]);
           if (storesRadius) {
             writePackedUv(packedUvs, vertex, ringU, v, radius);
           }
@@ -985,7 +995,7 @@ function generateTubeGeometry(
             writeTangent(tangents, vertex, capRadial, 1);
             writeColor(colors, vertex, stroke.color, opacity);
             const v = v0 + (v1 - v0) * fraction;
-            writeUv(uvs, vertex, [capU, v]);
+            writeUv(uvs, vertex, isSquareBrush ? [0.5, 0.5] : [capU, v]);
             if (storesRadius) {
               writePackedUv(packedUvs, vertex, capU, v, 0);
             }
@@ -2274,6 +2284,20 @@ function setTubeRadial(
 ): void {
   const rightScale = -Math.sin(angle);
   const upScale = -Math.cos(angle);
+  out[0] = right[0] * rightScale + up[0] * upScale;
+  out[1] = right[1] * rightScale + up[1] * upScale;
+  out[2] = right[2] * rightScale + up[2] * upScale;
+}
+
+function setTubeRadialScaled(
+  right: Vec3,
+  up: Vec3,
+  angle: number,
+  upAspect: number,
+  out: Vec3,
+): void {
+  const rightScale = -Math.sin(angle);
+  const upScale = -Math.cos(angle) * upAspect;
   out[0] = right[0] * rightScale + up[0] * upScale;
   out[1] = right[1] * rightScale + up[1] * upScale;
   out[2] = right[2] * rightScale + up[2] * upScale;

@@ -194,7 +194,8 @@ function resolveBrushSupport(
   brush: OpenBrushExportBrush,
   record: BrushAssetRecord | undefined,
 ): BrushSupportDecision {
-  const generatorFamily = record?.generatorFamily;
+  const generatorFamily =
+    record?.generatorClass === "SquareBrush" ? "tube" : record?.generatorFamily;
   if (!record || !generatorFamily) {
     return {
       supportStatus: "unsupported",

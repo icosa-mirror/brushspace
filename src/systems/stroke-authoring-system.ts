@@ -340,7 +340,8 @@ export class StrokeAuthoringSystem extends createSystem({
       mode === "electricity" ||
       mode === "disco" ||
       mode === "light-wire" ||
-      mode === "hyper-grid"
+      mode === "hyper-grid" ||
+      mode === "square-paper"
     ) {
       this.runGeometryVisualConformance(mode);
       return;
@@ -377,7 +378,8 @@ export class StrokeAuthoringSystem extends createSystem({
       | "electricity"
       | "disco"
       | "light-wire"
-      | "hyper-grid",
+      | "hyper-grid"
+      | "square-paper",
   ): void {
     const brushGuid =
       mode === "spray"
@@ -396,6 +398,8 @@ export class StrokeAuthoringSystem extends createSystem({
                     ? "4391aaaa-df81-4396-9e33-31e4e4930b27"
                     : mode === "hyper-grid"
                       ? "6a1cf9f9-032c-45ec-9b6e-a6680bee32e9"
+                      : mode === "square-paper"
+                        ? "2e03b1bf-3ebd-4609-9d7e-f4cafadc4dfa"
         : "70d79cca-b159-4f35-990c-f02193947fe8";
     const material = openBrushShaderLibrary.get(brushGuid);
     const entry = findBrushByGuid(openBrushInventory, brushGuid);
@@ -461,6 +465,7 @@ export class StrokeAuthoringSystem extends createSystem({
         mode === "electricity" ||
         mode === "disco" ||
         mode === "light-wire"
+        || mode === "square-paper"
         ? "stroke"
         : "particle",
     );

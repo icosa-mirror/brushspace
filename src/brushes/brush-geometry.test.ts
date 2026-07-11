@@ -369,6 +369,18 @@ describe("brush geometry generation", () => {
     expect(geometry.uvs[40]).toBeCloseTo(1);
   });
 
+  it("generates SquareBrush as a hard-edged rectangular prism", () => {
+    const geometry = generateBrushGeometry(
+      createUnevenThreePointStroke(),
+      "tube",
+      { generatorClass: "SquareBrush" },
+    );
+
+    expect(getGeneratedVertexCount(geometry)).toBe(32);
+    expect(getGeneratedIndexCount(geometry)).toBe(72);
+    expect(new Set(Array.from(geometry.uvs))).toEqual(new Set([0.5]));
+  });
+
   it("splits and caps tubes at Open Brush frame-angle breaks", () => {
     const stroke = createSharpTubeStroke();
     const geometry = generateBrushGeometry(stroke, "tube", {
