@@ -130,6 +130,13 @@ describe("brush shader eligibility", () => {
     expect(getBrushShaderEligibility(splatter).eligible).toBe(true);
   });
 
+  it("accepts Midpoint lifetime particles with their packed UV1 contract", () => {
+    const danceFloor = openBrushInventory.find(
+      (entry) => entry.name === "DanceFloor",
+    );
+    expect(getBrushShaderEligibility(danceFloor).eligible).toBe(true);
+  });
+
   it("rejects brushes whose handcrafted vertex shader needs extra vertex data", () => {
     const electricity = openBrushInventory.find(
       (entry) => entry.name === "Electricity",

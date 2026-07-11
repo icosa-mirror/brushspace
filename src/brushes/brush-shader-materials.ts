@@ -82,6 +82,10 @@ export function getBrushShaderEligibility(
     entry.geometryFamily === "particle" &&
     entry.generatorClass === "SprayBrush" &&
     entry.shaderAssets.vertexIsDefault;
+  const hasMidpointParticleContract =
+    entry.geometryFamily === "particle" &&
+    entry.generatorClass === "MidpointPlusLifetimeSprayBrush" &&
+    entry.shaderAssets.vertexIsDefault;
   if (!entry.shaderAssets.vertexIsDefault && !hasGeniusParticleContract) {
     return {
       eligible: false,
@@ -91,6 +95,7 @@ export function getBrushShaderEligibility(
   if (
     !hasGeniusParticleContract &&
     !hasSprayParticleContract &&
+    !hasMidpointParticleContract &&
     entry.geometryFamily !== "ribbon" &&
     entry.geometryFamily !== "emissive" &&
     entry.geometryFamily !== "tube"

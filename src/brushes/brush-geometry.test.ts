@@ -582,6 +582,48 @@ describe("brush geometry generation", () => {
     }
   });
 
+  it("packs Midpoint lifetime offsets at its source spray interval", () => {
+    const stroke = createTwoPointStroke({
+      guid: "midpoint-lifetime-particles",
+      brushSize: 0.1,
+      pressure: 1,
+    });
+    stroke.controlPoints[1].position = [0.1, 0, 0];
+    stroke.controlPoints[1].timestampMs = 250;
+    const options = {
+      generatorClass: "MidpointPlusLifetimeSprayBrush",
+      pressureSizeRange: [1, 1] as const,
+      geometryParams: {
+        sprayRateMultiplier: 4,
+        particleSizeVariance: 0,
+        particlePositionVariance: 0,
+        particleRotationVariance: 0,
+        particleSizeRatio: [1, 1] as [number, number],
+        renderBackfaces: true,
+      },
+    };
+
+    const geometry = generateBrushGeometry(stroke, "particle", options);
+    const repeated = generateBrushGeometry(stroke, "particle", options);
+
+    expect(geometry.uv0Size).toBe(2);
+    expect(geometry.uv1Size).toBe(4);
+    expect(getGeneratedVertexCount(geometry)).toBe(16);
+    expect(getGeneratedIndexCount(geometry)).toBe(24);
+    expect(geometry.uv1).toHaveLength(64);
+    expect(geometry.uv1).toEqual(repeated.uv1);
+    for (let vertex = 0; vertex < 16; vertex += 1) {
+      expect(geometry.uv1?.[vertex * 4 + 3]).toBeCloseTo(0.25);
+    }
+    for (let quad = 0; quad < 4; quad += 1) {
+      let centerX = 0;
+      for (let corner = 0; corner < 4; corner += 1) {
+        centerX += geometry.positions[(quad * 4 + corner) * 3];
+      }
+      expect(centerX / 4).toBeCloseTo(quad * 0.025);
+    }
+  });
+
   it("uses the Genius single-particle pressure floor", () => {
     const stroke = createTwoPointStroke({
       guid: "genius-single-particle",

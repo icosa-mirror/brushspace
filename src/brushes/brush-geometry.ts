@@ -19,6 +19,7 @@ export interface GeneratedBrushGeometry {
   colors: Float32Array;
   uvs: Float32Array;
   uv0Size: 2 | 3 | 4;
+  uv1Size: 0 | 4;
   packedUvs?: Float32Array;
   uv1?: Float32Array;
   indices: Uint32Array;
@@ -60,6 +61,7 @@ export interface BrushGeometryArrays {
   ribbonRunningLengths: Float32Array;
   ribbonSectionLengths: Float32Array;
   uv0Size: 2 | 3 | 4;
+  uv1Size: 0 | 4;
   indices: Uint32Array;
   vertexCount: number;
   indexCount: number;
@@ -93,6 +95,7 @@ export function createBrushGeometryArrays(): BrushGeometryArrays {
     ribbonRunningLengths: new Float32Array(INITIAL_VERTEX_CAPACITY),
     ribbonSectionLengths: new Float32Array(INITIAL_VERTEX_CAPACITY),
     uv0Size: 2,
+    uv1Size: 0,
     indices: new Uint32Array(INITIAL_INDEX_CAPACITY),
     vertexCount: 0,
     indexCount: 0,
@@ -194,6 +197,7 @@ export function generateBrushGeometryInto(
   out: BrushGeometryArrays,
 ): boolean {
   out.warning = undefined;
+  out.uv1Size = 0;
   resetBounds(out.bounds);
   switch (family) {
     case "ribbon":
@@ -227,6 +231,7 @@ export function generateBrushGeometry(
     colors: arrays.colors.subarray(0, arrays.vertexCount * 4),
     uvs: arrays.uvs.subarray(0, arrays.vertexCount * 2),
     uv0Size: arrays.uv0Size,
+    uv1Size: arrays.uv1Size,
     packedUvs:
       arrays.uv0Size === 3
         ? arrays.packedUvs.subarray(0, arrays.vertexCount * 3)
@@ -234,7 +239,7 @@ export function generateBrushGeometry(
           ? arrays.particleUvs.subarray(0, arrays.vertexCount * 4)
           : undefined,
     uv1:
-      arrays.uv0Size === 4
+      arrays.uv1Size === 4
         ? arrays.uv1s.subarray(0, arrays.vertexCount * 4)
         : undefined,
     indices: arrays.indices.subarray(0, arrays.indexCount),
@@ -993,7 +998,10 @@ function generateParticleGeometry(
   if (options.generatorClass === "GeniusParticlesBrush") {
     return generateGeniusParticleGeometry(stroke, options, out);
   }
-  if (options.generatorClass === "SprayBrush") {
+  if (
+    options.generatorClass === "SprayBrush" ||
+    options.generatorClass === "MidpointPlusLifetimeSprayBrush"
+  ) {
     return generateSprayParticleGeometry(stroke, options, out);
   }
   out.uv0Size = 2;
@@ -1112,6 +1120,9 @@ function generateSprayParticleGeometry(
   out: BrushGeometryArrays,
 ): boolean {
   out.uv0Size = 2;
+  const hasLifetime =
+    options.generatorClass === "MidpointPlusLifetimeSprayBrush";
+  out.uv1Size = hasLifetime ? 4 : 0;
   const localBrushSize = getLocalBrushSize(stroke);
   const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
   const particleRate = normalizePositive(
@@ -1133,7 +1144,8 @@ function generateSprayParticleGeometry(
     }
   }
 
-  const hasBackfaces = options.geometryParams?.renderBackfaces === true;
+  const hasBackfaces =
+    !hasLifetime && options.geometryParams?.renderBackfaces === true;
   const frontVertexCount = quadCount * 4;
   const frontIndexCount = quadCount * 6;
   const vertexCount = frontVertexCount * (hasBackfaces ? 2 : 1);
@@ -1231,7 +1243,9 @@ function generateSprayParticleGeometry(
       ) * descriptorOpacity;
 
     for (let segmentQuad = 0; segmentQuad < segmentQuadCount; segmentQuad += 1) {
-      const salt = 10 * (pointIndex * 12 + (segmentQuad % 12));
+      const salt = hasLifetime
+        ? 10 * (pointIndex * 5 + segmentQuad)
+        : 10 * (pointIndex * 12 + (segmentQuad % 12));
       const rotation =
         (statelessRandom01(stroke.seed, salt + 1) * 2 - 1) *
         rotationVarianceRadians;
@@ -1265,6 +1279,7 @@ function generateSprayParticleGeometry(
         tangents,
         colors,
         uvs,
+        out.uv1s,
         indices,
         bounds,
         quadIndex,
@@ -1278,6 +1293,8 @@ function generateSprayParticleGeometry(
         opacity,
         usesAtlas,
         atlasCell,
+        hasLifetime,
+        point.timestampMs * 0.001,
       );
       quadIndex += 1;
     }
@@ -1320,6 +1337,7 @@ function generateGeniusParticleGeometry(
   out: BrushGeometryArrays,
 ): boolean {
   out.uv0Size = 4;
+  out.uv1Size = 4;
   const pointCount = stroke.controlPoints.length;
   const totalLength = measureStrokeLength(stroke);
   const particleRate = normalizePositive(
@@ -1880,6 +1898,7 @@ function writeSprayParticleQuad(
   tangents: Float32Array,
   colors: Float32Array,
   uvs: Float32Array,
+  uv1s: Float32Array,
   indices: Uint32Array,
   bounds: BrushGeometryBounds,
   quadIndex: number,
@@ -1893,30 +1912,33 @@ function writeSprayParticleQuad(
   opacity: number,
   usesAtlas: boolean,
   atlasCell: number,
+  hasLifetime: boolean,
+  birthTimeSeconds: number,
 ): void {
   const vertex = quadIndex * 4;
   const atlasScale = usesAtlas ? 0.5 : 1;
   const atlasU = usesAtlas ? (atlasCell % 2) * 0.5 : 0;
   const atlasV = usesAtlas ? Math.floor(atlasCell / 2) * 0.5 : 0;
   writeSprayParticleVertex(
-    positions, normals, tangents, colors, uvs, bounds,
+    positions, normals, tangents, colors, uvs, uv1s, bounds,
     vertex, center, facing, right, normal, -forwardScale, rightScale,
-    color, opacity, atlasU, atlasV + atlasScale,
+    color, opacity, atlasU, atlasV + atlasScale, hasLifetime, birthTimeSeconds,
   );
   writeSprayParticleVertex(
-    positions, normals, tangents, colors, uvs, bounds,
+    positions, normals, tangents, colors, uvs, uv1s, bounds,
     vertex + 1, center, facing, right, normal, -forwardScale, -rightScale,
-    color, opacity, atlasU, atlasV,
+    color, opacity, atlasU, atlasV, hasLifetime, birthTimeSeconds,
   );
   writeSprayParticleVertex(
-    positions, normals, tangents, colors, uvs, bounds,
+    positions, normals, tangents, colors, uvs, uv1s, bounds,
     vertex + 2, center, facing, right, normal, forwardScale, rightScale,
     color, opacity, atlasU + atlasScale, atlasV + atlasScale,
+    hasLifetime, birthTimeSeconds,
   );
   writeSprayParticleVertex(
-    positions, normals, tangents, colors, uvs, bounds,
+    positions, normals, tangents, colors, uvs, uv1s, bounds,
     vertex + 3, center, facing, right, normal, forwardScale, -rightScale,
-    color, opacity, atlasU + atlasScale, atlasV,
+    color, opacity, atlasU + atlasScale, atlasV, hasLifetime, birthTimeSeconds,
   );
   const indexOffset = quadIndex * 6;
   indices[indexOffset] = vertex;
@@ -1933,6 +1955,7 @@ function writeSprayParticleVertex(
   tangents: Float32Array,
   colors: Float32Array,
   uvs: Float32Array,
+  uv1s: Float32Array,
   bounds: BrushGeometryBounds,
   vertex: number,
   center: Vec3,
@@ -1945,6 +1968,8 @@ function writeSprayParticleVertex(
   opacity: number,
   u: number,
   v: number,
+  hasLifetime: boolean,
+  birthTimeSeconds: number,
 ): void {
   const positionOffset = vertex * 3;
   positions[positionOffset] =
@@ -1961,6 +1986,15 @@ function writeSprayParticleVertex(
   const uvOffset = vertex * 2;
   uvs[uvOffset] = u;
   uvs[uvOffset + 1] = v;
+  if (hasLifetime) {
+    const uv1Offset = vertex * 4;
+    uv1s[uv1Offset] = facing[0] * forwardScale + right[0] * rightScale;
+    uv1s[uv1Offset + 1] =
+      facing[1] * forwardScale + right[1] * rightScale;
+    uv1s[uv1Offset + 2] =
+      facing[2] * forwardScale + right[2] * rightScale;
+    uv1s[uv1Offset + 3] = birthTimeSeconds;
+  }
   includeBounds(bounds, positions, vertex);
 }
 

@@ -331,7 +331,7 @@ export class StrokeAuthoringSystem extends createSystem({
     const mode = new URLSearchParams(window.location.search).get(
       "visual-conformance",
     );
-    if (mode === "particle" || mode === "spray") {
+    if (mode === "particle" || mode === "spray" || mode === "midpoint") {
       this.runParticleVisualConformance(mode);
       return;
     }
@@ -357,10 +357,14 @@ export class StrokeAuthoringSystem extends createSystem({
     );
   }
 
-  private runParticleVisualConformance(mode: "particle" | "spray"): void {
+  private runParticleVisualConformance(
+    mode: "particle" | "spray" | "midpoint",
+  ): void {
     const brushGuid =
       mode === "spray"
         ? "8dc4a70c-d558-4efd-a5ed-d4e860f40dc3"
+        : mode === "midpoint"
+          ? "6a1cf9f9-032c-45ec-311e-a6680bee32e9"
         : "70d79cca-b159-4f35-990c-f02193947fe8";
     const material = openBrushShaderLibrary.get(brushGuid);
     const entry = findBrushByGuid(openBrushInventory, brushGuid);
@@ -375,7 +379,12 @@ export class StrokeAuthoringSystem extends createSystem({
       guid: "brush-visual-conformance-smoke",
       brushGuid,
       brushSize: 0.2,
-      color: mode === "spray" ? [1, 0.1, 0.6, 1] : [0.1, 0.8, 1, 1],
+      color:
+        mode === "spray"
+          ? [1, 0.1, 0.6, 1]
+          : mode === "midpoint"
+            ? [0.4, 1, 0.1, 1]
+            : [0.1, 0.8, 1, 1],
       seed: 23,
       controlPoints: [
         {
@@ -385,7 +394,7 @@ export class StrokeAuthoringSystem extends createSystem({
           timestampMs: 0,
         },
         {
-          position: mode === "spray" ? [0.5, 0, 0] : [0.1, 0, 0],
+          position: mode === "particle" ? [0.1, 0, 0] : [0.5, 0, 0],
           orientation: [0, 0, 0, 1],
           pressure: 1,
           timestampMs: 100,
@@ -992,7 +1001,7 @@ export class StrokeAuthoringSystem extends createSystem({
       stroke.geometry.setAttribute("uv", uv);
       applyBrushShaderAttributeAliases(stroke.geometry);
       stroke.geometry.setAttribute("a_texcoord0", shaderUv);
-      if (arrays.uv0Size === 4) {
+      if (arrays.uv1Size === 4) {
         stroke.geometry.setAttribute("uv1", shaderUv1);
         stroke.geometry.setAttribute("a_texcoord1", shaderUv1);
       } else {

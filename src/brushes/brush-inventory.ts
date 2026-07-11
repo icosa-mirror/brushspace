@@ -247,8 +247,13 @@ function resolveBrushSupport(
       record.generatorClass === "GeniusParticlesBrush";
     const hasSprayParticleContract =
       record.generatorClass === "SprayBrush" && record.vertexIsDefault;
+    const hasMidpointParticleContract =
+      record.generatorClass === "MidpointPlusLifetimeSprayBrush" &&
+      record.vertexIsDefault;
     const hasParticleContract =
-      hasGeniusParticleContract || hasSprayParticleContract;
+      hasGeniusParticleContract ||
+      hasSprayParticleContract ||
+      hasMidpointParticleContract;
     return {
       supportStatus: hasParticleContract ? "supported" : "fallback",
       geometryFamily: "particle",

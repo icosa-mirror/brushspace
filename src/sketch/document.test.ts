@@ -68,8 +68,8 @@ describe("Open Brush sketch documents", () => {
 
     expect(summary.inventory).toEqual({
       total: 123,
-      supported: 93,
-      fallback: 9,
+      supported: 95,
+      fallback: 7,
       unsupported: 21,
     });
     expect(summary.fixture).toEqual({
