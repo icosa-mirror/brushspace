@@ -2,7 +2,7 @@
 
 Date: 2026-07-11
 
-Brushspace: `6e963f0`
+Brushspace: `b2131da`
 
 Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6)
 
@@ -10,16 +10,17 @@ Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icos
 
 Brushspace is a functional WebXR painting application derived from Open Brush concepts and assets. It is not currently a faithful port of Open Brush's brush runtime.
 
-The strongest mapping is the data layer: all 123 current manifest GUIDs are present, shader and texture assets have been extracted, and the main `.tilt` stroke fields are represented. Ribbon, tube, and all three particle-generator families now have dedicated geometry paths, but mesh generation remains the largest gap for hull, stamp, thick-strip, special, and several custom-deformation brushes. Export shaders cannot restore topology, smoothing, or brush-specific silhouette behavior that was never generated.
+The strongest mapping is the data layer: all 123 extracted GUIDs are present, shader and texture assets have been extracted, and the main `.tilt` stroke fields are represented. The required fidelity target matches Open Brush's authored picker catalogs: 48 standard brushes plus 47 experimental brushes. Four additional experimental entries are tagged `broken`, and 24 uncatalogued compatibility records remain loadable for old sketches but are not port requirements. Ribbon, tube, and all three particle-generator families now have dedicated geometry paths, but mesh generation remains the largest gap for hull, stamp, thick-strip, special, and several custom-deformation brushes. Export shaders cannot restore topology, smoothing, or brush-specific silhouette behavior that was never generated.
 
-Current inventory classifications measure shader eligibility, not visual equivalence:
+Catalog scope and runtime visibility are independent of fidelity classification:
 
-| Classification | Count | Actual meaning |
+| Set | Count | Actual meaning |
 | --- | ---: | --- |
-| `supported` | 96 | Geometry contract and exported shader are both enabled |
-| `fallback` | 6 | Five custom-vertex ribbon/tube brushes plus HyperGrid |
-| `unsupported` | 21 | Hull, stamp, thick-strip, special, or unresolved generator |
-| Default picker | 38 | Supported, non-superseded entries tagged `default` |
+| Standard catalog | 48 | Shown in manifest order, 12 per page; imperfect brushes remain selectable through fallback rendering |
+| Experimental catalog | 47 | The 51 extracted experimental records minus four entries tagged `broken` |
+| Required total | 95 | The only brushes required for fidelity work |
+| Compatibility/non-catalog | 24 | Retained for old sketches, excluded from the port backlog |
+| Broken experimental | 4 | CandyCane, HolidayTree, Snowflake, and Braid3; excluded by Open Brush's tag filter |
 
 The 123 asset records contain 74 handcrafted and 49 template shaders, and report 112 resolved texture bindings with none missing. Those are asset-pipeline coverage figures, not fidelity figures.
 
@@ -82,7 +83,7 @@ distance/stretch UVs restarted per section. Important remaining differences are:
   adjacent-knot rebuild rules are absent.
 - The shared indexed strip does not reproduce every source generator's triangle-soup topology and seams.
 - Head/tail simplification and per-generator minimum-length rules are incomplete.
-- Custom vertex layouts for DoubleTapered and Electricity are absent.
+- The DoubleTapered edge-vector layout is present; Electricity remains absent.
 
 ### Tubes
 
@@ -138,7 +139,7 @@ Finalized strokes remain separate meshes and draw calls, frustum culling is disa
 
 ### Vertex data is the limiting contract
 
-The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, and Waveform contracts. Even default shaders only match if attribute values have the correct semantics. The five excluded custom-vertex ribbon/tube brushes are DoubleTaperedFlat, DoubleTaperedMarker, Electricity, Disco, and LightWire. HyperGrid and special brushes still require additional deformation/audio data. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 4D UV1, vertex IDs, and index where the selected generator defines those semantics.
+The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, Waveform, and DoubleTapered contracts. Even default shaders only match if attribute values have the correct semantics. The remaining excluded custom-vertex ribbon/tube brushes are Electricity, Disco, and LightWire. HyperGrid and special brushes still require additional deformation/audio data. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 3D/4D UV1, vertex IDs, and index where the selected generator defines those semantics.
 
 ### Descriptor data is extracted but unused
 
@@ -229,7 +230,7 @@ Exit: CI explains exactly why every GUID passes or fails.
 3. Add physical-length UVs, tile rate, atlas rows, deterministic offsets, and segment restart.
 4. Emit explicit backfaces/hue shift, normals, tangents, and source vertex layouts.
 5. Apply opacity and color constraints.
-6. Port DoubleTapered and Electricity layouts.
+6. Port the remaining Electricity layout; DoubleTapered now emits its source edge-vector contract.
 
 Exit: default ribbon fixtures pass mesh and image gates.
 
@@ -276,7 +277,7 @@ Port in real-sketch usage order: hull/concave hull; square/stamp and thick geome
 
 ## Recommended sequence
 
-Do not begin by porting all 123 shaders. The highest-yield order is: conformance tooling; exact geometry for the 29 default-picker brushes; material/texture semantics for those brushes; batching sufficient for real sketches; particles; then long-tail and experimental generators. A shader should not be declared complete against an approximate vertex contract.
+Do not treat all 123 extracted records as the fidelity target. The highest-yield order is: conformance tooling; exact geometry for the 48 standard brushes; material/texture semantics for those brushes; batching sufficient for real sketches; then the 47 non-broken experimental brushes. A shader should not be declared complete against an approximate vertex contract.
 
 ## Effort and full-port appraisal
 
@@ -285,8 +286,8 @@ Assumptions: senior WebGL/TypeScript and Open Brush/Unity expertise, Quest-capab
 | Goal | Estimated work |
 | --- | ---: |
 | Harness and extraction metadata | 1-2 engineer-weeks |
-| High-fidelity 29-brush default set | 10-18 engineer-weeks |
-| All stock brush mesh/material families | 24-42 engineer-weeks total |
+| High-fidelity 48-brush standard set | 12-22 engineer-weeks |
+| All 95 required brush mesh/material families | 24-42 engineer-weeks total |
 | Batching/performance hardening | 4-8 additional engineer-weeks |
 | Broad Open Brush application parity | 18-36 engineer-months total program |
 
@@ -306,7 +307,7 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 4. Fail loudly when an extracted required vertex contract is unimplemented.
 5. Port ribbon smoothing and self-intersection width shrinking.
 6. Byte-compare tube caps/rings and port Disco and LightWire layouts.
-7. Replace static particle quads with the source spawn and vertex contracts.
+7. Port preview decay, lifetime motion, and exact time conversion for particle brushes.
 8. Connect batching to production rendering.
 9. Persist the browser/Quest shader compile matrix.
 10. Complete texture transforms, render states, and normal-map support.
