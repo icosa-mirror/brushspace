@@ -86,7 +86,15 @@ export function getBrushShaderEligibility(
     entry.geometryFamily === "particle" &&
     entry.generatorClass === "MidpointPlusLifetimeSprayBrush" &&
     entry.shaderAssets.vertexIsDefault;
-  if (!entry.shaderAssets.vertexIsDefault && !hasGeniusParticleContract) {
+  const hasWaveformContract =
+    entry.geometryFamily === "emissive" &&
+    entry.name === "Waveform" &&
+    entry.generatorClass === "QuadStripBrushStretchUV";
+  if (
+    !entry.shaderAssets.vertexIsDefault &&
+    !hasGeniusParticleContract &&
+    !hasWaveformContract
+  ) {
     return {
       eligible: false,
       reason: "Brush vertex shader needs vertex data the geometry generator does not emit yet.",

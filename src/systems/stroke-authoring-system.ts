@@ -60,9 +60,9 @@ import {
 import {
   BRUSH_VISUAL_CONFORMANCE_PREFIX,
   runBumpVisualConformance,
-  runParticleVisualConformance,
+  runBrushGeometryVisualConformance,
   showBumpVisualConformance,
-  showParticleVisualConformance,
+  showBrushGeometryVisualConformance,
 } from "../brushes/brush-visual-conformance.js";
 import {
   createMirroredStrokeDataX,
@@ -331,8 +331,13 @@ export class StrokeAuthoringSystem extends createSystem({
     const mode = new URLSearchParams(window.location.search).get(
       "visual-conformance",
     );
-    if (mode === "particle" || mode === "spray" || mode === "midpoint") {
-      this.runParticleVisualConformance(mode);
+    if (
+      mode === "particle" ||
+      mode === "spray" ||
+      mode === "midpoint" ||
+      mode === "waveform"
+    ) {
+      this.runGeometryVisualConformance(mode);
       return;
     }
     if (mode !== "bump") {
@@ -357,14 +362,16 @@ export class StrokeAuthoringSystem extends createSystem({
     );
   }
 
-  private runParticleVisualConformance(
-    mode: "particle" | "spray" | "midpoint",
+  private runGeometryVisualConformance(
+    mode: "particle" | "spray" | "midpoint" | "waveform",
   ): void {
     const brushGuid =
       mode === "spray"
         ? "8dc4a70c-d558-4efd-a5ed-d4e860f40dc3"
         : mode === "midpoint"
           ? "6a1cf9f9-032c-45ec-311e-a6680bee32e9"
+          : mode === "waveform"
+            ? "10201aa3-ebc2-42d8-84b7-2e63f6eeb8ab"
         : "70d79cca-b159-4f35-990c-f02193947fe8";
     const material = openBrushShaderLibrary.get(brushGuid);
     const entry = findBrushByGuid(openBrushInventory, brushGuid);
@@ -378,13 +385,15 @@ export class StrokeAuthoringSystem extends createSystem({
     const stroke = createEmptyStrokeData({
       guid: "brush-visual-conformance-smoke",
       brushGuid,
-      brushSize: 0.2,
+      brushSize: mode === "waveform" ? 0.4 : 0.2,
       color:
         mode === "spray"
           ? [1, 0.1, 0.6, 1]
           : mode === "midpoint"
             ? [0.4, 1, 0.1, 1]
-            : [0.1, 0.8, 1, 1],
+            : mode === "waveform"
+              ? [0.1, 0.5, 1, 1]
+              : [0.1, 0.8, 1, 1],
       seed: 23,
       controlPoints: [
         {
@@ -408,13 +417,14 @@ export class StrokeAuthoringSystem extends createSystem({
       generatorClass: entry.generatorClass,
     });
     openBrushShaderLibrary.updateFrame(1, this.camera);
-    const result = runParticleVisualConformance(
+    const result = runBrushGeometryVisualConformance(
       this.renderer,
       material,
       geometry,
       entry.name,
+      mode === "waveform" ? "stroke" : "particle",
     );
-    showParticleVisualConformance(result);
+    showBrushGeometryVisualConformance(result);
     document.documentElement.dataset.brushVisualConformance = result.passed
       ? "pass"
       : "fail";

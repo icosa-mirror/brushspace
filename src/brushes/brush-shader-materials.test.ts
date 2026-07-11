@@ -46,7 +46,7 @@ describe("brush shader asset inventory", () => {
   it("offers only Open Brush's supported default-tagged brushes in the picker", () => {
     // Matches Open Brush's own curation: experimental-tagged variants
     // (DuctTapeGeometry, DoubleFlat, Fire2, …) stay supported but hidden.
-    expect(selectableOpenBrushes.length).toBe(37);
+    expect(selectableOpenBrushes.length).toBe(38);
     for (const entry of selectableOpenBrushes) {
       expect(entry.tags, entry.name).toContain("default");
       expect(entry.supersededByGuid, entry.name).toBeUndefined();
@@ -135,6 +135,11 @@ describe("brush shader eligibility", () => {
       (entry) => entry.name === "DanceFloor",
     );
     expect(getBrushShaderEligibility(danceFloor).eligible).toBe(true);
+  });
+
+  it("accepts Waveform's custom color-only vertex shader", () => {
+    const waveform = openBrushInventory.find((entry) => entry.name === "Waveform");
+    expect(getBrushShaderEligibility(waveform).eligible).toBe(true);
   });
 
   it("rejects brushes whose handcrafted vertex shader needs extra vertex data", () => {

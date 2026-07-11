@@ -28,19 +28,21 @@ export interface BrushVisualConformanceResult extends PixelDifference {
   flatPixels: Uint8Array;
 }
 
-export interface ParticleVisualConformanceResult {
+export interface BrushGeometryVisualConformanceResult {
   name: string;
+  kind: string;
   passed: boolean;
   coveredPixelRatio: number;
   pixels: Uint8Array;
 }
 
-export function runParticleVisualConformance(
+export function runBrushGeometryVisualConformance(
   renderer: WebGLRenderer,
   sourceMaterial: ShaderMaterial,
   generated: GeneratedBrushGeometry,
   name = "Smoke",
-): ParticleVisualConformanceResult {
+  kind = "particle",
+): BrushGeometryVisualConformanceResult {
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new BufferAttribute(generated.positions, 3));
   geometry.setAttribute("normal", new BufferAttribute(generated.normals, 3));
@@ -94,14 +96,15 @@ export function runParticleVisualConformance(
   const coveredPixelRatio = coveredPixels / (BRUSH_VISUAL_CONFORMANCE_SIZE ** 2);
   return {
     name,
+    kind,
     passed: coveredPixelRatio >= 0.005,
     coveredPixelRatio,
     pixels,
   };
 }
 
-export function showParticleVisualConformance(
-  result: ParticleVisualConformanceResult,
+export function showBrushGeometryVisualConformance(
+  result: BrushGeometryVisualConformanceResult,
 ): void {
   document.getElementById("brush-visual-conformance")?.remove();
   const root = document.createElement("section");
@@ -109,7 +112,7 @@ export function showParticleVisualConformance(
   root.style.cssText =
     "position:fixed;inset:16px;z-index:10000;background:#111;color:#eee;padding:16px;font:14px system-ui;overflow:auto";
   const heading = document.createElement("h1");
-  heading.textContent = `${result.name} particle render: ${result.passed ? "PASS" : "FAIL"}`;
+  heading.textContent = `${result.name} ${result.kind} render: ${result.passed ? "PASS" : "FAIL"}`;
   const details = document.createElement("p");
   details.textContent = `covered ${(result.coveredPixelRatio * 100).toFixed(2)}%`;
   root.append(

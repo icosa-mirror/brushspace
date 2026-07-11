@@ -218,7 +218,10 @@ function resolveBrushSupport(
         : brush.blendMode === 2
           ? "emissive"
           : "ribbon";
-    if (!record.vertexIsDefault) {
+    const hasWaveformContract =
+      brush.name === "Waveform" &&
+      record.generatorClass === "QuadStripBrushStretchUV";
+    if (!record.vertexIsDefault && !hasWaveformContract) {
       return {
         supportStatus: "fallback",
         geometryFamily,
