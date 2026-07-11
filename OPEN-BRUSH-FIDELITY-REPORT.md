@@ -1,7 +1,9 @@
 # Open Brush brush fidelity review
 
-Date: 2026-07-11  
-Brushspace: `6e963f0`  
+Date: 2026-07-11
+
+Brushspace: `6e963f0`
+
 Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6)
 
 ## Executive assessment
