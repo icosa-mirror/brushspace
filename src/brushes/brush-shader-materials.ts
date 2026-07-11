@@ -36,6 +36,32 @@ export interface BrushShaderEligibility {
   reason?: string;
 }
 
+export function resolveLoadedTextureTexelSize(
+  image: unknown,
+): [number, number, number, number] | undefined {
+  const dimensions = image as
+    | {
+        width?: unknown;
+        height?: unknown;
+        naturalWidth?: unknown;
+        naturalHeight?: unknown;
+      }
+    | undefined;
+  const width = dimensions?.naturalWidth ?? dimensions?.width;
+  const height = dimensions?.naturalHeight ?? dimensions?.height;
+  if (
+    typeof width !== "number" ||
+    typeof height !== "number" ||
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
+    return undefined;
+  }
+  return [1 / width, 1 / height, width, height];
+}
+
 /**
  * A brush can use its exported GLSL program only when the port's generated
  * geometry satisfies the shader's vertex contract. VertDefault consumes

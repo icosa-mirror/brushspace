@@ -38,6 +38,7 @@ import {
 import {
   createBrushShaderMaterialDescriptor,
   prepareBrushShaderSource,
+  resolveLoadedTextureTexelSize,
   OPENBRUSH_AMBIENT_LIGHT_COLOR,
   OPENBRUSH_FOG_COLOR,
   OPENBRUSH_SCENE_LIGHT_0_COLOR,
@@ -297,6 +298,10 @@ export class BrushShaderLibrary {
     }
     for (const [name, texture] of textures) {
       uniforms[name] = { value: texture };
+      const texelSize = resolveLoadedTextureTexelSize(texture.image);
+      if (texelSize) {
+        uniforms[`${name}_TexelSize`] = { value: new Vector4(...texelSize) };
+      }
     }
     // Shared holders are assigned by reference so a single updateFrame()
     // reaches every material; unused uniforms are ignored at upload time.

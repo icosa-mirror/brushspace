@@ -8,6 +8,7 @@ import {
   getBrushShaderEligibility,
   packBrushShaderTime,
   prepareBrushShaderSource,
+  resolveLoadedTextureTexelSize,
   resolveBrushShaderBlending,
 } from "./brush-shader-materials.js";
 import { createEmptyStrokeData } from "../types.js";
@@ -137,6 +138,17 @@ describe("brush shader eligibility", () => {
 });
 
 describe("brush shader material descriptors", () => {
+  it("derives texel-size uniforms from the loaded runtime image", () => {
+    expect(resolveLoadedTextureTexelSize({ width: 1024, height: 512 })).toEqual([
+      1 / 1024,
+      1 / 512,
+      1024,
+      512,
+    ]);
+    expect(resolveLoadedTextureTexelSize({ naturalWidth: 0, naturalHeight: 0 })).toBeUndefined();
+    expect(resolveLoadedTextureTexelSize(undefined)).toBeUndefined();
+  });
+
   it("builds the Light descriptor with bloom gain, additive blending, and its falloff texture", () => {
     const descriptor = createBrushShaderMaterialDescriptor(getBrush(LIGHT_GUID));
     expect(descriptor).toMatchObject({
