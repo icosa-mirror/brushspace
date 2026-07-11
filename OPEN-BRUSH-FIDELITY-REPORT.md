@@ -2,7 +2,7 @@
 
 Date: 2026-07-11
 
-Brushspace: `7c131c4`
+Brushspace: `541d14d`
 
 Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6)
 
@@ -96,7 +96,7 @@ differences are:
 - Cap/ring topology has not been byte-compared against each upstream `TubeBrush` variant.
 - Knot smoothing and incremental adjacent-knot rebuild semantics are absent.
 - Modifier behavior is approximate rather than validated against Unity mesh dumps.
-- Disco and LightWire still require custom vertex layouts.
+- Disco and LightWire consume the radius-packed 3D UV0 tube contract; exact Unity deformation still needs fixture comparison.
 - Culling and seam behavior need per-brush visual validation.
 
 ### Particles
@@ -139,7 +139,7 @@ Finalized strokes remain separate meshes and draw calls, frustum culling is disa
 
 ### Vertex data is the limiting contract
 
-The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, Waveform, DoubleTapered, and Electricity contracts. Even default shaders only match if attribute values have the correct semantics. The remaining excluded custom-vertex tube brushes are Disco and LightWire. HyperGrid and special brushes still require additional deformation/audio data. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 3D/4D UV1, vertex IDs, and index where the selected generator defines those semantics.
+The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, Waveform, DoubleTapered, Electricity, Disco, and LightWire contracts. Even default shaders only match if attribute values have the correct semantics. HyperGrid remains the only fallback-classified custom vertex contract and still requires additional audio-reactive behavior. Special generator families remain unsupported. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 3D/4D UV1, vertex IDs, and index where the selected generator defines those semantics.
 
 ### Descriptor data is extracted but unused
 
@@ -239,7 +239,7 @@ Exit: default ribbon fixtures pass mesh and image gates.
 1. Honor side count, caps, hard edges, UV style, break sensitivity, and modifiers per prefab.
 2. Port source cap/ring topology and circumference-based UVs.
 3. Add radius packing and tangents.
-4. Port Disco and LightWire layouts.
+4. Validate Disco and LightWire deformation against Unity mesh/image fixtures.
 5. Validate culling rather than forcing tubes double-sided.
 
 Exit: tube topology/attributes match Unity and default tubes pass images.
