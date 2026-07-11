@@ -107,12 +107,19 @@ normal/UV contract and render through their handcrafted export shaders, which
 restore camera billboarding and texture animation. A browser pixel gate renders
 generated Smoke geometry through that shader and rejects empty or black output.
 
-The seven `SprayBrush` and three `MidpointPlusLifetimeSprayBrush` entries still
-create one static world-XY quad per control point and use fallback materials.
-They still need their own distance spawning, packed layouts, billboarding,
-lifetime motion, preview decay, and finalization rules. Genius particles also
-still approximate sketch-time-to-level-time conversion and preview/finalization
-lifecycle behavior.
+The seven `SprayBrush` entries now spawn segment-oriented quads at the source
+pressure-sized interval, including the 500-quad segment cap, source salt
+layout, size/position/rotation/alpha variance, size ratio, atlas selection,
+explicit backfaces, and real default-vertex export shaders. A Splatter pixel
+gate rejects empty or black generated output. Preview decay and incremental
+knot rebuild behavior remain approximate.
+
+The three `MidpointPlusLifetimeSprayBrush` entries still create one static
+world-XY quad per control point and use fallback materials. They need their
+distance spawning, packed lifetime layout, motion, preview decay, and
+finalization rules. Genius particles also still approximate
+sketch-time-to-level-time conversion and preview/finalization lifecycle
+behavior.
 
 ### Performance
 
