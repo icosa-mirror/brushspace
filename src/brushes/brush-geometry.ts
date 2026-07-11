@@ -204,6 +204,7 @@ function generateRibbonGeometry(
   const descriptorOpacity = normalizeDescriptorOpacity(
     options.geometryParams?.opacity,
   );
+  const localBrushSize = getLocalBrushSize(stroke);
   const tileRate = normalizeTileRate(options.geometryParams?.tileRate);
   const usesDistanceUvs =
     options.generatorClass === "QuadStripBrushDistanceUV";
@@ -239,7 +240,7 @@ function generateRibbonGeometry(
   for (let index = 0; index < pointCount; index += 1) {
     const point = stroke.controlPoints[index];
     const width =
-      stroke.brushSize *
+      localBrushSize *
       getPressureSizeMultiplier(point.pressure, pressureSizeMin) *
       0.5;
 
@@ -295,7 +296,7 @@ function generateRibbonGeometry(
     }
     const u = usesDistanceUvs
       ? initialU +
-        (runningLength / Math.max(stroke.brushSize, EPSILON)) * tileRate
+        (runningLength / Math.max(localBrushSize, EPSILON)) * tileRate
       : totalStrokeLength > EPSILON
         ? runningLength / totalStrokeLength
         : 0;
@@ -379,6 +380,7 @@ function generateUnitizedRibbonGeometry(
   const descriptorOpacity = normalizeDescriptorOpacity(
     options.geometryParams?.opacity,
   );
+  const localBrushSize = getLocalBrushSize(stroke);
 
   const previousFrameRight: Vec3 = [0, 0, 0];
   const previousFallbackTangent: Vec3 = [0, 0, 0];
@@ -398,7 +400,7 @@ function generateUnitizedRibbonGeometry(
   for (let pointIndex = 0; pointIndex < pointCount; pointIndex += 1) {
     const point = stroke.controlPoints[pointIndex];
     const width =
-      stroke.brushSize *
+      localBrushSize *
       getPressureSizeMultiplier(point.pressure, pressureSizeMin) *
       0.5;
     const opacity =
@@ -551,6 +553,7 @@ function generateTubeGeometry(
   const descriptorOpacity = normalizeDescriptorOpacity(
     options.geometryParams?.opacity,
   );
+  const localBrushSize = getLocalBrushSize(stroke);
   const tileRate = normalizeTileRate(options.geometryParams?.tileRate);
   const random01 = statelessRandom01(stroke.seed, 0);
   const atlasRows = normalizeAtlasRows(options.geometryParams?.textureAtlasV);
@@ -590,7 +593,7 @@ function generateTubeGeometry(
   for (let pointIndex = 0; pointIndex < pointCount; pointIndex += 1) {
     const point = stroke.controlPoints[pointIndex];
     const radius =
-      stroke.brushSize *
+      localBrushSize *
       getPressureSizeMultiplier(point.pressure, pressureSizeMin) *
       0.5;
     if (pointIndex > 0) {
@@ -622,7 +625,7 @@ function generateTubeGeometry(
           normalizeTubePetalAmount(
             options.geometryParams?.tubePetalDisplacementAmount,
           ) *
-          stroke.brushSize *
+          localBrushSize *
           clamp01(point.pressure)
         : 0;
     const opacity = getPressureOpacityMultiplier(
@@ -857,11 +860,12 @@ function generateParticleGeometry(
   const descriptorOpacity = normalizeDescriptorOpacity(
     options.geometryParams?.opacity,
   );
+  const localBrushSize = getLocalBrushSize(stroke);
 
   for (let pointIndex = 0; pointIndex < pointCount; pointIndex += 1) {
     const point = stroke.controlPoints[pointIndex];
     const radius =
-      stroke.brushSize *
+      localBrushSize *
       getPressureSizeMultiplier(point.pressure, pressureSizeMin) *
       0.5;
     const vertex = pointIndex * 4;
@@ -1215,6 +1219,13 @@ const VEC_FORWARD: Vec3 = [0, 0, -1];
 const VEC_UP: Vec3 = [0, 1, 0];
 const VEC_RIGHT: Vec3 = [1, 0, 0];
 const EPSILON = 1e-6;
+
+function getLocalBrushSize(stroke: StrokeData): number {
+  const brushScale = Number.isFinite(stroke.brushScale)
+    ? Math.max(0, stroke.brushScale)
+    : 1;
+  return Math.max(0, stroke.brushSize) * brushScale;
+}
 
 function dot(a: Vec3, b: Vec3): number {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];

@@ -78,6 +78,29 @@ describe("brush geometry generation", () => {
     expect(geometry.bounds.max[2]).toBeCloseTo(0);
   });
 
+  it.each(["ribbon", "emissive", "tube", "particle"] as const)(
+    "applies serialized brushScale to %s geometry size",
+    (family) => {
+      const unscaledStroke = createTwoPointStroke({
+        guid: `unscaled-${family}`,
+        brushSize: 0.2,
+        pressure: 1,
+      });
+      const scaledStroke = {
+        ...unscaledStroke,
+        guid: `scaled-${family}`,
+        brushScale: 2,
+      };
+
+      const unscaled = generateBrushGeometry(unscaledStroke, family);
+      const scaled = generateBrushGeometry(scaledStroke, family);
+      const unscaledSpan = unscaled.bounds.max[1] - unscaled.bounds.min[1];
+      const scaledSpan = scaled.bounds.max[1] - scaled.bounds.min[1];
+
+      expect(scaledSpan).toBeCloseTo(unscaledSpan * 2);
+    },
+  );
+
   it("uses brush pressure-size minimum for low-pressure ribbon width", () => {
     const stroke = createTwoPointStroke({
       guid: "low-pressure-light",
@@ -141,6 +164,20 @@ describe("brush geometry generation", () => {
     const initialU = geometry.uvs[0];
     expect(geometry.uvs[4] - initialU).toBeCloseTo(2);
     expect(geometry.uvs[8] - initialU).toBeCloseTo(6);
+  });
+
+  it("applies brushScale to Open Brush distance UV density", () => {
+    const stroke = createUnevenThreePointStroke();
+    stroke.brushScale = 2;
+
+    const geometry = generateBrushGeometry(stroke, "ribbon", {
+      generatorClass: "QuadStripBrushDistanceUV",
+      geometryParams: { tileRate: 2 },
+    });
+
+    const initialU = geometry.uvs[0];
+    expect(geometry.uvs[4] - initialU).toBeCloseTo(1);
+    expect(geometry.uvs[8] - initialU).toBeCloseTo(3);
   });
 
   it("normalizes stretch ribbon UVs by physical stroke length", () => {
