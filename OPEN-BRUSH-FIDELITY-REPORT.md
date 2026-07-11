@@ -101,15 +101,18 @@ differences are:
 The seven `GeniusParticlesBrush` entries now create deterministic finalized
 particles at the source `0.0025 / particleRate` distance interval. Placement
 uses the source salt layout, pressure sizing/floor, size variance, spherical
-spread, random orientation/alpha, and atlas selection. The seven `SprayBrush`
-and three `MidpointPlusLifetimeSprayBrush` entries still create one static
-world-XY quad per control point. All particle families still lack:
+spread, random orientation/alpha, and atlas selection. They pack center,
+rotation, birth time, source position, and vertex ID into the Open Brush
+normal/UV contract and render through their handcrafted export shaders, which
+restore camera billboarding and texture animation. A browser pixel gate renders
+generated Smoke geometry through that shader and rejects empty or black output.
 
-- Packs center, birth time, rotation, and other data into normals, 4D UV0, UV1, and vertex IDs.
-- Billboards and animates in the vertex shader.
-- Applies rate, speed, lifetime, preview decay, and finalization rules.
-
-Fire, Smoke, Snow, Sparks, Embers, Bubbles, and similar brushes cannot be called faithful until these vertex contracts exist.
+The seven `SprayBrush` and three `MidpointPlusLifetimeSprayBrush` entries still
+create one static world-XY quad per control point and use fallback materials.
+They still need their own distance spawning, packed layouts, billboarding,
+lifetime motion, preview decay, and finalization rules. Genius particles also
+still approximate sketch-time-to-level-time conversion and preview/finalization
+lifecycle behavior.
 
 ### Performance
 
@@ -123,7 +126,7 @@ Finalized strokes remain separate meshes and draw calls, frustum culling is disa
 
 ### Vertex data is the limiting contract
 
-The current gate checks `vertexIsDefault` and a broad geometry family. Even default shaders only match if attribute values have the correct semantics. The six excluded custom-vertex ribbon/tube brushes are DoubleTaperedFlat, DoubleTaperedMarker, Electricity, Waveform, Disco, and LightWire. Particles and special brushes also require UV1, 4D UV0, vertex IDs, or packed deformation data. The runtime supplies position, normal, tangent, color, 2D or packed 3D UV0, and index, but not the remaining custom layouts.
+The current gate checks `vertexIsDefault` plus an explicit Genius-particle contract. Even default shaders only match if attribute values have the correct semantics. The six excluded custom-vertex ribbon/tube brushes are DoubleTaperedFlat, DoubleTaperedMarker, Electricity, Waveform, Disco, and LightWire. Spray particles and special brushes still require additional packed deformation data. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 4D UV1, vertex IDs, and index where the selected generator defines those semantics.
 
 ### Descriptor data is extracted but unused
 
