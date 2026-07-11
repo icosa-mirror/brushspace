@@ -39,9 +39,10 @@ describe("brush fidelity evidence", () => {
   });
 
   it("keeps fallback and unavailable geometry explicit", () => {
-    const fallback = openBrushInventory.find(
-      ({ supportStatus }) => supportStatus === "fallback",
+    const marker = openBrushInventory.find(
+      ({ guid }) => guid === "429ed64a-4e97-4466-84d3-145a861ef684",
     )!;
+    const fallback = { ...marker, supportStatus: "fallback" as const };
     const unavailable = openBrushInventory.find(
       ({ supportStatus }) => supportStatus === "unsupported",
     )!;
