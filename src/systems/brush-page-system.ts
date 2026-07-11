@@ -11,7 +11,11 @@ import {
   OpenBrushBrushPage,
   OpenBrushPanelAttachment,
 } from "../components/core.js";
-import { selectableOpenBrushes } from "../brushes/brush-catalog.js";
+import {
+  OPEN_BRUSH_DEFAULT_BRUSH_GUID,
+  selectableOpenBrushes,
+  setExperimentalBrushesEnabled,
+} from "../brushes/brush-catalog.js";
 import {
   applyUIKitProperties,
   clearUIKitInteractionStateExcept,
@@ -48,6 +52,7 @@ export class BrushPageSystem extends createSystem({
   brushSettings: { required: [BrushSettings] },
 }) {
   private page = 0;
+  private experimentalEnabled = false;
   private boundPanelIndex = -1;
   private readonly cellEntries: Array<BrushInventoryEntry | undefined> =
     new Array(CELLS_PER_PAGE).fill(undefined);
@@ -121,6 +126,29 @@ export class BrushPageSystem extends createSystem({
     nextButton?.addEventListener("click", () => {
       clearUIKitInteractionStateExcept(document, nextButton);
       this.page = (this.page + 1) % this.pageCount;
+    });
+    const experimentalButton = document.getElementById(
+      "brush-experimental-toggle",
+    ) as UIKitStyleElement | null;
+    experimentalButton?.addEventListener("click", () => {
+      clearUIKitInteractionStateExcept(document, experimentalButton);
+      this.experimentalEnabled = !this.experimentalEnabled;
+      setExperimentalBrushesEnabled(this.experimentalEnabled);
+      this.page = 0;
+      const activeGuid = String(settingsEntity.getValue(BrushSettings, "brushGuid"));
+      if (!selectableOpenBrushes.some((entry) => entry.guid === activeGuid)) {
+        settingsEntity.setValue(
+          BrushSettings,
+          "brushGuid",
+          OPEN_BRUSH_DEFAULT_BRUSH_GUID,
+        );
+      }
+      experimentalButton.setProperties({
+        text: this.experimentalEnabled
+          ? "Experimental: On"
+          : "Experimental: Off",
+      });
+      this.applyPage(document);
     });
     this.applyPage(document);
   }

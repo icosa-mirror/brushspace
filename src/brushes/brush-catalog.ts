@@ -37,6 +37,11 @@ export const selectableOpenBrushes = openBrushInventory.filter(
   (entry) => entry.pickerVisible,
 );
 
+export function setExperimentalBrushesEnabled(enabled: boolean): void {
+  const next = enabled ? requiredOpenBrushes : standardOpenBrushes;
+  selectableOpenBrushes.splice(0, selectableOpenBrushes.length, ...next);
+}
+
 export const initialOpenBrushIndex = Math.max(
   0,
   selectableOpenBrushes.findIndex(
