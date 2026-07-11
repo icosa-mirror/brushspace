@@ -57,6 +57,11 @@ import {
   openBrushShaderLibrary,
 } from "../brushes/brush-shader-library.js";
 import {
+  BRUSH_VISUAL_CONFORMANCE_PREFIX,
+  runBumpVisualConformance,
+  showBumpVisualConformance,
+} from "../brushes/brush-visual-conformance.js";
+import {
   createMirroredStrokeDataX,
   resolveStrokeSampleDecision,
   OPEN_BRUSH_MINIMUM_MOVE_METERS,
@@ -293,6 +298,7 @@ export class StrokeAuthoringSystem extends createSystem({
             this.camera,
             "browser",
           );
+          this.runRequestedVisualConformance();
         }
         this.shaderMaterialsReady = true;
         if (this.renderer.xr.isPresenting) {
@@ -315,6 +321,32 @@ export class StrokeAuthoringSystem extends createSystem({
       this.scene,
       this.camera,
       "immersive-xr",
+    );
+  }
+
+  private runRequestedVisualConformance(): void {
+    if (
+      new URLSearchParams(window.location.search).get("visual-conformance") !==
+      "bump"
+    ) {
+      return;
+    }
+    const oilPaint = openBrushShaderLibrary.get(
+      "f72ec0e7-a844-4e38-82e3-140c44772699",
+    );
+    if (!oilPaint) {
+      console.error(`${BRUSH_VISUAL_CONFORMANCE_PREFIX} Oil Paint did not load.`);
+      document.documentElement.dataset.brushVisualConformance = "fail";
+      return;
+    }
+    openBrushShaderLibrary.updateFrame(1, this.camera);
+    const result = runBumpVisualConformance(this.renderer, oilPaint);
+    showBumpVisualConformance(result);
+    document.documentElement.dataset.brushVisualConformance = result.passed
+      ? "pass"
+      : "fail";
+    console.log(
+      `${BRUSH_VISUAL_CONFORMANCE_PREFIX} ${result.passed ? "PASS" : "FAIL"} changed=${(result.changedPixelRatio * 100).toFixed(2)}% rms=${result.rootMeanSquareDifference.toFixed(2)} mean=${result.meanAbsoluteDifference.toFixed(2)}`,
     );
   }
 

@@ -149,8 +149,9 @@ export function createBrushShaderMaterialDescriptor(
  * Three's non-raw prefix already declares the built-in matrix uniforms (and
  * rewrites them to per-view arrays under multiview), so the shader's own
  * declarations must be dropped to avoid duplicate/broken declarations.
- * Derivative functions are core in GLSL ES 3.00, so the old extension
- * directive is dropped too.
+ * Derivative functions are core in GLSL ES 3.00. The exported shaders guard
+ * their real bump implementation behind the old WebGL 1 extension macro;
+ * select that branch directly instead of defining a reserved GL_* symbol.
  */
 export function prepareBrushShaderSource(source: string): string {
   return (
@@ -160,6 +161,10 @@ export function prepareBrushShaderSource(source: string): string {
         "",
       )
       .replace(/^[ \t]*#extension[ \t]+GL_OES_standard_derivatives[^\n]*\n?/gm, "")
+      .replace(
+        /^[ \t]*#ifndef[ \t]+GL_OES_standard_derivatives\b[^\n]*\n[\s\S]*?^[ \t]*#else[^\n]*\n([\s\S]*?)^[ \t]*#endif[^\n]*\n?/gm,
+        "$1",
+      )
       // The particle shaders ship their own mat4 inverse(), legal in the
       // exported GLSL 1.00 but a redeclaration of the built-in once three
       // promotes the source to GLSL ES 3.00 — rename definition and calls.
