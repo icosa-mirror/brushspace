@@ -26,8 +26,8 @@ describe("Open Brush brush inventory", () => {
     // Extrusion (ribbon/tube) brushes with the default vertex stage are
     // supported; custom-vertex extrusion and particle brushes render via
     // fallback; hulls/templates/specials stay unsupported.
-    expect(summary.supported).toBe(96);
-    expect(summary.fallback).toBe(6);
+    expect(summary.supported).toBe(98);
+    expect(summary.fallback).toBe(4);
     expect(summary.unsupported).toBe(21);
   });
 
@@ -142,6 +142,19 @@ describe("Open Brush brush inventory", () => {
     expect(inventory.indexOf(experimental[0])).toBeGreaterThan(
       inventory.indexOf(standard[standard.length - 1]),
     );
+
+    const required = inventory.filter((entry) => entry.portRequired);
+    expect(required.filter((entry) => entry.catalogSection === "standard")).toHaveLength(
+      48,
+    );
+    expect(
+      required.filter((entry) => entry.catalogSection === "experimental"),
+    ).toHaveLength(47);
+    expect(
+      experimental
+        .filter((entry) => !entry.portRequired)
+        .map((entry) => entry.name),
+    ).toEqual(["CandyCane", "HolidayTree", "Snowflake", "Braid3"]);
   });
 
   it("rejects manifest entries whose map key does not match their brush GUID", () => {

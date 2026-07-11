@@ -376,6 +376,14 @@ function extractGeometryParams(descriptorText) {
 }
 
 function extractGeneratorGeometryParams(generator) {
+  if (generator?.generatorClass === "FlatGeometryBrush") {
+    const uvStyle = parseYamlScalar(generator.prefabText, "m_uvStyle");
+    return {
+      ribbonUvStyle: uvStyle === 1 ? "stretch" : "distance",
+      ribbonOffsetInTexcoord1:
+        parseYamlScalar(generator.prefabText, "m_bOffsetInTexcoord1") === 1,
+    };
+  }
   if (generator?.generatorClass !== "TubeBrush") {
     return {};
   }

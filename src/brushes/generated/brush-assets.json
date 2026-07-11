@@ -807,7 +807,9 @@
         "particleSizeRatio": [
           1,
           1
-        ]
+        ],
+        "ribbonUvStyle": "stretch",
+        "ribbonOffsetInTexcoord1": false
       },
       "catalogSection": "experimental",
       "catalogOrder": 22,
@@ -859,7 +861,9 @@
         "particleSizeRatio": [
           1,
           1
-        ]
+        ],
+        "ribbonUvStyle": "stretch",
+        "ribbonOffsetInTexcoord1": true
       },
       "catalogSection": "standard",
       "catalogOrder": 6,
@@ -1249,7 +1253,9 @@
         "particleSizeRatio": [
           1,
           1
-        ]
+        ],
+        "ribbonUvStyle": "stretch",
+        "ribbonOffsetInTexcoord1": true
       },
       "catalogSection": "standard",
       "catalogOrder": 10,
@@ -2638,7 +2644,9 @@
         "particleSizeRatio": [
           1,
           1
-        ]
+        ],
+        "ribbonUvStyle": "stretch",
+        "ribbonOffsetInTexcoord1": true
       },
       "catalogSection": "standard",
       "catalogOrder": 26,
@@ -6927,7 +6935,9 @@
         "particleSizeRatio": [
           1,
           1
-        ]
+        ],
+        "ribbonUvStyle": "distance",
+        "ribbonOffsetInTexcoord1": false
       },
       "catalogSection": "experimental",
       "catalogOrder": 33,
@@ -7918,7 +7928,9 @@
         "particleSizeRatio": [
           1,
           1
-        ]
+        ],
+        "ribbonUvStyle": "stretch",
+        "ribbonOffsetInTexcoord1": false
       },
       "catalogSection": "experimental",
       "catalogOrder": 48,

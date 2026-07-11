@@ -582,6 +582,54 @@ describe("brush geometry generation", () => {
     }
   });
 
+  it("packs FlatGeometry edge offsets for DoubleTapered shaders", () => {
+    const entry = findBrushByGuid(
+      inventory,
+      "0d3889f3-3ede-470c-8af4-de4813306126",
+    );
+    expect(entry).toBeDefined();
+    if (!entry) {
+      throw new Error("DoubleTaperedMarker inventory entry is missing.");
+    }
+    const stroke = createTwoPointStroke({
+      guid: "double-tapered-offsets",
+      brushSize: 0.2,
+      pressure: 1,
+    });
+    stroke.controlPoints.splice(1, 0, {
+      ...stroke.controlPoints[1],
+      position: [0.1, 0, 0],
+      timestampMs: 8,
+    });
+    stroke.controlPoints[2].position = [0.2, 0, 0];
+
+    const geometry = generateBrushGeometry(stroke, entry.geometryFamily, {
+      pressureSizeRange: entry.pressureSizeRange,
+      pressureOpacityRange: entry.pressureOpacityRange,
+      geometryParams: entry.geometryParams,
+      generatorClass: entry.generatorClass,
+    });
+
+    expect(entry.geometryParams?.ribbonUvStyle).toBe("stretch");
+    expect(entry.geometryParams?.ribbonOffsetInTexcoord1).toBe(true);
+    expect(geometry.uv1Size).toBe(3);
+    expect(geometry.uv1).toHaveLength(36);
+    expect([geometry.uvs[0], geometry.uvs[4], geometry.uvs[8]]).toEqual([
+      0,
+      0.5,
+      1,
+    ]);
+    for (let point = 0; point < 3; point += 1) {
+      const leftOffset = point * 6;
+      const rightOffset = leftOffset + 3;
+      expect(geometry.uv1?.[leftOffset]).toBeCloseTo(
+        -(geometry.uv1?.[rightOffset] ?? 0),
+      );
+      expect(Math.hypot(...(geometry.uv1?.slice(leftOffset, leftOffset + 3) ?? [])))
+        .toBeCloseTo(0.1);
+    }
+  });
+
   it("packs Midpoint lifetime offsets at its source spray interval", () => {
     const stroke = createTwoPointStroke({
       guid: "midpoint-lifetime-particles",

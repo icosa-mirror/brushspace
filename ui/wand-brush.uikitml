@@ -190,20 +190,6 @@
       <img id="brush-icon-11" class="brush-icon" src="/openbrush/blank-icon.png"></img>
     </button>
   </div>
-  <div class="grid-row">
-    <button id="brush-cell-12" class="brush-cell">
-      <img id="brush-icon-12" class="brush-icon" src="/openbrush/blank-icon.png"></img>
-    </button>
-    <button id="brush-cell-13" class="brush-cell">
-      <img id="brush-icon-13" class="brush-icon" src="/openbrush/blank-icon.png"></img>
-    </button>
-    <button id="brush-cell-14" class="brush-cell">
-      <img id="brush-icon-14" class="brush-icon" src="/openbrush/blank-icon.png"></img>
-    </button>
-    <button id="brush-cell-15" class="brush-cell">
-      <img id="brush-icon-15" class="brush-icon" src="/openbrush/blank-icon.png"></img>
-    </button>
-  </div>
   <div class="footer-row">
     <button id="brush-page-prev" class="page-button">
       <ChevronLeftIcon class="page-button-icon"></ChevronLeftIcon>

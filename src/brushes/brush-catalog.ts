@@ -17,8 +17,21 @@ export const openBrushInventory = buildBrushInventoryFromExportManifest(
   generatedBrushAssets.brushes as unknown as Record<string, BrushAssetRecord>,
 );
 
+/** The complete fidelity target: 48 standard and 47 non-broken experimental brushes. */
+export const requiredOpenBrushes = openBrushInventory.filter(
+  (entry) => entry.portRequired,
+);
+
+export const standardOpenBrushes = requiredOpenBrushes.filter(
+  (entry) => entry.catalogSection === "standard",
+);
+
+export const experimentalOpenBrushes = requiredOpenBrushes.filter(
+  (entry) => entry.catalogSection === "experimental",
+);
+
 export const openBrushInventorySummary =
-  summarizeBrushInventory(openBrushInventory);
+  summarizeBrushInventory(requiredOpenBrushes);
 
 export const selectableOpenBrushes = openBrushInventory.filter(
   (entry) => entry.pickerVisible,

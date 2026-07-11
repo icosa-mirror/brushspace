@@ -19,7 +19,7 @@ export interface GeneratedBrushGeometry {
   colors: Float32Array;
   uvs: Float32Array;
   uv0Size: 2 | 3 | 4;
-  uv1Size: 0 | 4;
+  uv1Size: 0 | 3 | 4;
   packedUvs?: Float32Array;
   uv1?: Float32Array;
   indices: Uint32Array;
@@ -49,6 +49,7 @@ export interface BrushGeometryArrays {
   uvs: Float32Array;
   packedUvs: Float32Array;
   particleUvs: Float32Array;
+  vectorUvs: Float32Array;
   uv1s: Float32Array;
   tubeBreakBefore: Uint8Array;
   tubeFrameRights: Float32Array;
@@ -61,7 +62,7 @@ export interface BrushGeometryArrays {
   ribbonRunningLengths: Float32Array;
   ribbonSectionLengths: Float32Array;
   uv0Size: 2 | 3 | 4;
-  uv1Size: 0 | 4;
+  uv1Size: 0 | 3 | 4;
   indices: Uint32Array;
   vertexCount: number;
   indexCount: number;
@@ -83,6 +84,7 @@ export function createBrushGeometryArrays(): BrushGeometryArrays {
     uvs: new Float32Array(INITIAL_VERTEX_CAPACITY * 2),
     packedUvs: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
     particleUvs: new Float32Array(INITIAL_VERTEX_CAPACITY * 4),
+    vectorUvs: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
     uv1s: new Float32Array(INITIAL_VERTEX_CAPACITY * 4),
     tubeBreakBefore: new Uint8Array(INITIAL_VERTEX_CAPACITY),
     tubeFrameRights: new Float32Array(INITIAL_VERTEX_CAPACITY * 3),
@@ -129,6 +131,7 @@ function ensureGeometryCapacity(
   out.uvs = new Float32Array(vertexCapacity * 2);
   out.packedUvs = new Float32Array(vertexCapacity * 3);
   out.particleUvs = new Float32Array(vertexCapacity * 4);
+  out.vectorUvs = new Float32Array(vertexCapacity * 3);
   out.uv1s = new Float32Array(vertexCapacity * 4);
   out.indices = new Uint32Array(indexCapacity);
   return true;
@@ -239,9 +242,11 @@ export function generateBrushGeometry(
           ? arrays.particleUvs.subarray(0, arrays.vertexCount * 4)
           : undefined,
     uv1:
-      arrays.uv1Size === 4
-        ? arrays.uv1s.subarray(0, arrays.vertexCount * 4)
-        : undefined,
+      arrays.uv1Size === 3
+        ? arrays.vectorUvs.subarray(0, arrays.vertexCount * 3)
+        : arrays.uv1Size === 4
+          ? arrays.uv1s.subarray(0, arrays.vertexCount * 4)
+          : undefined,
     indices: arrays.indices.subarray(0, arrays.indexCount),
     bounds: arrays.bounds,
     warning: arrays.warning,
@@ -263,6 +268,9 @@ function generateRibbonGeometry(
   out: BrushGeometryArrays,
 ): boolean {
   out.uv0Size = 2;
+  const hasVectorOffset =
+    options.geometryParams?.ribbonOffsetInTexcoord1 === true;
+  out.uv1Size = hasVectorOffset ? 3 : 0;
   if (options.generatorClass === "QuadStripUnitizedUVBrush") {
     return generateUnitizedRibbonGeometry(stroke, family, options, out);
   }
@@ -281,6 +289,7 @@ function generateRibbonGeometry(
     tangents,
     colors,
     uvs,
+    vectorUvs,
     indices,
     bounds,
     ribbonBreakBefore,
@@ -390,6 +399,16 @@ function generateRibbonGeometry(
         : 0;
     writeUv(uvs, leftVertex, [u, v0]);
     writeUv(uvs, rightVertex, [u, v1]);
+    if (hasVectorOffset) {
+      const leftOffset = leftVertex * 3;
+      const rightOffset = rightVertex * 3;
+      vectorUvs[leftOffset] = -right[0] * width;
+      vectorUvs[leftOffset + 1] = -right[1] * width;
+      vectorUvs[leftOffset + 2] = -right[2] * width;
+      vectorUvs[rightOffset] = right[0] * width;
+      vectorUvs[rightOffset + 1] = right[1] * width;
+      vectorUvs[rightOffset + 2] = right[2] * width;
+    }
     includeBounds(bounds, positions, leftVertex);
     includeBounds(bounds, positions, rightVertex);
   }
@@ -420,6 +439,9 @@ function generateRibbonGeometry(
       copyNegatedNormal(normals, vertex, backVertex);
       copyTangent(tangents, vertex, backVertex, true);
       copyUv(uvs, vertex, backVertex);
+      if (hasVectorOffset) {
+        copyVec3At(vectorUvs, vertex, backVertex);
+      }
       writeColorFromAlpha(
         colors,
         backVertex,
@@ -2453,6 +2475,18 @@ function copyPosition(
   target[targetOffset] = target[sourceOffset];
   target[targetOffset + 1] = target[sourceOffset + 1];
   target[targetOffset + 2] = target[sourceOffset + 2];
+}
+
+function copyVec3At(
+  values: Float32Array,
+  sourceVertex: number,
+  targetVertex: number,
+): void {
+  const sourceOffset = sourceVertex * 3;
+  const targetOffset = targetVertex * 3;
+  values[targetOffset] = values[sourceOffset];
+  values[targetOffset + 1] = values[sourceOffset + 1];
+  values[targetOffset + 2] = values[sourceOffset + 2];
 }
 
 function copyNegatedNormal(

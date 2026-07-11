@@ -90,10 +90,16 @@ export function getBrushShaderEligibility(
     entry.geometryFamily === "emissive" &&
     entry.name === "Waveform" &&
     entry.generatorClass === "QuadStripBrushStretchUV";
+  const hasDoubleTaperedContract =
+    entry.geometryFamily === "ribbon" &&
+    (entry.name === "DoubleTaperedMarker" ||
+      entry.name === "DoubleTaperedFlat") &&
+    entry.geometryParams?.ribbonOffsetInTexcoord1 === true;
   if (
     !entry.shaderAssets.vertexIsDefault &&
     !hasGeniusParticleContract &&
-    !hasWaveformContract
+    !hasWaveformContract &&
+    !hasDoubleTaperedContract
   ) {
     return {
       eligible: false,

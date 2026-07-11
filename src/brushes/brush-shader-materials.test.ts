@@ -43,14 +43,11 @@ describe("brush shader asset inventory", () => {
     expect(template.length).toBe(49);
   });
 
-  it("offers only Open Brush's supported default-tagged brushes in the picker", () => {
-    // Matches Open Brush's own curation: experimental-tagged variants
-    // (DuctTapeGeometry, DoubleFlat, Fire2, …) stay supported but hidden.
-    expect(selectableOpenBrushes.length).toBe(38);
+  it("offers all 48 standard-manifest brushes in authored order", () => {
+    expect(selectableOpenBrushes.length).toBe(48);
     for (const entry of selectableOpenBrushes) {
       expect(entry.tags, entry.name).toContain("default");
-      expect(entry.supersededByGuid, entry.name).toBeUndefined();
-      expect(entry.supportStatus, entry.name).toBe("supported");
+      expect(entry.catalogSection, entry.name).toBe("standard");
     }
     const names = selectableOpenBrushes.map((entry) => entry.name);
     expect(names).toContain("Light");
@@ -58,6 +55,20 @@ describe("brush shader asset inventory", () => {
     expect(names).toContain("Smoke");
     expect(names).not.toContain("DuctTapeGeometry");
     expect(names).not.toContain("Fire2");
+    expect(names.slice(0, 12)).toEqual([
+      "OilPaint",
+      "Ink",
+      "ThickPaint",
+      "WetPaint",
+      "Marker",
+      "TaperedMarker",
+      "DoubleTaperedMarker",
+      "Highlighter",
+      "Flat",
+      "TaperedFlat",
+      "DoubleTaperedFlat",
+      "SoftHighlighter",
+    ]);
   });
 
   it("resolves textures and geometry params for the selectable brushes", () => {
@@ -140,6 +151,13 @@ describe("brush shader eligibility", () => {
   it("accepts Waveform's custom color-only vertex shader", () => {
     const waveform = openBrushInventory.find((entry) => entry.name === "Waveform");
     expect(getBrushShaderEligibility(waveform).eligible).toBe(true);
+  });
+
+  it("accepts DoubleTapered shaders with packed edge offsets", () => {
+    const tapered = openBrushInventory.find(
+      (entry) => entry.name === "DoubleTaperedMarker",
+    );
+    expect(getBrushShaderEligibility(tapered).eligible).toBe(true);
   });
 
   it("rejects brushes whose handcrafted vertex shader needs extra vertex data", () => {

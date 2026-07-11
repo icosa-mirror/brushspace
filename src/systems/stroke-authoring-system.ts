@@ -335,7 +335,8 @@ export class StrokeAuthoringSystem extends createSystem({
       mode === "particle" ||
       mode === "spray" ||
       mode === "midpoint" ||
-      mode === "waveform"
+      mode === "waveform" ||
+      mode === "double-tapered"
     ) {
       this.runGeometryVisualConformance(mode);
       return;
@@ -363,7 +364,7 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   private runGeometryVisualConformance(
-    mode: "particle" | "spray" | "midpoint" | "waveform",
+    mode: "particle" | "spray" | "midpoint" | "waveform" | "double-tapered",
   ): void {
     const brushGuid =
       mode === "spray"
@@ -372,6 +373,8 @@ export class StrokeAuthoringSystem extends createSystem({
           ? "6a1cf9f9-032c-45ec-311e-a6680bee32e9"
           : mode === "waveform"
             ? "10201aa3-ebc2-42d8-84b7-2e63f6eeb8ab"
+            : mode === "double-tapered"
+              ? "0d3889f3-3ede-470c-8af4-de4813306126"
         : "70d79cca-b159-4f35-990c-f02193947fe8";
     const material = openBrushShaderLibrary.get(brushGuid);
     const entry = findBrushByGuid(openBrushInventory, brushGuid);
@@ -393,6 +396,8 @@ export class StrokeAuthoringSystem extends createSystem({
             ? [0.4, 1, 0.1, 1]
             : mode === "waveform"
               ? [0.1, 0.5, 1, 1]
+              : mode === "double-tapered"
+                ? [1, 0.4, 0.1, 1]
               : [0.1, 0.8, 1, 1],
       seed: 23,
       controlPoints: [
@@ -410,6 +415,14 @@ export class StrokeAuthoringSystem extends createSystem({
         },
       ],
     });
+    if (mode === "double-tapered") {
+      stroke.controlPoints.splice(1, 0, {
+        position: [0.2, 0, 0],
+        orientation: [0, 0, 0, 1],
+        pressure: 1,
+        timestampMs: 50,
+      });
+    }
     const geometry = generateBrushGeometry(stroke, entry.geometryFamily, {
       pressureSizeRange: entry.pressureSizeRange,
       pressureOpacityRange: entry.pressureOpacityRange,
@@ -422,7 +435,9 @@ export class StrokeAuthoringSystem extends createSystem({
       material,
       geometry,
       entry.name,
-      mode === "waveform" ? "stroke" : "particle",
+      mode === "waveform" || mode === "double-tapered"
+        ? "stroke"
+        : "particle",
     );
     showBrushGeometryVisualConformance(result);
     document.documentElement.dataset.brushVisualConformance = result.passed
@@ -990,7 +1005,10 @@ export class StrokeAuthoringSystem extends createSystem({
           : arrays.uv0Size === 4
             ? new BufferAttribute(arrays.particleUvs, 4)
             : uv;
-      const shaderUv1 = new BufferAttribute(arrays.uv1s, 4);
+      const shaderUv1 =
+        arrays.uv1Size === 3
+          ? new BufferAttribute(arrays.vectorUvs, 3)
+          : new BufferAttribute(arrays.uv1s, 4);
       const index = new BufferAttribute(arrays.indices, 1);
       for (const attribute of [
         position,
@@ -1011,7 +1029,7 @@ export class StrokeAuthoringSystem extends createSystem({
       stroke.geometry.setAttribute("uv", uv);
       applyBrushShaderAttributeAliases(stroke.geometry);
       stroke.geometry.setAttribute("a_texcoord0", shaderUv);
-      if (arrays.uv1Size === 4) {
+      if (arrays.uv1Size > 0) {
         stroke.geometry.setAttribute("uv1", shaderUv1);
         stroke.geometry.setAttribute("a_texcoord1", shaderUv1);
       } else {

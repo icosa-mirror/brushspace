@@ -80,6 +80,8 @@ export interface BrushGeometryParams {
   tubePetalDisplacementAmount?: number;
   tubePetalDisplacementExponent?: number;
   tubeBreakAngleMultiplier?: number;
+  ribbonUvStyle?: "distance" | "stretch";
+  ribbonOffsetInTexcoord1?: boolean;
   opacity?: number;
   solidMinLengthMeters?: number;
   audioReactive?: boolean;
@@ -157,6 +159,8 @@ export interface BrushInventoryEntry extends OpenBrushExportBrush {
   buttonIconFile?: string;
   /** True when the brush should be offered in the brush picker. */
   pickerVisible: boolean;
+  /** True when Open Brush includes this manifest brush under its default tag rules. */
+  portRequired: boolean;
 }
 
 export interface BrushInventorySummary {
@@ -221,7 +225,16 @@ function resolveBrushSupport(
     const hasWaveformContract =
       brush.name === "Waveform" &&
       record.generatorClass === "QuadStripBrushStretchUV";
-    if (!record.vertexIsDefault && !hasWaveformContract) {
+    const hasDoubleTaperedContract =
+      (brush.name === "DoubleTaperedMarker" ||
+        brush.name === "DoubleTaperedFlat") &&
+      record.generatorClass === "FlatGeometryBrush" &&
+      record.geometry?.ribbonOffsetInTexcoord1 === true;
+    if (
+      !record.vertexIsDefault &&
+      !hasWaveformContract &&
+      !hasDoubleTaperedContract
+    ) {
       return {
         supportStatus: "fallback",
         geometryFamily,
@@ -335,6 +348,11 @@ export function buildBrushInventoryFromExportManifest(
 
     const assetRecord = assetRecords?.[guid];
     const support = resolveBrushSupport(brush, assetRecord);
+    const tags = assetRecord?.tags ?? [];
+    const portRequired =
+      assetRecord?.catalogSection !== undefined &&
+      !tags.includes("broken") &&
+      (tags.includes("default") || tags.includes("experimental"));
     return {
       ...brush,
       guid,
@@ -359,11 +377,15 @@ export function buildBrushInventoryFromExportManifest(
       geometryParams: assetRecord?.geometry,
       generatorClass: assetRecord?.generatorClass,
       supersededByGuid: assetRecord?.supersededByGuid,
-      tags: assetRecord?.tags ?? [],
+      tags,
       buttonIconFile: assetRecord?.buttonIcon,
       catalogSection: assetRecord?.catalogSection,
       catalogOrder: assetRecord?.catalogOrder,
-      pickerVisible: support.pickerVisible,
+      // The standard Open Brush manifest defines picker membership and order.
+      // Fidelity status is deliberately independent: incomplete brushes use
+      // the existing fallback geometry/material instead of disappearing.
+      pickerVisible: portRequired && assetRecord?.catalogSection === "standard",
+      portRequired,
     };
   });
 

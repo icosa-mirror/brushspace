@@ -31,7 +31,7 @@ export interface BrowserStrokeMeshDump {
   colors: number[];
   uv0: number[];
   uv0Size: 2 | 3 | 4;
-  uv1Size: 0 | 4;
+  uv1Size: 0 | 3 | 4;
   uv1?: number[];
   bounds: BrushGeometryBounds;
   warning?: string;

@@ -20,7 +20,7 @@ import type { BrushInventoryEntry } from "../brushes/brush-inventory.js";
 import { assetUrl } from "../app/asset-url.js";
 
 const GRID_COLUMNS = 4;
-const GRID_ROWS = 4;
+const GRID_ROWS = 3;
 const CELLS_PER_PAGE = GRID_COLUMNS * GRID_ROWS;
 const BLANK_ICON_SRC = assetUrl("/openbrush/blank-icon.png");
 // Matches the .brush-cell styles in ui/wand-brush.uikitml; the selected cell
@@ -38,7 +38,7 @@ interface UIKitStyleElement {
 
 /**
  * Drives the paginated brush selection page (ui/wand-brush.uikitml): a 4x4
- * grid of brush icons with prev/next paging, mirroring Open Brush's brush
+ * 4x3 grid of brush icons with prev/next paging, mirroring Open Brush's brush
  * panel. Unlike the color picker, this panel is a regular UIKit panel.
  */
 export class BrushPageSystem extends createSystem({

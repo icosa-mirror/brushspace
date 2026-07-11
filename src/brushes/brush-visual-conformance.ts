@@ -55,8 +55,14 @@ export function runBrushGeometryVisualConformance(
     );
   }
   if (generated.uv1) {
-    geometry.setAttribute("uv1", new BufferAttribute(generated.uv1, 4));
-    geometry.setAttribute("a_texcoord1", new BufferAttribute(generated.uv1, 4));
+    geometry.setAttribute(
+      "uv1",
+      new BufferAttribute(generated.uv1, generated.uv1Size),
+    );
+    geometry.setAttribute(
+      "a_texcoord1",
+      new BufferAttribute(generated.uv1, generated.uv1Size),
+    );
   }
   geometry.setIndex(new BufferAttribute(generated.indices, 1));
   applyBrushShaderAttributeAliases(geometry);
