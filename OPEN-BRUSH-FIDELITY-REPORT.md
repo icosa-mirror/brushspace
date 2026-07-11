@@ -1,23 +1,23 @@
 # Open Brush brush fidelity review
 
-Date: 2026-07-10  
-Brushspace: `367594ac4c21ce23c78a388986d8a7194ad3fa74`  
+Date: 2026-07-11  
+Brushspace: `6e963f0`  
 Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6)
 
 ## Executive assessment
 
 Brushspace is a functional WebXR painting application derived from Open Brush concepts and assets. It is not currently a faithful port of Open Brush's brush runtime.
 
-The strongest mapping is the data layer: all 123 current manifest GUIDs are present, shader and texture assets have been extracted, and the main `.tilt` stroke fields are represented. The weakest mapping is mesh generation. More than twenty Unity brush-generator classes are reduced to two general extruders plus incomplete fallback particle quads. Exported fragment shaders can make those approximations recognizable, but cannot restore topology, UVs, packed attributes, smoothing, stochastic placement, or brush-specific silhouette behavior that was never generated.
+The strongest mapping is the data layer: all 123 current manifest GUIDs are present, shader and texture assets have been extracted, and the main `.tilt` stroke fields are represented. Ribbon, tube, and all three particle-generator families now have dedicated geometry paths, but mesh generation remains the largest gap for hull, stamp, thick-strip, special, and several custom-deformation brushes. Export shaders cannot restore topology, smoothing, or brush-specific silhouette behavior that was never generated.
 
 Current inventory classifications measure shader eligibility, not visual equivalence:
 
 | Classification | Count | Actual meaning |
 | --- | ---: | --- |
-| `supported` | 79 | Ribbon/tube family with the shared default exported vertex shader |
-| `fallback` | 23 | 17 particle brushes and 6 custom-vertex ribbon/tube brushes |
+| `supported` | 96 | Geometry contract and exported shader are both enabled |
+| `fallback` | 6 | Five custom-vertex ribbon/tube brushes plus HyperGrid |
 | `unsupported` | 21 | Hull, stamp, thick-strip, special, or unresolved generator |
-| Default picker | 29 | Supported, non-superseded entries tagged `default` |
+| Default picker | 38 | Supported, non-superseded entries tagged `default` |
 
 The 123 asset records contain 74 handcrafted and 49 template shaders, and report 112 resolved texture bindings with none missing. Those are asset-pipeline coverage figures, not fidelity figures.
 
@@ -25,9 +25,9 @@ Estimated current fidelity:
 
 - Catalog and static assets: high, about 90%+.
 - Ordinary `.tilt` stroke fields: moderate to high, about 65-80%.
-- Live mesh generation across the catalog: low to moderate, about 25-40%.
-- Materials: moderate for default-vertex ribbons/tubes, low catalog-wide.
-- Overall Open Brush product parity: about 15-25%.
+- Live mesh generation across the catalog: moderate, about 45-60%.
+- Materials: moderate across supported ribbon, tube, and particle families; low for Unity-only effects.
+- Overall Open Brush product parity: about 20-30%.
 
 These are engineering estimates, not conformance scores. Brushspace is best described as a purpose-built web reimplementation with partial asset and format compatibility.
 
@@ -80,7 +80,7 @@ distance/stretch UVs restarted per section. Important remaining differences are:
   adjacent-knot rebuild rules are absent.
 - The shared indexed strip does not reproduce every source generator's triangle-soup topology and seams.
 - Head/tail simplification and per-generator minimum-length rules are incomplete.
-- Custom vertex layouts for DoubleTapered, Electricity, and Waveform are absent.
+- Custom vertex layouts for DoubleTapered and Electricity are absent.
 
 ### Tubes
 
@@ -136,7 +136,7 @@ Finalized strokes remain separate meshes and draw calls, frustum culling is disa
 
 ### Vertex data is the limiting contract
 
-The current gate checks `vertexIsDefault` plus explicit Genius, Spray, and Midpoint particle contracts. Even default shaders only match if attribute values have the correct semantics. The six excluded custom-vertex ribbon/tube brushes are DoubleTaperedFlat, DoubleTaperedMarker, Electricity, Waveform, Disco, and LightWire. HyperGrid and special brushes still require additional deformation/audio data. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 4D UV1, vertex IDs, and index where the selected generator defines those semantics.
+The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, and Waveform contracts. Even default shaders only match if attribute values have the correct semantics. The five excluded custom-vertex ribbon/tube brushes are DoubleTaperedFlat, DoubleTaperedMarker, Electricity, Disco, and LightWire. HyperGrid and special brushes still require additional deformation/audio data. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 4D UV1, vertex IDs, and index where the selected generator defines those semantics.
 
 ### Descriptor data is extracted but unused
 
@@ -227,7 +227,7 @@ Exit: CI explains exactly why every GUID passes or fails.
 3. Add physical-length UVs, tile rate, atlas rows, deterministic offsets, and segment restart.
 4. Emit explicit backfaces/hue shift, normals, tangents, and source vertex layouts.
 5. Apply opacity and color constraints.
-6. Port DoubleTapered, Electricity, and Waveform layouts.
+6. Port DoubleTapered and Electricity layouts.
 
 Exit: default ribbon fixtures pass mesh and image gates.
 
