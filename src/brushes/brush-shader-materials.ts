@@ -149,9 +149,10 @@ export function createBrushShaderMaterialDescriptor(
  * Three's non-raw prefix already declares the built-in matrix uniforms (and
  * rewrites them to per-view arrays under multiview), so the shader's own
  * declarations must be dropped to avoid duplicate/broken declarations.
- * Derivative functions are core in GLSL ES 3.00. The exported shaders guard
- * their real bump implementation behind the old WebGL 1 extension macro;
- * select that branch directly instead of defining a reserved GL_* symbol.
+ * Derivative functions are core in GLSL ES 3.00, but the exported derivative
+ * bump branch currently produces black strokes on Quest hardware. Keep the
+ * authored geometric-normal fallback until the bump path has a headset-tested
+ * replacement; defining the reserved GL_* extension macro is not legal GLSL.
  */
 export function prepareBrushShaderSource(source: string): string {
   return (
@@ -162,7 +163,7 @@ export function prepareBrushShaderSource(source: string): string {
       )
       .replace(/^[ \t]*#extension[ \t]+GL_OES_standard_derivatives[^\n]*\n?/gm, "")
       .replace(
-        /^[ \t]*#ifndef[ \t]+GL_OES_standard_derivatives\b[^\n]*\n[\s\S]*?^[ \t]*#else[^\n]*\n([\s\S]*?)^[ \t]*#endif[^\n]*\n?/gm,
+        /^[ \t]*#ifndef[ \t]+GL_OES_standard_derivatives\b[^\n]*\n([\s\S]*?)^[ \t]*#else[^\n]*\n[\s\S]*?^[ \t]*#endif[^\n]*\n?/gm,
         "$1",
       )
       // The particle shaders ship their own mat4 inverse(), legal in the

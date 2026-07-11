@@ -250,7 +250,7 @@ describe("shader source preparation for non-raw ShaderMaterial", () => {
     expect(prepared).toContain("fwidth");
   });
 
-  it("selects the real derivative bump branch without defining a GL_* macro", () => {
+  it("selects the safe normal fallback without defining a GL_* macro", () => {
     const prepared = prepareBrushShaderSource(`#ifndef GL_OES_standard_derivatives
 vec3 PerturbNormal(vec3 position, vec3 normal, vec2 uv) { return normal; }
 #else
@@ -259,9 +259,9 @@ vec3 PerturbNormal(vec3 position, vec3 normal, vec2 uv) { return dFdx(position);
 #endif
 void main() {}`);
 
-    expect(prepared).toContain("uniform sampler2D u_BumpMap;");
-    expect(prepared).toContain("return dFdx(position);");
-    expect(prepared).not.toContain("return normal;");
+    expect(prepared).not.toContain("uniform sampler2D u_BumpMap;");
+    expect(prepared).not.toContain("return dFdx(position);");
+    expect(prepared).toContain("return normal;");
     expect(prepared).not.toContain("#define GL_OES_standard_derivatives");
     expect(prepared).not.toContain("#ifndef GL_OES_standard_derivatives");
   });
