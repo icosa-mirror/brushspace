@@ -33,13 +33,23 @@ export const experimentalOpenBrushes = requiredOpenBrushes.filter(
 export const openBrushInventorySummary =
   summarizeBrushInventory(requiredOpenBrushes);
 
-export const selectableOpenBrushes = openBrushInventory.filter(
+export const visibleOpenBrushes = openBrushInventory.filter(
   (entry) => entry.pickerVisible,
 );
 
+export const selectableOpenBrushes = visibleOpenBrushes.filter(
+  (entry) => entry.pickerEnabled,
+);
+
 export function setExperimentalBrushesEnabled(enabled: boolean): void {
-  const next = enabled ? requiredOpenBrushes : standardOpenBrushes;
-  selectableOpenBrushes.splice(0, selectableOpenBrushes.length, ...next);
+  const visible = enabled ? requiredOpenBrushes : standardOpenBrushes;
+  visibleOpenBrushes.splice(0, visibleOpenBrushes.length, ...visible);
+  const selectable = visible.filter((entry) => entry.pickerEnabled);
+  selectableOpenBrushes.splice(
+    0,
+    selectableOpenBrushes.length,
+    ...selectable,
+  );
 }
 
 export const initialOpenBrushIndex = Math.max(

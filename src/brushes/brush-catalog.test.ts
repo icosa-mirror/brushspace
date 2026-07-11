@@ -9,19 +9,23 @@ import {
   initialOpenBrushIndex,
   selectableOpenBrushes,
   setExperimentalBrushesEnabled,
+  visibleOpenBrushes,
 } from "./brush-catalog.js";
 
 describe("Open Brush brush catalog", () => {
-  it("switches between 48 standard and 95 standard-plus-experimental brushes", () => {
+  it("keeps the full catalog visible while enabling only likely-mostly-correct brushes", () => {
     setExperimentalBrushesEnabled(false);
-    expect(selectableOpenBrushes).toHaveLength(48);
+    expect(visibleOpenBrushes).toHaveLength(48);
+    expect(selectableOpenBrushes).toHaveLength(44);
     setExperimentalBrushesEnabled(true);
-    expect(selectableOpenBrushes).toHaveLength(95);
+    expect(visibleOpenBrushes).toHaveLength(95);
+    expect(selectableOpenBrushes).toHaveLength(87);
     expect(
-      selectableOpenBrushes
+      visibleOpenBrushes
         .slice(48, 60)
         .every((entry) => entry.catalogSection === "experimental"),
     ).toBe(true);
+    expect(selectableOpenBrushes.every((entry) => entry.pickerEnabled)).toBe(true);
     setExperimentalBrushesEnabled(false);
   });
 

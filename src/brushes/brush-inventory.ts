@@ -2,6 +2,9 @@ import { normalizeGuid } from "../sketch/binary.js";
 import type { BrushSizeRange } from "./brush-size.js";
 
 export type BrushSupportStatus = "supported" | "fallback" | "unsupported";
+export type BrushFidelityConfidence =
+  | "likely-mostly-correct"
+  | "unverified-or-likely-substantially-wrong";
 export type BrushPressureSizeRange = readonly [number, number];
 export type BrushPressureOpacityRange = readonly [number, number];
 
@@ -142,6 +145,7 @@ export interface BrushInventoryEntry extends OpenBrushExportBrush {
   catalogSection?: "standard" | "experimental";
   catalogOrder?: number;
   supportStatus: BrushSupportStatus;
+  fidelityConfidence: BrushFidelityConfidence;
   geometryFamily: BrushGeometryFamily;
   materialFamily: BrushMaterialFamily;
   brushSizeRange: BrushSizeRange;
@@ -159,6 +163,8 @@ export interface BrushInventoryEntry extends OpenBrushExportBrush {
   buttonIconFile?: string;
   /** True when the brush should be offered in the brush picker. */
   pickerVisible: boolean;
+  /** True when the brush is usable for new painting rather than display-only. */
+  pickerEnabled: boolean;
   /** True when Open Brush includes this manifest brush under its default tag rules. */
   portRequired: boolean;
 }
@@ -359,6 +365,10 @@ export function buildBrushInventoryFromExportManifest(
 
     const assetRecord = assetRecords?.[guid];
     const support = resolveBrushSupport(brush, assetRecord);
+    const fidelityConfidence: BrushFidelityConfidence =
+      support.supportStatus === "supported"
+        ? "likely-mostly-correct"
+        : "unverified-or-likely-substantially-wrong";
     const tags = assetRecord?.tags ?? [];
     const portRequired =
       assetRecord?.catalogSection !== undefined &&
@@ -368,6 +378,7 @@ export function buildBrushInventoryFromExportManifest(
       ...brush,
       guid,
       supportStatus: support.supportStatus,
+      fidelityConfidence,
       geometryFamily: support.geometryFamily,
       materialFamily: support.materialFamily,
       brushSizeRange: toRange(
@@ -396,6 +407,7 @@ export function buildBrushInventoryFromExportManifest(
       // Fidelity status is deliberately independent: incomplete brushes use
       // the existing fallback geometry/material instead of disappearing.
       pickerVisible: portRequired && assetRecord?.catalogSection === "standard",
+      pickerEnabled: fidelityConfidence === "likely-mostly-correct",
       portRequired,
     };
   });

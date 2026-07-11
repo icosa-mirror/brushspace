@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { openBrushInventory, selectableOpenBrushes } from "./brush-catalog.js";
+import {
+  openBrushInventory,
+  selectableOpenBrushes,
+  visibleOpenBrushes,
+} from "./brush-catalog.js";
 import { findBrushByGuid } from "./brush-inventory.js";
 import { generateBrushGeometry } from "./brush-geometry.js";
 import {
@@ -43,13 +47,14 @@ describe("brush shader asset inventory", () => {
     expect(template.length).toBe(49);
   });
 
-  it("offers all 48 standard-manifest brushes in authored order", () => {
-    expect(selectableOpenBrushes.length).toBe(48);
+  it("shows all 48 standard brushes but enables only likely-mostly-correct entries", () => {
+    expect(visibleOpenBrushes.length).toBe(48);
+    expect(selectableOpenBrushes.length).toBe(44);
     for (const entry of selectableOpenBrushes) {
       expect(entry.tags, entry.name).toContain("default");
       expect(entry.catalogSection, entry.name).toBe("standard");
     }
-    const names = selectableOpenBrushes.map((entry) => entry.name);
+    const names = visibleOpenBrushes.map((entry) => entry.name);
     expect(names).toContain("Light");
     expect(names).toContain("Marker");
     expect(names).toContain("Smoke");

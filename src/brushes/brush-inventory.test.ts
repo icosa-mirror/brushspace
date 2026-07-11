@@ -45,9 +45,20 @@ describe("Open Brush brush inventory", () => {
       geometryFamily: "ribbon",
       materialFamily: "unlit",
       pickerVisible: true,
+      pickerEnabled: true,
+      fidelityConfidence: "likely-mostly-correct",
       brushSizeRange: [0.05, 3],
       pressureSizeRange: [0.1, 1],
       pressureOpacityRange: [1, 1],
+    });
+    expect(
+      findBrushByGuid(inventory, "faaa4d44-fcfb-4177-96be-753ac0421ba3"),
+    ).toMatchObject({
+      name: "ShinyHull",
+      supportStatus: "unsupported",
+      pickerVisible: true,
+      pickerEnabled: false,
+      fidelityConfidence: "unverified-or-likely-substantially-wrong",
     });
     expect(
       findBrushByGuid(inventory, "2d35bcf0-e4d8-452c-97b1-3311be063130"),

@@ -154,10 +154,25 @@
 
   .brush-name {
     width: 204px;
-    height: 22px;
+    height: 18px;
     font-size: 15px;
     font-weight: 700;
     color: #ffffff;
+    text-align: center;
+  }
+
+  .brush-labels {
+    width: 204px;
+    height: 34px;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .brush-confidence {
+    width: 204px;
+    height: 14px;
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.78);
     text-align: center;
   }
 
@@ -220,7 +235,10 @@
     <button id="brush-page-prev" class="page-button">
       <ChevronLeftIcon class="page-button-icon"></ChevronLeftIcon>
     </button>
-    <span id="brush-active-name" class="brush-name">Brush</span>
+    <div class="brush-labels">
+      <span id="brush-active-name" class="brush-name">Brush</span>
+      <span id="brush-active-confidence" class="brush-confidence">Likely mostly correct</span>
+    </div>
     <button id="brush-page-next" class="page-button">
       <ChevronRightIcon class="page-button-icon"></ChevronRightIcon>
     </button>

@@ -97,7 +97,10 @@ function createBrush(
     vectorParams: overrides.vectorParams,
     colorParams: overrides.colorParams,
     supportStatus: overrides.supportStatus ?? "supported",
+    fidelityConfidence:
+      overrides.fidelityConfidence ?? "likely-mostly-correct",
     pickerVisible: overrides.pickerVisible ?? true,
+    pickerEnabled: overrides.pickerEnabled ?? true,
     portRequired: overrides.portRequired ?? true,
     tags: overrides.tags ?? ["default"],
     geometryFamily: overrides.geometryFamily ?? "ribbon",
