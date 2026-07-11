@@ -78,6 +78,10 @@ export function getBrushShaderEligibility(
   const hasGeniusParticleContract =
     entry.geometryFamily === "particle" &&
     entry.generatorClass === "GeniusParticlesBrush";
+  const hasSprayParticleContract =
+    entry.geometryFamily === "particle" &&
+    entry.generatorClass === "SprayBrush" &&
+    entry.shaderAssets.vertexIsDefault;
   if (!entry.shaderAssets.vertexIsDefault && !hasGeniusParticleContract) {
     return {
       eligible: false,
@@ -86,6 +90,7 @@ export function getBrushShaderEligibility(
   }
   if (
     !hasGeniusParticleContract &&
+    !hasSprayParticleContract &&
     entry.geometryFamily !== "ribbon" &&
     entry.geometryFamily !== "emissive" &&
     entry.geometryFamily !== "tube"

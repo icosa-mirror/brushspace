@@ -29,6 +29,7 @@ export interface BrushVisualConformanceResult extends PixelDifference {
 }
 
 export interface ParticleVisualConformanceResult {
+  name: string;
   passed: boolean;
   coveredPixelRatio: number;
   pixels: Uint8Array;
@@ -38,18 +39,23 @@ export function runParticleVisualConformance(
   renderer: WebGLRenderer,
   sourceMaterial: ShaderMaterial,
   generated: GeneratedBrushGeometry,
+  name = "Smoke",
 ): ParticleVisualConformanceResult {
-  if (!generated.packedUvs || !generated.uv1) {
-    throw new Error("Particle conformance geometry lacks packed UV channels.");
-  }
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new BufferAttribute(generated.positions, 3));
   geometry.setAttribute("normal", new BufferAttribute(generated.normals, 3));
   geometry.setAttribute("color", new BufferAttribute(generated.colors, 4));
   geometry.setAttribute("uv", new BufferAttribute(generated.uvs, 2));
-  geometry.setAttribute("a_texcoord0", new BufferAttribute(generated.packedUvs, 4));
-  geometry.setAttribute("uv1", new BufferAttribute(generated.uv1, 4));
-  geometry.setAttribute("a_texcoord1", new BufferAttribute(generated.uv1, 4));
+  if (generated.packedUvs) {
+    geometry.setAttribute(
+      "a_texcoord0",
+      new BufferAttribute(generated.packedUvs, generated.uv0Size),
+    );
+  }
+  if (generated.uv1) {
+    geometry.setAttribute("uv1", new BufferAttribute(generated.uv1, 4));
+    geometry.setAttribute("a_texcoord1", new BufferAttribute(generated.uv1, 4));
+  }
   geometry.setIndex(new BufferAttribute(generated.indices, 1));
   applyBrushShaderAttributeAliases(geometry);
 
@@ -87,6 +93,7 @@ export function runParticleVisualConformance(
   }
   const coveredPixelRatio = coveredPixels / (BRUSH_VISUAL_CONFORMANCE_SIZE ** 2);
   return {
+    name,
     passed: coveredPixelRatio >= 0.005,
     coveredPixelRatio,
     pixels,
@@ -102,10 +109,14 @@ export function showParticleVisualConformance(
   root.style.cssText =
     "position:fixed;inset:16px;z-index:10000;background:#111;color:#eee;padding:16px;font:14px system-ui;overflow:auto";
   const heading = document.createElement("h1");
-  heading.textContent = `Smoke particle render: ${result.passed ? "PASS" : "FAIL"}`;
+  heading.textContent = `${result.name} particle render: ${result.passed ? "PASS" : "FAIL"}`;
   const details = document.createElement("p");
   details.textContent = `covered ${(result.coveredPixelRatio * 100).toFixed(2)}%`;
-  root.append(heading, details, createPixelFigure("Generated Smoke stroke", result.pixels));
+  root.append(
+    heading,
+    details,
+    createPixelFigure(`Generated ${result.name} stroke`, result.pixels),
+  );
   root.dataset.result = result.passed ? "pass" : "fail";
   document.body.append(root);
 }

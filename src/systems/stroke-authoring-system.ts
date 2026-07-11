@@ -331,8 +331,8 @@ export class StrokeAuthoringSystem extends createSystem({
     const mode = new URLSearchParams(window.location.search).get(
       "visual-conformance",
     );
-    if (mode === "particle") {
-      this.runParticleVisualConformance();
+    if (mode === "particle" || mode === "spray") {
+      this.runParticleVisualConformance(mode);
       return;
     }
     if (mode !== "bump") {
@@ -357,20 +357,25 @@ export class StrokeAuthoringSystem extends createSystem({
     );
   }
 
-  private runParticleVisualConformance(): void {
-    const smokeGuid = "70d79cca-b159-4f35-990c-f02193947fe8";
-    const smoke = openBrushShaderLibrary.get(smokeGuid);
-    const entry = findBrushByGuid(openBrushInventory, smokeGuid);
-    if (!smoke || !entry) {
-      console.error(`${BRUSH_VISUAL_CONFORMANCE_PREFIX} Smoke did not load.`);
+  private runParticleVisualConformance(mode: "particle" | "spray"): void {
+    const brushGuid =
+      mode === "spray"
+        ? "8dc4a70c-d558-4efd-a5ed-d4e860f40dc3"
+        : "70d79cca-b159-4f35-990c-f02193947fe8";
+    const material = openBrushShaderLibrary.get(brushGuid);
+    const entry = findBrushByGuid(openBrushInventory, brushGuid);
+    if (!material || !entry) {
+      console.error(
+        `${BRUSH_VISUAL_CONFORMANCE_PREFIX} ${mode} material did not load.`,
+      );
       document.documentElement.dataset.brushVisualConformance = "fail";
       return;
     }
     const stroke = createEmptyStrokeData({
       guid: "brush-visual-conformance-smoke",
-      brushGuid: smokeGuid,
+      brushGuid,
       brushSize: 0.2,
-      color: [0.1, 0.8, 1, 1],
+      color: mode === "spray" ? [1, 0.1, 0.6, 1] : [0.1, 0.8, 1, 1],
       seed: 23,
       controlPoints: [
         {
@@ -380,7 +385,7 @@ export class StrokeAuthoringSystem extends createSystem({
           timestampMs: 0,
         },
         {
-          position: [0.1, 0, 0],
+          position: mode === "spray" ? [0.5, 0, 0] : [0.1, 0, 0],
           orientation: [0, 0, 0, 1],
           pressure: 1,
           timestampMs: 100,
@@ -394,7 +399,12 @@ export class StrokeAuthoringSystem extends createSystem({
       generatorClass: entry.generatorClass,
     });
     openBrushShaderLibrary.updateFrame(1, this.camera);
-    const result = runParticleVisualConformance(this.renderer, smoke, geometry);
+    const result = runParticleVisualConformance(
+      this.renderer,
+      material,
+      geometry,
+      entry.name,
+    );
     showParticleVisualConformance(result);
     document.documentElement.dataset.brushVisualConformance = result.passed
       ? "pass"

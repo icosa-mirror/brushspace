@@ -46,7 +46,7 @@ describe("brush shader asset inventory", () => {
   it("offers only Open Brush's supported default-tagged brushes in the picker", () => {
     // Matches Open Brush's own curation: experimental-tagged variants
     // (DuctTapeGeometry, DoubleFlat, Fire2, …) stay supported but hidden.
-    expect(selectableOpenBrushes.length).toBe(35);
+    expect(selectableOpenBrushes.length).toBe(37);
     for (const entry of selectableOpenBrushes) {
       expect(entry.tags, entry.name).toContain("default");
       expect(entry.supersededByGuid, entry.name).toBeUndefined();
@@ -121,6 +121,13 @@ describe("brush shader eligibility", () => {
   it("accepts Genius particles with the packed vertex contract", () => {
     const smoke = getBrushShaderEligibility(getBrush(SMOKE_GUID));
     expect(smoke.eligible).toBe(true);
+  });
+
+  it("accepts Spray particles with the default vertex contract", () => {
+    const splatter = openBrushInventory.find(
+      (entry) => entry.name === "Splatter" && entry.generatorClass === "SprayBrush",
+    );
+    expect(getBrushShaderEligibility(splatter).eligible).toBe(true);
   });
 
   it("rejects brushes whose handcrafted vertex shader needs extra vertex data", () => {
