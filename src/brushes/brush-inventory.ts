@@ -107,6 +107,8 @@ export type BrushGeneratorFamily =
 
 /** Raw shape of one entry in src/brushes/generated/brush-assets.json. */
 export interface BrushAssetRecord {
+  catalogSection?: "standard" | "experimental";
+  catalogOrder?: number;
   glslSource: "handcrafted" | "template";
   vertexIsDefault: boolean;
   vertexShader: string;
@@ -134,6 +136,8 @@ export interface BrushAssetRecord {
 }
 
 export interface BrushInventoryEntry extends OpenBrushExportBrush {
+  catalogSection?: "standard" | "experimental";
+  catalogOrder?: number;
   supportStatus: BrushSupportStatus;
   geometryFamily: BrushGeometryFamily;
   materialFamily: BrushMaterialFamily;
@@ -338,12 +342,29 @@ export function buildBrushInventoryFromExportManifest(
       supersededByGuid: assetRecord?.supersededByGuid,
       tags: assetRecord?.tags ?? [],
       buttonIconFile: assetRecord?.buttonIcon,
+      catalogSection: assetRecord?.catalogSection,
+      catalogOrder: assetRecord?.catalogOrder,
       pickerVisible: support.pickerVisible,
     };
   });
 
-  entries.sort((a, b) => a.name.localeCompare(b.name) || a.guid.localeCompare(b.guid));
+  entries.sort(compareOpenBrushCatalogOrder);
   return entries;
+}
+
+function compareOpenBrushCatalogOrder(
+  left: BrushInventoryEntry,
+  right: BrushInventoryEntry,
+): number {
+  const sectionRank = (section: BrushInventoryEntry["catalogSection"]): number =>
+    section === "standard" ? 0 : section === "experimental" ? 1 : 2;
+  return (
+    sectionRank(left.catalogSection) - sectionRank(right.catalogSection) ||
+    (left.catalogOrder ?? Number.MAX_SAFE_INTEGER) -
+      (right.catalogOrder ?? Number.MAX_SAFE_INTEGER) ||
+    left.name.localeCompare(right.name) ||
+    left.guid.localeCompare(right.guid)
+  );
 }
 
 export function summarizeBrushInventory(

@@ -77,6 +77,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 0,
       "tags": [
         "default"
       ],
@@ -226,6 +228,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 1,
       "tags": [
         "default"
       ],
@@ -375,6 +379,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 2,
       "tags": [
         "default"
       ],
@@ -524,6 +530,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 3,
       "tags": [
         "default"
       ],
@@ -660,6 +668,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 4,
       "tags": [
         "whiteboard",
         "default"
@@ -723,6 +733,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 5,
       "tags": [
         "whiteboard",
         "default"
@@ -786,6 +798,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 22,
       "tags": [
         "experimental"
       ],
@@ -835,6 +849,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 6,
       "tags": [
         "default"
       ],
@@ -897,6 +913,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 7,
       "tags": [
         "default"
       ],
@@ -945,6 +963,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 8,
       "tags": [
         "default"
       ],
@@ -1101,6 +1121,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 9,
       "tags": [
         "default"
       ],
@@ -1210,6 +1232,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 10,
       "tags": [
         "default"
       ],
@@ -1272,6 +1296,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 11,
       "tags": [
         "whiteboard",
         "default",
@@ -1336,6 +1362,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 12,
       "tags": [
         "default",
         "audioreactive"
@@ -1399,6 +1427,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 13,
       "tags": [
         "default",
         "audioreactive"
@@ -1462,6 +1492,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 14,
       "tags": [
         "default",
         "audioreactive",
@@ -1526,6 +1558,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 15,
       "tags": [
         "default",
         "particle"
@@ -1589,6 +1623,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 16,
       "tags": [
         "default",
         "audioreactive",
@@ -1639,6 +1675,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 17,
       "tags": [
         "default",
         "audioreactive"
@@ -1702,6 +1740,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 18,
       "tags": [
         "default",
         "audioreactive",
@@ -1766,6 +1806,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 19,
       "tags": [
         "default",
         "audioreactive"
@@ -1829,6 +1871,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 20,
       "tags": [
         "default",
         "audioreactive"
@@ -1892,6 +1936,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 21,
       "tags": [
         "default"
       ],
@@ -2028,6 +2074,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 22,
       "tags": [
         "default"
       ],
@@ -2177,6 +2225,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 23,
       "tags": [
         "default"
       ],
@@ -2313,6 +2363,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 24,
       "tags": [
         "default"
       ],
@@ -2436,6 +2488,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 25,
       "tags": [
         "default",
         "audioreactive"
@@ -2546,6 +2600,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 26,
       "tags": [
         "default",
         "audioreactive"
@@ -2609,6 +2665,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 27,
       "tags": [
         "default",
         "audioreactive"
@@ -2685,6 +2743,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 28,
       "tags": [
         "default",
         "audioreactive"
@@ -2824,6 +2884,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 29,
       "tags": [
         "default",
         "particle"
@@ -2883,6 +2945,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "standard",
+      "catalogOrder": 30,
       "tags": [
         "default",
         "audioreactive"
@@ -2946,6 +3010,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 31,
       "tags": [
         "whiteboard",
         "default"
@@ -3009,6 +3075,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 32,
       "tags": [
         "default",
         "audioreactive"
@@ -3082,6 +3150,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "standard",
+      "catalogOrder": 33,
       "tags": [
         "default",
         "audioreactive"
@@ -3141,6 +3211,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "standard",
+      "catalogOrder": 34,
       "tags": [
         "default",
         "audioreactive"
@@ -3204,6 +3276,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 35,
       "tags": [
         "whiteboard",
         "default",
@@ -3265,6 +3339,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "standard",
+      "catalogOrder": 36,
       "tags": [
         "default"
       ],
@@ -3337,6 +3413,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "standard",
+      "catalogOrder": 37,
       "tags": [
         "whiteboard",
         "default"
@@ -3396,6 +3474,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "standard",
+      "catalogOrder": 38,
       "tags": [
         "whiteboard",
         "default",
@@ -3456,6 +3536,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "standard",
+      "catalogOrder": 39,
       "tags": [
         "whiteboard",
         "default"
@@ -3515,6 +3597,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "standard",
+      "catalogOrder": 40,
       "tags": [
         "default"
       ],
@@ -3573,6 +3657,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 4
       },
+      "catalogSection": "standard",
+      "catalogOrder": 41,
       "tags": [
         "default"
       ],
@@ -3631,6 +3717,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "standard",
+      "catalogOrder": 42,
       "tags": [
         "default",
         "audioreactive"
@@ -3717,6 +3805,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "standard",
+      "catalogOrder": 43,
       "tags": [
         "default",
         "audioreactive"
@@ -3766,6 +3856,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 44,
       "tags": [
         "whiteboard",
         "default",
@@ -3816,6 +3908,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 45,
       "tags": [
         "whiteboard",
         "default",
@@ -3866,6 +3960,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 46,
       "tags": [
         "whiteboard",
         "default",
@@ -3930,6 +4026,8 @@
           1
         ]
       },
+      "catalogSection": "standard",
+      "catalogOrder": 47,
       "tags": [
         "default",
         "hull"
@@ -4067,6 +4165,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 20,
       "tags": [
         "experimental"
       ],
@@ -4129,6 +4229,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 23,
       "tags": [
         "experimental",
         "audioreactive"
@@ -4617,6 +4719,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 0,
       "tags": [
         "experimental"
       ],
@@ -4763,6 +4867,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 1,
       "tags": [
         "experimental"
       ],
@@ -4835,6 +4941,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 2,
       "tags": [
         "experimental"
       ],
@@ -4910,6 +5018,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 3,
       "tags": [
         "experimental"
       ],
@@ -4985,6 +5095,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 4,
       "tags": [
         "experimental"
       ],
@@ -5057,6 +5169,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 5,
       "tags": [
         "experimental"
       ],
@@ -5119,6 +5233,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 6,
       "tags": [
         "experimental"
       ],
@@ -5181,6 +5297,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 7,
       "tags": [
         "experimental",
         "particle"
@@ -5254,6 +5372,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 8,
       "tags": [
         "experimental"
       ],
@@ -5329,6 +5449,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 9,
       "tags": [
         "experimental"
       ],
@@ -5404,6 +5526,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 10,
       "tags": [
         "experimental"
       ],
@@ -5452,6 +5576,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 11,
       "tags": [
         "experimental",
         "audioreactive"
@@ -5501,6 +5627,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 12,
       "tags": [
         "experimental",
         "broken"
@@ -5549,6 +5677,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 13,
       "tags": [
         "experimental",
         "broken"
@@ -5597,6 +5727,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 14,
       "tags": [
         "experimental",
         "broken"
@@ -5645,6 +5777,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 15,
       "tags": [
         "experimental",
         "broken"
@@ -5730,6 +5864,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 16,
       "tags": [
         "experimental"
       ],
@@ -5815,6 +5951,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 17,
       "tags": [
         "experimental"
       ],
@@ -5890,6 +6028,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 18,
       "tags": [
         "experimental",
         "audioreactive"
@@ -5949,6 +6089,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 19,
       "tags": [
         "experimental"
       ],
@@ -6007,6 +6149,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 21,
       "tags": [
         "experimental"
       ],
@@ -6069,6 +6213,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 24,
       "tags": [
         "experimental",
         "audioreactive"
@@ -6142,6 +6288,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 25,
       "tags": [
         "experimental"
       ],
@@ -6204,6 +6352,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 26,
       "tags": [
         "experimental",
         "audioreactive"
@@ -6277,6 +6427,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 27,
       "tags": [
         "experimental",
         "audioreactive"
@@ -6340,6 +6492,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 28,
       "tags": [
         "experimental"
       ],
@@ -6402,6 +6556,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 50,
       "tags": [
         "experimental"
       ],
@@ -6464,6 +6620,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 49,
       "tags": [
         "experimental"
       ],
@@ -6522,6 +6680,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 31,
       "tags": [
         "experimental",
         "audioreactive"
@@ -6585,6 +6745,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 32,
       "tags": [
         "experimental",
         "audioreactive"
@@ -6661,6 +6823,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 33,
       "tags": [
         "experimental"
       ],
@@ -6723,6 +6887,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 34,
       "tags": [
         "experimental",
         "audioreactive"
@@ -6812,6 +6978,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 35,
       "tags": [
         "experimental"
       ],
@@ -6900,6 +7068,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 36,
       "tags": [
         "experimental",
         "audioreactive"
@@ -6976,6 +7146,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 37,
       "tags": [
         "experimental"
       ],
@@ -7034,6 +7206,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 38,
       "tags": [
         "experimental"
       ],
@@ -7092,6 +7266,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 39,
       "tags": [
         "experimental",
         "audioreactive"
@@ -7151,6 +7327,8 @@
         "tubePetalDisplacementExponent": 3,
         "tubeBreakAngleMultiplier": 8
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 40,
       "tags": [
         "experimental"
       ],
@@ -7213,6 +7391,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 41,
       "tags": [
         "experimental",
         "audioreactive"
@@ -7262,6 +7442,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 42,
       "tags": [
         "experimental",
         "audioreactive"
@@ -7311,6 +7493,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 43,
       "tags": [
         "experimental",
         "audioreactive"
@@ -7360,6 +7544,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 44,
       "tags": [
         "experimental"
       ],
@@ -7408,6 +7594,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 45,
       "tags": [
         "experimental"
       ],
@@ -7456,6 +7644,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 46,
       "tags": [
         "experimental",
         "hull"
@@ -7532,6 +7722,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 47,
       "tags": [
         "experimental"
       ],
@@ -7607,6 +7799,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 48,
       "tags": [
         "experimental"
       ],
@@ -7655,6 +7849,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 51,
       "tags": [
         "experimental"
       ],
@@ -7703,6 +7899,8 @@
           1
         ]
       },
+      "catalogSection": "experimental",
+      "catalogOrder": 52,
       "tags": [
         "experimental"
       ],

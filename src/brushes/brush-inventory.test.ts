@@ -104,6 +104,37 @@ describe("Open Brush brush inventory", () => {
     });
   });
 
+  it("preserves standard then experimental Open Brush manifest order", () => {
+    const inventory = buildBrushInventoryFromExportManifest(
+      loadReferenceManifest(),
+      generatedBrushAssets.brushes as unknown as Record<string, BrushAssetRecord>,
+    );
+    const standard = inventory.filter((entry) => entry.catalogSection === "standard");
+    const experimental = inventory.filter(
+      (entry) => entry.catalogSection === "experimental",
+    );
+
+    expect(standard).toHaveLength(48);
+    expect(experimental).toHaveLength(51);
+    expect(standard.slice(0, 12).map((entry) => entry.name)).toEqual([
+      "OilPaint",
+      "Ink",
+      "ThickPaint",
+      "WetPaint",
+      "Marker",
+      "TaperedMarker",
+      "DoubleTaperedMarker",
+      "Highlighter",
+      "Flat",
+      "TaperedFlat",
+      "DoubleTaperedFlat",
+      "SoftHighlighter",
+    ]);
+    expect(inventory.indexOf(experimental[0])).toBeGreaterThan(
+      inventory.indexOf(standard[standard.length - 1]),
+    );
+  });
+
   it("rejects manifest entries whose map key does not match their brush GUID", () => {
     expect(() =>
       buildBrushInventoryFromExportManifest({

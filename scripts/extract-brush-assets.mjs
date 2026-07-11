@@ -25,6 +25,12 @@ const referenceRoot = path.join(repoRoot, "reference");
 const generatorsDir = path.join(referenceRoot, "Support", "GlTFShaders", "Generators");
 const includeDir = path.join(referenceRoot, "Support", "GlTFShaders", "include");
 const manifestPath = path.join(referenceRoot, "Support", "exportManifest.json");
+const standardBrushManifestPath = path.join(referenceRoot, "Assets", "Manifest.asset");
+const experimentalBrushManifestPath = path.join(
+  referenceRoot,
+  "Assets",
+  "Manifest_Experimental.asset",
+);
 const brushAssetRoots = [
   path.join(referenceRoot, "Assets", "Resources", "Brushes"),
   path.join(referenceRoot, "Assets", "Resources", "X"),
@@ -203,6 +209,37 @@ function collectBrushDescriptors() {
     });
   }
   return descriptors;
+}
+
+function extractManifestBrushAssetGuids(filePath) {
+  const text = fs.readFileSync(filePath, "utf8");
+  const brushesBlock = text.match(/^  Brushes:\s*\n([\s\S]*?)(?=^  \w|\Z)/m)?.[1] ?? "";
+  return Array.from(
+    brushesBlock.matchAll(/^\s*- \{fileID: \d+, guid: ([0-9a-f]{32}), type: \d+\}$/gm),
+    (match) => match[1],
+  );
+}
+
+function buildBrushCatalogPositions(descriptors) {
+  const brushGuidByAssetGuid = new Map();
+  for (const [brushGuid, descriptor] of descriptors) {
+    if (descriptor.assetMetaGuid) {
+      brushGuidByAssetGuid.set(descriptor.assetMetaGuid, brushGuid);
+    }
+  }
+  const positions = new Map();
+  for (const [section, manifestAssetPath] of [
+    ["standard", standardBrushManifestPath],
+    ["experimental", experimentalBrushManifestPath],
+  ]) {
+    extractManifestBrushAssetGuids(manifestAssetPath).forEach((assetGuid, order) => {
+      const brushGuid = brushGuidByAssetGuid.get(assetGuid);
+      if (brushGuid) {
+        positions.set(brushGuid, { section, order });
+      }
+    });
+  }
+  return positions;
 }
 
 /** Map Unity script GUID → C# class name (file basename) for Assets/Scripts. */
@@ -418,6 +455,7 @@ async function main() {
   const metaGuidIndex = buildMetaGuidIndex();
   const scriptGuidIndex = buildScriptGuidIndex();
   const descriptors = collectBrushDescriptors();
+  const catalogPositions = buildBrushCatalogPositions(descriptors);
   const defaultVertexNormalized = stripCommentsAndWhitespace(
     expandIncludes(path.join(includeDir, "VertDefault.glsl")),
   );
@@ -444,6 +482,11 @@ async function main() {
       textures: {},
       geometry: undefined,
     };
+    const catalogPosition = catalogPositions.get(guid);
+    if (catalogPosition) {
+      record.catalogSection = catalogPosition.section;
+      record.catalogOrder = catalogPosition.order;
+    }
 
     // --- shaders ---
     const defines = getDefines(brush);
