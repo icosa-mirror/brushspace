@@ -46,10 +46,21 @@ import {
   OPENBRUSH_SCENE_LIGHT_1_COLOR,
   OPENBRUSH_SCENE_LIGHT_1_MATRIX,
   type BrushShaderMaterialDescriptor,
+  type BrushBumpMappingMode,
 } from "./brush-shader-materials.js";
 
 interface UniformHolder {
   value: unknown;
+}
+
+function resolveRequestedBumpMappingMode(): BrushBumpMappingMode {
+  if (typeof window === "undefined") {
+    return "fallback";
+  }
+  return new URLSearchParams(window.location.search).get("bump-mapping") ===
+    "guarded"
+    ? "guarded"
+    : "fallback";
 }
 
 /**
@@ -233,8 +244,14 @@ export class BrushShaderLibrary {
       // its GLSL3 conversion and OVR_multiview patching to non-raw programs.
       const material = new ShaderMaterial({
         name: `OpenBrushShader_${descriptor.name}`,
-        vertexShader: prepareBrushShaderSource(vertexShader),
-        fragmentShader: prepareBrushShaderSource(fragmentShader),
+        vertexShader: prepareBrushShaderSource(
+          vertexShader,
+          resolveRequestedBumpMappingMode(),
+        ),
+        fragmentShader: prepareBrushShaderSource(
+          fragmentShader,
+          resolveRequestedBumpMappingMode(),
+        ),
         uniforms: this.buildUniforms(descriptor, textures),
         transparent: descriptor.transparent,
         depthWrite: descriptor.depthWrite,

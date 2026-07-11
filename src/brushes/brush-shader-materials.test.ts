@@ -278,6 +278,26 @@ void main() {}`);
     expect(prepared).not.toContain("#ifndef GL_OES_standard_derivatives");
   });
 
+  it("can select the guarded bump-normal replacement for headset testing", () => {
+    const prepared = prepareBrushShaderSource(
+      `#ifndef GL_OES_standard_derivatives
+vec3 PerturbNormal(vec3 position, vec3 normal, vec2 uv) { return normal; }
+#else
+uniform sampler2D u_BumpMap;
+vec3 PerturbNormal(vec3 position, vec3 normal, vec2 uv) { return dFdx(position); }
+#endif
+void main() {}`,
+      "guarded",
+    );
+
+    expect(prepared).toContain("uniform sampler2D u_BumpMap;");
+    expect(prepared).toContain("safeDeterminant");
+    expect(prepared).toContain("candidateLengthSquared");
+    expect(prepared).toContain("gl_FrontFacing ? 1.0 : -1.0");
+    expect(prepared).not.toContain("#ifndef GL_OES_standard_derivatives");
+    expect(prepared).not.toContain("return dFdx(position);");
+  });
+
   it("renames the hand-rolled inverse() (built-in in GLSL ES 3.00)", () => {
     const prepared = prepareBrushShaderSource(
       "mat4 inverse(mat4 m) { return m; }\n" +

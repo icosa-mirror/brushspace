@@ -180,7 +180,55 @@ export function createBrushShaderMaterialDescriptor(
  * authored geometric-normal fallback until the bump path has a headset-tested
  * replacement; defining the reserved GL_* extension macro is not legal GLSL.
  */
-export function prepareBrushShaderSource(source: string): string {
+export type BrushBumpMappingMode = "fallback" | "guarded";
+
+const GUARDED_BUMP_NORMAL_GLSL = `uniform sampler2D u_BumpMap;
+uniform vec4 u_BumpMap_TexelSize;
+
+vec3 PerturbNormal(vec3 position, vec3 normal, vec2 uv) {
+  highp vec3 positionDx = dFdx(position);
+  highp vec3 positionDy = dFdy(position);
+  highp vec2 uvDx = dFdx(uv);
+  highp vec2 uvDy = dFdy(uv);
+  highp float determinant = uvDx.x * uvDy.y - uvDx.y * uvDy.x;
+  highp float safeDeterminant = determinant >= 0.0
+    ? max(determinant, 1e-8)
+    : min(determinant, -1e-8);
+  highp vec3 positionDu =
+    (uvDy.y * positionDx - uvDx.y * positionDy) / safeDeterminant;
+  highp vec3 positionDv =
+    (-uvDy.x * positionDx + uvDx.x * positionDy) / safeDeterminant;
+
+  highp vec2 texel = max(u_BumpMap_TexelSize.xy, vec2(1e-6));
+  highp float heightCenter = texture2D(u_BumpMap, uv).x;
+  highp float heightU = texture2D(u_BumpMap, uv + vec2(texel.x, 0.0)).x;
+  highp float heightV = texture2D(u_BumpMap, uv + vec2(0.0, texel.y)).x;
+  highp float faceSign = gl_FrontFacing ? 1.0 : -1.0;
+  highp float heightDu =
+    (heightU - heightCenter) * dispAmount * faceSign / texel.x;
+  highp float heightDv =
+    (heightV - heightCenter) * dispAmount * faceSign / texel.y;
+  highp vec3 candidate = cross(
+    positionDu + normal * heightDu,
+    positionDv + normal * heightDv
+  );
+  highp float candidateLengthSquared = dot(candidate, candidate);
+  bool invalid =
+    abs(determinant) < 1e-8 ||
+    !(candidateLengthSquared > 1e-12) ||
+    candidateLengthSquared > 1e12;
+  if (invalid) {
+    return normal;
+  }
+  candidate *= inversesqrt(candidateLengthSquared);
+  return dot(candidate, normal) < 0.0 ? -candidate : candidate;
+}
+`;
+
+export function prepareBrushShaderSource(
+  source: string,
+  bumpMappingMode: BrushBumpMappingMode = "fallback",
+): string {
   return (
     source
       .replace(
@@ -190,7 +238,10 @@ export function prepareBrushShaderSource(source: string): string {
       .replace(/^[ \t]*#extension[ \t]+GL_OES_standard_derivatives[^\n]*\n?/gm, "")
       .replace(
         /^[ \t]*#ifndef[ \t]+GL_OES_standard_derivatives\b[^\n]*\n([\s\S]*?)^[ \t]*#else[^\n]*\n[\s\S]*?^[ \t]*#endif[^\n]*\n?/gm,
-        "$1",
+        (_match, fallback: string) =>
+          bumpMappingMode === "guarded"
+            ? GUARDED_BUMP_NORMAL_GLSL
+            : fallback,
       )
       // The particle shaders ship their own mat4 inverse(), legal in the
       // exported GLSL 1.00 but a redeclaration of the built-in once three
