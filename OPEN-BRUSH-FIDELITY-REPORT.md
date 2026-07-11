@@ -278,16 +278,16 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 
 ## Immediate backlog
 
-1. Fix the extraction output directory.
-2. Qualify the README's "real brushes" claim until conformance exists.
-3. Stop presenting default-vertex eligibility as fidelity support.
-4. Fail loudly when extracted required geometry parameters are unimplemented.
-5. Implement distance/tile-rate ribbon UVs and tangents.
-6. Port exact tube caps, hard edges, UVs, and modifiers.
-7. Build the Unity reference corpus before particle work.
+1. Add Unity mesh dumps to the existing deterministic screenshot fixture.
+2. Reproduce that fixture path and camera in the browser for per-GUID comparison.
+3. Replace renderer-eligibility labels with persisted mesh/browser/XR/image evidence.
+4. Fail loudly when an extracted required vertex contract is unimplemented.
+5. Port ribbon smoothing and self-intersection width shrinking.
+6. Byte-compare tube caps/rings and port Disco and LightWire layouts.
+7. Replace static particle quads with the source spawn and vertex contracts.
 8. Connect batching to production rendering.
-9. Record shader compile results for browser and immersive XR.
-10. Preserve texture importer and render-state metadata.
+9. Persist the browser/Quest shader compile matrix.
+10. Complete texture transforms, render states, and normal-map support.
 
 ## Primary references
 
@@ -304,4 +304,10 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 
 ## Verification note
 
-This was a source and asset audit; runtime code was not changed. Type checking could not run meaningfully because dependencies are not installed (`@iwsdk/core`, `vitest`, and related modules are absent). No installation was performed for this review. Runtime images and device shader compilation remain to be validated by the proposed harness.
+The initial report was a source and asset audit. Subsequent implementation commits
+are gated by TypeScript checking, the full Vitest suite, a production Vite build,
+live Chrome rendering when the browser connection is available, and the GitHub
+Pages workflow. Those checks catch compilation and gross rendering failures but
+do not constitute Unity image or mesh conformance. Physical Quest verification
+is still required for shader changes; in particular, normal mapping remains
+disabled after the derivative path rendered Oil Paint black on-headset.
