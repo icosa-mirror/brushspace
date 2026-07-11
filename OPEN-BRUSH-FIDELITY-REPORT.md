@@ -114,12 +114,15 @@ explicit backfaces, and real default-vertex export shaders. A Splatter pixel
 gate rejects empty or black generated output. Preview decay and incremental
 knot rebuild behavior remain approximate.
 
-The three `MidpointPlusLifetimeSprayBrush` entries still create one static
-world-XY quad per control point and use fallback materials. They need their
-distance spawning, packed lifetime layout, motion, preview decay, and
-finalization rules. Genius particles also still approximate
-sketch-time-to-level-time conversion and preview/finalization lifecycle
-behavior.
+The three `MidpointPlusLifetimeSprayBrush` entries now use the same authored
+distance spawning and segment frame, plus their distinct five-quad salt layout
+and 4D UV1 corner-offset/birth-time contract. DanceFloor and WaveformParticles
+render with their default export vertex shaders; a DanceFloor pixel gate
+rejects empty or black output. HyperGrid remains gated because its custom
+vertex shader has additional audio-reactive behavior. The export shaders do
+not reproduce Unity's lifetime motion, so runtime animation, preview decay,
+finalization, and exact sketch-time-to-level-time conversion remain open.
+Genius particles share the latter lifecycle/time-conversion gap.
 
 ### Performance
 
@@ -133,7 +136,7 @@ Finalized strokes remain separate meshes and draw calls, frustum culling is disa
 
 ### Vertex data is the limiting contract
 
-The current gate checks `vertexIsDefault` plus an explicit Genius-particle contract. Even default shaders only match if attribute values have the correct semantics. The six excluded custom-vertex ribbon/tube brushes are DoubleTaperedFlat, DoubleTaperedMarker, Electricity, Waveform, Disco, and LightWire. Spray particles and special brushes still require additional packed deformation data. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 4D UV1, vertex IDs, and index where the selected generator defines those semantics.
+The current gate checks `vertexIsDefault` plus explicit Genius, Spray, and Midpoint particle contracts. Even default shaders only match if attribute values have the correct semantics. The six excluded custom-vertex ribbon/tube brushes are DoubleTaperedFlat, DoubleTaperedMarker, Electricity, Waveform, Disco, and LightWire. HyperGrid and special brushes still require additional deformation/audio data. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 4D UV1, vertex IDs, and index where the selected generator defines those semantics.
 
 ### Descriptor data is extracted but unused
 
