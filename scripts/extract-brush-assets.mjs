@@ -74,9 +74,12 @@ function expandIncludes(filePath, seenStack = []) {
 function getDefines(brush) {
   const defines = {};
   const floatParams = brush.floatParams ?? {};
-  if (typeof floatParams.EmissionGain === "number") {
-    defines.TB_EMISSION_GAIN = String(floatParams.EmissionGain);
-  }
+  // FragAdditive requires the macro even when the legacy export manifest did
+  // not serialize the material value. Open Brush's additive template default
+  // is 0.5; leaving it undefined makes those brushes fail shader compilation.
+  defines.TB_EMISSION_GAIN = String(
+    typeof floatParams.EmissionGain === "number" ? floatParams.EmissionGain : 0.5,
+  );
   if (typeof floatParams.Cutoff === "number") {
     defines.TB_ALPHA_CUTOFF = String(floatParams.Cutoff);
     defines.TB_HAS_ALPHA_CUTOFF = floatParams.Cutoff < 1 ? "1" : "0";
