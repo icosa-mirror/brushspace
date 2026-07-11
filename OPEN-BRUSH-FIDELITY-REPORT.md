@@ -84,10 +84,12 @@ Important remaining differences are:
 
 The parallel-transport tube now consumes extracted side count, end-cap, hard-edge,
 UV-style, cap-aspect, atlas, radius-packing, taper, and petal settings. It uses
-circumference-dependent distance UVs and emits tangents. Remaining differences are:
+circumference-dependent distance UVs, emits tangents, and splits/caps sections
+using Open Brush's minimum-motion and width-relative frame-angle tests. Remaining
+differences are:
 
 - Cap/ring topology has not been byte-compared against each upstream `TubeBrush` variant.
-- Generator break angles, knot smoothing, and incremental rebuild semantics are absent.
+- Knot smoothing and incremental adjacent-knot rebuild semantics are absent.
 - Modifier behavior is approximate rather than validated against Unity mesh dumps.
 - Disco and LightWire still require custom vertex layouts.
 - Culling and seam behavior need per-brush visual validation.
