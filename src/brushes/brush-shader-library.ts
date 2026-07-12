@@ -96,6 +96,10 @@ const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
   "4391aaaa-df73-4396-9e33-31e4e4930b27", // Disco
   "2f212815-f4d3-c1a4-681a-feeaf9c6dc37", // Icing
   "1caa6d7d-f015-3f54-3a4b-8b5354d39f81", // Comet
+  "faaa4d44-fcfb-4177-96be-753ac0421ba3", // Shiny Hull
+  "79348357-432d-4746-8e29-0e25c112e3aa", // Matte Hull
+  "a8fea537-da7c-4d4b-817f-24f074725d6d", // Unlit Hull
+  "c8313697-2563-47fc-832e-290f4c04b901", // Diamond Hull
 ]);
 
 interface UniformHolder {
