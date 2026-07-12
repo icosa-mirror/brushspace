@@ -60,6 +60,9 @@ const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
   "f5c336cf-5108-4b40-ade9-c687504385ab", // Ink
   "75b32cf0-fdd6-4d89-a64b-e2a00b247b0f", // Thick Paint
   "b67c0e81-ce6d-40a8-aeb0-ef036b081aa3", // Wet Paint
+  "d0262945-853c-4481-9cbd-88586bed93cb", // Duct Tape
+  "f1114e2e-eb8d-4fde-915a-6e653b54e9f5", // Paper
+  "dce872c2-7b49-4684-b59b-c45387949c5c", // Hypercolor
 ]);
 
 interface UniformHolder {

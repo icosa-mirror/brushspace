@@ -357,6 +357,10 @@ export class StrokeAuthoringSystem extends createSystem({
       this.runGeometryVisualConformance(mode);
       return;
     }
+    if (mode === "brush") {
+      this.runGeometryVisualConformance("brush");
+      return;
+    }
     if (mode !== "bump") {
       return;
     }
@@ -409,10 +413,16 @@ export class StrokeAuthoringSystem extends createSystem({
       | "oil-paint"
       | "ink"
       | "thick-paint"
-      | "wet-paint",
+      | "wet-paint"
+      | "brush",
   ): void {
+    const requestedBrushGuid = new URLSearchParams(window.location.search).get(
+      "brush-guid",
+    );
     const brushGuid =
-      mode === "spray"
+      mode === "brush" && requestedBrushGuid
+        ? requestedBrushGuid
+        : mode === "spray"
         ? "8dc4a70c-d558-4efd-a5ed-d4e860f40dc3"
         : mode === "midpoint"
           ? "6a1cf9f9-032c-45ec-311e-a6680bee32e9"
@@ -579,7 +589,8 @@ export class StrokeAuthoringSystem extends createSystem({
         mode === "oil-paint" ||
         mode === "ink" ||
         mode === "thick-paint" ||
-        mode === "wet-paint"
+        mode === "wet-paint" ||
+        mode === "brush"
         ? "stroke"
         : "particle",
     );
