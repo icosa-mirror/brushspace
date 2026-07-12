@@ -349,7 +349,10 @@ export class StrokeAuthoringSystem extends createSystem({
       mode === "smooth-hull" ||
       mode === "concave-hull" ||
       mode === "print3d" ||
-      mode === "oil-paint"
+      mode === "oil-paint" ||
+      mode === "ink" ||
+      mode === "thick-paint" ||
+      mode === "wet-paint"
     ) {
       this.runGeometryVisualConformance(mode);
       return;
@@ -357,24 +360,26 @@ export class StrokeAuthoringSystem extends createSystem({
     if (mode !== "bump") {
       return;
     }
-    const oilPaint = openBrushShaderLibrary.get(
-      "f72ec0e7-a844-4e38-82e3-140c44772699",
-    );
-    if (!oilPaint) {
-      console.error(`${BRUSH_VISUAL_CONFORMANCE_PREFIX} Oil Paint did not load.`);
+    const brushGuid =
+      new URLSearchParams(window.location.search).get("brush-guid") ??
+      "f72ec0e7-a844-4e38-82e3-140c44772699";
+    const entry = findBrushByGuid(openBrushInventory, brushGuid);
+    const material = openBrushShaderLibrary.get(brushGuid);
+    if (!entry || !material) {
+      console.error(`${BRUSH_VISUAL_CONFORMANCE_PREFIX} ${brushGuid} did not load.`);
       document.documentElement.dataset.brushVisualConformance = "fail";
       return;
     }
     openBrushShaderLibrary.updateFrame(1, this.camera);
-    const result = runBumpVisualConformance(this.renderer, oilPaint);
+    const result = runBumpVisualConformance(this.renderer, material);
     openBrushShaderCompatibility.record({
-      guid: "f72ec0e7-a844-4e38-82e3-140c44772699",
-      name: "OilPaint",
+      guid: brushGuid,
+      name: entry.name,
       context: "visual",
       status: result.passed ? "visual-passed" : "visual-failed",
       message: `bump changed=${(result.changedPixelRatio * 100).toFixed(2)}% rms=${result.rootMeanSquareDifference.toFixed(2)}`,
     });
-    showBumpVisualConformance(result);
+    showBumpVisualConformance(result, entry.name);
     document.documentElement.dataset.brushVisualConformance = result.passed
       ? "pass"
       : "fail";
@@ -401,7 +406,10 @@ export class StrokeAuthoringSystem extends createSystem({
       | "smooth-hull"
       | "concave-hull"
       | "print3d"
-      | "oil-paint",
+      | "oil-paint"
+      | "ink"
+      | "thick-paint"
+      | "wet-paint",
   ): void {
     const brushGuid =
       mode === "spray"
@@ -436,6 +444,12 @@ export class StrokeAuthoringSystem extends createSystem({
                                     ? "d3f3b18a-da03-f694-b838-28ba8e749a98"
                                     : mode === "oil-paint"
                                       ? "f72ec0e7-a844-4e38-82e3-140c44772699"
+                                      : mode === "ink"
+                                        ? "f5c336cf-5108-4b40-ade9-c687504385ab"
+                                        : mode === "thick-paint"
+                                          ? "75b32cf0-fdd6-4d89-a64b-e2a00b247b0f"
+                                          : mode === "wet-paint"
+                                            ? "b67c0e81-ce6d-40a8-aeb0-ef036b081aa3"
         : "70d79cca-b159-4f35-990c-f02193947fe8";
     const material = openBrushShaderLibrary.get(brushGuid);
     const entry = findBrushByGuid(openBrushInventory, brushGuid);
@@ -562,7 +576,10 @@ export class StrokeAuthoringSystem extends createSystem({
         mode === "smooth-hull" ||
         mode === "concave-hull" ||
         mode === "print3d" ||
-        mode === "oil-paint"
+        mode === "oil-paint" ||
+        mode === "ink" ||
+        mode === "thick-paint" ||
+        mode === "wet-paint"
         ? "stroke"
         : "particle",
     );

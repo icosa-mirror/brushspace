@@ -226,6 +226,7 @@ function applyConformanceLighting(material: ShaderMaterial): void {
 
 export function showBumpVisualConformance(
   result: BrushVisualConformanceResult,
+  brushName = "Oil Paint",
 ): void {
   document.getElementById("brush-visual-conformance")?.remove();
   const root = document.createElement("section");
@@ -233,7 +234,7 @@ export function showBumpVisualConformance(
   root.style.cssText =
     "position:fixed;inset:16px;z-index:10000;background:#111;color:#eee;padding:16px;font:14px system-ui;overflow:auto";
   const heading = document.createElement("h1");
-  heading.textContent = `Oil Paint bump A/B: ${result.passed ? "PASS" : "FAIL"}`;
+  heading.textContent = `${brushName} bump A/B: ${result.passed ? "PASS" : "FAIL"}`;
   root.append(heading);
   const details = document.createElement("p");
   details.textContent = `bump coverage ${(result.bumpCoveredPixelRatio * 100).toFixed(2)}% · flat coverage ${(result.flatCoveredPixelRatio * 100).toFixed(2)}% · changed ${(result.changedPixelRatio * 100).toFixed(2)}% · RMS ${result.rootMeanSquareDifference.toFixed(2)} · mean ${result.meanAbsoluteDifference.toFixed(2)}`;

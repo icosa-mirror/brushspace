@@ -55,7 +55,12 @@ import { createIwsdkTiltMaterial } from "./iwsdk-tilt-material.js";
 const AUTHORITATIVE_BRUSH_ASSET_URL = assetUrl(
   "/openbrush/icosa-brushes/",
 );
-const OIL_PAINT_GUID = "f72ec0e7-a844-4e38-82e3-140c44772699";
+const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
+  "f72ec0e7-a844-4e38-82e3-140c44772699", // Oil Paint
+  "f5c336cf-5108-4b40-ade9-c687504385ab", // Ink
+  "75b32cf0-fdd6-4d89-a64b-e2a00b247b0f", // Thick Paint
+  "b67c0e81-ce6d-40a8-aeb0-ef036b081aa3", // Wet Paint
+]);
 
 interface UniformHolder {
   value: unknown;
@@ -248,7 +253,7 @@ export class BrushShaderLibrary {
     options?: { allowAnyGeometry?: boolean },
     targetMaterials: Map<string, ShaderMaterial> = this.materials,
   ): Promise<ShaderMaterial | undefined> {
-    if (entry.guid === OIL_PAINT_GUID) {
+    if (AUTHORITATIVE_MATERIAL_GUIDS.has(entry.guid)) {
       return this.createAuthoritativeMaterial(entry, targetMaterials);
     }
     const descriptor = createBrushShaderMaterialDescriptor(entry, options);
