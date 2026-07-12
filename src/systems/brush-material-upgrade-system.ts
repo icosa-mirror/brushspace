@@ -4,12 +4,14 @@ import type { Material, ShaderMaterial } from "@iwsdk/core";
 import { BrushStroke } from "../components/core.js";
 import { openBrushShaderLibrary } from "../brushes/brush-shader-library.js";
 import { planBrushMaterialUpgrades } from "../brushes/brush-material-upgrade.js";
+import { createBrushRenderMaterial } from "../brushes/brush-multipass-material.js";
+import { applyBrushRenderGroups } from "../brushes/brush-multipass-material.js";
 
 const LOG_PREFIX = "[BrushMaterialUpgrade]";
 
 interface StrokeMaterialTarget {
   brushGuid: string;
-  material: Material;
+  material: Material | Material[];
   mesh: Mesh;
 }
 
@@ -35,7 +37,7 @@ export class BrushMaterialUpgradeSystem extends createSystem({
     const targets: StrokeMaterialTarget[] = [];
     for (const entity of this.queries.strokes.entities) {
       const object = entity.object3D;
-      if (!(object instanceof Mesh) || Array.isArray(object.material)) {
+      if (!(object instanceof Mesh)) {
         continue;
       }
       targets.push({
@@ -44,15 +46,31 @@ export class BrushMaterialUpgradeSystem extends createSystem({
         mesh: object,
       });
     }
-    const upgrades = planBrushMaterialUpgrades<StrokeMaterialTarget, Material>(
-      targets,
+    const renderMaterial = createBrushRenderMaterial(
       guid,
       loadedMaterial,
+      openBrushShaderLibrary.frameUniforms,
+    );
+    const upgrades = planBrushMaterialUpgrades<
+      StrokeMaterialTarget,
+      Material | Material[]
+    >(
+      targets,
+      guid,
+      renderMaterial,
     );
     for (const { target, previous, next } of upgrades) {
       target.mesh.material = next;
-      if (!openBrushShaderLibrary.isManaged(previous)) {
-        previous.dispose();
+      applyBrushRenderGroups(
+        target.mesh.geometry,
+        target.mesh.geometry.getIndex()?.count ?? 0,
+        next,
+      );
+      const previousMaterials = Array.isArray(previous) ? previous : [previous];
+      for (const previousMaterial of previousMaterials) {
+        if (!openBrushShaderLibrary.isManaged(previousMaterial)) {
+          previousMaterial.dispose();
+        }
       }
     }
     if (upgrades.length > 0) {

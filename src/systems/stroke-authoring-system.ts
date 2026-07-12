@@ -72,6 +72,10 @@ import {
 } from "../brushes/brush-conformance-fixtures.js";
 import { openBrushShaderCompatibility } from "../brushes/brush-shader-compatibility.js";
 import {
+  applyBrushRenderGroups,
+  createBrushRenderMaterial,
+} from "../brushes/brush-multipass-material.js";
+import {
   createMirroredStrokeDataX,
   resolveStrokeSampleDecision,
   OPEN_BRUSH_MINIMUM_MOVE_METERS,
@@ -1160,11 +1164,15 @@ export class StrokeAuthoringSystem extends createSystem({
     brushEntry: BrushInventoryEntry | undefined,
     materialSpec: BrushMaterialSpec,
     opacity: number,
-  ): Material {
+  ): Material | Material[] {
     if (brushEntry) {
       const shaderMaterial = openBrushShaderLibrary.get(brushEntry.guid);
       if (shaderMaterial) {
-        return shaderMaterial;
+        return createBrushRenderMaterial(
+          brushEntry.guid,
+          shaderMaterial,
+          openBrushShaderLibrary.frameUniforms,
+        );
       }
     }
     return new MeshBasicMaterial({
@@ -1264,6 +1272,7 @@ export class StrokeAuthoringSystem extends createSystem({
       }
     }
     stroke.geometry.setDrawRange(0, arrays.indexCount);
+    applyBrushRenderGroups(stroke.geometry, arrays.indexCount, stroke.mesh.material);
     this.copyGeneratedBounds(stroke, arrays.bounds.min, arrays.bounds.max);
     // The preview trail reuses this path with a component-less entity.
     if (stroke.entity.hasComponent(BrushStroke)) {

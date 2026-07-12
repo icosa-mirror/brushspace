@@ -99,6 +99,8 @@ distance/stretch UVs restarted per section. Important remaining differences are:
 - The shared indexed strip does not reproduce every source generator's triangle-soup topology and seams.
 - Head/tail simplification and per-generator minimum-length rules are incomplete.
 - DoubleTapered and Electricity now consume the emitted edge-vector layout.
+  Electricity also recreates the Unity shader's three displacement passes;
+  exact `FlatGeometryBrush` smoothing/topology remains open.
 
 ### Tubes
 
@@ -169,8 +171,8 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
 All required material lookups now use the maintained dependency path. The pinned
-revisions at this milestone are `icosa-sketch-assets@6d48dc4`,
-`three-icosa@b78c62d`, and `three-tiltloader@dbf70e7`. This establishes source
+revisions at this milestone are `icosa-sketch-assets@b196e60`,
+`three-icosa@0a2d6fc`, and `three-tiltloader@b2ee213`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 The extracted local corpus remains only for compatibility records and extraction
 diagnostics and should be pruned once those uses are separated.

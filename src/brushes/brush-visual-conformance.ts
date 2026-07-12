@@ -17,6 +17,11 @@ import type { GeneratedBrushGeometry } from "./brush-geometry.js";
 
 import { applyBrushShaderAttributeAliases } from "./brush-shader-library.js";
 import {
+  applyBrushRenderGroups,
+  createBrushRenderMaterial,
+  ELECTRICITY_BRUSH_GUID,
+} from "./brush-multipass-material.js";
+import {
   compareRgbPixels,
   type PixelDifference,
 } from "./brush-pixel-difference.js";
@@ -78,7 +83,12 @@ export function runBrushGeometryVisualConformance(
   applyBrushShaderAttributeAliases(geometry);
 
   const material = sourceMaterial.clone();
-  const mesh = new Mesh(geometry, material);
+  const renderMaterial = createBrushRenderMaterial(
+    name === "Electricity" ? ELECTRICITY_BRUSH_GUID : "",
+    material,
+  );
+  applyBrushRenderGroups(geometry, generated.indices.length, renderMaterial);
+  const mesh = new Mesh(geometry, renderMaterial);
   mesh.frustumCulled = false;
   const scene = new Scene();
   scene.add(mesh);
@@ -98,7 +108,14 @@ export function runBrushGeometryVisualConformance(
     renderer.setRenderTarget(previousTarget);
     renderer.setClearColor(previousClearColor, previousClearAlpha);
     geometry.dispose();
-    material.dispose();
+    if (Array.isArray(renderMaterial)) {
+      for (const pass of renderMaterial) {
+        pass.dispose();
+      }
+      material.dispose();
+    } else {
+      renderMaterial.dispose();
+    }
     target.dispose();
   }
   let coveredPixels = 0;
