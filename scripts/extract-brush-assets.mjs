@@ -16,12 +16,26 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import sharp from "sharp";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const referenceRoot = path.join(repoRoot, "reference");
+const referenceMetadata = JSON.parse(
+  fs.readFileSync(path.join(repoRoot, "open-brush-reference.json"), "utf8"),
+);
+const referenceCommit = execFileSync(
+  "git",
+  ["-C", referenceRoot, "rev-parse", "HEAD"],
+  { encoding: "utf8" },
+).trim();
+if (referenceCommit !== referenceMetadata.commit) {
+  throw new Error(
+    `Open Brush reference checkout is ${referenceCommit}; expected ${referenceMetadata.commit}.`,
+  );
+}
 const generatorsDir = path.join(referenceRoot, "Support", "GlTFShaders", "Generators");
 const includeDir = path.join(referenceRoot, "Support", "GlTFShaders", "include");
 const manifestPath = path.join(referenceRoot, "Support", "exportManifest.json");
