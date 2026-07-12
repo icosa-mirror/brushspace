@@ -79,6 +79,11 @@ const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
   "700f3aa8-9a7c-2384-8b8a-ea028905dd8c", // Cel Vinyl
   "8dc4a70c-d558-4efd-a5ed-d4e860f40dc3", // Splatter
   "1161af82-50cf-47db-9706-0c3576d43c43", // Coarse Bristles
+  "02ffb866-7fb2-4d15-b761-1012cefb1360", // Embers
+  "70d79cca-b159-4f35-990c-f02193947fe8", // Smoke
+  "0eb4db27-3f82-408d-b5a1-19ebd7d5b711", // Stars
+  "89d104cd-d012-426b-b5b3-bbaee63ac43c", // Bubbles
+  "6a1cf9f9-032c-45ec-9b1d-a6680bee30f7", // Dots
 ]);
 
 interface UniformHolder {

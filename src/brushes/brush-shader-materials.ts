@@ -280,6 +280,7 @@ export function prepareBrushShaderSource(
   source: string,
   bumpMappingMode: BrushBumpMappingMode = "guarded",
 ): string {
+  const hasCustomInverse = /\bmat4\s+inverse\s*\(\s*mat4\b/.test(source);
   return (
     source
       .replace(
@@ -297,7 +298,10 @@ export function prepareBrushShaderSource(
       // The particle shaders ship their own mat4 inverse(), legal in the
       // exported GLSL 1.00 but a redeclaration of the built-in once three
       // promotes the source to GLSL ES 3.00 — rename definition and calls.
-      .replace(/\binverse\b(?=\s*\()/g, "tb_inverse")
+      .replace(
+        /\binverse\b(?=\s*\()/g,
+        hasCustomInverse ? "tb_inverse" : "inverse",
+      )
   );
 }
 

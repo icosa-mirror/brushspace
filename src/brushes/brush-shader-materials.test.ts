@@ -363,6 +363,14 @@ void main() {}`,
     expect(prepared).toContain("inversesqrt(4.0)");
   });
 
+  it("preserves the GLSL3 built-in inverse() without a custom definition", () => {
+    const prepared = prepareBrushShaderSource(
+      "void main() { vec4 p = inverse(modelViewMatrix) * vec4(1.0); }",
+    );
+    expect(prepared).toContain("inverse(modelViewMatrix)");
+    expect(prepared).not.toContain("tb_inverse");
+  });
+
   it("is idempotent", () => {
     const source = "uniform mat4 modelViewMatrix;\nvoid main() {}";
     const once = prepareBrushShaderSource(source);

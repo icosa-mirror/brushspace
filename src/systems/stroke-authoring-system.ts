@@ -568,7 +568,7 @@ export class StrokeAuthoringSystem extends createSystem({
       geometryParams: entry.geometryParams,
       generatorClass: entry.generatorClass,
     });
-    openBrushShaderLibrary.updateFrame(1, this.camera);
+    openBrushShaderLibrary.updateFrame(mode === "brush" ? 0 : 1, this.camera);
     const result = runBrushGeometryVisualConformance(
       this.renderer,
       material,
