@@ -2,7 +2,7 @@
 
 Date: 2026-07-11
 
-Brushspace: `00bfea5`
+Brushspace: `bbed1d0`
 
 Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6)
 
@@ -166,13 +166,13 @@ Extraction and loading preserve sRGB/linear intent, per-axis wrapping, filter mo
 mipmap generation, and anisotropy, and runtime `_TexelSize` uniforms now use the
 actual loaded image dimensions. Texture scale/offset, compression/transcoding,
 platform overrides, and full Unity alpha/import semantics remain unported.
-Derivative bump mapping is deliberately disabled: enabling the exported derivative
-branch made lit brushes render entirely black on physical Quest hardware. Normal-map
-support must remain classified as incomplete until a replacement is verified on-headset.
-A guarded replacement can be exercised with `?bump-mapping=guarded`; it clamps
-degenerate gradients, passes the Oil Paint pixel A/B check, and renders in desktop
-and emulated immersive XR, but is not the default while physical-Quest evidence is
-absent.
+The exported derivative bump branch made lit brushes render entirely black on
+physical Quest hardware. A guarded replacement is now the default: it clamps
+degenerate gradients and falls back per fragment, passes the Oil Paint pixel A/B
+check with a material difference, and renders a real generated Oil Paint stroke
+in desktop Chrome without black output. `?bump-mapping=fallback` retains an
+explicit flat-normal escape hatch. Physical-Quest verification is still required
+before this can be classified as fully validated rather than likely mostly correct.
 
 ### Render state and environment are partial
 
@@ -330,7 +330,7 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 7. Port preview decay, lifetime motion, and exact time conversion for particle brushes.
 8. Connect batching to production rendering.
 9. Persist the browser/Quest shader compile matrix.
-10. Complete texture transforms, render states, and normal-map support.
+10. Complete texture transforms and render states; verify guarded normal mapping on physical Quest.
 
 ## Primary references
 
@@ -352,5 +352,6 @@ are gated by TypeScript checking, the full Vitest suite, a production Vite build
 live Chrome rendering when the browser connection is available, and the GitHub
 Pages workflow. Those checks catch compilation and gross rendering failures but
 do not constitute Unity image or mesh conformance. Physical Quest verification
-is still required for shader changes; in particular, normal mapping remains
-disabled after the derivative path rendered Oil Paint black on-headset.
+is still required for shader changes; guarded normal mapping is enabled by default
+after desktop A/B and real-stroke gates, but the prior headset black-output failure
+means on-device evidence remains mandatory.
