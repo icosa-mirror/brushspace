@@ -1075,6 +1075,10 @@ export class StrokeAuthoringSystem extends createSystem({
       pressure: samplingPressure,
       pressureSizeMin: stroke.pressureSizeRange?.[0],
       solidMinLengthMeters: stroke.solidMinLengthMeters,
+      generatorClass: stroke.generatorClass,
+      sprayRateMultiplier: stroke.geometryParams?.sprayRateMultiplier,
+      particleRate: stroke.geometryParams?.particleRate,
+      localUnitsPerMeter: 1 / stroke.poseScale,
     });
     const decision = force
       ? "keep"

@@ -78,6 +78,7 @@ export const OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS = 0.0015;
 export const OPEN_BRUSH_TUBE_DEFAULT_SOLID_MIN_LENGTH_METERS = 0.002;
 export const OPEN_BRUSH_PRESSURE_SMOOTH_WINDOW_METERS = 0.2;
 export const OPEN_BRUSH_M11_PRESSURE_SMOOTH_WINDOW_METERS = 0.1;
+export const OPEN_BRUSH_GENIUS_PARTICLE_INTERVAL_METERS = 0.0025;
 
 export type StrokeSampleDecision = "ignore" | "extend" | "keep";
 
@@ -115,6 +116,10 @@ export function resolveStrokeSpawnIntervalMeters(options: {
   pressure: number;
   pressureSizeMin?: number;
   solidMinLengthMeters?: number;
+  generatorClass?: string;
+  sprayRateMultiplier?: number;
+  particleRate?: number;
+  localUnitsPerMeter?: number;
 }): number {
   const pressure = Math.min(1, Math.max(0, options.pressure));
   const pressureSizeMin =
@@ -131,7 +136,38 @@ export function resolveStrokeSpawnIntervalMeters(options: {
   const pressuredSize =
     Math.max(0, options.brushSize) *
     (pressureSizeMin + (1 - pressureSizeMin) * pressure);
+  if (
+    options.generatorClass === "SprayBrush" ||
+    options.generatorClass === "MidpointPlusLifetimeSprayBrush"
+  ) {
+    const sprayRate = normalizePositiveSamplingValue(
+      options.sprayRateMultiplier,
+    );
+    return pressuredSize / sprayRate;
+  }
+  if (options.generatorClass === "GeniusParticlesBrush") {
+    const particleRate = normalizePositiveSamplingValue(options.particleRate);
+    const localUnitsPerMeter = normalizePositiveSamplingValue(
+      options.localUnitsPerMeter,
+    );
+    return (
+      (OPEN_BRUSH_GENIUS_PARTICLE_INTERVAL_METERS * localUnitsPerMeter) /
+      particleRate
+    );
+  }
+  if (
+    options.generatorClass === "HullBrush" ||
+    options.generatorClass === "ConcaveHullBrush"
+  ) {
+    return solidMinLength;
+  }
   return solidMinLength + pressuredSize * OPEN_BRUSH_SOLID_ASPECT_RATIO;
+}
+
+function normalizePositiveSamplingValue(value: number | undefined): number {
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? value
+    : 1;
 }
 
 export function resolveStrokeSampleDecision(

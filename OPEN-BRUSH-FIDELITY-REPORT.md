@@ -79,8 +79,10 @@ web authoring now uses descriptor solid-minimum length, pressured-size spacing,
 minimum motion, and the source distance-smoothed pressure (including the shorter
 M11 window) when deciding whether to extend or keep a trailing point. Spray and
 Genius particle constructors explicitly disable that smoothing and retain raw
-pressure. Finalized
-generators also reconstruct the pressure and position smoothing documented below.
+pressure. Live keeper spacing dispatches the authored formulas for
+ribbon/tube/flat/thick, Spray/Midpoint Spray, Genius particles, and
+convex/concave hull generators. Finalized generators also reconstruct the
+pressure and position smoothing documented below.
 Remaining cross-generator gaps are adjacent-knot rebuild/restart behavior,
 generator-specific discard/finalization, and vertex-limit splitting.
 
@@ -150,6 +152,7 @@ rotation, birth time, source position, and vertex ID into the Open Brush
 normal/UV contract and render through their handcrafted export shaders, which
 restore camera billboarding and texture animation. A browser pixel gate renders
 generated Smoke geometry through that shader and rejects empty or black output.
+Live Genius strokes keep points at the source `0.0025 / particleRate` interval.
 
 The seven `SprayBrush` entries now spawn segment-oriented quads at the source
 pressure-sized interval, including the 500-quad segment cap, source salt
@@ -158,6 +161,8 @@ raw knot pressure, explicit backfaces, and real default-vertex export shaders.
 A Splatter pixel
 gate rejects empty or black generated output. Preview decay and incremental
 knot rebuild behavior remain approximate.
+Live Spray and Midpoint Spray strokes use `pressuredSize / sprayRateMultiplier`
+instead of the ribbon/tube keeper formula.
 
 The three `MidpointPlusLifetimeSprayBrush` entries now use the same authored
 distance spawning and segment frame, plus their distinct five-quad salt layout

@@ -289,6 +289,43 @@ describe("Open Brush stroke sampling", () => {
     ).toBeCloseTo(0.0015 + 0.01125 * 0.15 * 0.2, 6);
   });
 
+  it("uses generator-specific particle and hull spawn intervals", () => {
+    expect(
+      resolveStrokeSpawnIntervalMeters({
+        brushSize: 0.2,
+        pressure: 0.5,
+        pressureSizeMin: 0,
+        generatorClass: "SprayBrush",
+        sprayRateMultiplier: 4,
+      }),
+    ).toBeCloseTo(0.025, 6);
+    expect(
+      resolveStrokeSpawnIntervalMeters({
+        brushSize: 1,
+        pressure: 1,
+        generatorClass: "GeniusParticlesBrush",
+        particleRate: 2,
+        localUnitsPerMeter: 0.5,
+      }),
+    ).toBeCloseTo(0.000625, 6);
+    expect(
+      resolveStrokeSpawnIntervalMeters({
+        brushSize: 1,
+        pressure: 1,
+        solidMinLengthMeters: 0.003,
+        generatorClass: "HullBrush",
+      }),
+    ).toBeCloseTo(0.003, 6);
+    expect(
+      resolveStrokeSpawnIntervalMeters({
+        brushSize: 1,
+        pressure: 1,
+        solidMinLengthMeters: 0.004,
+        generatorClass: "ConcaveHullBrush",
+      }),
+    ).toBeCloseTo(0.004, 6);
+  });
+
   it("smooths keeper pressure over Open Brush's distance window", () => {
     expect(
       resolveDistanceSmoothedPressure({
