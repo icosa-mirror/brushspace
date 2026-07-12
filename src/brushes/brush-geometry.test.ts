@@ -726,6 +726,36 @@ describe("brush geometry generation", () => {
     }
   });
 
+  it("applies non-M11 flat width clipping from extracted brush metadata", () => {
+    const entry = findBrushByGuid(
+      inventory,
+      "1a26b8c0-8a07-4f8a-9fac-d2ef36e0cad0",
+    );
+    expect(entry?.geometryParams?.m11Compatibility).toBe(false);
+    if (!entry) {
+      throw new Error("TaperedMarkerFlat inventory entry is missing.");
+    }
+    const stroke = createTwoPointStroke({
+      guid: "flat-width-clipping",
+      brushSize: 2,
+      pressure: 0.1,
+    });
+    stroke.controlPoints[1].position = [0.1, 0, 0];
+    stroke.controlPoints[1].pressure = 1;
+    const geometry = generateBrushGeometry(stroke, entry.geometryFamily, {
+      pressureSizeRange: entry.pressureSizeRange,
+      pressureOpacityRange: entry.pressureOpacityRange,
+      geometryParams: entry.geometryParams,
+      generatorClass: entry.generatorClass,
+    });
+    const finalWidth = Math.abs(
+      geometry.positions[10] - geometry.positions[7],
+    );
+    // This brush's [0, 1] pressure range produces width 0.2 at the first
+    // point; the smoothed center then travels 0.07, capping the next at 0.27.
+    expect(finalWidth).toBeCloseTo(0.27);
+  });
+
   it("packs Midpoint lifetime offsets at its source spray interval", () => {
     const stroke = createTwoPointStroke({
       guid: "midpoint-lifetime-particles",

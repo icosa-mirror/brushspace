@@ -364,6 +364,8 @@ function extractGeometryParams(descriptorText) {
     brushSizeRange: parseYamlVec2(descriptorText, "m_BrushSizeRange"),
     pressureSizeRange: parseYamlVec2(descriptorText, "m_PressureSizeRange"),
     pressureOpacityRange: parseYamlVec2(descriptorText, "m_PressureOpacityRange"),
+    m11Compatibility:
+      parseYamlScalar(descriptorText, "m_M11Compatibility") === 1,
     particleRate: parseYamlScalar(descriptorText, "m_ParticleRate"),
     sprayRateMultiplier: parseYamlScalar(
       descriptorText,
