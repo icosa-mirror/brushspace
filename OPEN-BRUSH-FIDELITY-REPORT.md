@@ -172,7 +172,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@b196e60`,
-`three-icosa@0a2d6fc`, and `three-tiltloader@1636111`. This establishes source
+`three-icosa@0a2d6fc`, and `three-tiltloader@46844a7`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 The extracted local corpus remains only for compatibility records and extraction
 diagnostics and should be pruned once those uses are separated.
