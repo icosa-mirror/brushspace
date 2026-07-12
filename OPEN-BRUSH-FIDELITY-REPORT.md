@@ -73,13 +73,14 @@ No required catalog generator remains unmapped. SquarePaper now emits SquareBrus
 
 ### Knot and sampling semantics
 
-Open Brush generators consume knots containing raw and smoothed pose/pressure, frame state, length, breaks, geometry ranges, and deterministic RNG state. The web generators consume stored control points directly. Missing behavior includes:
-
-- Position and pressure smoothing.
-- All generator-specific spawn formulas.
-- Minimum-motion and sharp-turn strip breaks.
-- Adjacent-knot rebuild and segment restart rules.
-- Generator discard, finalization, and vertex-limit splitting.
+Open Brush generators consume knots containing raw and smoothed pose/pressure,
+frame state, length, breaks, geometry ranges, and deterministic RNG state. Live
+web authoring now uses descriptor solid-minimum length, pressured-size spacing,
+minimum motion, and the source distance-smoothed pressure (including the shorter
+M11 window) when deciding whether to extend or keep a trailing point. Finalized
+generators also reconstruct the pressure and position smoothing documented below.
+Remaining cross-generator gaps are adjacent-knot rebuild/restart behavior,
+generator-specific discard/finalization, and vertex-limit splitting.
 
 Serialized `brushScale` is now applied to local ribbon width, tube radius and
 modifiers, particle size, bounds, and distance-UV density. This matches Open

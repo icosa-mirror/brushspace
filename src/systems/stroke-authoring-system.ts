@@ -77,11 +77,14 @@ import {
 } from "../brushes/brush-multipass-material.js";
 import {
   createMirroredStrokeDataX,
+  resolveDistanceSmoothedPressure,
   resolveStrokeSampleDecision,
   OPEN_BRUSH_MINIMUM_MOVE_METERS,
   resolveStrokeSpawnIntervalMeters,
   OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS,
   OPEN_BRUSH_TUBE_DEFAULT_SOLID_MIN_LENGTH_METERS,
+  OPEN_BRUSH_PRESSURE_SMOOTH_WINDOW_METERS,
+  OPEN_BRUSH_M11_PRESSURE_SMOOTH_WINDOW_METERS,
   upsertTapeMeasureEndpoints,
   upsertStraightedgeEndpoint,
   writeGridSnappedPosition,
@@ -181,6 +184,8 @@ interface RuntimeStroke {
   lastPosition: Vec3;
   /** Whether the most recent control point is a keeper (PointerScript semantics). */
   lastPointIsKeeper: boolean;
+  /** Smoothed pressure at the last keeper (Open Brush m_LastSpawnPressure). */
+  lastKeeperSmoothedPressure: number;
   /** Per-brush solid segment minimum length in meters. */
   solidMinLengthMeters: number;
   /** Reusable geometry storage (grown geometrically, written in place). */
@@ -1001,6 +1006,7 @@ export class StrokeAuthoringSystem extends createSystem({
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
       lastPointIsKeeper: false,
+      lastKeeperSmoothedPressure: 0,
       solidMinLengthMeters:
         resolveSolidMinLengthMeters(brushEntry, geometryFamily) / poseScale,
       geometryArrays: createBrushGeometryArrays(),
@@ -1042,9 +1048,25 @@ export class StrokeAuthoringSystem extends createSystem({
     // Open Brush sampling: a new solid segment ("keeper") spawns every
     // spawn-interval of travel; between keepers the trailing control point is
     // overwritten each frame so the stroke tip tracks the pointer exactly.
+    const dx = frame.position[0] - stroke.lastPosition[0];
+    const dy = frame.position[1] - stroke.lastPosition[1];
+    const dz = frame.position[2] - stroke.lastPosition[2];
+    const pressureWindowMeters =
+      (stroke.geometryParams?.m11Compatibility === true
+        ? OPEN_BRUSH_M11_PRESSURE_SMOOTH_WINDOW_METERS
+        : OPEN_BRUSH_PRESSURE_SMOOTH_WINDOW_METERS) / stroke.poseScale;
+    const smoothedPressure =
+      stroke.controlPoints.length === 0
+        ? frame.pressure
+        : resolveDistanceSmoothedPressure({
+            previousPressure: stroke.lastKeeperSmoothedPressure,
+            pressure: frame.pressure,
+            distanceMeters: Math.hypot(dx, dy, dz),
+            windowMeters: pressureWindowMeters,
+          });
     const spawnInterval = resolveStrokeSpawnIntervalMeters({
       brushSize: stroke.strokeData.brushSize,
-      pressure: frame.pressure,
+      pressure: smoothedPressure,
       pressureSizeMin: stroke.pressureSizeRange?.[0],
       solidMinLengthMeters: stroke.solidMinLengthMeters,
     });
@@ -1090,6 +1112,7 @@ export class StrokeAuthoringSystem extends createSystem({
       stroke.lastPosition[1] = frame.position[1];
       stroke.lastPosition[2] = frame.position[2];
       stroke.lastPointIsKeeper = true;
+      stroke.lastKeeperSmoothedPressure = smoothedPressure;
     } else {
       stroke.lastPointIsKeeper = false;
     }
@@ -1582,6 +1605,7 @@ export class StrokeAuthoringSystem extends createSystem({
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
       lastPointIsKeeper: false,
+      lastKeeperSmoothedPressure: 0,
       solidMinLengthMeters: 0,
       geometryArrays: createBrushGeometryArrays(),
       posePosition: [0, 0, 0],
@@ -2313,6 +2337,7 @@ export class StrokeAuthoringSystem extends createSystem({
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
       lastPointIsKeeper: false,
+      lastKeeperSmoothedPressure: 0,
       solidMinLengthMeters: resolveSolidMinLengthMeters(brushEntry, geometryFamily),
       geometryArrays: createBrushGeometryArrays(),
       posePosition: [0, 0, 0],
@@ -2394,6 +2419,7 @@ export class StrokeAuthoringSystem extends createSystem({
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
       lastPointIsKeeper: false,
+      lastKeeperSmoothedPressure: 0,
       solidMinLengthMeters: resolveSolidMinLengthMeters(
         brushEntry,
         source.geometryFamily,

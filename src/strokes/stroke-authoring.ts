@@ -76,8 +76,29 @@ export const OPEN_BRUSH_MINIMUM_MOVE_METERS = 5e-4;
 export const OPEN_BRUSH_SOLID_ASPECT_RATIO = 0.2;
 export const OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS = 0.0015;
 export const OPEN_BRUSH_TUBE_DEFAULT_SOLID_MIN_LENGTH_METERS = 0.002;
+export const OPEN_BRUSH_PRESSURE_SMOOTH_WINDOW_METERS = 0.2;
+export const OPEN_BRUSH_M11_PRESSURE_SMOOTH_WINDOW_METERS = 0.1;
 
 export type StrokeSampleDecision = "ignore" | "extend" | "keep";
+
+export function resolveDistanceSmoothedPressure(options: {
+  previousPressure: number;
+  pressure: number;
+  distanceMeters: number;
+  windowMeters?: number;
+}): number {
+  const previousPressure = Math.min(1, Math.max(0, options.previousPressure));
+  const pressure = Math.min(1, Math.max(0, options.pressure));
+  const distanceMeters = Math.max(0, options.distanceMeters);
+  const windowMeters =
+    typeof options.windowMeters === "number" &&
+    Number.isFinite(options.windowMeters) &&
+    options.windowMeters > 0
+      ? options.windowMeters
+      : OPEN_BRUSH_PRESSURE_SMOOTH_WINDOW_METERS;
+  const retained = Math.pow(0.1, distanceMeters / windowMeters);
+  return retained * previousPressure + (1 - retained) * pressure;
+}
 
 export function resolveStrokeSpawnIntervalMeters(options: {
   brushSize: number;

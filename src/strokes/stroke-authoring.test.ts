@@ -14,6 +14,8 @@ import {
   type StrokePointerFrame,
   resolveStrokeSampleDecision,
   resolveStrokeSpawnIntervalMeters,
+  resolveDistanceSmoothedPressure,
+  OPEN_BRUSH_M11_PRESSURE_SMOOTH_WINDOW_METERS,
   OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS,
 } from "./stroke-authoring.js";
 import { StrokeFlags, createEmptyStrokeData, type ControlPoint } from "../types.js";
@@ -284,6 +286,24 @@ describe("Open Brush stroke sampling", () => {
         solidMinLengthMeters: OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS,
       }),
     ).toBeCloseTo(0.0015 + 0.01125 * 0.15 * 0.2, 6);
+  });
+
+  it("smooths keeper pressure over Open Brush's distance window", () => {
+    expect(
+      resolveDistanceSmoothedPressure({
+        previousPressure: 0,
+        pressure: 1,
+        distanceMeters: 0.1,
+      }),
+    ).toBeCloseTo(1 - Math.pow(0.1, 0.5), 6);
+    expect(
+      resolveDistanceSmoothedPressure({
+        previousPressure: 0,
+        pressure: 1,
+        distanceMeters: 0.1,
+        windowMeters: OPEN_BRUSH_M11_PRESSURE_SMOOTH_WINDOW_METERS,
+      }),
+    ).toBeCloseTo(0.9, 6);
   });
 
   it("ignores sub-half-millimeter movement from the last keeper", () => {
