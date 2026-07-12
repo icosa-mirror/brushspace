@@ -35,6 +35,7 @@ import {
 import { PanelSystem } from "./systems/panel-system.js";
 
 import { initialLoad } from "./app/initial-load.js";
+import { raiseEcsEntityCapacity } from "./app/ecs-entity-capacity.js";
 import { setupLoadingScreen } from "./app/loading-screen.js";
 import { setupOpenBrushShell } from "./app/setup-shell.js";
 import { version } from "../package.json";
@@ -69,6 +70,11 @@ AnimatedController.useSimpleMaterial = true;
 // The overlay markup is in index.html so it paints before the bundle runs;
 // this hooks its progress bar up to the initial-load tracker.
 setupLoadingScreen();
+
+// Must run before World.create: lifts the elics default of 1000 entities so
+// stroke-heavy .tilt sketches can spawn every stroke (Open Brush has no such
+// limit). See src/app/ecs-entity-capacity.ts.
+raiseEcsEntityCapacity();
 
 World.create(document.getElementById("scene-container") as HTMLDivElement, {
   xr: {
