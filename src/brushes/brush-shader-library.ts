@@ -103,6 +103,49 @@ const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
   "6a1cf9f9-032c-45ec-9b6e-a6680bee32e9", // HyperGrid
   "e0abbc80-0f80-e854-4970-8924a0863dcc", // Petal
   "d381e0f5-3def-4a0d-8853-31e9200bcbda", // Lofted
+  "1b897b7e-9b76-425a-b031-a867c48df409", // Gouache
+  "8e58ceea-7830-49b4-aba9-6215104ab52a", // Mylar Tube
+  "03a529e1-f519-3dd4-582d-2d5cd92c3f4f", // Rain
+  "725f4c6a-6427-6524-29ab-da371924adab", // Dry Brush
+  "ddda8745-4bb5-ac54-88b6-d1480370583e", // Leaky Pen
+  "50e99447-3861-05f4-697d-a1b96e771b98", // Sparks
+  "7136a729-1aab-bd24-f8b2-ca88b6adfb67", // Wind
+  "a8147ce1-005e-abe4-88e8-09a1eaadcc89", // Rising Bubbles
+  "9568870f-8594-60f4-1b20-dfbc8a5eac0e", // Tapered Wire
+  "2e03b1bf-3ebd-4609-9d7e-f4cafadc4dfa", // Square Paper
+  "39ee7377-7a9e-47a7-a0f8-0c77712f75d3", // Thick Geometry
+  "2c1a6a63-6552-4d23-86d7-58f6fba8581b", // Wireframe
+  "f28c395c-a57d-464b-8f0b-558c59478fa3", // Muscle
+  "99aafe96-1645-44cd-99bd-979bc6ef37c5", // Guts
+  "53d753ef-083c-45e1-98e7-4459b4471219", // Fire 2
+  "9871385a-df73-4396-9e33-31e4e4930b27", // Tube Toon Inverted
+  "d1d991f2-e7a0-4cf1-b328-f57e915e6260", // Dot Marker
+  "4391ffaa-df73-4396-9e33-31e4e4930b27", // Faceted Tube
+  "1a26b8c0-8a07-4f8a-9fac-d2ef36e0cad0", // Tapered Marker Flat
+  "c33714d1-b2f9-412e-bd50-1884c9d46336", // Plasma
+  "6a1cf9f9-032c-45ec-9b6e-a6680bee30f7", // Waveform Particles
+  "eba3f993-f9a1-4d35-b84e-bb08f48981a4", // Bubble Wand
+  "6a1cf9f9-032c-45ec-311e-a6680bee32e9", // Dance Floor
+  "0f5820df-cb6b-4a6c-960e-56e4c8000eda", // Waveform Tube
+  "492b36ff-b337-436a-ba5f-1e87ee86747e", // Drafting
+  "c1c9b26d-673a-4dc6-b373-51715654ab96", // Tube Additive
+  "a555b809-2017-46cb-ac26-e63173d8f45e", // Feather
+  "84d5bbb2-6634-8434-f8a7-681b576b4664", // Duct Tape Geometry
+  "3d9755da-56c7-7294-9b1d-5ec349975f52", // Tapered Hue Shift
+  "1cf94f63-f57a-4a1a-ad14-295af4f5ab5c", // Lacewing
+  "c86c058d-1bda-2e94-08db-f3d6a96ac4a1", // Marbled Rainbow
+  "fde6e778-0f7a-e584-38d6-89d44cee59f6", // Charcoal
+  "f8ba3d18-01fc-4d7b-b2d9-b99d10b8e7cf", // Keijiro Tube
+  "c5da2e70-a6e4-63a4-898c-5cfedef09c97", // Lofted Hue Shift
+  "62fef968-e842-3224-4a0e-1fdb7cfb745c", // Wire Lit
+  "d120944d-772f-4062-99c6-46a6f219eeaf", // Waveform FFT
+  "d9cc5e99-ace1-4d12-96e0-4a7c18c99cfc", // Fairy
+  "bdf65db2-1fb7-4202-b5e0-c6b5e3ea851e", // Space
+  "355b3579-bf1d-4ff5-a200-704437fe684b", // Smooth Hull
+  "7259cce5-41c1-ec74-c885-78af28a31d95", // Leaves 2
+  "7c972c27-d3c2-8af4-7bf8-5d9db8f0b7bb", // Ink Geometry
+  "f4a0550c-332a-4e1a-9793-b71508f4a454", // Double Flat
+  "7ae1f880-a517-44a0-99f9-1cab654498c6", // Concave Hull
 ]);
 
 interface UniformHolder {
