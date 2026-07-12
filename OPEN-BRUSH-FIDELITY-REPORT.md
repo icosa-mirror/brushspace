@@ -260,9 +260,10 @@ Suggested gates:
 4. Partially implemented: evidence states distinguish asset readiness, renderer
    eligibility, mesh contract, browser compile, XR compile, and persisted visual
    results. Mesh/image fixture automation and a complete XR matrix remain open.
-5. Add mesh dumping to the existing Open Brush `UiScreenshotter` fixture and
-   reproduce its deterministic brush path in the browser; do not replace the
-   existing screenshot corpus with a new visual target.
+5. Partially implemented: the browser route now reproduces the existing Open
+   Brush `UiScreenshotter` path, perspective framing, fixed shader time, and
+   stroke seed. Unity mesh dumping and automated image comparison remain open;
+   do not replace the existing screenshot corpus with a new visual target.
 
 Exit: CI explains exactly why every GUID passes or fails.
 
@@ -356,7 +357,8 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 ## Immediate backlog
 
 1. Add Unity mesh dumps to the existing deterministic screenshot fixture.
-2. Reproduce that fixture path and camera in the browser for per-GUID comparison.
+2. Implemented: reproduce that fixture path, camera, seed, and fixed shader time
+   in the browser for per-GUID comparison.
 3. Replace renderer-eligibility labels with persisted mesh/browser/XR/image evidence.
 4. Fail loudly when an extracted required vertex contract is unimplemented.
 5. Port ribbon smoothing and self-intersection width shrinking.
