@@ -124,6 +124,8 @@ distance/stretch UVs restarted per section. Important remaining differences are:
   smoothed-pressure width, color interpolation, and vector-offset contract.
   DistanceUV variants apply the source byte-quantized 25 mm beginning/leading
   opacity ramp after fused solid lengths are known.
+  StretchUV sections normalize U from those final averaged left/right solid
+  lengths before rebuilding tangent space.
   Finalized geometry also reconstructs the source backward midpoint/fusion pass,
   fused-edge normals, and triangle-derived tangent space. Provisional leading
   edges and incremental late-knot replacement remain incomplete.
@@ -219,7 +221,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@f2d7185`,
-`three-icosa@d2f79a4`, and `three-tiltloader@e81e844`. This establishes source
+`three-icosa@d2f79a4`, and `three-tiltloader@1e1b994`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
