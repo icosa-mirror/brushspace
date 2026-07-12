@@ -69,6 +69,14 @@ const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
   "2d35bcf0-e4d8-452c-97b1-3311be063130", // Flat
   "b468c1fb-f254-41ed-8ec9-57030bc5660c", // Tapered Flat
   "accb32f5-4509-454f-93f8-1df3fd31df1b", // Soft Highlighter
+  "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62", // Light
+  "cb92b597-94ca-4255-b017-0e3f42f12f9e", // Fire
+  "ad1ad437-76e2-450d-a23a-e17f8310b960", // Rainbow
+  "d229d335-c334-495a-a801-660ac8a87360", // Velvet Ink
+  "10201aa3-ebc2-42d8-84b7-2e63f6eeb8ab", // Waveform
+  "5347acf0-a8e2-47b6-8346-30c70719d763", // Wiggly Graphite
+  "44bb800a-fbc3-4592-8426-94ecb05ddec3", // Streamers
+  "700f3aa8-9a7c-2384-8b8a-ea028905dd8c", // Cel Vinyl
 ]);
 
 interface UniformHolder {
