@@ -2,7 +2,7 @@
 
 Date: 2026-07-11
 
-Brushspace: `92ce01c`
+Brushspace: `0656e7f`
 
 Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6)
 
@@ -10,7 +10,7 @@ Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icos
 
 Brushspace is a functional WebXR painting application derived from Open Brush concepts and assets. It is not currently a faithful port of Open Brush's brush runtime.
 
-The strongest mapping is the data layer: all 123 extracted GUIDs are present, shader and texture assets have been extracted, and the main `.tilt` stroke fields are represented. The required fidelity target matches Open Brush's authored picker catalogs: 48 standard brushes plus 47 experimental brushes. Four additional experimental entries are tagged `broken`, and 24 uncatalogued compatibility records remain loadable for old sketches but are not port requirements. Ribbon, tube, thick-strip, convex-hull, and all three particle-generator families now have dedicated geometry paths, but mesh generation remains the largest gap for concave hull, stamp, special, and several custom-deformation brushes. Export shaders cannot restore topology, smoothing, or brush-specific silhouette behavior that was never generated.
+The strongest mapping is the data layer: all 123 extracted GUIDs are present, shader and texture assets have been extracted, and the main `.tilt` stroke fields are represented. The required fidelity target matches Open Brush's authored picker catalogs: 48 standard brushes plus 47 experimental brushes. Four additional experimental entries are tagged `broken`, and 24 uncatalogued compatibility records remain loadable for old sketches but are not port requirements. Ribbon, tube, thick-strip, convex/concave-hull, and all three particle-generator families now have dedicated geometry paths, but mesh generation remains the largest gap for stamp, special, and several custom-deformation brushes. Export shaders cannot restore topology, smoothing, or brush-specific silhouette behavior that was never generated.
 
 Catalog scope and runtime visibility are independent of fidelity classification:
 
@@ -61,9 +61,11 @@ Open Brush has 32 C# files under `Assets/Scripts/Brushes`. Brushspace currently 
 - `ThickGeometryBrush` to its six-vertex belly-strip topology.
 - `HullBrush` to tetrahedron inputs followed by convex-hull generation, with
   source faceted and angle-weighted smooth-normal output modes.
+- `ConcaveHullBrush` to overlapping five-knot hulls built from its
+  pressure-sized, controller-oriented quill segments.
 - Everything else to unsupported or unmapped.
 
-Missing required families are ConcaveHull and 3D Printing Brush. SquarePaper now emits SquareBrush's four hard-edged sides, 0.375 cross-section aspect, caps, and constant center UVs. ThickGeometry now emits the source six-vertex ring, eight-triangle segment, endpoint belly pinch, distance UV, normals, and tangents. ShinyHull, MatteHull, UnlitHull, DiamondHull, and SmoothHull now use the source tetrahedron knot conversion, convex envelope, 3D UV contract, and faceted/smooth vertex modes. Compatibility-only blocks, holiday, braid, SVG, PBR/environment, and other special generators are retained for old sketches but are outside the 95-brush target.
+The only missing required generator is 3D Printing Brush. SquarePaper now emits SquareBrush's four hard-edged sides, 0.375 cross-section aspect, caps, and constant center UVs. ThickGeometry now emits the source six-vertex ring, eight-triangle segment, endpoint belly pinch, distance UV, normals, and tangents. ShinyHull, MatteHull, UnlitHull, DiamondHull, and SmoothHull now use the source tetrahedron knot conversion, convex envelope, 3D UV contract, and faceted/smooth vertex modes. ConcaveHull uses the source five-knot sliding window and QuillPen conversion. Compatibility-only blocks, holiday, braid, SVG, PBR/environment, and other special generators are retained for old sketches but are outside the 95-brush target.
 
 ### Knot and sampling semantics
 
@@ -148,7 +150,7 @@ Finalized strokes remain separate meshes and draw calls, frustum culling is disa
 
 ### Vertex data is the limiting contract
 
-The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, HyperGrid, Waveform, DoubleTapered, Electricity, Disco, LightWire, and Hull contracts. Even default shaders only match if attribute values have the correct semantics. No extracted brush remains in the `fallback` classification; 14 special generator records remain `unsupported`, including compatibility-only records outside the 95-brush target. HyperGrid renders its non-audio export behavior, but real audio-reactive inputs remain absent. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 3D/4D UV1, vertex IDs, and index where the selected generator defines those semantics.
+The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, HyperGrid, Waveform, DoubleTapered, Electricity, Disco, LightWire, and Hull contracts. Even default shaders only match if attribute values have the correct semantics. No extracted brush remains in the `fallback` classification; 13 special generator records remain `unsupported`, including compatibility-only records outside the 95-brush target. HyperGrid renders its non-audio export behavior, but real audio-reactive inputs remain absent. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 3D/4D UV1, vertex IDs, and index where the selected generator defines those semantics.
 
 ### Descriptor data is extracted but unused
 
@@ -273,9 +275,9 @@ Exit: tube topology/attributes match Unity and default tubes pass images.
 
 Exit: all 17 particle-family brushes have tested behavior; no static-quad placeholder remains.
 
-### Phase 5: remaining required special generators (2-4 engineer-weeks)
+### Phase 5: remaining required special generator (1-2 engineer-weeks)
 
-Port the remaining required ConcaveHull and 3D Printing Brush.
+Port the remaining required 3D Printing Brush.
 Compatibility-only Blocks, Plait/Braid, holiday, SVG, PBR, and environment
 cases are explicitly outside the 95-brush target and remain import-only until
 their scope is reconsidered.
