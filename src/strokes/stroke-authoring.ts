@@ -85,6 +85,30 @@ export const OPEN_BRUSH_PRINT3D_MAX_POINTER_INTERVAL_METERS = 0.05;
 
 export type StrokeSampleDecision = "ignore" | "extend" | "keep";
 
+export function resolveGeneratorSolidMinLengthMeters(options: {
+  generatorClass?: string;
+  descriptorValue?: number;
+  geometryFamily?: string;
+}): number {
+  if (options.generatorClass?.startsWith("QuadStrip") === true) {
+    return OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS;
+  }
+  if (
+    typeof options.descriptorValue === "number" &&
+    Number.isFinite(options.descriptorValue) &&
+    options.descriptorValue > 0
+  ) {
+    return options.descriptorValue;
+  }
+  if (options.generatorClass) {
+    return OPEN_BRUSH_TUBE_DEFAULT_SOLID_MIN_LENGTH_METERS;
+  }
+  return options.geometryFamily === "ribbon" ||
+    options.geometryFamily === "emissive"
+    ? OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS
+    : OPEN_BRUSH_TUBE_DEFAULT_SOLID_MIN_LENGTH_METERS;
+}
+
 export function shouldSmoothStrokeSamplingPressure(
   generatorClass: string | undefined,
 ): boolean {

@@ -81,8 +81,10 @@ M11 window) when deciding whether to extend or keep a trailing point. Spray and
 Genius particle constructors explicitly disable that smoothing and retain raw
 pressure. Live keeper spacing dispatches the authored formulas for
 ribbon/tube/flat/thick, Spray/Midpoint Spray, Genius particles, 3D Print, and
-convex/concave hull generators. Finalized generators also reconstruct the
-pressure and position smoothing documented below.
+convex/concave hull generators. QuadStrip retains its 1.5 mm solid minimum;
+Flat/Thick/Printable/Square use 2 mm and Tube/hulls consume their descriptor
+value. Finalized generators also reconstruct the pressure and position
+smoothing documented below.
 Remaining cross-generator gaps are adjacent-knot rebuild/restart behavior,
 generator-specific discard/finalization, and vertex-limit splitting.
 

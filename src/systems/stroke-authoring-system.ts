@@ -78,13 +78,12 @@ import {
 import {
   createMirroredStrokeDataX,
   resolveDistanceSmoothedPressure,
+  resolveGeneratorSolidMinLengthMeters,
   shouldSmoothStrokeSamplingPressure,
   shouldZeroInitialM11SamplingPressure,
   resolveStrokeSampleDecision,
   OPEN_BRUSH_MINIMUM_MOVE_METERS,
   resolveStrokeSpawnIntervalMeters,
-  OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS,
-  OPEN_BRUSH_TUBE_DEFAULT_SOLID_MIN_LENGTH_METERS,
   OPEN_BRUSH_PRESSURE_SMOOTH_WINDOW_METERS,
   OPEN_BRUSH_M11_PRESSURE_SMOOTH_WINDOW_METERS,
   upsertTapeMeasureEndpoints,
@@ -141,22 +140,6 @@ import { AudioFeedbackSystem } from "./audio-feedback-system.js";
 
 const MIN_SAMPLE_DISTANCE = 0.015;
 
-// QuadStripBrush uses its class constant; TubeBrush reads the descriptor's
-// m_SolidMinLengthMeters_PS.
-function resolveSolidMinLengthMeters(
-  brushEntry: BrushInventoryEntry | undefined,
-  geometryFamily: BrushGeometryFamily,
-): number {
-  if (geometryFamily === "tube") {
-    const descriptorValue = brushEntry?.geometryParams?.solidMinLengthMeters;
-    return typeof descriptorValue === "number" &&
-      Number.isFinite(descriptorValue) &&
-      descriptorValue > 0
-      ? descriptorValue
-      : OPEN_BRUSH_TUBE_DEFAULT_SOLID_MIN_LENGTH_METERS;
-  }
-  return OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS;
-}
 const GRID_SNAP_SIZE = 0.1;
 const LAZY_INPUT_RADIUS = 0.08;
 const STENCIL_FRONT_PLANE_Z = -1.2;
@@ -1010,7 +993,11 @@ export class StrokeAuthoringSystem extends createSystem({
       lastPointIsKeeper: false,
       lastKeeperSmoothedPressure: 0,
       solidMinLengthMeters:
-        resolveSolidMinLengthMeters(brushEntry, geometryFamily) / poseScale,
+        resolveGeneratorSolidMinLengthMeters({
+          generatorClass: brushEntry?.generatorClass,
+          descriptorValue: brushEntry?.geometryParams?.solidMinLengthMeters,
+          geometryFamily,
+        }) / poseScale,
       geometryArrays: createBrushGeometryArrays(),
       posePosition: poseObject
         ? [poseObject.position.x, poseObject.position.y, poseObject.position.z]
@@ -2352,7 +2339,11 @@ export class StrokeAuthoringSystem extends createSystem({
       lastPosition: [0, 0, 0],
       lastPointIsKeeper: false,
       lastKeeperSmoothedPressure: 0,
-      solidMinLengthMeters: resolveSolidMinLengthMeters(brushEntry, geometryFamily),
+      solidMinLengthMeters: resolveGeneratorSolidMinLengthMeters({
+        generatorClass: brushEntry?.generatorClass,
+        descriptorValue: brushEntry?.geometryParams?.solidMinLengthMeters,
+        geometryFamily,
+      }),
       geometryArrays: createBrushGeometryArrays(),
       posePosition: [0, 0, 0],
       poseOrientationInv: [0, 0, 0, 1],
@@ -2434,10 +2425,11 @@ export class StrokeAuthoringSystem extends createSystem({
       lastPosition: [0, 0, 0],
       lastPointIsKeeper: false,
       lastKeeperSmoothedPressure: 0,
-      solidMinLengthMeters: resolveSolidMinLengthMeters(
-        brushEntry,
-        source.geometryFamily,
-      ),
+      solidMinLengthMeters: resolveGeneratorSolidMinLengthMeters({
+        generatorClass: brushEntry?.generatorClass,
+        descriptorValue: brushEntry?.geometryParams?.solidMinLengthMeters,
+        geometryFamily: source.geometryFamily,
+      }),
       geometryArrays: createBrushGeometryArrays(),
       posePosition: [
         source.posePosition[0],

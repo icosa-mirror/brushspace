@@ -15,6 +15,7 @@ import {
   resolveStrokeSampleDecision,
   resolveStrokeSpawnIntervalMeters,
   resolveDistanceSmoothedPressure,
+  resolveGeneratorSolidMinLengthMeters,
   shouldSmoothStrokeSamplingPressure,
   shouldZeroInitialM11SamplingPressure,
   OPEN_BRUSH_M11_PRESSURE_SMOOTH_WINDOW_METERS,
@@ -288,6 +289,36 @@ describe("Open Brush stroke sampling", () => {
         solidMinLengthMeters: OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS,
       }),
     ).toBeCloseTo(0.0015 + 0.01125 * 0.15 * 0.2, 6);
+  });
+
+  it("selects solid minimum length by generator rather than broad family", () => {
+    expect(
+      resolveGeneratorSolidMinLengthMeters({
+        generatorClass: "QuadStripBrushDistanceUV",
+        descriptorValue: 0.002,
+        geometryFamily: "ribbon",
+      }),
+    ).toBe(0.0015);
+    expect(
+      resolveGeneratorSolidMinLengthMeters({
+        generatorClass: "FlatGeometryBrush",
+        descriptorValue: 0.002,
+        geometryFamily: "ribbon",
+      }),
+    ).toBe(0.002);
+    expect(
+      resolveGeneratorSolidMinLengthMeters({
+        generatorClass: "ThickGeometryBrush",
+        geometryFamily: "thick-strip",
+      }),
+    ).toBe(0.002);
+    expect(
+      resolveGeneratorSolidMinLengthMeters({
+        generatorClass: "HullBrush",
+        descriptorValue: 0.003,
+        geometryFamily: "hull",
+      }),
+    ).toBe(0.003);
   });
 
   it("uses generator-specific particle, print, and hull spawn intervals", () => {
