@@ -342,7 +342,10 @@ export class StrokeAuthoringSystem extends createSystem({
       mode === "light-wire" ||
       mode === "hyper-grid" ||
       mode === "square-paper" ||
-      mode === "thick-geometry"
+      mode === "thick-geometry" ||
+      mode === "hull" ||
+      mode === "diamond-hull" ||
+      mode === "smooth-hull"
     ) {
       this.runGeometryVisualConformance(mode);
       return;
@@ -381,7 +384,10 @@ export class StrokeAuthoringSystem extends createSystem({
       | "light-wire"
       | "hyper-grid"
       | "square-paper"
-      | "thick-geometry",
+      | "thick-geometry"
+      | "hull"
+      | "diamond-hull"
+      | "smooth-hull",
   ): void {
     const brushGuid =
       mode === "spray"
@@ -404,6 +410,12 @@ export class StrokeAuthoringSystem extends createSystem({
                         ? "2e03b1bf-3ebd-4609-9d7e-f4cafadc4dfa"
                         : mode === "thick-geometry"
                           ? "39ee7377-7a9e-47a7-a0f8-0c77712f75d3"
+                          : mode === "hull"
+                            ? "faaa4d44-fcfb-4177-96be-753ac0421ba3"
+                            : mode === "diamond-hull"
+                              ? "c8313697-2563-47fc-832e-290f4c04b901"
+                              : mode === "smooth-hull"
+                                ? "355b3579-bf1d-4ff5-a200-704437fe684b"
         : "70d79cca-b159-4f35-990c-f02193947fe8";
     const material = openBrushShaderLibrary.get(brushGuid);
     const entry = findBrushByGuid(openBrushInventory, brushGuid);
@@ -470,7 +482,10 @@ export class StrokeAuthoringSystem extends createSystem({
         mode === "disco" ||
         mode === "light-wire" ||
         mode === "square-paper" ||
-        mode === "thick-geometry"
+        mode === "thick-geometry" ||
+        mode === "hull" ||
+        mode === "diamond-hull" ||
+        mode === "smooth-hull"
         ? "stroke"
         : "particle",
     );

@@ -12,6 +12,7 @@ export type BrushGeometryFamily =
   | "ribbon"
   | "tube"
   | "thick-strip"
+  | "hull"
   | "emissive"
   | "particle"
   | "unsupported";
@@ -100,6 +101,7 @@ export interface BrushGeometryParams {
   particlePositionVariance?: number;
   particleRotationVariance?: number;
   particleSizeRatio?: [number, number];
+  hullFaceted?: boolean;
 }
 
 /** Geometry generator family resolved from the Unity brush prefab. */
@@ -226,13 +228,16 @@ function resolveBrushSupport(
   if (
     generatorFamily === "ribbon" ||
     generatorFamily === "tube" ||
-    generatorFamily === "thick-strip"
+    generatorFamily === "thick-strip" ||
+    (generatorFamily === "hull" && record.generatorClass === "HullBrush")
   ) {
     const geometryFamily: BrushGeometryFamily =
       generatorFamily === "tube"
         ? "tube"
         : generatorFamily === "thick-strip"
           ? "thick-strip"
+          : generatorFamily === "hull"
+            ? "hull"
         : brush.blendMode === 2
           ? "emissive"
           : "ribbon";
@@ -252,12 +257,15 @@ function resolveBrushSupport(
       (brush.name === "Disco" || brush.name === "LightWire") &&
       record.generatorClass === "TubeBrush" &&
       record.geometry?.tubeStoreRadiusInTexcoord0Z === true;
+    const hasHullContract =
+      generatorFamily === "hull" && record.generatorClass === "HullBrush";
     if (
       !record.vertexIsDefault &&
       !hasWaveformContract &&
       !hasDoubleTaperedContract &&
       !hasElectricityContract &&
-      !hasRadiusPackedTubeContract
+      !hasRadiusPackedTubeContract &&
+      !hasHullContract
     ) {
       return {
         supportStatus: "fallback",
@@ -403,7 +411,14 @@ export function buildBrushInventoryFromExportManifest(
       ),
       unsupportedReason: support.unsupportedReason,
       shaderAssets: toShaderAssetInfo(assetRecord),
-      geometryParams: assetRecord?.geometry,
+      geometryParams: assetRecord
+        ? {
+            ...assetRecord.geometry,
+            ...(assetRecord.generatorClass === "HullBrush"
+              ? { hullFaceted: brush.name !== "SmoothHull" }
+              : {}),
+          }
+        : undefined,
       generatorClass: assetRecord?.generatorClass,
       supersededByGuid: assetRecord?.supersededByGuid,
       tags,

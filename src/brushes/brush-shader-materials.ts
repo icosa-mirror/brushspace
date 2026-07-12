@@ -105,6 +105,8 @@ export function getBrushShaderEligibility(
     (entry.name === "Disco" || entry.name === "LightWire") &&
     entry.generatorClass === "TubeBrush" &&
     entry.geometryParams?.tubeStoreRadiusInTexcoord0Z === true;
+  const hasHullContract =
+    entry.geometryFamily === "hull" && entry.generatorClass === "HullBrush";
   if (
     !entry.shaderAssets.vertexIsDefault &&
     !hasGeniusParticleContract &&
@@ -112,7 +114,8 @@ export function getBrushShaderEligibility(
     !hasWaveformContract &&
     !hasDoubleTaperedContract &&
     !hasElectricityContract &&
-    !hasRadiusPackedTubeContract
+    !hasRadiusPackedTubeContract &&
+    !hasHullContract
   ) {
     return {
       eligible: false,
@@ -126,6 +129,7 @@ export function getBrushShaderEligibility(
     entry.geometryFamily !== "ribbon" &&
     entry.geometryFamily !== "emissive" &&
     entry.geometryFamily !== "thick-strip" &&
+    entry.geometryFamily !== "hull" &&
     entry.geometryFamily !== "tube"
   ) {
     return {

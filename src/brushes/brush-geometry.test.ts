@@ -398,6 +398,37 @@ describe("brush geometry generation", () => {
     expect(vertexDistance(geometry.positions, 14, 15)).toBeCloseTo(0);
   });
 
+  it("generates HullBrush tetrahedron inputs as a convex faceted mesh", () => {
+    const stroke = createUnevenThreePointStroke();
+    const geometry = generateBrushGeometry(stroke, "hull", {
+      geometryParams: { hullFaceted: true },
+      generatorClass: "HullBrush",
+    });
+
+    expect(geometry.uv0Size).toBe(3);
+    expect(geometry.packedUvs).toBeDefined();
+    expect(getGeneratedVertexCount(geometry)).toBeGreaterThan(12);
+    expect(getGeneratedIndexCount(geometry)).toBe(getGeneratedVertexCount(geometry));
+    expect(geometry.bounds.min[1]).toBeCloseTo(-1 / Math.sqrt(3));
+    expect(geometry.bounds.max[1]).toBeCloseTo(1 / Math.sqrt(3));
+    expect(Math.max(...geometry.indices)).toBeLessThan(getGeneratedVertexCount(geometry));
+  });
+
+  it("shares HullBrush vertices for the smooth variant", () => {
+    const stroke = createUnevenThreePointStroke();
+    const faceted = generateBrushGeometry(stroke, "hull", {
+      geometryParams: { hullFaceted: true },
+      generatorClass: "HullBrush",
+    });
+    const smooth = generateBrushGeometry(stroke, "hull", {
+      geometryParams: { hullFaceted: false },
+      generatorClass: "HullBrush",
+    });
+
+    expect(getGeneratedVertexCount(smooth)).toBeLessThan(getGeneratedVertexCount(faceted));
+    expect(getGeneratedIndexCount(smooth)).toBe(getGeneratedIndexCount(faceted));
+  });
+
   it("splits and caps tubes at Open Brush frame-angle breaks", () => {
     const stroke = createSharpTubeStroke();
     const geometry = generateBrushGeometry(stroke, "tube", {

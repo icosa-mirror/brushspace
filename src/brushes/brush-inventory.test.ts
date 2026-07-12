@@ -23,12 +23,11 @@ describe("Open Brush brush inventory", () => {
     const summary = summarizeBrushInventory(inventory);
 
     expect(summary.total).toBe(123);
-    // Extrusion (ribbon/tube) brushes with the default vertex stage are
-    // supported; custom-vertex extrusion and particle brushes render via
-    // fallback; hulls/templates/specials stay unsupported.
-    expect(summary.supported).toBe(104);
+    // Implemented extrusion, particle, thick-strip, and convex-hull contracts
+    // are supported; remaining special generators stay unsupported.
+    expect(summary.supported).toBe(109);
     expect(summary.fallback).toBe(0);
-    expect(summary.unsupported).toBe(19);
+    expect(summary.unsupported).toBe(14);
   });
 
   it("derives brush families and ranges from the extracted reference data", () => {
@@ -55,10 +54,11 @@ describe("Open Brush brush inventory", () => {
       findBrushByGuid(inventory, "faaa4d44-fcfb-4177-96be-753ac0421ba3"),
     ).toMatchObject({
       name: "ShinyHull",
-      supportStatus: "unsupported",
+      supportStatus: "supported",
+      geometryFamily: "hull",
       pickerVisible: true,
-      pickerEnabled: false,
-      fidelityConfidence: "unverified-or-likely-substantially-wrong",
+      pickerEnabled: true,
+      fidelityConfidence: "likely-mostly-correct",
     });
     expect(
       findBrushByGuid(inventory, "2d35bcf0-e4d8-452c-97b1-3311be063130"),

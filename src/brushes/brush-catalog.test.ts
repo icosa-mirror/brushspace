@@ -16,10 +16,10 @@ describe("Open Brush brush catalog", () => {
   it("keeps the full catalog visible while enabling only likely-mostly-correct brushes", () => {
     setExperimentalBrushesEnabled(false);
     expect(visibleOpenBrushes).toHaveLength(48);
-    expect(selectableOpenBrushes).toHaveLength(44);
+    expect(selectableOpenBrushes).toHaveLength(48);
     setExperimentalBrushesEnabled(true);
     expect(visibleOpenBrushes).toHaveLength(95);
-    expect(selectableOpenBrushes).toHaveLength(88);
+    expect(selectableOpenBrushes).toHaveLength(93);
     expect(
       visibleOpenBrushes
         .slice(48, 60)

@@ -211,6 +211,8 @@ export function generateBrushGeometryInto(
       return generateTubeGeometry(stroke, options, out);
     case "thick-strip":
       return generateThickStripGeometry(stroke, options, out);
+    case "hull":
+      return generateHullGeometry(stroke, options, out);
     case "particle":
       return generateParticleGeometry(stroke, options, out);
     case "unsupported": {
@@ -639,6 +641,299 @@ const THICK_STRIP_TRIANGLE_PATTERN = [
   3, 11, 5, 3, 9, 11,
   2, 10, 8, 2, 4, 10,
 ] as const;
+
+interface HullFace {
+  a: number;
+  b: number;
+  c: number;
+  normal: Vec3;
+}
+
+function generateHullGeometry(
+  stroke: StrokeData,
+  options: BrushGeometryOptions,
+  out: BrushGeometryArrays,
+): boolean {
+  out.family = "hull";
+  out.uv0Size = 3;
+  const points = createHullInputPoints(stroke);
+  const faces = createConvexHull(points);
+  const faceted = options.geometryParams?.hullFaceted !== false;
+  const doubleSided = options.geometryParams?.renderBackfaces === true;
+  const copies = doubleSided ? 2 : 1;
+  const hullPointIndices = faceted
+    ? []
+    : [...new Set(faces.flatMap((face) => [face.a, face.b, face.c]))];
+  const frontVertexCount = faceted ? faces.length * 3 : hullPointIndices.length;
+  const vertexCount = frontVertexCount * copies;
+  const indexCount = faces.length * 3 * copies;
+  const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
+  const normalsByPoint = faceted
+    ? undefined
+    : createSmoothHullNormals(points, faces, hullPointIndices);
+  const pointToVertex = new Map<number, number>();
+  const localBrushSize = getLocalBrushSize(stroke);
+  let vertex = 0;
+
+  if (faceted) {
+    for (const face of faces) {
+      for (const pointIndex of [face.a, face.b, face.c]) {
+        writeHullVertex(out, vertex, points[pointIndex], face.normal, stroke.color, localBrushSize);
+        vertex += copies;
+      }
+    }
+  } else {
+    for (const pointIndex of hullPointIndices) {
+      pointToVertex.set(pointIndex, vertex);
+      writeHullVertex(
+        out,
+        vertex,
+        points[pointIndex],
+        normalsByPoint?.get(pointIndex) ?? [0, 1, 0],
+        stroke.color,
+        localBrushSize,
+      );
+      vertex += copies;
+    }
+  }
+
+  if (doubleSided) {
+    for (let front = 0; front < frontVertexCount; front += 1) {
+      const source = front * 2;
+      const back = source + 1;
+      copyHullVertexAsBackface(out, source, back);
+    }
+  }
+
+  let index = 0;
+  for (let faceIndex = 0; faceIndex < faces.length; faceIndex += 1) {
+    const face = faces[faceIndex];
+    const a = faceted ? faceIndex * 3 * copies : pointToVertex.get(face.a) ?? 0;
+    const b = faceted ? a + copies : pointToVertex.get(face.b) ?? 0;
+    const c = faceted ? b + copies : pointToVertex.get(face.c) ?? 0;
+    out.indices[index++] = a;
+    out.indices[index++] = b;
+    out.indices[index++] = c;
+    if (doubleSided) {
+      out.indices[index++] = a + 1;
+      out.indices[index++] = c + 1;
+      out.indices[index++] = b + 1;
+    }
+  }
+  out.vertexCount = vertexCount;
+  out.indexCount = indexCount;
+  return reallocated;
+}
+
+function createHullInputPoints(stroke: StrokeData): Vec3[] {
+  const points: Vec3[] = [];
+  const seen = new Set<string>();
+  const halfWidth = getLocalBrushSize(stroke) / Math.sqrt(3);
+  const offsets: readonly Vec3[] = [
+    [-halfWidth, -halfWidth, -halfWidth],
+    [halfWidth, halfWidth, -halfWidth],
+    [halfWidth, -halfWidth, halfWidth],
+    [-halfWidth, halfWidth, halfWidth],
+  ];
+  for (const controlPoint of stroke.controlPoints) {
+    for (const offset of offsets) {
+      const point: Vec3 = [
+        controlPoint.position[0] + offset[0],
+        controlPoint.position[1] + offset[1],
+        controlPoint.position[2] + offset[2],
+      ];
+      const key = `${point[0].toPrecision(12)},${point[1].toPrecision(12)},${point[2].toPrecision(12)}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        points.push(point);
+      }
+    }
+  }
+  return points;
+}
+
+function createConvexHull(points: Vec3[]): HullFace[] {
+  if (points.length < 4) {
+    return [];
+  }
+  const initial = findInitialHullTetrahedron(points);
+  if (!initial) {
+    return [];
+  }
+  const inside: Vec3 = [0, 0, 0];
+  for (const pointIndex of initial) {
+    inside[0] += points[pointIndex][0] / 4;
+    inside[1] += points[pointIndex][1] / 4;
+    inside[2] += points[pointIndex][2] / 4;
+  }
+  let faces = [
+    makeHullFace(initial[0], initial[1], initial[2], points, inside),
+    makeHullFace(initial[0], initial[3], initial[1], points, inside),
+    makeHullFace(initial[0], initial[2], initial[3], points, inside),
+    makeHullFace(initial[1], initial[3], initial[2], points, inside),
+  ];
+  const initialSet = new Set(initial);
+  const epsilon = Math.max(getPointCloudScale(points) * 1e-9, 1e-10);
+  for (let pointIndex = 0; pointIndex < points.length; pointIndex += 1) {
+    if (initialSet.has(pointIndex)) {
+      continue;
+    }
+    const visible = faces.filter(
+      (face) => signedDistanceToFace(points[pointIndex], points[face.a], face.normal) > epsilon,
+    );
+    if (visible.length === 0) {
+      continue;
+    }
+    const boundary = new Map<string, readonly [number, number]>();
+    for (const face of visible) {
+      for (const edge of [[face.a, face.b], [face.b, face.c], [face.c, face.a]] as const) {
+        const key = edge[0] < edge[1] ? `${edge[0]}:${edge[1]}` : `${edge[1]}:${edge[0]}`;
+        if (boundary.has(key)) {
+          boundary.delete(key);
+        } else {
+          boundary.set(key, edge);
+        }
+      }
+    }
+    const visibleSet = new Set(visible);
+    faces = faces.filter((face) => !visibleSet.has(face));
+    for (const edge of boundary.values()) {
+      faces.push(makeHullFace(edge[0], edge[1], pointIndex, points, inside));
+    }
+  }
+  return faces;
+}
+
+function findInitialHullTetrahedron(points: Vec3[]): [number, number, number, number] | undefined {
+  let a = 0;
+  for (let i = 1; i < points.length; i += 1) {
+    if (points[i][0] < points[a][0]) a = i;
+  }
+  let b = a;
+  let best = 0;
+  for (let i = 0; i < points.length; i += 1) {
+    const distance = squaredDistance(points[a], points[i]);
+    if (distance > best) {
+      best = distance;
+      b = i;
+    }
+  }
+  let c = a;
+  best = 0;
+  const ab: Vec3 = subtractVec3(points[b], points[a]);
+  for (let i = 0; i < points.length; i += 1) {
+    const cross = crossVec3(ab, subtractVec3(points[i], points[a]));
+    const distance = dotVec3(cross, cross);
+    if (distance > best) {
+      best = distance;
+      c = i;
+    }
+  }
+  const normal = crossVec3(ab, subtractVec3(points[c], points[a]));
+  let d = a;
+  best = 0;
+  for (let i = 0; i < points.length; i += 1) {
+    const distance = Math.abs(dotVec3(normal, subtractVec3(points[i], points[a])));
+    if (distance > best) {
+      best = distance;
+      d = i;
+    }
+  }
+  return best > 1e-12 ? [a, b, c, d] : undefined;
+}
+
+function makeHullFace(a: number, b: number, c: number, points: Vec3[], inside: Vec3): HullFace {
+  let normal = crossVec3(subtractVec3(points[b], points[a]), subtractVec3(points[c], points[a]));
+  if (dotVec3(normal, subtractVec3(inside, points[a])) > 0) {
+    [b, c] = [c, b];
+    normal = [-normal[0], -normal[1], -normal[2]];
+  }
+  normalizeInPlace(normal);
+  return { a, b, c, normal };
+}
+
+function createSmoothHullNormals(
+  points: Vec3[],
+  faces: HullFace[],
+  pointIndices: number[],
+): Map<number, Vec3> {
+  const normals = new Map(pointIndices.map((index) => [index, [0, 0, 0] as Vec3]));
+  for (const face of faces) {
+    const vertices = [face.a, face.b, face.c] as const;
+    for (let i = 0; i < 3; i += 1) {
+      const current = points[vertices[i]];
+      const before = subtractVec3(points[vertices[(i + 2) % 3]], current);
+      const after = subtractVec3(points[vertices[(i + 1) % 3]], current);
+      normalizeInPlace(before);
+      normalizeInPlace(after);
+      const angle = Math.acos(Math.max(-1, Math.min(1, dotVec3(before, after))));
+      const normal = normals.get(vertices[i])!;
+      normal[0] += face.normal[0] * angle;
+      normal[1] += face.normal[1] * angle;
+      normal[2] += face.normal[2] * angle;
+    }
+  }
+  for (const normal of normals.values()) normalizeInPlace(normal);
+  return normals;
+}
+
+function writeHullVertex(
+  out: BrushGeometryArrays,
+  vertex: number,
+  position: Vec3,
+  normal: Vec3,
+  color: Rgba,
+  brushSize: number,
+): void {
+  writePosition(out.positions, vertex, position);
+  writeNormal(out.normals, vertex, normal);
+  writeTangent(out.tangents, vertex, [1, 0, 0], 1);
+  writeColor(out.colors, vertex, color, 1);
+  writePackedUv(out.packedUvs, vertex, 0, 0, brushSize);
+  includeBounds(out.bounds, out.positions, vertex);
+}
+
+function copyHullVertexAsBackface(out: BrushGeometryArrays, source: number, target: number): void {
+  for (let axis = 0; axis < 3; axis += 1) {
+    out.positions[target * 3 + axis] = out.positions[source * 3 + axis];
+    out.normals[target * 3 + axis] = -out.normals[source * 3 + axis];
+    out.packedUvs[target * 3 + axis] = out.packedUvs[source * 3 + axis];
+  }
+  for (let axis = 0; axis < 4; axis += 1) {
+    out.tangents[target * 4 + axis] = out.tangents[source * 4 + axis];
+    out.colors[target * 4 + axis] = out.colors[source * 4 + axis];
+  }
+  includeBounds(out.bounds, out.positions, target);
+}
+
+function subtractVec3(a: Vec3, b: Vec3): Vec3 {
+  return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+}
+
+function crossVec3(a: Vec3, b: Vec3): Vec3 {
+  return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+}
+
+function dotVec3(a: Vec3, b: Vec3): number {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+function squaredDistance(a: Vec3, b: Vec3): number {
+  const delta = subtractVec3(a, b);
+  return dotVec3(delta, delta);
+}
+
+function signedDistanceToFace(point: Vec3, origin: Vec3, normal: Vec3): number {
+  return dotVec3(normal, subtractVec3(point, origin));
+}
+
+function getPointCloudScale(points: Vec3[]): number {
+  let scale = 0;
+  for (const point of points) {
+    scale = Math.max(scale, Math.abs(point[0]), Math.abs(point[1]), Math.abs(point[2]));
+  }
+  return scale;
+}
 
 function generateThickStripGeometry(
   stroke: StrokeData,

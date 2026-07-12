@@ -68,9 +68,9 @@ describe("Open Brush sketch documents", () => {
 
     expect(summary.inventory).toEqual({
       total: 123,
-      supported: 104,
+      supported: 109,
       fallback: 0,
-      unsupported: 19,
+      unsupported: 14,
     });
     expect(summary.fixture).toEqual({
       layerCount: 2,

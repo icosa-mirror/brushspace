@@ -49,7 +49,7 @@ describe("brush shader asset inventory", () => {
 
   it("shows all 48 standard brushes but enables only likely-mostly-correct entries", () => {
     expect(visibleOpenBrushes.length).toBe(48);
-    expect(selectableOpenBrushes.length).toBe(44);
+    expect(selectableOpenBrushes.length).toBe(48);
     for (const entry of selectableOpenBrushes) {
       expect(entry.tags, entry.name).toContain("default");
       expect(entry.catalogSection, entry.name).toBe("standard");
