@@ -25,9 +25,9 @@ describe("Open Brush brush inventory", () => {
     expect(summary.total).toBe(123);
     // Implemented extrusion, particle, thick-strip, and convex-hull contracts
     // are supported; remaining special generators stay unsupported.
-    expect(summary.supported).toBe(109);
+    expect(summary.supported).toBe(110);
     expect(summary.fallback).toBe(0);
-    expect(summary.unsupported).toBe(14);
+    expect(summary.unsupported).toBe(13);
   });
 
   it("derives brush families and ranges from the extracted reference data", () => {

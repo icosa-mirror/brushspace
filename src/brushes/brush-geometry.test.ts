@@ -429,6 +429,23 @@ describe("brush geometry generation", () => {
     expect(getGeneratedIndexCount(smooth)).toBe(getGeneratedIndexCount(faceted));
   });
 
+  it("generates ConcaveHull as overlapping five-knot quill hulls", () => {
+    const geometry = generateBrushGeometry(
+      createConcaveHullStroke(),
+      "concave-hull",
+      {
+        pressureSizeRange: [0.1, 1],
+        generatorClass: "ConcaveHullBrush",
+      },
+    );
+
+    expect(geometry.family).toBe("concave-hull");
+    expect(getGeneratedVertexCount(geometry)).toBeGreaterThan(0);
+    expect(getGeneratedIndexCount(geometry)).toBe(getGeneratedVertexCount(geometry));
+    expect(geometry.bounds.min[2]).toBeLessThan(0);
+    expect(geometry.bounds.max[2]).toBeGreaterThan(0);
+  });
+
   it("splits and caps tubes at Open Brush frame-angle breaks", () => {
     const stroke = createSharpTubeStroke();
     const geometry = generateBrushGeometry(stroke, "tube", {
@@ -972,5 +989,21 @@ function createSharpTubeStroke(): StrokeData {
       timestampMs: 48,
     },
   );
+  return stroke;
+}
+
+function createConcaveHullStroke(): StrokeData {
+  const stroke = createUnevenThreePointStroke();
+  stroke.guid = "concave-hull";
+  stroke.brushSize = 0.4;
+  stroke.controlPoints[0].orientation = [0, 0, 0, 1];
+  stroke.controlPoints[1].orientation = [0, 0, Math.SQRT1_2, Math.SQRT1_2];
+  stroke.controlPoints[2].orientation = [0, Math.SQRT1_2, 0, Math.SQRT1_2];
+  stroke.controlPoints.push({
+    position: [4, 1, 0.5],
+    orientation: [Math.SQRT1_2, 0, 0, Math.SQRT1_2],
+    pressure: 1,
+    timestampMs: 48,
+  });
   return stroke;
 }

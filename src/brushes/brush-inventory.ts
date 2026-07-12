@@ -13,6 +13,7 @@ export type BrushGeometryFamily =
   | "tube"
   | "thick-strip"
   | "hull"
+  | "concave-hull"
   | "emissive"
   | "particle"
   | "unsupported";
@@ -229,7 +230,9 @@ function resolveBrushSupport(
     generatorFamily === "ribbon" ||
     generatorFamily === "tube" ||
     generatorFamily === "thick-strip" ||
-    (generatorFamily === "hull" && record.generatorClass === "HullBrush")
+    (generatorFamily === "hull" &&
+      (record.generatorClass === "HullBrush" ||
+        record.generatorClass === "ConcaveHullBrush"))
   ) {
     const geometryFamily: BrushGeometryFamily =
       generatorFamily === "tube"
@@ -237,7 +240,9 @@ function resolveBrushSupport(
         : generatorFamily === "thick-strip"
           ? "thick-strip"
           : generatorFamily === "hull"
-            ? "hull"
+            ? record.generatorClass === "ConcaveHullBrush"
+              ? "concave-hull"
+              : "hull"
         : brush.blendMode === 2
           ? "emissive"
           : "ribbon";
@@ -258,7 +263,9 @@ function resolveBrushSupport(
       record.generatorClass === "TubeBrush" &&
       record.geometry?.tubeStoreRadiusInTexcoord0Z === true;
     const hasHullContract =
-      generatorFamily === "hull" && record.generatorClass === "HullBrush";
+      generatorFamily === "hull" &&
+      (record.generatorClass === "HullBrush" ||
+        record.generatorClass === "ConcaveHullBrush");
     if (
       !record.vertexIsDefault &&
       !hasWaveformContract &&

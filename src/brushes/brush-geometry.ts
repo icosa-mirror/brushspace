@@ -213,6 +213,8 @@ export function generateBrushGeometryInto(
       return generateThickStripGeometry(stroke, options, out);
     case "hull":
       return generateHullGeometry(stroke, options, out);
+    case "concave-hull":
+      return generateConcaveHullGeometry(stroke, options, out);
     case "particle":
       return generateParticleGeometry(stroke, options, out);
     case "unsupported": {
@@ -647,6 +649,87 @@ interface HullFace {
   b: number;
   c: number;
   normal: Vec3;
+}
+
+interface ConcaveHullBatch {
+  points: Vec3[];
+  faces: HullFace[];
+}
+
+function generateConcaveHullGeometry(
+  stroke: StrokeData,
+  options: BrushGeometryOptions,
+  out: BrushGeometryArrays,
+): boolean {
+  out.family = "concave-hull";
+  out.uv0Size = 2;
+  const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
+  const localBrushSize = getLocalBrushSize(stroke);
+  const knotPoints: [Vec3, Vec3][] = [];
+  const right: Vec3 = [0, 0, 0];
+  for (let knotIndex = 0; knotIndex < stroke.controlPoints.length; knotIndex += 1) {
+    const controlPoint = stroke.controlPoints[knotIndex];
+    rotateByQuaternion(controlPoint.orientation, VEC_RIGHT, right);
+    const sourcePressure = knotIndex < 2 ? 0 : controlPoint.pressure;
+    const halfSize =
+      localBrushSize *
+      getPressureSizeMultiplier(sourcePressure, pressureSizeMin) *
+      0.5;
+    const extent: Vec3 = [right[0] * halfSize, right[1] * halfSize, right[2] * halfSize];
+    knotPoints.push([
+      subtractVec3(controlPoint.position, extent),
+      [
+        controlPoint.position[0] + extent[0],
+        controlPoint.position[1] + extent[1],
+        controlPoint.position[2] + extent[2],
+      ],
+    ]);
+  }
+  const batches: ConcaveHullBatch[] = [];
+  for (let knotIndex = 0; knotIndex < knotPoints.length; knotIndex += 1) {
+    const first = Math.max(0, knotIndex + 1 - 5);
+    const points = knotPoints.slice(first, knotIndex + 1).flat();
+    const faces = createConvexHull(points);
+    if (faces.length > 0) batches.push({ points, faces });
+  }
+  const faceCount = batches.reduce((sum, batch) => sum + batch.faces.length, 0);
+  const vertexCount = faceCount * 3;
+  const indexCount = vertexCount;
+  const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
+  let vertex = 0;
+  for (const batch of batches) {
+    for (const face of batch.faces) {
+      for (const pointIndex of [face.a, face.b, face.c]) {
+        writeConcaveHullVertex(
+          out,
+          vertex,
+          batch.points[pointIndex],
+          face.normal,
+          stroke.color,
+        );
+        out.indices[vertex] = vertex;
+        vertex += 1;
+      }
+    }
+  }
+  out.vertexCount = vertexCount;
+  out.indexCount = indexCount;
+  return reallocated;
+}
+
+function writeConcaveHullVertex(
+  out: BrushGeometryArrays,
+  vertex: number,
+  position: Vec3,
+  normal: Vec3,
+  color: Rgba,
+): void {
+  writePosition(out.positions, vertex, position);
+  writeNormal(out.normals, vertex, normal);
+  writeTangent(out.tangents, vertex, [1, 0, 0], 1);
+  writeColor(out.colors, vertex, color, 1);
+  writeUv(out.uvs, vertex, [0, 0]);
+  includeBounds(out.bounds, out.positions, vertex);
 }
 
 function generateHullGeometry(

@@ -106,7 +106,9 @@ export function getBrushShaderEligibility(
     entry.generatorClass === "TubeBrush" &&
     entry.geometryParams?.tubeStoreRadiusInTexcoord0Z === true;
   const hasHullContract =
-    entry.geometryFamily === "hull" && entry.generatorClass === "HullBrush";
+    (entry.geometryFamily === "hull" && entry.generatorClass === "HullBrush") ||
+    (entry.geometryFamily === "concave-hull" &&
+      entry.generatorClass === "ConcaveHullBrush");
   if (
     !entry.shaderAssets.vertexIsDefault &&
     !hasGeniusParticleContract &&
@@ -130,6 +132,7 @@ export function getBrushShaderEligibility(
     entry.geometryFamily !== "emissive" &&
     entry.geometryFamily !== "thick-strip" &&
     entry.geometryFamily !== "hull" &&
+    entry.geometryFamily !== "concave-hull" &&
     entry.geometryFamily !== "tube"
   ) {
     return {
