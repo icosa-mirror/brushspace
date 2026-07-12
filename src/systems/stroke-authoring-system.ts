@@ -78,6 +78,7 @@ import {
 import {
   createMirroredStrokeDataX,
   resolveDistanceSmoothedPressure,
+  shouldSmoothStrokeSamplingPressure,
   resolveStrokeSampleDecision,
   OPEN_BRUSH_MINIMUM_MOVE_METERS,
   resolveStrokeSpawnIntervalMeters,
@@ -1064,9 +1065,14 @@ export class StrokeAuthoringSystem extends createSystem({
             distanceMeters: Math.hypot(dx, dy, dz),
             windowMeters: pressureWindowMeters,
           });
+    const samplingPressure = shouldSmoothStrokeSamplingPressure(
+      stroke.generatorClass,
+    )
+      ? smoothedPressure
+      : frame.pressure;
     const spawnInterval = resolveStrokeSpawnIntervalMeters({
       brushSize: stroke.strokeData.brushSize,
-      pressure: smoothedPressure,
+      pressure: samplingPressure,
       pressureSizeMin: stroke.pressureSizeRange?.[0],
       solidMinLengthMeters: stroke.solidMinLengthMeters,
     });
@@ -1112,7 +1118,7 @@ export class StrokeAuthoringSystem extends createSystem({
       stroke.lastPosition[1] = frame.position[1];
       stroke.lastPosition[2] = frame.position[2];
       stroke.lastPointIsKeeper = true;
-      stroke.lastKeeperSmoothedPressure = smoothedPressure;
+      stroke.lastKeeperSmoothedPressure = samplingPressure;
     } else {
       stroke.lastPointIsKeeper = false;
     }

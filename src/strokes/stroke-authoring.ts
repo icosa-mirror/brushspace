@@ -81,6 +81,16 @@ export const OPEN_BRUSH_M11_PRESSURE_SMOOTH_WINDOW_METERS = 0.1;
 
 export type StrokeSampleDecision = "ignore" | "extend" | "keep";
 
+export function shouldSmoothStrokeSamplingPressure(
+  generatorClass: string | undefined,
+): boolean {
+  return (
+    generatorClass !== "SprayBrush" &&
+    generatorClass !== "MidpointPlusLifetimeSprayBrush" &&
+    generatorClass !== "GeniusParticlesBrush"
+  );
+}
+
 export function resolveDistanceSmoothedPressure(options: {
   previousPressure: number;
   pressure: number;

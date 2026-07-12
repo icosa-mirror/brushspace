@@ -77,7 +77,9 @@ Open Brush generators consume knots containing raw and smoothed pose/pressure,
 frame state, length, breaks, geometry ranges, and deterministic RNG state. Live
 web authoring now uses descriptor solid-minimum length, pressured-size spacing,
 minimum motion, and the source distance-smoothed pressure (including the shorter
-M11 window) when deciding whether to extend or keep a trailing point. Finalized
+M11 window) when deciding whether to extend or keep a trailing point. Spray and
+Genius particle constructors explicitly disable that smoothing and retain raw
+pressure. Finalized
 generators also reconstruct the pressure and position smoothing documented below.
 Remaining cross-generator gaps are adjacent-knot rebuild/restart behavior,
 generator-specific discard/finalization, and vertex-limit splitting.
@@ -140,8 +142,9 @@ differences are:
 The seven `GeniusParticlesBrush` entries now create deterministic finalized
 particles at the source `0.0025 / particleRate` distance interval. Placement
 uses the source salt layout, pressure sizing/floor, size variance, spherical
-spread, random orientation/alpha, atlas selection, and GeometryBrush pressure
-smoothing. They pack center,
+spread, random orientation/alpha, and atlas selection. Their GeometryBrush
+constructor disables pressure smoothing, so size and opacity use raw knot
+pressure. They pack center,
 rotation, birth time, source position, and vertex ID into the Open Brush
 normal/UV contract and render through their handcrafted export shaders, which
 restore camera billboarding and texture animation. A browser pixel gate renders
@@ -150,8 +153,8 @@ generated Smoke geometry through that shader and rejects empty or black output.
 The seven `SprayBrush` entries now spawn segment-oriented quads at the source
 pressure-sized interval, including the 500-quad segment cap, source salt
 layout, size/position/rotation/alpha variance, size ratio, atlas selection,
-GeometryBrush pressure smoothing, explicit backfaces, and real default-vertex
-export shaders. A Splatter pixel
+raw knot pressure, explicit backfaces, and real default-vertex export shaders.
+A Splatter pixel
 gate rejects empty or black generated output. Preview decay and incremental
 knot rebuild behavior remain approximate.
 
@@ -193,7 +196,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@f2d7185`,
-`three-icosa@d2f79a4`, and `three-tiltloader@0f96eb5`. This establishes source
+`three-icosa@d2f79a4`, and `three-tiltloader@ffd7e6a`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains

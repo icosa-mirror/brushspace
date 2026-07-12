@@ -15,6 +15,7 @@ import {
   resolveStrokeSampleDecision,
   resolveStrokeSpawnIntervalMeters,
   resolveDistanceSmoothedPressure,
+  shouldSmoothStrokeSamplingPressure,
   OPEN_BRUSH_M11_PRESSURE_SMOOTH_WINDOW_METERS,
   OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS,
 } from "./stroke-authoring.js";
@@ -304,6 +305,20 @@ describe("Open Brush stroke sampling", () => {
         windowMeters: OPEN_BRUSH_M11_PRESSURE_SMOOTH_WINDOW_METERS,
       }),
     ).toBeCloseTo(0.9, 6);
+  });
+
+  it("preserves raw pressure for particle generators that disable smoothing", () => {
+    expect(shouldSmoothStrokeSamplingPressure("TubeBrush")).toBe(true);
+    expect(shouldSmoothStrokeSamplingPressure("QuadStripBrushDistanceUV")).toBe(
+      true,
+    );
+    expect(shouldSmoothStrokeSamplingPressure("SprayBrush")).toBe(false);
+    expect(
+      shouldSmoothStrokeSamplingPressure("MidpointPlusLifetimeSprayBrush"),
+    ).toBe(false);
+    expect(shouldSmoothStrokeSamplingPressure("GeniusParticlesBrush")).toBe(
+      false,
+    );
   });
 
   it("ignores sub-half-millimeter movement from the last keeper", () => {
