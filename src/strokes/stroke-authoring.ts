@@ -79,6 +79,9 @@ export const OPEN_BRUSH_TUBE_DEFAULT_SOLID_MIN_LENGTH_METERS = 0.002;
 export const OPEN_BRUSH_PRESSURE_SMOOTH_WINDOW_METERS = 0.2;
 export const OPEN_BRUSH_M11_PRESSURE_SMOOTH_WINDOW_METERS = 0.1;
 export const OPEN_BRUSH_GENIUS_PARTICLE_INTERVAL_METERS = 0.0025;
+export const OPEN_BRUSH_PRINT3D_RING_INTERVAL_METERS = 0.005;
+export const OPEN_BRUSH_PRINT3D_MIN_POINTER_INTERVAL_METERS = 0.001;
+export const OPEN_BRUSH_PRINT3D_MAX_POINTER_INTERVAL_METERS = 0.05;
 
 export type StrokeSampleDecision = "ignore" | "extend" | "keep";
 
@@ -153,6 +156,18 @@ export function resolveStrokeSpawnIntervalMeters(options: {
     return (
       (OPEN_BRUSH_GENIUS_PARTICLE_INTERVAL_METERS * localUnitsPerMeter) /
       particleRate
+    );
+  }
+  if (options.generatorClass === "Square3DPrintBrush") {
+    const localUnitsPerMeter = normalizePositiveSamplingValue(
+      options.localUnitsPerMeter,
+    );
+    return Math.min(
+      OPEN_BRUSH_PRINT3D_MAX_POINTER_INTERVAL_METERS * localUnitsPerMeter,
+      Math.max(
+        OPEN_BRUSH_PRINT3D_MIN_POINTER_INTERVAL_METERS * localUnitsPerMeter,
+        OPEN_BRUSH_PRINT3D_RING_INTERVAL_METERS,
+      ),
     );
   }
   if (

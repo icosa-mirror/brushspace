@@ -80,7 +80,7 @@ minimum motion, and the source distance-smoothed pressure (including the shorter
 M11 window) when deciding whether to extend or keep a trailing point. Spray and
 Genius particle constructors explicitly disable that smoothing and retain raw
 pressure. Live keeper spacing dispatches the authored formulas for
-ribbon/tube/flat/thick, Spray/Midpoint Spray, Genius particles, and
+ribbon/tube/flat/thick, Spray/Midpoint Spray, Genius particles, 3D Print, and
 convex/concave hull generators. Finalized generators also reconstruct the
 pressure and position smoothing documented below.
 Remaining cross-generator gaps are adjacent-knot rebuild/restart behavior,

@@ -289,7 +289,7 @@ describe("Open Brush stroke sampling", () => {
     ).toBeCloseTo(0.0015 + 0.01125 * 0.15 * 0.2, 6);
   });
 
-  it("uses generator-specific particle and hull spawn intervals", () => {
+  it("uses generator-specific particle, print, and hull spawn intervals", () => {
     expect(
       resolveStrokeSpawnIntervalMeters({
         brushSize: 0.2,
@@ -308,6 +308,30 @@ describe("Open Brush stroke sampling", () => {
         localUnitsPerMeter: 0.5,
       }),
     ).toBeCloseTo(0.000625, 6);
+    expect(
+      resolveStrokeSpawnIntervalMeters({
+        brushSize: 1,
+        pressure: 1,
+        generatorClass: "Square3DPrintBrush",
+        localUnitsPerMeter: 1,
+      }),
+    ).toBeCloseTo(0.005, 6);
+    expect(
+      resolveStrokeSpawnIntervalMeters({
+        brushSize: 1,
+        pressure: 1,
+        generatorClass: "Square3DPrintBrush",
+        localUnitsPerMeter: 10,
+      }),
+    ).toBeCloseTo(0.01, 6);
+    expect(
+      resolveStrokeSpawnIntervalMeters({
+        brushSize: 1,
+        pressure: 1,
+        generatorClass: "Square3DPrintBrush",
+        localUnitsPerMeter: 0.05,
+      }),
+    ).toBeCloseTo(0.0025, 6);
     expect(
       resolveStrokeSpawnIntervalMeters({
         brushSize: 1,
