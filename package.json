@@ -10,6 +10,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "assets:brushes": "node scripts/sync-icosa-brush-assets.mjs",
+    "predev": "npm run assets:brushes",
     "dev": "iwsdk dev up --open --foreground",
     "dev:runtime": "vite",
     "dev:down": "iwsdk dev down",
@@ -24,6 +26,7 @@
     "test": "vitest run",
     "test:browser": "node scripts/runtime-check.mjs browser",
     "test:xr": "node scripts/runtime-check.mjs xr",
+    "prebuild": "npm run assets:brushes",
     "build": "vite build",
     "preview": "vite preview"
   },
