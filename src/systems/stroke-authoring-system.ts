@@ -80,6 +80,7 @@ import {
   type StrokePointerFrame,
 } from "../strokes/stroke-authoring.js";
 import {
+  brushSize01ToLiveBrushSize,
   normalizeBrushSize,
 } from "../brushes/brush-size.js";
 import { indexedTriangleGeometryIntersectsSphere } from "../strokes/geometry-intersections.js";
@@ -473,7 +474,12 @@ export class StrokeAuthoringSystem extends createSystem({
     const stroke = createEmptyStrokeData({
       guid: "brush-visual-conformance-smoke",
       brushGuid,
-      brushSize: mode === "waveform" ? 0.4 : 0.2,
+      brushSize:
+        mode === "brush"
+          ? brushSize01ToLiveBrushSize(0.5, entry.brushSizeRange)
+          : mode === "waveform"
+            ? 0.4
+            : 0.2,
       color:
         mode === "spray"
           ? [1, 0.1, 0.6, 1]

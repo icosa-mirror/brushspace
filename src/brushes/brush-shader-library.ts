@@ -83,6 +83,7 @@ const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
   "1161af82-50cf-47db-9706-0c3576d43c43", // Coarse Bristles
   "02ffb866-7fb2-4d15-b761-1012cefb1360", // Embers
   "70d79cca-b159-4f35-990c-f02193947fe8", // Smoke
+  "d902ed8b-d0d1-476c-a8de-878a79e3a34c", // Snow
   "0eb4db27-3f82-408d-b5a1-19ebd7d5b711", // Stars
   "89d104cd-d012-426b-b5b3-bbaee63ac43c", // Bubbles
   "6a1cf9f9-032c-45ec-9b1d-a6680bee30f7", // Dots
