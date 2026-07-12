@@ -2,7 +2,7 @@
 
 Date: 2026-07-11
 
-Brushspace: `ede05f1`
+Brushspace: `2e8318e`
 
 Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6)
 
@@ -10,17 +10,22 @@ Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icos
 
 Brushspace is a functional WebXR painting application derived from Open Brush concepts and assets. It is not currently a faithful port of Open Brush's brush runtime.
 
-The strongest mapping is the data layer: all 123 extracted GUIDs are present, shader and texture assets have been extracted, and the main `.tilt` stroke fields are represented. The required fidelity target matches Open Brush's authored picker catalogs: 48 standard brushes plus 47 experimental brushes. Four additional experimental entries are tagged `broken`, and 24 uncatalogued compatibility records remain loadable for old sketches but are not port requirements. Ribbon, tube, and all three particle-generator families now have dedicated geometry paths, but mesh generation remains the largest gap for hull, stamp, thick-strip, special, and several custom-deformation brushes. Export shaders cannot restore topology, smoothing, or brush-specific silhouette behavior that was never generated.
+The strongest mapping is the data layer: all 123 extracted GUIDs are present, shader and texture assets have been extracted, and the main `.tilt` stroke fields are represented. The required fidelity target matches Open Brush's authored picker catalogs: 48 standard brushes plus 47 experimental brushes. Four additional experimental entries are tagged `broken`, and 24 uncatalogued compatibility records remain loadable for old sketches but are not port requirements. Ribbon, tube, thick-strip, and all three particle-generator families now have dedicated geometry paths, but mesh generation remains the largest gap for hull, stamp, special, and several custom-deformation brushes. Export shaders cannot restore topology, smoothing, or brush-specific silhouette behavior that was never generated.
 
 Catalog scope and runtime visibility are independent of fidelity classification:
 
 | Set | Count | Actual meaning |
 | --- | ---: | --- |
-| Standard catalog | 48 | Shown in manifest order, 12 per page; imperfect brushes remain selectable through fallback rendering |
+| Standard catalog | 48 | Shown in manifest order, 12 per page |
 | Experimental catalog | 47 | The 51 extracted experimental records minus four entries tagged `broken` |
 | Required total | 95 | The only brushes required for fidelity work |
 | Compatibility/non-catalog | 24 | Retained for old sketches, excluded from the port backlog |
 | Broken experimental | 4 | CandyCane, HolidayTree, Snowflake, and Braid3; excluded by Open Brush's tag filter |
+
+All 95 required buttons are visible. Brushes classified as **Likely mostly
+correct** remain selectable; brushes classified as **Unverified or likely
+substantially wrong** are visibly marked and disabled rather than silently routed
+through generic fallback rendering.
 
 The 123 asset records contain 74 handcrafted and 49 template shaders, and report 112 resolved texture bindings with none missing. Those are asset-pipeline coverage figures, not fidelity figures.
 
@@ -47,15 +52,16 @@ These are engineering estimates, not conformance scores. Brushspace is best desc
 
 ### Generator coverage
 
-Open Brush has 32 C# files under `Assets/Scripts/Brushes`. Brushspace maps only:
+Open Brush has 32 C# files under `Assets/Scripts/Brushes`. Brushspace currently maps:
 
 - Four quad-strip/flat classes to one `ribbon` generator.
-- `TubeBrush` to one fixed `tube` generator.
-- Three particle classes to an ineligible placeholder.
+- `TubeBrush` and several derived contracts to a parameterized `tube` generator.
+- Three particle classes to dedicated deterministic particle generators.
 - `SquareBrush` to a hard-edged rectangular-prism specialization of the tube builder.
+- `ThickGeometryBrush` to its six-vertex belly-strip topology.
 - Everything else to unsupported or unmapped.
 
-Missing required families include hull/concave hull, thick geometry, and 3D print. SquarePaper now emits SquareBrush's four hard-edged sides, 0.375 cross-section aspect, caps, and constant center UVs. Compatibility-only blocks, holiday, braid, SVG, PBR/environment, and other special generators are retained for old sketches but are outside the 95-brush target.
+Missing required families include hull/concave hull and 3D print. SquarePaper now emits SquareBrush's four hard-edged sides, 0.375 cross-section aspect, caps, and constant center UVs. ThickGeometry now emits the source six-vertex ring, eight-triangle segment, endpoint belly pinch, distance UV, normals, and tangents. Compatibility-only blocks, holiday, braid, SVG, PBR/environment, and other special generators are retained for old sketches but are outside the 95-brush target.
 
 ### Knot and sampling semantics
 
@@ -122,8 +128,8 @@ The three `MidpointPlusLifetimeSprayBrush` entries now use the same authored
 distance spawning and segment frame, plus their distinct five-quad salt layout
 and 4D UV1 corner-offset/birth-time contract. DanceFloor and WaveformParticles
 render with their default export vertex shaders; a DanceFloor pixel gate
-rejects empty or black output. HyperGrid remains gated because its custom
-vertex shader has additional audio-reactive behavior. The export shaders do
+rejects empty or black output. HyperGrid renders its non-audio export behavior;
+its additional audio-reactive behavior remains absent. The export shaders do
 not reproduce Unity's lifetime motion, so runtime animation, preview decay,
 finalization, and exact sketch-time-to-level-time conversion remain open.
 Genius particles share the latter lifecycle/time-conversion gap.
@@ -140,7 +146,7 @@ Finalized strokes remain separate meshes and draw calls, frustum culling is disa
 
 ### Vertex data is the limiting contract
 
-The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, HyperGrid, Waveform, DoubleTapered, Electricity, Disco, and LightWire contracts. Even default shaders only match if attribute values have the correct semantics. No extracted brush remains in the `fallback` classification; 21 special generator records remain `unsupported`. HyperGrid renders its non-audio export behavior, but real audio-reactive inputs remain absent. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 3D/4D UV1, vertex IDs, and index where the selected generator defines those semantics.
+The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, HyperGrid, Waveform, DoubleTapered, Electricity, Disco, and LightWire contracts. Even default shaders only match if attribute values have the correct semantics. No extracted brush remains in the `fallback` classification; 19 special generator records remain `unsupported`, including compatibility-only records outside the 95-brush target. HyperGrid renders its non-audio export behavior, but real audio-reactive inputs remain absent. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 3D/4D UV1, vertex IDs, and index where the selected generator defines those semantics.
 
 ### Descriptor data is extracted but unused
 
@@ -265,9 +271,12 @@ Exit: tube topology/attributes match Unity and default tubes pass images.
 
 Exit: all 17 particle-family brushes have tested behavior; no static-quad placeholder remains.
 
-### Phase 5: hull, stamp, thick, and special generators (6-10 engineer-weeks)
+### Phase 5: hull and remaining required special generators (4-8 engineer-weeks)
 
-Port in real-sketch usage order: hull/concave hull; square/stamp and thick geometry; then Blocks, Plait/Braid, CandyCane, HolidayTree, Snowflake, 3D print, SVG, PBR, and environment cases. Explicitly decide which environment/non-stroke brushes are import-only.
+Port the remaining required hull/concave-hull brushes and 3D Printing Brush.
+Compatibility-only Blocks, Plait/Braid, holiday, SVG, PBR, and environment
+cases are explicitly outside the 95-brush target and remain import-only until
+their scope is reconsidered.
 
 ### Phase 6: batching and hardening (4-8 engineer-weeks)
 
