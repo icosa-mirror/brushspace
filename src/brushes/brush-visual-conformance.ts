@@ -5,12 +5,14 @@ import {
   Matrix4,
   Mesh,
   OrthographicCamera,
+  PerspectiveCamera,
   Scene,
   ShaderMaterial,
   Vector4,
   WebGLRenderer,
   WebGLRenderTarget,
 } from "@iwsdk/core";
+import type { Camera } from "@iwsdk/core";
 import type { GeneratedBrushGeometry } from "./brush-geometry.js";
 
 import { applyBrushShaderAttributeAliases } from "./brush-shader-library.js";
@@ -44,6 +46,8 @@ export function runBrushGeometryVisualConformance(
   generated: GeneratedBrushGeometry,
   name = "Smoke",
   kind = "particle",
+  camera?: Camera,
+  minimumCoveredPixelRatio = 0.005,
 ): BrushGeometryVisualConformanceResult {
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new BufferAttribute(generated.positions, 3));
@@ -75,9 +79,7 @@ export function runBrushGeometryVisualConformance(
   mesh.frustumCulled = false;
   const scene = new Scene();
   scene.add(mesh);
-  const camera = new OrthographicCamera(-0.3, 0.3, 0.3, -0.3, 0.1, 10);
-  camera.position.z = 2;
-  camera.updateMatrixWorld(true);
+  const renderCamera = camera ?? createDefaultGeometryCamera();
   const target = new WebGLRenderTarget(
     BRUSH_VISUAL_CONFORMANCE_SIZE,
     BRUSH_VISUAL_CONFORMANCE_SIZE,
@@ -88,7 +90,7 @@ export function runBrushGeometryVisualConformance(
   const previousClearAlpha = renderer.getClearAlpha();
   try {
     renderer.setClearColor(0x000000, 0);
-    renderPixels(renderer, scene, camera, target, pixels);
+    renderPixels(renderer, scene, renderCamera, target, pixels);
   } finally {
     renderer.setRenderTarget(previousTarget);
     renderer.setClearColor(previousClearColor, previousClearAlpha);
@@ -106,10 +108,23 @@ export function runBrushGeometryVisualConformance(
   return {
     name,
     kind,
-    passed: coveredPixelRatio >= 0.005,
+    passed: coveredPixelRatio >= minimumCoveredPixelRatio,
     coveredPixelRatio,
     pixels,
   };
+}
+
+export function createOpenBrushScreenshotCamera(): PerspectiveCamera {
+  const camera = new PerspectiveCamera(60, 1, 0.1, 1000);
+  camera.updateMatrixWorld(true);
+  return camera;
+}
+
+function createDefaultGeometryCamera(): OrthographicCamera {
+  const camera = new OrthographicCamera(-0.3, 0.3, 0.3, -0.3, 0.1, 10);
+  camera.position.z = 2;
+  camera.updateMatrixWorld(true);
+  return camera;
 }
 
 export function showBrushGeometryVisualConformance(
@@ -288,7 +303,7 @@ function coloredPixelRatio(pixels: Uint8Array): number {
 function renderPixels(
   renderer: WebGLRenderer,
   scene: Scene,
-  camera: OrthographicCamera,
+  camera: Camera,
   target: WebGLRenderTarget,
   pixels: Uint8Array,
 ): void {

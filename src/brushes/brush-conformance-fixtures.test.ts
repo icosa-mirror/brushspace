@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { StrokeFlags } from "../types.js";
-import { createBrushConformanceFixtures } from "./brush-conformance-fixtures.js";
+import {
+  createBrushConformanceFixtures,
+  createOpenBrushScreenshotControlPoints,
+  OPEN_BRUSH_SCREENSHOT_SHADER_TIME_SECONDS,
+} from "./brush-conformance-fixtures.js";
 
 describe("brush conformance fixtures", () => {
   it("covers every required deterministic stroke case", () => {
@@ -54,5 +58,21 @@ describe("brush conformance fixtures", () => {
     expect(fixture.strokes[0].flags).toBe(StrokeFlags.None);
     expect(fixture.strokes[1].flags).toBe(StrokeFlags.IsGroupContinue);
     expect(fixture.strokes[0].guid).not.toBe(fixture.strokes[1].guid);
+  });
+
+  it("matches the Open Brush brush-screenshot stroke fixture", () => {
+    const points = createOpenBrushScreenshotControlPoints();
+    expect(points).toHaveLength(29);
+    expect(points[0]).toEqual({
+      position: [-1.25, 0, -4],
+      orientation: [0, 0, 0, 1],
+      pressure: 1,
+      timestampMs: 0,
+    });
+    expect(points[28].position[0]).toBeCloseTo(1.55);
+    expect(points[28].position[1]).toBeCloseTo(
+      Math.sin(14) * (1 - 2.8 / 3),
+    );
+    expect(OPEN_BRUSH_SCREENSHOT_SHADER_TIME_SECONDS).toBe(0.5);
   });
 });

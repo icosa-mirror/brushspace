@@ -26,6 +26,7 @@ export interface BrushConformanceFixture {
 
 const FIXTURE_BRUSH_GUID = "429ed64a-4e97-4466-84d3-145a861ef684";
 const POINT_INTERVAL_MS = 10;
+export const OPEN_BRUSH_SCREENSHOT_SHADER_TIME_SECONDS = 0.5;
 const FIXTURE_STROKE_GUIDS: Readonly<Record<string, string>> = {
   line: "c0ffee00-0000-4000-8000-000000000001",
   arc: "c0ffee00-0000-4000-8000-000000000002",
@@ -102,6 +103,21 @@ export function createBrushConformanceFixtures(): BrushConformanceFixture[] {
       }),
     ]),
   ];
+}
+
+/**
+ * Matches the stroke drawn by Open Brush's brush screenshot generator.
+ * Open Brush creates 30 path transforms and DrawStrokes intentionally omits
+ * the final transform when converting that path to control points.
+ */
+export function createOpenBrushScreenshotControlPoints(): ControlPoint[] {
+  return Array.from({ length: 29 }, (_, index) => {
+    const x = index * 0.1;
+    return point(
+      [-1.25 + x, Math.sin(x * 5) * (1 - x / 3), -4],
+      index,
+    );
+  });
 }
 
 function fixture(

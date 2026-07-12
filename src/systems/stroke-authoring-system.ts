@@ -59,11 +59,16 @@ import {
 } from "../brushes/brush-shader-library.js";
 import {
   BRUSH_VISUAL_CONFORMANCE_PREFIX,
+  createOpenBrushScreenshotCamera,
   runBumpVisualConformance,
   runBrushGeometryVisualConformance,
   showBumpVisualConformance,
   showBrushGeometryVisualConformance,
 } from "../brushes/brush-visual-conformance.js";
+import {
+  createOpenBrushScreenshotControlPoints,
+  OPEN_BRUSH_SCREENSHOT_SHADER_TIME_SECONDS,
+} from "../brushes/brush-conformance-fixtures.js";
 import { openBrushShaderCompatibility } from "../brushes/brush-shader-compatibility.js";
 import {
   createMirroredStrokeDataX,
@@ -507,34 +512,8 @@ export class StrokeAuthoringSystem extends createSystem({
       ],
     });
     if (mode === "brush") {
-      stroke.controlPoints.splice(
-        0,
-        stroke.controlPoints.length,
-        {
-          position: [-0.2, -0.08, 0],
-          orientation: [0, 0, 0, 1],
-          pressure: 0.8,
-          timestampMs: 0,
-        },
-        {
-          position: [-0.05, 0.06, 0.03],
-          orientation: [0, 0, 0.19509, 0.980785],
-          pressure: 1,
-          timestampMs: 40,
-        },
-        {
-          position: [0.12, -0.04, -0.02],
-          orientation: [0, 0, -0.19509, 0.980785],
-          pressure: 0.9,
-          timestampMs: 80,
-        },
-        {
-          position: [0.28, 0.08, 0],
-          orientation: [0, 0, 0, 1],
-          pressure: 0.7,
-          timestampMs: 120,
-        },
-      );
+      stroke.controlPoints = createOpenBrushScreenshotControlPoints();
+      stroke.seed = 0;
       if (entry.name === "SingleSided") {
         for (const point of stroke.controlPoints) {
           point.orientation = [1, 0, 0, 0];
@@ -613,7 +592,12 @@ export class StrokeAuthoringSystem extends createSystem({
       geometryParams: entry.geometryParams,
       generatorClass: entry.generatorClass,
     });
-    openBrushShaderLibrary.updateFrame(mode === "brush" ? 0 : 1, this.camera);
+    const conformanceCamera =
+      mode === "brush" ? createOpenBrushScreenshotCamera() : this.camera;
+    openBrushShaderLibrary.updateFrame(
+      mode === "brush" ? OPEN_BRUSH_SCREENSHOT_SHADER_TIME_SECONDS : 1,
+      conformanceCamera,
+    );
     const result = runBrushGeometryVisualConformance(
       this.renderer,
       material,
@@ -641,6 +625,8 @@ export class StrokeAuthoringSystem extends createSystem({
         mode === "wet-paint"
         ? "stroke"
         : "particle",
+      mode === "brush" ? conformanceCamera : undefined,
+      mode === "brush" ? 0.001 : 0.005,
     );
     openBrushShaderCompatibility.record({
       guid: brushGuid,
