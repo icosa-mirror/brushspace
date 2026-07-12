@@ -6,6 +6,7 @@ import {
   createBrushRenderMaterial,
   ELECTRICITY_BRUSH_GUID,
   ELECTRICITY_DISPLACEMENT_MODS,
+  TOON_BRUSH_GUID,
 } from "./brush-multipass-material.js";
 import { BufferGeometry } from "@iwsdk/core";
 
@@ -29,6 +30,8 @@ vi.mock("@iwsdk/core", () => {
     }
   }
   return {
+    BackSide: 1,
+    FrontSide: 0,
     ShaderMaterial: MockShaderMaterial,
     BufferGeometry: class {
     groups: Array<{ start: number; count: number; materialIndex: number }> = [];
@@ -77,5 +80,20 @@ describe("Open Brush multipass materials", () => {
       { start: 0, count: 18, materialIndex: 1 },
       { start: 0, count: 18, materialIndex: 2 },
     ]);
+  });
+
+  it("recreates the Toon surface and outline passes", () => {
+    const source = new ShaderMaterial();
+    const materials = createBrushRenderMaterial(
+      TOON_BRUSH_GUID,
+      source,
+    ) as ShaderMaterial[];
+    expect(materials).toHaveLength(2);
+    expect(materials.map((material) => material.side)).toEqual([0, 1]);
+    expect(
+      materials.map(
+        (material) => material.uniforms.u_ToonOutlinePass.value,
+      ),
+    ).toEqual([false, true]);
   });
 });

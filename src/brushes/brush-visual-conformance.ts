@@ -20,6 +20,7 @@ import {
   applyBrushRenderGroups,
   createBrushRenderMaterial,
   ELECTRICITY_BRUSH_GUID,
+  TOON_BRUSH_GUID,
 } from "./brush-multipass-material.js";
 import {
   compareRgbPixels,
@@ -84,7 +85,11 @@ export function runBrushGeometryVisualConformance(
 
   const material = sourceMaterial.clone();
   const renderMaterial = createBrushRenderMaterial(
-    name === "Electricity" ? ELECTRICITY_BRUSH_GUID : "",
+    name === "Electricity"
+      ? ELECTRICITY_BRUSH_GUID
+      : name === "Toon"
+        ? TOON_BRUSH_GUID
+        : "",
     material,
   );
   applyBrushRenderGroups(geometry, generated.indices.length, renderMaterial);
