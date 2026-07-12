@@ -85,6 +85,10 @@ export const OPEN_BRUSH_PRINT3D_MAX_POINTER_INTERVAL_METERS = 0.05;
 
 export type StrokeSampleDecision = "ignore" | "extend" | "keep";
 
+export function shouldDiscardGeneratedStroke(indexCount: number): boolean {
+  return !Number.isFinite(indexCount) || indexCount <= 0;
+}
+
 export function resolveGeneratorSolidMinLengthMeters(options: {
   generatorClass?: string;
   descriptorValue?: number;

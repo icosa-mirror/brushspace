@@ -80,6 +80,7 @@ import {
   resolveDistanceSmoothedPressure,
   resolveGeneratorSolidMinLengthMeters,
   shouldSmoothStrokeSamplingPressure,
+  shouldDiscardGeneratedStroke,
   shouldZeroInitialM11SamplingPressure,
   resolveStrokeSampleDecision,
   OPEN_BRUSH_MINIMUM_MOVE_METERS,
@@ -1645,9 +1646,10 @@ export class StrokeAuthoringSystem extends createSystem({
       return;
     }
     if (
-      (stroke.samplingMode === "straightedge" ||
+      ((stroke.samplingMode === "straightedge" ||
         stroke.samplingMode === "tape") &&
-      stroke.controlPoints.length < 2
+        stroke.controlPoints.length < 2) ||
+      shouldDiscardGeneratedStroke(stroke.geometryArrays.indexCount)
     ) {
       // Materials are shared per brush GUID and must survive; dispose only
       // this stroke's geometry (entity.dispose() would kill the material for

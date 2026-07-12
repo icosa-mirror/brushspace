@@ -17,6 +17,7 @@ import {
   resolveDistanceSmoothedPressure,
   resolveGeneratorSolidMinLengthMeters,
   shouldSmoothStrokeSamplingPressure,
+  shouldDiscardGeneratedStroke,
   shouldZeroInitialM11SamplingPressure,
   OPEN_BRUSH_M11_PRESSURE_SMOOTH_WINDOW_METERS,
   OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS,
@@ -268,6 +269,12 @@ describe("stroke authoring state", () => {
 });
 
 describe("Open Brush stroke sampling", () => {
+  it("discards finalized strokes with no generated triangles", () => {
+    expect(shouldDiscardGeneratedStroke(0)).toBe(true);
+    expect(shouldDiscardGeneratedStroke(Number.NaN)).toBe(true);
+    expect(shouldDiscardGeneratedStroke(6)).toBe(false);
+  });
+
   it("computes the spawn interval from solid min length and pressured size", () => {
     // Light at its default size (1.125cm), full pressure:
     // 0.0015 + 0.01125 * 0.2 = 3.75mm between keeper points.

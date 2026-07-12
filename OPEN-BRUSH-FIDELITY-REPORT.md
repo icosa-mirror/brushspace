@@ -86,7 +86,10 @@ Flat/Thick/Printable/Square use 2 mm and Tube/hulls consume their descriptor
 value. Finalized generators also reconstruct the pressure and position
 smoothing documented below.
 Remaining cross-generator gaps are adjacent-knot rebuild/restart behavior,
-generator-specific discard/finalization, and vertex-limit splitting.
+generator-specific finalization beyond empty-geometry discard, and vertex-limit
+splitting. Local strokes with no generated triangles are discarded before
+history, mirroring Open Brush's no-used-geometry rule while retaining valid
+single-particle strokes.
 
 Serialized `brushScale` is now applied to local ribbon width, tube radius and
 modifiers, particle size, bounds, and distance-UV density. This matches Open
