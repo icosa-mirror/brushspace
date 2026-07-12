@@ -2,7 +2,7 @@
 
 Date: 2026-07-11
 
-Brushspace: `0656e7f`
+Brushspace: `00bfea5`
 
 Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6)
 
@@ -25,7 +25,9 @@ Catalog scope and runtime visibility are independent of fidelity classification:
 All 95 required buttons are visible. Brushes classified as **Likely mostly
 correct** remain selectable; brushes classified as **Unverified or likely
 substantially wrong** are visibly marked and disabled rather than silently routed
-through generic fallback rendering.
+through generic fallback rendering. All 95 required catalog entries now have an
+implemented mesh/material contract and are enabled; the disabled distinction
+continues to apply to unsupported compatibility-only records.
 
 The 123 asset records contain 74 handcrafted and 49 template shaders, and report 112 resolved texture bindings with none missing. Those are asset-pipeline coverage figures, not fidelity figures.
 
@@ -63,9 +65,11 @@ Open Brush has 32 C# files under `Assets/Scripts/Brushes`. Brushspace currently 
   source faceted and angle-weighted smooth-normal output modes.
 - `ConcaveHullBrush` to overlapping five-knot hulls built from its
   pressure-sized, controller-oriented quill segments.
+- `Square3DPrintBrush` to capped manifold rounded-square rings with its source
+  bevel, cap fan, orientation validity, and section-break rules.
 - Everything else to unsupported or unmapped.
 
-The only missing required generator is 3D Printing Brush. SquarePaper now emits SquareBrush's four hard-edged sides, 0.375 cross-section aspect, caps, and constant center UVs. ThickGeometry now emits the source six-vertex ring, eight-triangle segment, endpoint belly pinch, distance UV, normals, and tangents. ShinyHull, MatteHull, UnlitHull, DiamondHull, and SmoothHull now use the source tetrahedron knot conversion, convex envelope, 3D UV contract, and faceted/smooth vertex modes. ConcaveHull uses the source five-knot sliding window and QuillPen conversion. Compatibility-only blocks, holiday, braid, SVG, PBR/environment, and other special generators are retained for old sketches but are outside the 95-brush target.
+No required catalog generator remains unmapped. SquarePaper now emits SquareBrush's four hard-edged sides, 0.375 cross-section aspect, caps, and constant center UVs. ThickGeometry now emits the source six-vertex ring, eight-triangle segment, endpoint belly pinch, distance UV, normals, and tangents. ShinyHull, MatteHull, UnlitHull, DiamondHull, and SmoothHull now use the source tetrahedron knot conversion, convex envelope, 3D UV contract, and faceted/smooth vertex modes. ConcaveHull uses the source five-knot sliding window and QuillPen conversion. 3D Printing Brush emits capped, manifold eight-vertex rounded-square rings. Compatibility-only blocks, holiday, braid, SVG, PBR/environment, and other special generators are retained for old sketches but are outside the 95-brush target.
 
 ### Knot and sampling semantics
 
@@ -150,7 +154,7 @@ Finalized strokes remain separate meshes and draw calls, frustum culling is disa
 
 ### Vertex data is the limiting contract
 
-The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, HyperGrid, Waveform, DoubleTapered, Electricity, Disco, LightWire, and Hull contracts. Even default shaders only match if attribute values have the correct semantics. No extracted brush remains in the `fallback` classification; 13 special generator records remain `unsupported`, including compatibility-only records outside the 95-brush target. HyperGrid renders its non-audio export behavior, but real audio-reactive inputs remain absent. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 3D/4D UV1, vertex IDs, and index where the selected generator defines those semantics.
+The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, HyperGrid, Waveform, DoubleTapered, Electricity, Disco, LightWire, Hull, and 3D-print contracts. Even default shaders only match if attribute values have the correct semantics. No extracted brush remains in the `fallback` classification; 12 compatibility-only special generator records remain `unsupported`, all outside the 95-brush target. HyperGrid renders its non-audio export behavior, but real audio-reactive inputs remain absent. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 3D/4D UV1, vertex IDs, and index where the selected generator defines those semantics.
 
 ### Descriptor data is extracted but unused
 
@@ -275,9 +279,11 @@ Exit: tube topology/attributes match Unity and default tubes pass images.
 
 Exit: all 17 particle-family brushes have tested behavior; no static-quad placeholder remains.
 
-### Phase 5: remaining required special generator (1-2 engineer-weeks)
+### Phase 5: required special generators (implemented)
 
-Port the remaining required 3D Printing Brush.
+The required hull, ConcaveHull, ThickGeometry, SquarePaper, and 3D Printing
+Brush paths are implemented. Remaining work is fixture-level parity and
+hardening rather than an unmapped required generator.
 Compatibility-only Blocks, Plait/Braid, holiday, SVG, PBR, and environment
 cases are explicitly outside the 95-brush target and remain import-only until
 their scope is reconsidered.
