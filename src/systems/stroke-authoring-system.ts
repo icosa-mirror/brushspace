@@ -500,6 +500,36 @@ export class StrokeAuthoringSystem extends createSystem({
         },
       ],
     });
+    if (mode === "brush") {
+      stroke.controlPoints.splice(
+        0,
+        stroke.controlPoints.length,
+        {
+          position: [-0.2, -0.08, 0],
+          orientation: [0, 0, 0, 1],
+          pressure: 0.8,
+          timestampMs: 0,
+        },
+        {
+          position: [-0.05, 0.06, 0.03],
+          orientation: [0, 0, 0.19509, 0.980785],
+          pressure: 1,
+          timestampMs: 40,
+        },
+        {
+          position: [0.12, -0.04, -0.02],
+          orientation: [0, 0, -0.19509, 0.980785],
+          pressure: 0.9,
+          timestampMs: 80,
+        },
+        {
+          position: [0.28, 0.08, 0],
+          orientation: [0, 0, 0, 1],
+          pressure: 0.7,
+          timestampMs: 120,
+        },
+      );
+    }
     if (
       mode === "double-tapered" ||
       mode === "electricity" ||
