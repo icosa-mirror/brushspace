@@ -536,8 +536,7 @@ export class StrokeAuthoringSystem extends createSystem({
     }
     if (
       mode === "double-tapered" ||
-      mode === "electricity" ||
-      (mode === "brush" && entry.generatorClass === "FlatGeometryBrush")
+      mode === "electricity"
     ) {
       stroke.controlPoints.splice(1, 0, {
         position: [0.2, 0, 0],

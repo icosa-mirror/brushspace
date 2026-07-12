@@ -274,7 +274,8 @@ Suggested gates:
    results. Mesh/image fixture automation and a complete XR matrix remain open.
 5. Partially implemented: the browser route now reproduces the existing Open
    Brush `UiScreenshotter` path, perspective framing, fixed shader time, and
-   stroke seed. Unity mesh dumping and automated image comparison remain open;
+   stroke seed without generator-specific control-point mutations. Unity mesh
+   dumping and automated image comparison remain open;
    do not replace the existing screenshot corpus with a new visual target.
 
 Exit: CI explains exactly why every GUID passes or fails.
