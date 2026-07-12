@@ -346,7 +346,8 @@ export class StrokeAuthoringSystem extends createSystem({
       mode === "hull" ||
       mode === "diamond-hull" ||
       mode === "smooth-hull" ||
-      mode === "concave-hull"
+      mode === "concave-hull" ||
+      mode === "print3d"
     ) {
       this.runGeometryVisualConformance(mode);
       return;
@@ -389,7 +390,8 @@ export class StrokeAuthoringSystem extends createSystem({
       | "hull"
       | "diamond-hull"
       | "smooth-hull"
-      | "concave-hull",
+      | "concave-hull"
+      | "print3d",
   ): void {
     const brushGuid =
       mode === "spray"
@@ -420,6 +422,8 @@ export class StrokeAuthoringSystem extends createSystem({
                                 ? "355b3579-bf1d-4ff5-a200-704437fe684b"
                                 : mode === "concave-hull"
                                   ? "7ae1f880-a517-44a0-99f9-1cab654498c6"
+                                  : mode === "print3d"
+                                    ? "d3f3b18a-da03-f694-b838-28ba8e749a98"
         : "70d79cca-b159-4f35-990c-f02193947fe8";
     const material = openBrushShaderLibrary.get(brushGuid);
     const entry = findBrushByGuid(openBrushInventory, brushGuid);
@@ -498,6 +502,30 @@ export class StrokeAuthoringSystem extends createSystem({
         },
       );
     }
+    if (mode === "print3d") {
+      stroke.controlPoints.splice(
+        0,
+        stroke.controlPoints.length,
+        {
+          position: [0, -0.25, 0],
+          orientation: [0, 0, 0, 1],
+          pressure: 1,
+          timestampMs: 0,
+        },
+        {
+          position: [0, 0, 0],
+          orientation: [0, 0, 0, 1],
+          pressure: 1,
+          timestampMs: 50,
+        },
+        {
+          position: [0.05, 0.25, 0],
+          orientation: [0, 0, 0, 1],
+          pressure: 1,
+          timestampMs: 100,
+        },
+      );
+    }
     const geometry = generateBrushGeometry(stroke, entry.geometryFamily, {
       pressureSizeRange: entry.pressureSizeRange,
       pressureOpacityRange: entry.pressureOpacityRange,
@@ -520,7 +548,8 @@ export class StrokeAuthoringSystem extends createSystem({
         mode === "hull" ||
         mode === "diamond-hull" ||
         mode === "smooth-hull" ||
-        mode === "concave-hull"
+        mode === "concave-hull" ||
+        mode === "print3d"
         ? "stroke"
         : "particle",
     );

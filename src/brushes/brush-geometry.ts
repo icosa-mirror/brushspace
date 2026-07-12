@@ -215,6 +215,8 @@ export function generateBrushGeometryInto(
       return generateHullGeometry(stroke, options, out);
     case "concave-hull":
       return generateConcaveHullGeometry(stroke, options, out);
+    case "print3d":
+      return generateSquare3DPrintGeometry(stroke, options, out);
     case "particle":
       return generateParticleGeometry(stroke, options, out);
     case "unsupported": {
@@ -654,6 +656,279 @@ interface HullFace {
 interface ConcaveHullBatch {
   points: Vec3[];
   faces: HullFace[];
+}
+
+interface Print3DBasis {
+  tangent: Vec3;
+  planeNormal: Vec3;
+  planeRight: Vec3;
+  width: Vec3;
+  thickness: Vec3;
+  halfSize: number;
+}
+
+function generateSquare3DPrintGeometry(
+  stroke: StrokeData,
+  options: BrushGeometryOptions,
+  out: BrushGeometryArrays,
+): boolean {
+  out.family = "print3d";
+  out.uv0Size = 2;
+  const segments: Array<Print3DBasis | undefined> = [undefined];
+  const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
+  let previousBasis: Print3DBasis | undefined;
+  for (let i = 1; i < stroke.controlPoints.length; i += 1) {
+    const basis = createPrint3DBasis(stroke, i, pressureSizeMin);
+    const breaksForRotation =
+      basis !== undefined &&
+      previousBasis !== undefined &&
+      (dotVec3(previousBasis.planeNormal, basis.planeNormal) < 0.94 ||
+        dotVec3(previousBasis.planeRight, basis.planeRight) < 0.94);
+    segments.push(breaksForRotation ? undefined : basis);
+    previousBasis = basis;
+  }
+
+  const positions: number[] = [];
+  const normals: number[] = [];
+  const indices: number[] = [];
+  let segment = 1;
+  while (segment < segments.length) {
+    while (segment < segments.length && !segments[segment]) segment += 1;
+    if (segment >= segments.length) break;
+    const firstSegment = segment;
+    while (segment + 1 < segments.length && segments[segment + 1]) segment += 1;
+    const lastSegment = segment;
+    appendPrint3DSection(
+      stroke,
+      segments as Print3DBasis[],
+      firstSegment,
+      lastSegment,
+      positions,
+      normals,
+      indices,
+    );
+    segment += 1;
+  }
+
+  const vertexCount = positions.length / 3;
+  const reallocated = ensureGeometryCapacity(out, vertexCount, indices.length);
+  for (let vertex = 0; vertex < vertexCount; vertex += 1) {
+    const offset = vertex * 3;
+    writePosition(out.positions, vertex, [positions[offset], positions[offset + 1], positions[offset + 2]]);
+    writeNormal(out.normals, vertex, [normals[offset], normals[offset + 1], normals[offset + 2]]);
+    writeTangent(out.tangents, vertex, [1, 0, 0], 1);
+    writeColor(out.colors, vertex, stroke.color, 1);
+    writeUv(out.uvs, vertex, [0, 0]);
+    includeBounds(out.bounds, out.positions, vertex);
+  }
+  out.indices.set(indices, 0);
+  out.vertexCount = vertexCount;
+  out.indexCount = indices.length;
+  return reallocated;
+}
+
+function createPrint3DBasis(
+  stroke: StrokeData,
+  index: number,
+  pressureSizeMin: number,
+): Print3DBasis | undefined {
+  const previous = stroke.controlPoints[index - 1];
+  const current = stroke.controlPoints[index];
+  const tangent = subtractVec3(current.position, previous.position);
+  const distance = Math.sqrt(dotVec3(tangent, tangent));
+  if (distance < 0.003 || !normalizeInPlace(tangent)) return undefined;
+  const planeNormal: Vec3 = [0, 0, 0];
+  const planeRight: Vec3 = [0, 0, 0];
+  const planeForward: Vec3 = [0, 0, 0];
+  rotateByQuaternion(current.orientation, VEC_UP, planeNormal);
+  rotateByQuaternion(current.orientation, VEC_RIGHT, planeRight);
+  rotateByQuaternion(current.orientation, VEC_FORWARD, planeForward);
+  const alignment = dotVec3(tangent, planeNormal);
+  if (Math.abs(alignment) < 0.0087) return undefined;
+  const sign = alignment > 0 ? 1 : -1;
+  const width: Vec3 = [...planeRight];
+  const thickness: Vec3 = [
+    planeForward[0] * -sign,
+    planeForward[1] * -sign,
+    planeForward[2] * -sign,
+  ];
+  const halfSize =
+    getLocalBrushSize(stroke) *
+    getPressureSizeMultiplier(current.pressure, pressureSizeMin) *
+    0.5;
+  return { tangent, planeNormal, planeRight, width, thickness, halfSize };
+}
+
+function appendPrint3DSection(
+  stroke: StrokeData,
+  segments: Print3DBasis[],
+  firstSegment: number,
+  lastSegment: number,
+  positions: number[],
+  normals: number[],
+  indices: number[],
+): void {
+  const firstBasis = segments[firstSegment];
+  const startCap = appendPrint3DCap(
+    stroke.controlPoints[firstSegment - 1].position,
+    firstBasis,
+    false,
+    positions,
+    normals,
+  );
+  const firstRing = appendPrint3DRing(
+    stroke.controlPoints[firstSegment - 1].position,
+    firstBasis,
+    positions,
+    normals,
+  );
+  appendTriangle(indices, startCap + 2, startCap + 3, startCap + 1);
+  appendTriangle(indices, startCap + 1, startCap + 3, startCap);
+  appendPrint3DCapToRing(indices, firstRing, startCap, true);
+
+  let previousRing = firstRing;
+  for (let i = firstSegment; i <= lastSegment; i += 1) {
+    const ring = appendPrint3DRing(
+      stroke.controlPoints[i].position,
+      segments[i],
+      positions,
+      normals,
+    );
+    appendPrint3DMiddle(indices, previousRing, ring);
+    previousRing = ring;
+  }
+  const lastBasis = segments[lastSegment];
+  const endCap = appendPrint3DCap(
+    stroke.controlPoints[lastSegment].position,
+    lastBasis,
+    true,
+    positions,
+    normals,
+  );
+  appendPrint3DCapToRing(indices, previousRing, endCap, false);
+  appendTriangle(indices, endCap + 1, endCap, endCap + 2);
+  appendTriangle(indices, endCap + 2, endCap, endCap + 3);
+}
+
+function appendPrint3DRing(
+  center: Vec3,
+  basis: Print3DBasis,
+  positions: number[],
+  normals: number[],
+): number {
+  const first = positions.length / 3;
+  const bevelRatio = 0.99;
+  const bevelRadius = basis.halfSize * (1 - bevelRatio);
+  for (const [startDegrees, stopDegrees] of [[360, 270], [270, 180], [180, 90], [90, 0]] as const) {
+    const middle = ((startDegrees + stopDegrees) * Math.PI) / 360;
+    const originWidth = Math.sign(Math.cos(middle)) * basis.halfSize * bevelRatio;
+    const originThickness = Math.sign(Math.sin(middle)) * basis.halfSize * bevelRatio;
+    for (const degrees of [startDegrees, stopDegrees]) {
+      const radians = (degrees * Math.PI) / 180;
+      const widthOffset = originWidth + Math.cos(radians) * bevelRadius;
+      const thicknessOffset = originThickness + Math.sin(radians) * bevelRadius;
+      appendPrint3DVertex(
+        center,
+        basis,
+        widthOffset,
+        thicknessOffset,
+        positions,
+        normals,
+      );
+    }
+  }
+  return first;
+}
+
+function appendPrint3DCap(
+  center: Vec3,
+  basis: Print3DBasis,
+  ending: boolean,
+  positions: number[],
+  normals: number[],
+): number {
+  const first = positions.length / 3;
+  const inset = basis.halfSize * 0.99;
+  const direction = ending ? 1 : -1;
+  const capCenter: Vec3 = [
+    center[0] + basis.tangent[0] * 0.01 * direction,
+    center[1] + basis.tangent[1] * 0.01 * direction,
+    center[2] + basis.tangent[2] * 0.01 * direction,
+  ];
+  for (const [width, thickness] of [[1, -1], [-1, -1], [-1, 1], [1, 1]] as const) {
+    const position: Vec3 = [
+      capCenter[0] + basis.width[0] * inset * width + basis.thickness[0] * inset * thickness,
+      capCenter[1] + basis.width[1] * inset * width + basis.thickness[1] * inset * thickness,
+      capCenter[2] + basis.width[2] * inset * width + basis.thickness[2] * inset * thickness,
+    ];
+    positions.push(...position);
+    normals.push(
+      basis.tangent[0] * direction,
+      basis.tangent[1] * direction,
+      basis.tangent[2] * direction,
+    );
+  }
+  return first;
+}
+
+function appendPrint3DVertex(
+  center: Vec3,
+  basis: Print3DBasis,
+  widthOffset: number,
+  thicknessOffset: number,
+  positions: number[],
+  normals: number[],
+): void {
+  positions.push(
+    center[0] + basis.width[0] * widthOffset + basis.thickness[0] * thicknessOffset,
+    center[1] + basis.width[1] * widthOffset + basis.thickness[1] * thicknessOffset,
+    center[2] + basis.width[2] * widthOffset + basis.thickness[2] * thicknessOffset,
+  );
+  const normal: Vec3 = [
+    basis.width[0] * widthOffset + basis.thickness[0] * thicknessOffset,
+    basis.width[1] * widthOffset + basis.thickness[1] * thicknessOffset,
+    basis.width[2] * widthOffset + basis.thickness[2] * thicknessOffset,
+  ];
+  normalizeInPlace(normal);
+  normals.push(...normal);
+}
+
+function appendPrint3DMiddle(indices: number[], ring0: number, ring1: number): void {
+  for (let i = 0; i < 8; i += 1) {
+    const next = (i + 1) % 8;
+    appendQuad(indices, ring0 + next, ring0 + i, ring1 + i, ring1 + next);
+  }
+}
+
+function appendPrint3DCapToRing(
+  indices: number[],
+  ring: number,
+  cap: number,
+  starting: boolean,
+): void {
+  for (let corner = 0; corner < 4; corner += 1) {
+    const inner = cap + corner;
+    const fanStart = ring + corner * 2;
+    const fanEnd = fanStart + 1;
+    const nextInner = cap + ((corner + 1) % 4);
+    const nextFan = ring + ((corner + 1) % 4) * 2;
+    if (starting) {
+      appendTriangle(indices, inner, fanStart, fanEnd);
+      appendQuad(indices, inner, fanEnd, nextFan, nextInner);
+    } else {
+      appendTriangle(indices, inner, fanEnd, fanStart);
+      appendQuad(indices, fanEnd, inner, nextInner, nextFan);
+    }
+  }
+}
+
+function appendQuad(indices: number[], v0: number, v1: number, v2: number, v3: number): void {
+  appendTriangle(indices, v0, v1, v3);
+  appendTriangle(indices, v3, v1, v2);
+}
+
+function appendTriangle(indices: number[], a: number, b: number, c: number): void {
+  indices.push(a, b, c);
 }
 
 function generateConcaveHullGeometry(

@@ -446,6 +446,25 @@ describe("brush geometry generation", () => {
     expect(geometry.bounds.max[2]).toBeGreaterThan(0);
   });
 
+  it("generates a capped manifold rounded-square 3D-print tube", () => {
+    const geometry = generateBrushGeometry(createPrint3DStroke(), "print3d", {
+      pressureSizeRange: [1, 1],
+      generatorClass: "Square3DPrintBrush",
+    });
+
+    expect(getGeneratedVertexCount(geometry)).toBe(32);
+    expect(getGeneratedIndexCount(geometry)).toBe(180);
+    const edgeCounts = new Map<string, number>();
+    for (let i = 0; i < geometry.indices.length; i += 3) {
+      const triangle = geometry.indices.slice(i, i + 3);
+      for (const [a, b] of [[triangle[0], triangle[1]], [triangle[1], triangle[2]], [triangle[2], triangle[0]]]) {
+        const key = a < b ? `${a}:${b}` : `${b}:${a}`;
+        edgeCounts.set(key, (edgeCounts.get(key) ?? 0) + 1);
+      }
+    }
+    expect([...edgeCounts.values()].every((count) => count === 2)).toBe(true);
+  });
+
   it("splits and caps tubes at Open Brush frame-angle breaks", () => {
     const stroke = createSharpTubeStroke();
     const geometry = generateBrushGeometry(stroke, "tube", {
@@ -1004,6 +1023,23 @@ function createConcaveHullStroke(): StrokeData {
     orientation: [Math.SQRT1_2, 0, 0, Math.SQRT1_2],
     pressure: 1,
     timestampMs: 48,
+  });
+  return stroke;
+}
+
+function createPrint3DStroke(): StrokeData {
+  const stroke = createTwoPointStroke({
+    guid: "print-3d",
+    brushSize: 0.4,
+    pressure: 1,
+  });
+  stroke.controlPoints[0].position = [0, 0, 0];
+  stroke.controlPoints[1].position = [0, 0.5, 0];
+  stroke.controlPoints.push({
+    position: [0.1, 1, 0],
+    orientation: [0, 0, 0, 1],
+    pressure: 1,
+    timestampMs: 32,
   });
   return stroke;
 }

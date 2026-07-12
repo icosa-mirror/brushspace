@@ -14,6 +14,7 @@ export type BrushGeometryFamily =
   | "thick-strip"
   | "hull"
   | "concave-hull"
+  | "print3d"
   | "emissive"
   | "particle"
   | "unsupported";
@@ -113,7 +114,8 @@ export type BrushGeneratorFamily =
   | "quad-stamp"
   | "thick-strip"
   | "geometry"
-  | "hull";
+  | "hull"
+  | "print3d";
 
 /** Raw shape of one entry in src/brushes/generated/brush-assets.json. */
 export interface BrushAssetRecord {
@@ -205,7 +207,11 @@ function resolveBrushSupport(
   record: BrushAssetRecord | undefined,
 ): BrushSupportDecision {
   const generatorFamily =
-    record?.generatorClass === "SquareBrush" ? "tube" : record?.generatorFamily;
+    record?.generatorClass === "SquareBrush"
+      ? "tube"
+      : record?.generatorClass === "Square3DPrintBrush"
+        ? "print3d"
+        : record?.generatorFamily;
   if (!record || !generatorFamily) {
     return {
       supportStatus: "unsupported",
@@ -230,6 +236,7 @@ function resolveBrushSupport(
     generatorFamily === "ribbon" ||
     generatorFamily === "tube" ||
     generatorFamily === "thick-strip" ||
+    generatorFamily === "print3d" ||
     (generatorFamily === "hull" &&
       (record.generatorClass === "HullBrush" ||
         record.generatorClass === "ConcaveHullBrush"))
@@ -239,6 +246,8 @@ function resolveBrushSupport(
         ? "tube"
         : generatorFamily === "thick-strip"
           ? "thick-strip"
+          : generatorFamily === "print3d"
+            ? "print3d"
           : generatorFamily === "hull"
             ? record.generatorClass === "ConcaveHullBrush"
               ? "concave-hull"

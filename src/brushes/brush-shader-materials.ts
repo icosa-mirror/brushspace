@@ -133,6 +133,7 @@ export function getBrushShaderEligibility(
     entry.geometryFamily !== "thick-strip" &&
     entry.geometryFamily !== "hull" &&
     entry.geometryFamily !== "concave-hull" &&
+    entry.geometryFamily !== "print3d" &&
     entry.geometryFamily !== "tube"
   ) {
     return {

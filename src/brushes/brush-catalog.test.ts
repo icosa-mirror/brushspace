@@ -19,7 +19,7 @@ describe("Open Brush brush catalog", () => {
     expect(selectableOpenBrushes).toHaveLength(48);
     setExperimentalBrushesEnabled(true);
     expect(visibleOpenBrushes).toHaveLength(95);
-    expect(selectableOpenBrushes).toHaveLength(94);
+    expect(selectableOpenBrushes).toHaveLength(95);
     expect(
       visibleOpenBrushes
         .slice(48, 60)

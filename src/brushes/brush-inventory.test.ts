@@ -25,9 +25,9 @@ describe("Open Brush brush inventory", () => {
     expect(summary.total).toBe(123);
     // Implemented extrusion, particle, thick-strip, and convex-hull contracts
     // are supported; remaining special generators stay unsupported.
-    expect(summary.supported).toBe(110);
+    expect(summary.supported).toBe(111);
     expect(summary.fallback).toBe(0);
-    expect(summary.unsupported).toBe(13);
+    expect(summary.unsupported).toBe(12);
   });
 
   it("derives brush families and ranges from the extracted reference data", () => {
@@ -57,6 +57,15 @@ describe("Open Brush brush inventory", () => {
       supportStatus: "supported",
       geometryFamily: "hull",
       pickerVisible: true,
+      pickerEnabled: true,
+      fidelityConfidence: "likely-mostly-correct",
+    });
+    expect(
+      findBrushByGuid(inventory, "d3f3b18a-da03-f694-b838-28ba8e749a98"),
+    ).toMatchObject({
+      name: "3D Printing Brush",
+      supportStatus: "supported",
+      geometryFamily: "print3d",
       pickerEnabled: true,
       fidelityConfidence: "likely-mostly-correct",
     });
