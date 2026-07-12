@@ -87,6 +87,7 @@ import {
 import {
   brushSize01ToLiveBrushSize,
   normalizeBrushSize,
+  OPEN_BRUSH_DEFAULT_STARTUP_SCREENSHOT_BRUSH_SIZE,
 } from "../brushes/brush-size.js";
 import { indexedTriangleGeometryIntersectsSphere } from "../strokes/geometry-intersections.js";
 import { isOpenBrushEraserHit } from "../strokes/stroke-eraser.js";
@@ -481,7 +482,13 @@ export class StrokeAuthoringSystem extends createSystem({
       brushGuid,
       brushSize:
         mode === "brush"
-          ? brushSize01ToLiveBrushSize(0.5, entry.brushSizeRange)
+          ? Math.min(
+              entry.brushSizeRange[1],
+              Math.max(
+                entry.brushSizeRange[0],
+                OPEN_BRUSH_DEFAULT_STARTUP_SCREENSHOT_BRUSH_SIZE,
+              ),
+            )
           : mode === "waveform"
             ? 0.4
             : 0.2,
@@ -494,7 +501,9 @@ export class StrokeAuthoringSystem extends createSystem({
               ? [0.1, 0.5, 1, 1]
               : mode === "double-tapered"
                 ? [1, 0.4, 0.1, 1]
-              : [0.1, 0.8, 1, 1],
+              : mode === "brush"
+                ? [0.2, 0.2, 0.9019608, 1]
+                : [0.1, 0.8, 1, 1],
       seed: 23,
       controlPoints: [
         {
