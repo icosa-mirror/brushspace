@@ -2,7 +2,7 @@
 
 Date: 2026-07-11
 
-Brushspace: `eb06d19`
+Brushspace: `ea9a2d7`
 
 Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6)
 
@@ -182,9 +182,11 @@ The runtime maps broad blend mode, culling, transparency, and depth write. It do
 
 Shader loads and warmups record durable per-GUID compatibility results, and existing
 fallback meshes are upgraded when their shader material becomes available. The
-remaining diagnostic gap is a persisted browser/Quest compile matrix tied to the
-visual reference corpus. Extraction now writes the catalog consumed by the runtime
-and checks generated additive shaders for unresolved emission macros.
+visual conformance routes now also persist per-GUID pass/fail results with coverage,
+timestamp, and runtime identity. The remaining diagnostic gap is a complete
+browser/Quest compile and image-comparison matrix tied to the visual reference
+corpus. Extraction now writes the catalog consumed by the runtime and checks
+generated additive shaders for unresolved emission macros.
 
 ## Required fidelity harness
 
@@ -232,7 +234,9 @@ Suggested gates:
    and asset extraction rejects a checkout at any other revision.
 2. Fix extraction output and regenerate through a temporary-directory byte comparison in CI.
 3. Extract every required prefab field, vertex layout, texture importer setting, render state, keyword, and environment dependency.
-4. Replace broad support labels with evidence states: asset-ready, mesh-contract-passing, browser compile, XR compile, and visually validated.
+4. Partially implemented: evidence states distinguish asset readiness, renderer
+   eligibility, mesh contract, browser compile, XR compile, and persisted visual
+   results. Mesh/image fixture automation and a complete XR matrix remain open.
 5. Add mesh dumping to the existing Open Brush `UiScreenshotter` fixture and
    reproduce its deterministic brush path in the browser; do not replace the
    existing screenshot corpus with a new visual target.
