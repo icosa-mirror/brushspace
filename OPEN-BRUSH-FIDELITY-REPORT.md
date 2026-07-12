@@ -120,6 +120,8 @@ distance/stretch UVs restarted per section. Important remaining differences are:
   the serialized control points as Unity does.
 - Distance, stretch, and unitized QuadStrip brushes now emit Open Brush's
   explicit six-vertex triangle-soup solids, including separate backface solids.
+  Solids use the source segment-centered `PositionQuad` frame, uniform current
+  smoothed-pressure width, color interpolation, and vector-offset contract.
   Finalized geometry also reconstructs the source backward midpoint/fusion pass,
   fused-edge normals, and triangle-derived tangent space. Provisional leading
   edges and incremental late-knot replacement remain incomplete.
@@ -215,7 +217,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@f2d7185`,
-`three-icosa@d2f79a4`, and `three-tiltloader@022f806`. This establishes source
+`three-icosa@d2f79a4`, and `three-tiltloader@07fa6ad`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
