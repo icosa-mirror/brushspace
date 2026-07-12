@@ -209,6 +209,8 @@ export function generateBrushGeometryInto(
       return generateRibbonGeometry(stroke, "emissive", options, out);
     case "tube":
       return generateTubeGeometry(stroke, options, out);
+    case "thick-strip":
+      return generateThickStripGeometry(stroke, options, out);
     case "particle":
       return generateParticleGeometry(stroke, options, out);
     case "unsupported": {
@@ -629,6 +631,144 @@ function generateUnitizedRibbonGeometry(
   out.vertexCount = vertexCount;
   out.indexCount = indexCount;
   return reallocated;
+}
+
+const THICK_STRIP_TRIANGLE_PATTERN = [
+  0, 2, 8, 0, 8, 6,
+  1, 7, 9, 1, 9, 3,
+  3, 11, 5, 3, 9, 11,
+  2, 10, 8, 2, 4, 10,
+] as const;
+
+function generateThickStripGeometry(
+  stroke: StrokeData,
+  options: BrushGeometryOptions,
+  out: BrushGeometryArrays,
+): boolean {
+  out.family = "thick-strip";
+  out.uv0Size = 2;
+  const pointCount = stroke.controlPoints.length;
+  const vertexCount = pointCount * 6;
+  const indexCount = Math.max(0, pointCount - 1) * 24;
+  const reallocated = ensureGeometryCapacity(out, vertexCount, indexCount);
+  const { positions, normals, tangents, colors, uvs, indices, bounds } = out;
+  const localBrushSize = getLocalBrushSize(stroke);
+  const pressureSizeMin = normalizePressureSizeMin(options.pressureSizeRange?.[0]);
+  const pressureOpacityMin = normalizePressureOpacityMin(
+    options.pressureOpacityRange,
+  );
+  const pressureOpacityMax = normalizePressureOpacityMax(
+    options.pressureOpacityRange,
+  );
+  const tileRate = normalizePositive(options.geometryParams?.tileRate, 1);
+  const tangent: Vec3 = [0, 0, 0];
+  const right: Vec3 = [0, 0, 0];
+  const surface: Vec3 = [0, 0, 0];
+  const preferredRight: Vec3 = [0, 0, 0];
+  const pointerForward: Vec3 = [0, 0, 0];
+  const pointerUp: Vec3 = [0, 0, 0];
+  const cosTheta = 1 / Math.sqrt(1 + 1 / 64);
+  const sinTheta = cosTheta / 8;
+  let distance = 0;
+
+  for (let pointIndex = 0; pointIndex < pointCount; pointIndex += 1) {
+    const point = stroke.controlPoints[pointIndex];
+    const before = stroke.controlPoints[Math.max(0, pointIndex - 1)] ?? point;
+    const after = stroke.controlPoints[Math.min(pointCount - 1, pointIndex + 1)] ?? point;
+    tangent[0] = after.position[0] - before.position[0];
+    tangent[1] = after.position[1] - before.position[1];
+    tangent[2] = after.position[2] - before.position[2];
+    if (!normalizeInPlace(tangent)) {
+      tangent[0] = 1;
+      tangent[1] = 0;
+      tangent[2] = 0;
+    }
+    rotateByQuaternion(point.orientation, VEC_FORWARD, pointerForward);
+    rotateByQuaternion(point.orientation, VEC_UP, pointerUp);
+    computeSurfaceFrame(
+      preferredRight,
+      tangent,
+      pointerForward,
+      pointerUp,
+      pointIndex === 0,
+      right,
+      surface,
+    );
+    preferredRight[0] = right[0];
+    preferredRight[1] = right[1];
+    preferredRight[2] = right[2];
+
+    if (pointIndex > 0) {
+      distance += distanceBetweenControlPoints(
+        stroke.controlPoints[pointIndex - 1],
+        point,
+      );
+    }
+    const size =
+      localBrushSize * getPressureSizeMultiplier(point.pressure, pressureSizeMin);
+    const isEnd = pointIndex === 0 || pointIndex === pointCount - 1;
+    const belly = isEnd ? 0 : size / 16;
+    const normalSide = isEnd ? 0 : sinTheta;
+    const opacity = getPressureOpacityMultiplier(
+      point.pressure,
+      pressureOpacityMin,
+      pressureOpacityMax,
+    );
+    const u = size > EPSILON ? (distance / size) * tileRate : 0;
+    const base = pointIndex * 6;
+    writeThickStripVertex(out, base, point.position, right, surface, tangent, size / 2, 0, normalSide, cosTheta, stroke.color, opacity, u, 0.9);
+    writeThickStripVertex(out, base + 1, point.position, right, surface, tangent, size / 2, 0, normalSide, -cosTheta, stroke.color, opacity, u, 0.9);
+    writeThickStripVertex(out, base + 2, point.position, right, surface, tangent, 0, belly, 0, 1, stroke.color, opacity, u, 0.5);
+    writeThickStripVertex(out, base + 3, point.position, right, surface, tangent, 0, -belly, 0, -1, stroke.color, opacity, u, 0.5);
+    writeThickStripVertex(out, base + 4, point.position, right, surface, tangent, -size / 2, 0, -normalSide, cosTheta, stroke.color, opacity, u, 0.1);
+    writeThickStripVertex(out, base + 5, point.position, right, surface, tangent, -size / 2, 0, -normalSide, -cosTheta, stroke.color, opacity, u, 0.1);
+    for (let local = 0; local < 6; local += 1) {
+      includeBounds(bounds, positions, base + local);
+    }
+  }
+
+  let indexOffset = 0;
+  for (let segment = 0; segment < pointCount - 1; segment += 1) {
+    const base = segment * 6;
+    for (const local of THICK_STRIP_TRIANGLE_PATTERN) {
+      indices[indexOffset] = base + local;
+      indexOffset += 1;
+    }
+  }
+  out.vertexCount = vertexCount;
+  out.indexCount = indexCount;
+  return reallocated;
+}
+
+function writeThickStripVertex(
+  out: BrushGeometryArrays,
+  vertex: number,
+  center: Vec3,
+  right: Vec3,
+  surface: Vec3,
+  tangent: Vec3,
+  rightOffset: number,
+  surfaceOffset: number,
+  rightNormal: number,
+  surfaceNormal: number,
+  color: Rgba,
+  opacity: number,
+  u: number,
+  v: number,
+): void {
+  writePosition(out.positions, vertex, [
+    center[0] + right[0] * rightOffset + surface[0] * surfaceOffset,
+    center[1] + right[1] * rightOffset + surface[1] * surfaceOffset,
+    center[2] + right[2] * rightOffset + surface[2] * surfaceOffset,
+  ]);
+  writeNormal(out.normals, vertex, [
+    right[0] * rightNormal + surface[0] * surfaceNormal,
+    right[1] * rightNormal + surface[1] * surfaceNormal,
+    right[2] * rightNormal + surface[2] * surfaceNormal,
+  ]);
+  writeTangent(out.tangents, vertex, tangent, 1);
+  writeColor(out.colors, vertex, color, opacity);
+  writeUv(out.uvs, vertex, [u, v]);
 }
 
 function generateTubeGeometry(

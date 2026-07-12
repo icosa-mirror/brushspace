@@ -11,6 +11,7 @@ export type BrushPressureOpacityRange = readonly [number, number];
 export type BrushGeometryFamily =
   | "ribbon"
   | "tube"
+  | "thick-strip"
   | "emissive"
   | "particle"
   | "unsupported";
@@ -222,10 +223,16 @@ function resolveBrushSupport(
           ? "standard"
           : "unlit";
 
-  if (generatorFamily === "ribbon" || generatorFamily === "tube") {
+  if (
+    generatorFamily === "ribbon" ||
+    generatorFamily === "tube" ||
+    generatorFamily === "thick-strip"
+  ) {
     const geometryFamily: BrushGeometryFamily =
       generatorFamily === "tube"
         ? "tube"
+        : generatorFamily === "thick-strip"
+          ? "thick-strip"
         : brush.blendMode === 2
           ? "emissive"
           : "ribbon";

@@ -125,6 +125,7 @@ export function getBrushShaderEligibility(
     !hasMidpointParticleContract &&
     entry.geometryFamily !== "ribbon" &&
     entry.geometryFamily !== "emissive" &&
+    entry.geometryFamily !== "thick-strip" &&
     entry.geometryFamily !== "tube"
   ) {
     return {

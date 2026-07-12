@@ -381,6 +381,23 @@ describe("brush geometry generation", () => {
     expect(new Set(Array.from(geometry.uvs))).toEqual(new Set([0.5]));
   });
 
+  it("generates ThickGeometry's six-vertex belly strip", () => {
+    const geometry = generateBrushGeometry(
+      createUnevenThreePointStroke(),
+      "thick-strip",
+      {
+        pressureSizeRange: [1, 1],
+        geometryParams: { tileRate: 0.6 },
+        generatorClass: "ThickGeometryBrush",
+      },
+    );
+
+    expect(getGeneratedVertexCount(geometry)).toBe(18);
+    expect(getGeneratedIndexCount(geometry)).toBe(48);
+    expect(vertexDistance(geometry.positions, 8, 9)).toBeGreaterThan(0);
+    expect(vertexDistance(geometry.positions, 14, 15)).toBeCloseTo(0);
+  });
+
   it("splits and caps tubes at Open Brush frame-angle breaks", () => {
     const stroke = createSharpTubeStroke();
     const geometry = generateBrushGeometry(stroke, "tube", {
@@ -837,6 +854,20 @@ function withBrushGuid(stroke: StrokeData, brushGuid: string): StrokeData {
     brushGuid,
     guid: `${stroke.guid}-${brushGuid.slice(0, 8)}`,
   };
+}
+
+function vertexDistance(
+  positions: Float32Array,
+  first: number,
+  second: number,
+): number {
+  const a = first * 3;
+  const b = second * 3;
+  return Math.hypot(
+    positions[a] - positions[b],
+    positions[a + 1] - positions[b + 1],
+    positions[a + 2] - positions[b + 2],
+  );
 }
 
 function createTwoPointStroke({
