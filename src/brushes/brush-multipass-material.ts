@@ -9,6 +9,8 @@ export const ELECTRICITY_BRUSH_GUID =
   "f6e85de3-6dcc-4e7f-87fd-cee8c3d25d51";
 export const ELECTRICITY_DISPLACEMENT_MODS = [1, 1.333, 1.77] as const;
 export const TOON_BRUSH_GUID = "4391385a-df73-4396-9e33-31e4e4930b27";
+export const TUBE_TOON_INVERTED_BRUSH_GUID =
+  "9871385a-df73-4396-9e33-31e4e4930b27";
 
 interface UniformHolder {
   value: unknown;
@@ -16,6 +18,10 @@ interface UniformHolder {
 
 const electricityMaterials = new WeakMap<ShaderMaterial, ShaderMaterial[]>();
 const toonMaterials = new WeakMap<ShaderMaterial, ShaderMaterial[]>();
+const tubeToonInvertedMaterials = new WeakMap<
+  ShaderMaterial,
+  ShaderMaterial[]
+>();
 
 /** Recreates the three Unity passes used by the Electricity brush. */
 export function createBrushRenderMaterial(
@@ -29,6 +35,21 @@ export function createBrushRenderMaterial(
     return source;
   }
   const shader = source as ShaderMaterial;
+  if (brushGuid.toLowerCase() === TUBE_TOON_INVERTED_BRUSH_GUID) {
+    const cached = tubeToonInvertedMaterials.get(shader);
+    if (cached) {
+      return cached;
+    }
+    const base = cloneWithSharedUniforms(shader, sharedUniforms);
+    base.side = FrontSide;
+    base.uniforms.u_TubeToonColorPass = { value: false };
+    const color = cloneWithSharedUniforms(shader, sharedUniforms);
+    color.side = BackSide;
+    color.uniforms.u_TubeToonColorPass = { value: true };
+    const passes = [base, color];
+    tubeToonInvertedMaterials.set(shader, passes);
+    return passes;
+  }
   if (brushGuid.toLowerCase() === TOON_BRUSH_GUID) {
     const cached = toonMaterials.get(shader);
     if (cached) {

@@ -7,6 +7,7 @@ import {
   ELECTRICITY_BRUSH_GUID,
   ELECTRICITY_DISPLACEMENT_MODS,
   TOON_BRUSH_GUID,
+  TUBE_TOON_INVERTED_BRUSH_GUID,
 } from "./brush-multipass-material.js";
 import { BufferGeometry } from "@iwsdk/core";
 
@@ -93,6 +94,21 @@ describe("Open Brush multipass materials", () => {
     expect(
       materials.map(
         (material) => material.uniforms.u_ToonOutlinePass.value,
+      ),
+    ).toEqual([false, true]);
+  });
+
+  it("recreates the inverted Toon base and inflated color passes", () => {
+    const source = new ShaderMaterial();
+    const materials = createBrushRenderMaterial(
+      TUBE_TOON_INVERTED_BRUSH_GUID,
+      source,
+    ) as ShaderMaterial[];
+    expect(materials).toHaveLength(2);
+    expect(materials.map((material) => material.side)).toEqual([0, 1]);
+    expect(
+      materials.map(
+        (material) => material.uniforms.u_TubeToonColorPass.value,
       ),
     ).toEqual([false, true]);
   });

@@ -21,6 +21,7 @@ import {
   createBrushRenderMaterial,
   ELECTRICITY_BRUSH_GUID,
   TOON_BRUSH_GUID,
+  TUBE_TOON_INVERTED_BRUSH_GUID,
 } from "./brush-multipass-material.js";
 import {
   compareRgbPixels,
@@ -89,6 +90,8 @@ export function runBrushGeometryVisualConformance(
       ? ELECTRICITY_BRUSH_GUID
       : name === "Toon"
         ? TOON_BRUSH_GUID
+        : name === "TubeToonInverted"
+          ? TUBE_TOON_INVERTED_BRUSH_GUID
         : "",
     material,
   );
