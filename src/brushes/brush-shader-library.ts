@@ -87,6 +87,13 @@ const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
   "0d3889f3-3ede-470c-8af4-de4813306126", // Double Tapered Marker
   "0d3889f3-3ede-470c-8af4-f44813306126", // Double Tapered Flat
   "f6e85de3-6dcc-4e7f-87fd-cee8c3d25d51", // Electricity
+  "b2ffef01-eaaa-4ab5-aa64-95a2c4f5dbc6", // Neon Pulse
+  "4391aaaa-df81-4396-9e33-31e4e4930b27", // Light Wire
+  "0f0ff7b2-a677-45eb-a7d6-0cd7206f4816", // Chromatic Wave
+  "4391385a-df73-4396-9e33-31e4e4930b27", // Toon
+  "4391385a-cf83-4396-9e33-31e4e4930b27", // Wire
+  "cf7f0059-7aeb-53a4-2b67-c83d863a9ffa", // Spikes
+  "4391aaaa-df73-4396-9e33-31e4e4930b27", // Disco
 ]);
 
 interface UniformHolder {
