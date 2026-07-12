@@ -96,6 +96,9 @@ distance/stretch UVs restarted per section. Important remaining differences are:
 
 - FlatGeometry brushes now honor their extracted distance/stretch UV style;
   DuctTapeGeometry no longer falls through to stretch UVs.
+- FlatGeometry tangents now come from the source triangle/UV gradient rule
+  rather than the stroke direction, restoring the intended tangent basis for
+  normal-mapped flat brushes at bends.
 
 - Open Brush knot smoothing, self-intersection width shrinking, discard, and
   adjacent-knot rebuild rules are incomplete. Non-M11 `FlatGeometryBrush`
@@ -182,7 +185,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@f2d7185`,
-`three-icosa@d2f79a4`, and `three-tiltloader@fc53244`. This establishes source
+`three-icosa@d2f79a4`, and `three-tiltloader@55d8c4d`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
