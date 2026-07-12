@@ -752,8 +752,8 @@ describe("brush geometry generation", () => {
       geometry.positions[10] - geometry.positions[7],
     );
     // This brush's [0, 1] pressure range produces width 0.2 at the first
-    // point; the smoothed center then travels 0.07, capping the next at 0.27.
-    expect(finalWidth).toBeCloseTo(0.27);
+    // point; Unity clips against 0.1 raw knot travel before edge smoothing.
+    expect(finalWidth).toBeCloseTo(0.3);
   });
 
   it("honors DuctTapeGeometry distance UV metadata", () => {
