@@ -94,6 +94,8 @@ const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
   "4391385a-cf83-4396-9e33-31e4e4930b27", // Wire
   "cf7f0059-7aeb-53a4-2b67-c83d863a9ffa", // Spikes
   "4391aaaa-df73-4396-9e33-31e4e4930b27", // Disco
+  "2f212815-f4d3-c1a4-681a-feeaf9c6dc37", // Icing
+  "1caa6d7d-f015-3f54-3a4b-8b5354d39f81", // Comet
 ]);
 
 interface UniformHolder {
