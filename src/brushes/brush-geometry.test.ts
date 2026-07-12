@@ -502,7 +502,7 @@ describe("brush geometry generation", () => {
     );
 
     expect(geometry.positions[1]).toBeCloseTo(0);
-    expect(geometry.positions[28]).toBeCloseTo(-0.5 * Math.sin(Math.PI / 3));
+    expect(geometry.positions[28]).toBeCloseTo(-0.5 * Math.sin((5 * Math.PI) / 12));
     expect(geometry.positions[55]).toBeCloseTo(0);
   });
 
@@ -537,7 +537,7 @@ describe("brush geometry generation", () => {
     );
 
     const firstRingU = geometry.uvs[0];
-    expect(geometry.uvs[18] - firstRingU).toBeCloseTo(2 / Math.PI);
+    expect(geometry.uvs[18] - firstRingU).toBeCloseTo(2.5 / Math.PI);
     expect(geometry.uvs[36] - firstRingU).toBeCloseTo(6 / Math.PI);
     expect(geometry.uvs[1]).toBeCloseTo(1);
     expect(geometry.uvs[17]).toBeCloseTo(0.75);
@@ -953,7 +953,23 @@ describe("brush geometry generation", () => {
     const ringVerts = 9;
     let previous: [number, number, number] | undefined;
     for (let i = 0; i < count; i += 1) {
-      const center = stroke.controlPoints[i].position;
+      const center =
+        i === 0 || i === count - 1
+          ? stroke.controlPoints[i].position
+          : ([
+              (stroke.controlPoints[i - 1].position[0] +
+                2 * stroke.controlPoints[i].position[0] +
+                stroke.controlPoints[i + 1].position[0]) /
+                4,
+              (stroke.controlPoints[i - 1].position[1] +
+                2 * stroke.controlPoints[i].position[1] +
+                stroke.controlPoints[i + 1].position[1]) /
+                4,
+              (stroke.controlPoints[i - 1].position[2] +
+                2 * stroke.controlPoints[i].position[2] +
+                stroke.controlPoints[i + 1].position[2]) /
+                4,
+            ] as [number, number, number]);
       const v0 = i * ringVerts * 3;
       const radial: [number, number, number] = [
         geometry.positions[v0] - center[0],
