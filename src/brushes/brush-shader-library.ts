@@ -106,6 +106,7 @@ const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
   "6a1cf9f9-032c-45ec-9b6e-a6680bee32e9", // HyperGrid
   "e0abbc80-0f80-e854-4970-8924a0863dcc", // Petal
   "d381e0f5-3def-4a0d-8853-31e9200bcbda", // Lofted
+  "d3f3b18a-da03-f694-b838-28ba8e749a98", // 3D Printing Brush
   "1b897b7e-9b76-425a-b031-a867c48df409", // Gouache
   "8e58ceea-7830-49b4-aba9-6215104ab52a", // Mylar Tube
   "03a529e1-f519-3dd4-582d-2d5cd92c3f4f", // Rain
