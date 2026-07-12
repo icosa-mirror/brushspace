@@ -33,7 +33,8 @@
     "@pmndrs/uikit-horizon": "^1.0.74",
     "@pmndrs/uikit-lucide": "^1.0.74",
     "peerjs": "^1.5.5",
-    "three": "npm:super-three@0.181.0"
+    "three": "npm:super-three@0.181.0",
+    "three-tiltloader": "https://github.com/icosa-foundation/three-tiltloader/archive/e845d550e8c5210c5fc3c70421053cf2caa4d993.tar.gz"
   },
   "devDependencies": {
     "@iwsdk/cli": "0.4.2",
