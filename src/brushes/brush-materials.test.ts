@@ -66,15 +66,15 @@ describe("brush material conversion", () => {
     });
   });
 
-  it("keeps brush color alpha transparent even for cutout-capable brushes", () => {
+  it("keeps known cutout brushes out of ordinary alpha blending", () => {
     const spec = createBrushMaterialSpec(
       getBrush("429ed64a-4e97-4466-84d3-145a861ef684"),
       [1, 1, 1, 0.5],
     );
 
     expect(spec.blending).toBe("alpha-cutout");
-    expect(spec.transparent).toBe(true);
-    expect(spec.depthWrite).toBe(false);
+    expect(spec.transparent).toBe(false);
+    expect(spec.depthWrite).toBe(true);
   });
 
   it("preserves culling decisions for tube brushes", () => {

@@ -180,6 +180,9 @@ All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@f2d7185`,
 `three-icosa@d2f79a4`, and `three-tiltloader@e58d97f`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
+Known brush placeholders now preserve the source opaque/cutout or additive render
+state even when stroke color alpha is below one; ordinary alpha blending remains
+limited to unknown compatibility fallbacks.
 The extracted local corpus remains only for compatibility records and extraction
 diagnostics and should be pruned once those uses are separated.
 
