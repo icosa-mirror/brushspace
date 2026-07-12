@@ -77,6 +77,8 @@ const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
   "5347acf0-a8e2-47b6-8346-30c70719d763", // Wiggly Graphite
   "44bb800a-fbc3-4592-8426-94ecb05ddec3", // Streamers
   "700f3aa8-9a7c-2384-8b8a-ea028905dd8c", // Cel Vinyl
+  "8dc4a70c-d558-4efd-a5ed-d4e860f40dc3", // Splatter
+  "1161af82-50cf-47db-9706-0c3576d43c43", // Coarse Bristles
 ]);
 
 interface UniformHolder {

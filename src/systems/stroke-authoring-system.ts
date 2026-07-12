@@ -574,7 +574,11 @@ export class StrokeAuthoringSystem extends createSystem({
       material,
       geometry,
       entry.name,
-      mode === "waveform" ||
+      mode === "brush"
+        ? entry.geometryFamily === "particle"
+          ? "particle"
+          : "stroke"
+        : mode === "waveform" ||
         mode === "double-tapered" ||
         mode === "electricity" ||
         mode === "disco" ||
@@ -589,8 +593,7 @@ export class StrokeAuthoringSystem extends createSystem({
         mode === "oil-paint" ||
         mode === "ink" ||
         mode === "thick-paint" ||
-        mode === "wet-paint" ||
-        mode === "brush"
+        mode === "wet-paint"
         ? "stroke"
         : "particle",
     );
