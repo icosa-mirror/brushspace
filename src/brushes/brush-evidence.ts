@@ -53,8 +53,15 @@ export function deriveBrushEvidence(
     immersiveXrCompile: compileEvidence(
       latestRecord(entry.guid, "immersive-xr", compatibility),
     ),
-    visual: "unvalidated",
+    visual: visualEvidence(latestRecord(entry.guid, "visual", compatibility)),
   };
+}
+
+function visualEvidence(
+  record: BrushShaderCompatibilityRecord | undefined,
+): BrushValidationEvidence {
+  if (!record) return "unvalidated";
+  return record.status === "visual-passed" ? "passed" : "failed";
 }
 
 function latestRecord(

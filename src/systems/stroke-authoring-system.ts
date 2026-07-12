@@ -64,6 +64,7 @@ import {
   showBumpVisualConformance,
   showBrushGeometryVisualConformance,
 } from "../brushes/brush-visual-conformance.js";
+import { openBrushShaderCompatibility } from "../brushes/brush-shader-compatibility.js";
 import {
   createMirroredStrokeDataX,
   resolveStrokeSampleDecision,
@@ -366,6 +367,13 @@ export class StrokeAuthoringSystem extends createSystem({
     }
     openBrushShaderLibrary.updateFrame(1, this.camera);
     const result = runBumpVisualConformance(this.renderer, oilPaint);
+    openBrushShaderCompatibility.record({
+      guid: "f72ec0e7-a844-4e38-82e3-140c44772699",
+      name: "OilPaint",
+      context: "visual",
+      status: result.passed ? "visual-passed" : "visual-failed",
+      message: `bump changed=${(result.changedPixelRatio * 100).toFixed(2)}% rms=${result.rootMeanSquareDifference.toFixed(2)}`,
+    });
     showBumpVisualConformance(result);
     document.documentElement.dataset.brushVisualConformance = result.passed
       ? "pass"
@@ -558,6 +566,13 @@ export class StrokeAuthoringSystem extends createSystem({
         ? "stroke"
         : "particle",
     );
+    openBrushShaderCompatibility.record({
+      guid: brushGuid,
+      name: entry.name,
+      context: "visual",
+      status: result.passed ? "visual-passed" : "visual-failed",
+      message: `${mode} coverage=${(result.coveredPixelRatio * 100).toFixed(2)}%`,
+    });
     showBrushGeometryVisualConformance(result);
     document.documentElement.dataset.brushVisualConformance = result.passed
       ? "pass"

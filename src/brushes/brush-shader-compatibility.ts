@@ -1,12 +1,15 @@
 export type BrushShaderCompatibilityContext =
   | "asset-load"
   | "browser"
-  | "immersive-xr";
+  | "immersive-xr"
+  | "visual";
 
 export type BrushShaderCompatibilityStatus =
   | "ready"
   | "load-failed"
-  | "compile-failed";
+  | "compile-failed"
+  | "visual-passed"
+  | "visual-failed";
 
 export interface BrushShaderCompatibilityRecord {
   guid: string;
@@ -125,10 +128,13 @@ function isCompatibilityRecord(value: unknown): value is BrushShaderCompatibilit
     typeof record.userAgent === "string" &&
     (record.context === "asset-load" ||
       record.context === "browser" ||
-      record.context === "immersive-xr") &&
+      record.context === "immersive-xr" ||
+      record.context === "visual") &&
     (record.status === "ready" ||
       record.status === "load-failed" ||
-      record.status === "compile-failed")
+      record.status === "compile-failed" ||
+      record.status === "visual-passed" ||
+      record.status === "visual-failed")
   );
 }
 

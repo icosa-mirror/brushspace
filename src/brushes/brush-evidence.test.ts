@@ -28,13 +28,14 @@ describe("brush fidelity evidence", () => {
       record(marker.guid, "browser", "compile-failed", "2026-07-10T00:00:00Z"),
       record(marker.guid, "browser", "ready", "2026-07-11T00:00:00Z"),
       record(marker.guid, "immersive-xr", "compile-failed", "2026-07-11T00:00:00Z"),
+      record(marker.guid, "visual", "visual-passed", "2026-07-11T00:00:01Z"),
     ];
     expect(deriveBrushEvidence(marker, records)).toMatchObject({
       asset: "load-passed",
       browserCompile: "passed",
       immersiveXrCompile: "failed",
       meshContract: "unvalidated",
-      visual: "unvalidated",
+      visual: "passed",
     });
   });
 
