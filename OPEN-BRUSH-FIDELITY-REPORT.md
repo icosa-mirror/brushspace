@@ -44,7 +44,7 @@ These are engineering estimates, not conformance scores. Brushspace is best desc
 ## What maps well
 
 1. Brush GUIDs, manifest values, shader parameters, textures, descriptor tags, pressure ranges, and several geometry settings are data-driven.
-2. Original Open Brush glTF-export shaders are currently used instead of replacing everything with generic Three.js materials. The intended replacement pipeline is the maintained shader corpus from `icosa-sketch-assets` plus the Three.js bindings from `three-icosa`.
+2. Original Open Brush glTF-export shaders are currently used instead of replacing everything with generic Three.js materials. The intended replacement pipeline uses `three-tiltloader` for reusable parsing and geometry, `icosa-sketch-assets` for maintained shader assets, and `three-icosa` for Three.js material bindings.
 3. Color, brush GUID, size, scale, flags, seed, group, layer, pose, pressure, and timestamp are represented.
 4. Authoring includes keeper/trailing-point sampling and a pressure-dependent spawn interval.
 5. Non-raw `ShaderMaterial` is a sensible WebXR adaptation because it permits super-three's GLSL3 and multiview rewriting.
@@ -146,17 +146,21 @@ Genius particles share the latter lifecycle/time-conversion gap.
 
 Finalized strokes remain separate meshes and draw calls, frustum culling is disabled, and active geometry marks full-capacity attributes dirty. `brush-batching.ts` has tests but no production caller. Large Open Brush sketches need pooled material batches, separate dynamic active-stroke buffers, dirty-range uploads, valid culling bounds, and erase/undo compaction.
 
-## Shader dependency strategy
+## Shared dependency architecture
 
-Brushspace should not own a separately extracted and modified shader corpus. The intended source-of-truth split is:
+Brushspace should not own private copies of reusable Open Brush parsing, geometry, shader assets, or material bindings. The intended source-of-truth split is:
 
+- [`three-tiltloader`](https://github.com/icosa-foundation/three-tiltloader) owns `.tilt` archive/binary parsing, the stroke and control-point data model, brush-manifest interpretation, and reusable static and incremental mesh generators. Its lowest geometry layer should return typed arrays plus attribute/index descriptions without depending on Three.js; an optional adapter can construct `BufferGeometry`.
 - [`icosa-sketch-assets`](https://github.com/icosa-foundation/icosa-sketch-assets) supplies the maintained Three.js-compatible GLSL and brush textures. Consume those assets without Brushspace-specific shader edits and pin the repository revision used by production and CI.
 - [`three-icosa`](https://github.com/icosa-foundation/three-icosa) supplies brush GUID/name lookup, texture and uniform setup, vertex-attribute binding, render-state selection, and per-frame camera, lighting, fog, and time integration. Use its glTF extension directly for imported glTF sketches.
-- Brushspace retains Open Brush stroke mesh generation and a thin IWSDK adapter. That adapter may select `ShaderMaterial` instead of `RawShaderMaterial`, connect IWSDK/super-three XR multiview state, and supply dynamically generated geometry, but it should not duplicate the brush binding table or fork shader logic.
+- Brushspace owns IWSDK entities/systems, controller sampling, interactive painting, sketch lifecycle, UI, undo/erase, collaboration, and a thin IWSDK/XR adapter. That adapter may select `ShaderMaterial` instead of `RawShaderMaterial` and connect IWSDK/super-three XR multiview state, but it should not duplicate parsing, generators, brush bindings, or shader logic.
 - Binding changes that are generally useful should be contributed to `three-icosa`. In particular, material construction needs to be configurable so IWSDK can use a non-raw material while existing consumers retain the current behavior.
-- Dependency updates must be deliberate: record pinned revisions, regenerate or copy distributable assets reproducibly, and run the representative browser/XR image gates before advancing either pin.
+- Parser and generator changes that are generally useful should be contributed to `three-tiltloader`. Its existing incomplete generic-ribbon implementation is prior art, not a compatibility constraint; replace it behind a new API rather than preserving incorrect behavior.
+- Dependency updates must be deliberate: record pinned revisions, build distributable assets reproducibly, and run the representative mesh and browser/XR image gates before advancing any pin.
 
 This migration does not make the shaders equivalent to the Unity runtime shaders. The maintained web shaders remain ports of Open Brush behavior, and exact fidelity still depends on correct generated vertex contracts, render context, animation inputs, and brush-specific multipass behavior.
+
+Move the implementation upstream incrementally: establish the neutral stroke/geometry result interfaces; move one generator family and its tests; switch Brushspace to the package; repeat for the remaining families; then move `.tilt` parsing once the shared output model is stable. Delete each Brushspace copy only after its upstream replacement passes the existing fixtures.
 
 ## Material and shader gaps
 
@@ -257,22 +261,24 @@ Exit: CI explains exactly why every GUID passes or fails.
 
 ### Phase 1: exact ribbons (3-5 engineer-weeks)
 
-1. Port knot smoothing, frame, breaks, and incremental rebuild rules.
-2. Split distance, stretch, and unitized UV algorithms.
-3. Add physical-length UVs, tile rate, atlas rows, deterministic offsets, and segment restart.
-4. Emit explicit backfaces/hue shift, normals, tangents, and source vertex layouts.
-5. Apply opacity and color constraints.
-6. Validate DoubleTapered and Electricity against Unity mesh/image fixtures.
+1. Establish the typed-array stroke/geometry API in `three-tiltloader`, move the ribbon generators and tests there, and consume them from Brushspace.
+2. Port knot smoothing, frame, breaks, and incremental rebuild rules.
+3. Split distance, stretch, and unitized UV algorithms.
+4. Add physical-length UVs, tile rate, atlas rows, deterministic offsets, and segment restart.
+5. Emit explicit backfaces/hue shift, normals, tangents, and source vertex layouts.
+6. Apply opacity and color constraints.
+7. Validate DoubleTapered and Electricity against Unity mesh/image fixtures.
 
 Exit: default ribbon fixtures pass mesh and image gates.
 
 ### Phase 2: exact tubes (3-5 engineer-weeks)
 
-1. Honor side count, caps, hard edges, UV style, break sensitivity, and modifiers per prefab.
-2. Port source cap/ring topology and circumference-based UVs.
-3. Add radius packing and tangents.
-4. Validate Disco and LightWire deformation against Unity mesh/image fixtures.
-5. Validate culling rather than forcing tubes double-sided.
+1. Move the tube generators and tests into `three-tiltloader` and switch Brushspace to the shared API.
+2. Honor side count, caps, hard edges, UV style, break sensitivity, and modifiers per prefab.
+3. Port source cap/ring topology and circumference-based UVs.
+4. Add radius packing and tangents.
+5. Validate Disco and LightWire deformation against Unity mesh/image fixtures.
+6. Validate culling rather than forcing tubes double-sided.
 
 Exit: tube topology/attributes match Unity and default tubes pass images.
 
@@ -280,7 +286,7 @@ Exit: tube topology/attributes match Unity and default tubes pass images.
 
 1. Pin `icosa-sketch-assets` and `three-icosa`, then replace the locally extracted shader/binding pipeline brush family by brush family.
 2. Add or upstream a configurable `three-icosa` material factory so generated IWSDK strokes can use the authoritative bindings with non-raw `ShaderMaterial` and XR multiview support.
-3. Define a typed vertex-layout registry shared by Brushspace geometry and the `three-icosa` binding adapter.
+3. Define a typed vertex-layout registry shared by `three-tiltloader` geometry and the `three-icosa` binding adapter.
 4. Preserve the authoritative texture color/sampler metadata.
 5. Complete render-state mapping without introducing transparency behavior absent from Open Brush.
 6. Drive lights, fog, time origin, canvas transform, and other globals from the loaded sketch/environment.
@@ -291,11 +297,12 @@ Exit: tube topology/attributes match Unity and default tubes pass images.
 
 ### Phase 4: particles (5-8 engineer-weeks)
 
-1. Port deterministic stateless RNG and Open Brush salts.
-2. Port distance-based spawning and generator-specific placement.
-3. Add 4D UV0, UV1/UV2, center, birth, rotation, velocity, and vertex ID attributes.
-4. Port preview decay and finalization.
-5. Validate phase after `.tilt` load, collaboration, and undo/redo.
+1. Move the particle generators and tests into `three-tiltloader` and switch Brushspace to the shared API.
+2. Port deterministic stateless RNG and Open Brush salts.
+3. Port distance-based spawning and generator-specific placement.
+4. Add 4D UV0, UV1/UV2, center, birth, rotation, velocity, and vertex ID attributes.
+5. Port preview decay and finalization.
+6. Validate phase after `.tilt` load, collaboration, and undo/redo.
 
 Exit: all 17 particle-family brushes have tested behavior; no static-quad placeholder remains.
 
@@ -352,6 +359,7 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 9. Persist the browser/Quest shader compile matrix.
 10. Complete texture transforms and render states; verify guarded normal mapping on physical Quest.
 11. Migrate shader assets to pinned `icosa-sketch-assets` and material bindings to `three-icosa`, keeping only the IWSDK/XR adapter locally.
+12. Move reusable `.tilt` parsing and mesh generators into `three-tiltloader` family by family, switching Brushspace to each upstream implementation before deleting its local copy.
 
 ## Primary references
 
@@ -367,6 +375,7 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 - [IWSDK](https://iwsdk.dev/) live scene/ECS inspection and browser/XR runtime tools
 - [`icosa-sketch-assets`](https://github.com/icosa-foundation/icosa-sketch-assets) maintained web shader and texture assets
 - [`three-icosa`](https://github.com/icosa-foundation/three-icosa) Three.js Open Brush material extension and bindings
+- [`three-tiltloader`](https://github.com/icosa-foundation/three-tiltloader) intended shared `.tilt` parsing and brush-geometry package
 
 ## Verification note
 
