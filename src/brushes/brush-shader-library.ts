@@ -63,6 +63,12 @@ const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
   "d0262945-853c-4481-9cbd-88586bed93cb", // Duct Tape
   "f1114e2e-eb8d-4fde-915a-6e653b54e9f5", // Paper
   "dce872c2-7b49-4684-b59b-c45387949c5c", // Hypercolor
+  "429ed64a-4e97-4466-84d3-145a861ef684", // Marker
+  "d90c6ad8-af0f-4b54-b422-e0f92abe1b3c", // Tapered Marker
+  "cf019139-d41c-4eb0-a1d0-5cf54b0a42f3", // Highlighter
+  "2d35bcf0-e4d8-452c-97b1-3311be063130", // Flat
+  "b468c1fb-f254-41ed-8ec9-57030bc5660c", // Tapered Flat
+  "accb32f5-4509-454f-93f8-1df3fd31df1b", // Soft Highlighter
 ]);
 
 interface UniformHolder {
