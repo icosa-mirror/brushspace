@@ -16,6 +16,7 @@ import {
   resolveStrokeSpawnIntervalMeters,
   resolveDistanceSmoothedPressure,
   shouldSmoothStrokeSamplingPressure,
+  shouldZeroInitialM11SamplingPressure,
   OPEN_BRUSH_M11_PRESSURE_SMOOTH_WINDOW_METERS,
   OPEN_BRUSH_RIBBON_SOLID_MIN_LENGTH_METERS,
 } from "./stroke-authoring.js";
@@ -378,6 +379,21 @@ describe("Open Brush stroke sampling", () => {
       shouldSmoothStrokeSamplingPressure("MidpointPlusLifetimeSprayBrush"),
     ).toBe(false);
     expect(shouldSmoothStrokeSamplingPressure("GeniusParticlesBrush")).toBe(
+      false,
+    );
+  });
+
+  it("limits M11 zero initial pressure to GeometryBrush generator paths", () => {
+    expect(shouldZeroInitialM11SamplingPressure("FlatGeometryBrush")).toBe(true);
+    expect(shouldZeroInitialM11SamplingPressure("TubeBrush")).toBe(true);
+    expect(shouldZeroInitialM11SamplingPressure("ThickGeometryBrush")).toBe(
+      true,
+    );
+    expect(
+      shouldZeroInitialM11SamplingPressure("QuadStripBrushDistanceUV"),
+    ).toBe(false);
+    expect(shouldZeroInitialM11SamplingPressure("SprayBrush")).toBe(false);
+    expect(shouldZeroInitialM11SamplingPressure("GeniusParticlesBrush")).toBe(
       false,
     );
   });

@@ -95,6 +95,21 @@ export function shouldSmoothStrokeSamplingPressure(
   );
 }
 
+export function shouldZeroInitialM11SamplingPressure(
+  generatorClass: string | undefined,
+): boolean {
+  return (
+    generatorClass === "FlatGeometryBrush" ||
+    generatorClass === "TubeBrush" ||
+    generatorClass === "SquareBrush" ||
+    generatorClass === "ThickGeometryBrush" ||
+    generatorClass === "PrintableBrush" ||
+    generatorClass === "Square3DPrintBrush" ||
+    generatorClass === "HullBrush" ||
+    generatorClass === "ConcaveHullBrush"
+  );
+}
+
 export function resolveDistanceSmoothedPressure(options: {
   previousPressure: number;
   pressure: number;

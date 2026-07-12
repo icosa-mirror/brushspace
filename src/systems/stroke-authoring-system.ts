@@ -79,6 +79,7 @@ import {
   createMirroredStrokeDataX,
   resolveDistanceSmoothedPressure,
   shouldSmoothStrokeSamplingPressure,
+  shouldZeroInitialM11SamplingPressure,
   resolveStrokeSampleDecision,
   OPEN_BRUSH_MINIMUM_MOVE_METERS,
   resolveStrokeSpawnIntervalMeters,
@@ -1058,7 +1059,10 @@ export class StrokeAuthoringSystem extends createSystem({
         : OPEN_BRUSH_PRESSURE_SMOOTH_WINDOW_METERS) / stroke.poseScale;
     const smoothedPressure =
       stroke.controlPoints.length === 0
-        ? frame.pressure
+        ? stroke.geometryParams?.m11Compatibility === true &&
+          shouldZeroInitialM11SamplingPressure(stroke.generatorClass)
+          ? 0
+          : frame.pressure
         : resolveDistanceSmoothedPressure({
             previousPressure: stroke.lastKeeperSmoothedPressure,
             pressure: frame.pressure,

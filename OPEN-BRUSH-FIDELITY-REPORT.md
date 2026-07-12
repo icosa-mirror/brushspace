@@ -106,7 +106,7 @@ distance/stretch UVs restarted per section. Important remaining differences are:
   normal-mapped flat brushes at bends.
 - Ribbon pressure now uses Open Brush's distance-based smoothing window,
   including the shorter M11 FlatGeometry window and its forced zero-pressure
-  initial knot.
+  initial knot in both finalized geometry and live keeper state.
 - Remaining position/frame differences, discard, and adjacent-knot rebuild
   rules are incomplete. Non-M11 `FlatGeometryBrush` strokes clip
   self-intersections and cap width growth against raw knot travel before the
