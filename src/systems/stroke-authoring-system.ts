@@ -157,6 +157,7 @@ interface RuntimeStroke {
   generatorClass: string | undefined;
   pressureSizeRange: BrushPressureSizeRange | undefined;
   pressureOpacityRange: BrushPressureOpacityRange | undefined;
+  deterministicParticleBirthTime: boolean;
   toolId: OpenBrushToolId;
   groupId: number;
   samplingMode: OpenBrushToolSamplingMode;
@@ -981,6 +982,7 @@ export class StrokeAuthoringSystem extends createSystem({
       generatorClass: brushEntry?.generatorClass,
       pressureSizeRange: brushEntry?.pressureSizeRange,
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
+      deterministicParticleBirthTime: false,
       toolId: activeTool.id,
       groupId,
       samplingMode: activeTool.samplingMode,
@@ -1221,6 +1223,7 @@ export class StrokeAuthoringSystem extends createSystem({
         pressureOpacityRange: stroke.pressureOpacityRange,
         geometryParams: stroke.geometryParams,
         generatorClass: stroke.generatorClass,
+        deterministicBirthTime: stroke.deterministicParticleBirthTime,
       },
       arrays,
     );
@@ -1596,6 +1599,7 @@ export class StrokeAuthoringSystem extends createSystem({
       generatorClass: brushEntry?.generatorClass,
       pressureSizeRange: brushEntry?.pressureSizeRange,
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
+      deterministicParticleBirthTime: false,
       toolId: "free-paint",
       groupId: 0,
       samplingMode: "freehand",
@@ -2329,6 +2333,7 @@ export class StrokeAuthoringSystem extends createSystem({
       generatorClass: brushEntry?.generatorClass,
       pressureSizeRange: brushEntry?.pressureSizeRange,
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
+      deterministicParticleBirthTime: finalized,
       toolId: "free-paint",
       groupId: strokeData.groupId,
       samplingMode: "freehand",
@@ -2415,6 +2420,7 @@ export class StrokeAuthoringSystem extends createSystem({
       generatorClass: brushEntry?.generatorClass,
       pressureSizeRange: brushEntry?.pressureSizeRange,
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
+      deterministicParticleBirthTime: source.deterministicParticleBirthTime,
       toolId: source.toolId,
       groupId: source.groupId,
       samplingMode: source.samplingMode,

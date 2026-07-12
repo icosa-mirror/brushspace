@@ -176,10 +176,12 @@ distance spawning and segment frame, plus their distinct five-quad salt layout
 and 4D UV1 corner-offset/birth-time contract. DanceFloor and WaveformParticles
 render with their default export vertex shaders; a DanceFloor pixel gate
 rejects empty or black output. HyperGrid renders its non-audio export behavior;
-its additional audio-reactive behavior remains absent. The export shaders do
-not reproduce Unity's lifetime motion, so runtime animation, preview decay,
-finalization, and exact sketch-time-to-level-time conversion remain open.
-Genius particles share the latter lifecycle/time-conversion gap.
+its additional audio-reactive behavior remains absent. Finalized loaded
+Midpoint and Genius particle strokes now use Open Brush's deterministic zero
+birth time, while live-authored strokes retain their sampled timestamps. The
+export shaders do not reproduce Unity's lifetime motion, so runtime animation,
+preview decay, and exact sketch-time-to-level-time conversion remain open.
+Genius particles share that lifecycle/time-conversion gap.
 
 ### Performance
 
@@ -209,7 +211,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@f2d7185`,
-`three-icosa@d2f79a4`, and `three-tiltloader@e197643`. This establishes source
+`three-icosa@d2f79a4`, and `three-tiltloader@8183ba4`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
