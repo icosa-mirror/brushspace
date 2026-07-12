@@ -2,7 +2,7 @@
 
 Date: 2026-07-11
 
-Brushspace: `ea9a2d7`
+Brushspace: `295a8ba`
 
 Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6)
 
@@ -44,7 +44,7 @@ These are engineering estimates, not conformance scores. Brushspace is best desc
 ## What maps well
 
 1. Brush GUIDs, manifest values, shader parameters, textures, descriptor tags, pressure ranges, and several geometry settings are data-driven.
-2. Original Open Brush glTF-export shaders are currently used instead of replacing everything with generic Three.js materials. The intended replacement pipeline uses `three-tiltloader` for reusable parsing and geometry, `icosa-sketch-assets` for maintained shader assets, and `three-icosa` for Three.js material bindings.
+2. All 95 required brushes now resolve materials through pinned `icosa-sketch-assets` and `three-icosa` revisions instead of Brushspace-owned shader bindings. `three-tiltloader` supplies the reusable mesh generators. The local material adapter is limited to IWSDK-compatible `ShaderMaterial` construction, frame uniforms, diagnostics, and compatibility-only fallbacks.
 3. Color, brush GUID, size, scale, flags, seed, group, layer, pose, pressure, and timestamp are represented.
 4. Authoring includes keeper/trailing-point sampling and a pressure-dependent spawn interval.
 5. Non-raw `ShaderMaterial` is a sensible WebXR adaptation because it permits super-three's GLSL3 and multiview rewriting.
@@ -168,6 +168,13 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
+All required material lookups now use the maintained dependency path. The pinned
+revisions at this milestone are `icosa-sketch-assets@6d48dc4`,
+`three-icosa@b78c62d`, and `three-tiltloader@dbf70e7`. This establishes source
+ownership and browser-render eligibility; it does not establish Unity image parity.
+The extracted local corpus remains only for compatibility records and extraction
+diagnostics and should be pruned once those uses are separated.
+
 ### Vertex data is the limiting contract
 
 The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, HyperGrid, Waveform, DoubleTapered, Electricity, Disco, LightWire, Hull, and 3D-print contracts. Even default shaders only match if attribute values have the correct semantics. No extracted brush remains in the `fallback` classification; 12 compatibility-only special generator records remain `unsupported`, all outside the 95-brush target. HyperGrid renders its non-audio export behavior, but real audio-reactive inputs remain absent. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 3D/4D UV1, vertex IDs, and index where the selected generator defines those semantics.
@@ -284,8 +291,8 @@ Exit: tube topology/attributes match Unity and default tubes pass images.
 
 ### Phase 3: materials and shader context (3-6 engineer-weeks, overlaps 1-2)
 
-1. Pin `icosa-sketch-assets` and `three-icosa`, then replace the locally extracted shader/binding pipeline brush family by brush family.
-2. Add or upstream a configurable `three-icosa` material factory so generated IWSDK strokes can use the authoritative bindings with non-raw `ShaderMaterial` and XR multiview support.
+1. Implemented for the 95 required brushes: pin `icosa-sketch-assets` and `three-icosa`, then replace the locally extracted shader/binding pipeline brush family by brush family.
+2. Implemented: `three-icosa` accepts a configurable material factory so generated IWSDK strokes use non-raw `ShaderMaterial` with XR multiview support.
 3. Define a typed vertex-layout registry shared by `three-tiltloader` geometry and the `three-icosa` binding adapter.
 4. Preserve the authoritative texture color/sampler metadata.
 5. Complete render-state mapping without introducing transparency behavior absent from Open Brush.
@@ -358,7 +365,7 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 8. Connect batching to production rendering.
 9. Persist the browser/Quest shader compile matrix.
 10. Complete texture transforms and render states; verify guarded normal mapping on physical Quest.
-11. Migrate shader assets to pinned `icosa-sketch-assets` and material bindings to `three-icosa`, keeping only the IWSDK/XR adapter locally.
+11. Implemented for all 95 required brushes: shader assets come from pinned `icosa-sketch-assets`, material bindings come from pinned `three-icosa`, and reusable geometry comes from pinned `three-tiltloader`.
 12. Move reusable `.tilt` parsing and mesh generators into `three-tiltloader` family by family, switching Brushspace to each upstream implementation before deleting its local copy.
 
 ## Primary references
