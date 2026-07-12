@@ -2,7 +2,7 @@
 
 Date: 2026-07-11
 
-Brushspace: `bbed1d0`
+Brushspace: `eb06d19`
 
 Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6)
 
@@ -228,7 +228,8 @@ Suggested gates:
 
 ### Phase 0: trustworthy baseline (1-2 engineer-weeks)
 
-1. Pin the upstream commit in a machine-readable file.
+1. Implemented: `open-brush-reference.json` pins the audited upstream commit,
+   and asset extraction rejects a checkout at any other revision.
 2. Fix extraction output and regenerate through a temporary-directory byte comparison in CI.
 3. Extract every required prefab field, vertex layout, texture importer setting, render state, keyword, and environment dependency.
 4. Replace broad support labels with evidence states: asset-ready, mesh-contract-passing, browser compile, XR compile, and visually validated.
