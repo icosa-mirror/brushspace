@@ -103,7 +103,8 @@ distance/stretch UVs restarted per section. Important remaining differences are:
   rather than the stroke direction, restoring the intended tangent basis for
   normal-mapped flat brushes at bends.
 - Ribbon pressure now uses Open Brush's distance-based smoothing window,
-  including the shorter M11 FlatGeometry window.
+  including the shorter M11 FlatGeometry window and its forced zero-pressure
+  initial knot.
 - Remaining position/frame differences, discard, and adjacent-knot rebuild
   rules are incomplete. Non-M11 `FlatGeometryBrush` strokes clip
   self-intersections and cap width growth against raw knot travel before the
@@ -196,7 +197,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@f2d7185`,
-`three-icosa@d2f79a4`, and `three-tiltloader@ffd7e6a`. This establishes source
+`three-icosa@d2f79a4`, and `three-tiltloader@d19ff1e`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains

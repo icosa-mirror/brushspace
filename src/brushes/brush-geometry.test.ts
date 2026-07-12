@@ -715,6 +715,7 @@ describe("brush geometry generation", () => {
       0.5,
       1,
     ]);
+    const expectedHalfWidths = [0.01, 0.091, 0.0991];
     for (let point = 0; point < 3; point += 1) {
       const leftOffset = point * 6;
       const rightOffset = leftOffset + 3;
@@ -722,7 +723,7 @@ describe("brush geometry generation", () => {
         -(geometry.uv1?.[rightOffset] ?? 0),
       );
       expect(Math.hypot(...(geometry.uv1?.slice(leftOffset, leftOffset + 3) ?? [])))
-        .toBeCloseTo(0.1);
+        .toBeCloseTo(expectedHalfWidths[point]);
     }
   });
 
