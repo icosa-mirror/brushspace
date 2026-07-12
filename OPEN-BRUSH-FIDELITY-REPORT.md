@@ -118,7 +118,9 @@ distance/stretch UVs restarted per section. Important remaining differences are:
   source second-pass edge smoothing. On finalization they also trim rendered
   geometry after a late break when fewer than six knots remain, while retaining
   the serialized control points as Unity does.
-- The shared indexed strip does not reproduce every source generator's triangle-soup topology and seams.
+- Distance, stretch, and unitized QuadStrip brushes now emit Open Brush's
+  explicit six-vertex triangle-soup solids, including separate backface solids.
+  Their incremental leading-quad midpoint/fusion behavior remains incomplete.
 - Head/tail simplification and per-generator minimum-length rules are incomplete.
 - DoubleTapered and Electricity now consume the emitted edge-vector layout.
   Electricity also recreates the Unity shader's three displacement passes;
@@ -211,7 +213,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@f2d7185`,
-`three-icosa@d2f79a4`, and `three-tiltloader@8183ba4`. This establishes source
+`three-icosa@d2f79a4`, and `three-tiltloader@02d5e44`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains

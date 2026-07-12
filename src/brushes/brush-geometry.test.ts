@@ -162,8 +162,12 @@ describe("brush geometry generation", () => {
     });
 
     const initialU = geometry.uvs[0];
-    expect(geometry.uvs[4] - initialU).toBeCloseTo(2);
-    expect(geometry.uvs[8] - initialU).toBeCloseTo(6);
+    expect(getGeneratedVertexCount(geometry)).toBe(12);
+    expect(Array.from(geometry.indices)).toEqual(
+      Array.from({ length: 12 }, (_, index) => index),
+    );
+    expect(geometry.uvs[2] - initialU).toBeCloseTo(2);
+    expect(geometry.uvs[14] - initialU).toBeCloseTo(6);
   });
 
   it("applies brushScale to Open Brush distance UV density", () => {
@@ -176,8 +180,8 @@ describe("brush geometry generation", () => {
     });
 
     const initialU = geometry.uvs[0];
-    expect(geometry.uvs[4] - initialU).toBeCloseTo(1);
-    expect(geometry.uvs[8] - initialU).toBeCloseTo(3);
+    expect(geometry.uvs[2] - initialU).toBeCloseTo(1);
+    expect(geometry.uvs[14] - initialU).toBeCloseTo(3);
   });
 
   it("normalizes stretch ribbon UVs by physical stroke length", () => {
@@ -188,8 +192,8 @@ describe("brush geometry generation", () => {
     );
 
     expect(geometry.uvs[0]).toBeCloseTo(0);
-    expect(geometry.uvs[4]).toBeCloseTo(1 / 3);
-    expect(geometry.uvs[8]).toBeCloseTo(1);
+    expect(geometry.uvs[2]).toBeCloseTo(1 / 3);
+    expect(geometry.uvs[14]).toBeCloseTo(1);
   });
 
   it("breaks reversing ribbon strips and restarts stretch UVs", () => {
@@ -201,10 +205,9 @@ describe("brush geometry generation", () => {
     });
 
     expect(getGeneratedIndexCount(geometry)).toBe(6);
-    expect(Array.from(geometry.indices)).toEqual([0, 2, 1, 1, 2, 3]);
+    expect(Array.from(geometry.indices)).toEqual([0, 1, 2, 3, 4, 5]);
     expect(geometry.uvs[0]).toBeCloseTo(0);
-    expect(geometry.uvs[4]).toBeCloseTo(1);
-    expect(geometry.uvs[8]).toBeCloseTo(0);
+    expect(geometry.uvs[2]).toBeCloseTo(1);
   });
 
   it("omits sub-millimeter ribbon connections", () => {
@@ -235,7 +238,7 @@ describe("brush geometry generation", () => {
 
     expect(first.uvs).toEqual(repeated.uvs);
     expect(first.uvs[1]).toBeCloseTo(0.75);
-    expect(first.uvs[3]).toBeCloseTo(0.5);
+    expect(first.uvs[5]).toBeCloseTo(0.5);
   });
 
   it("emits reversed hue-shifted backface geometry", () => {
@@ -292,14 +295,14 @@ describe("brush geometry generation", () => {
       { generatorClass: "QuadStripUnitizedUVBrush" },
     );
 
-    expect(getGeneratedVertexCount(geometry)).toBe(8);
+    const quadUvs = [0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0];
+    expect(getGeneratedVertexCount(geometry)).toBe(12);
     expect(getGeneratedIndexCount(geometry)).toBe(12);
-    expect(Array.from(geometry.uvs.slice(0, 8))).toEqual([
-      0, 1, 0, 0, 1, 1, 1, 0,
-    ]);
-    expect(Array.from(geometry.uvs.slice(8, 16))).toEqual([
-      0, 1, 0, 0, 1, 1, 1, 0,
-    ]);
+    expect(Array.from(geometry.indices)).toEqual(
+      Array.from({ length: 12 }, (_, index) => index),
+    );
+    expect(Array.from(geometry.uvs.slice(0, 12))).toEqual(quadUvs);
+    expect(Array.from(geometry.uvs.slice(12, 24))).toEqual(quadUvs);
   });
 
   it("uses full width for brushes with fixed pressure size", () => {
