@@ -70,6 +70,8 @@ const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
   "b468c1fb-f254-41ed-8ec9-57030bc5660c", // Tapered Flat
   "accb32f5-4509-454f-93f8-1df3fd31df1b", // Soft Highlighter
   "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62", // Light
+  "30cb9af6-be41-4872-8f3e-cbff63fe3db8", // Digital
+  "abfbb2aa-70b4-4a5c-8126-8eedda2b3628", // Race
   "cb92b597-94ca-4255-b017-0e3f42f12f9e", // Fire
   "ad1ad437-76e2-450d-a23a-e17f8310b960", // Rainbow
   "d229d335-c334-495a-a801-660ac8a87360", // Velvet Ink
