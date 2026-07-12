@@ -126,6 +126,7 @@ const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
   "4391ffaa-df73-4396-9e33-31e4e4930b27", // Faceted Tube
   "1a26b8c0-8a07-4f8a-9fac-d2ef36e0cad0", // Tapered Marker Flat
   "c33714d1-b2f9-412e-bd50-1884c9d46336", // Plasma
+  "f0a2298a-be80-432c-9fee-a86dcc06f4f9", // SingleSided
   "6a1cf9f9-032c-45ec-9b6e-a6680bee30f7", // Waveform Particles
   "eba3f993-f9a1-4d35-b84e-bb08f48981a4", // Bubble Wand
   "6a1cf9f9-032c-45ec-311e-a6680bee32e9", // Dance Floor

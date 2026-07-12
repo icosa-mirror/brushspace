@@ -535,6 +535,11 @@ export class StrokeAuthoringSystem extends createSystem({
           timestampMs: 120,
         },
       );
+      if (entry.name === "SingleSided") {
+        for (const point of stroke.controlPoints) {
+          point.orientation = [1, 0, 0, 0];
+        }
+      }
     }
     if (
       mode === "double-tapered" ||
