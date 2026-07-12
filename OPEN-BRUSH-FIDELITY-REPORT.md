@@ -119,7 +119,9 @@ distance/stretch UVs restarted per section. Important remaining differences are:
 ### Tubes
 
 The parallel-transport tube now consumes extracted side count, end-cap, hard-edge,
-UV-style, cap-aspect, atlas, radius-packing, taper, and petal settings. It uses
+UV-style, cap-aspect, atlas, radius-packing, taper, and petal settings. It carries
+Open Brush's distance-based pressure smoothing into radius, opacity, and petal
+displacement, uses
 circumference-dependent distance UVs, emits tangents, and splits/caps sections
 using Open Brush's minimum-motion and width-relative frame-angle tests. Remaining
 differences are:
@@ -186,7 +188,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@f2d7185`,
-`three-icosa@d2f79a4`, and `three-tiltloader@67152c0`. This establishes source
+`three-icosa@d2f79a4`, and `three-tiltloader@cc066c0`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
