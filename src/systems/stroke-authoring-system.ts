@@ -60,6 +60,7 @@ import {
 import {
   BRUSH_VISUAL_CONFORMANCE_PREFIX,
   createOpenBrushScreenshotCamera,
+  OPEN_BRUSH_SCREENSHOT_SIZE,
   runBumpVisualConformance,
   runBrushGeometryVisualConformance,
   showBumpVisualConformance,
@@ -636,6 +637,7 @@ export class StrokeAuthoringSystem extends createSystem({
         : "particle",
       mode === "brush" ? conformanceCamera : undefined,
       mode === "brush" ? 0.001 : 0.005,
+      mode === "brush" ? OPEN_BRUSH_SCREENSHOT_SIZE : undefined,
     );
     openBrushShaderCompatibility.record({
       guid: brushGuid,

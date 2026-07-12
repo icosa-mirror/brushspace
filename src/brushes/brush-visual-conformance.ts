@@ -23,6 +23,7 @@ import {
 
 export const BRUSH_VISUAL_CONFORMANCE_PREFIX = "[BrushVisualConformance]";
 export const BRUSH_VISUAL_CONFORMANCE_SIZE = 256;
+export const OPEN_BRUSH_SCREENSHOT_SIZE = 1024;
 
 export interface BrushVisualConformanceResult extends PixelDifference {
   passed: boolean;
@@ -37,6 +38,7 @@ export interface BrushGeometryVisualConformanceResult {
   kind: string;
   passed: boolean;
   coveredPixelRatio: number;
+  size: number;
   pixels: Uint8Array;
 }
 
@@ -48,6 +50,7 @@ export function runBrushGeometryVisualConformance(
   kind = "particle",
   camera?: Camera,
   minimumCoveredPixelRatio = 0.005,
+  renderSize = BRUSH_VISUAL_CONFORMANCE_SIZE,
 ): BrushGeometryVisualConformanceResult {
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new BufferAttribute(generated.positions, 3));
@@ -81,16 +84,16 @@ export function runBrushGeometryVisualConformance(
   scene.add(mesh);
   const renderCamera = camera ?? createDefaultGeometryCamera();
   const target = new WebGLRenderTarget(
-    BRUSH_VISUAL_CONFORMANCE_SIZE,
-    BRUSH_VISUAL_CONFORMANCE_SIZE,
+    renderSize,
+    renderSize,
   );
-  const pixels = new Uint8Array(BRUSH_VISUAL_CONFORMANCE_SIZE ** 2 * 4);
+  const pixels = new Uint8Array(renderSize ** 2 * 4);
   const previousTarget = renderer.getRenderTarget();
   const previousClearColor = renderer.getClearColor(new Color());
   const previousClearAlpha = renderer.getClearAlpha();
   try {
     renderer.setClearColor(0x000000, 0);
-    renderPixels(renderer, scene, renderCamera, target, pixels);
+    renderPixels(renderer, scene, renderCamera, target, pixels, renderSize);
   } finally {
     renderer.setRenderTarget(previousTarget);
     renderer.setClearColor(previousClearColor, previousClearAlpha);
@@ -104,12 +107,13 @@ export function runBrushGeometryVisualConformance(
       coveredPixels += 1;
     }
   }
-  const coveredPixelRatio = coveredPixels / (BRUSH_VISUAL_CONFORMANCE_SIZE ** 2);
+  const coveredPixelRatio = coveredPixels / renderSize ** 2;
   return {
     name,
     kind,
     passed: coveredPixelRatio >= minimumCoveredPixelRatio,
     coveredPixelRatio,
+    size: renderSize,
     pixels,
   };
 }
@@ -142,7 +146,11 @@ export function showBrushGeometryVisualConformance(
   root.append(
     heading,
     details,
-    createPixelFigure(`Generated ${result.name} stroke`, result.pixels),
+    createPixelFigure(
+      `Generated ${result.name} stroke`,
+      result.pixels,
+      result.size,
+    ),
   );
   root.dataset.result = result.passed ? "pass" : "fail";
   document.body.append(root);
@@ -306,6 +314,7 @@ function renderPixels(
   camera: Camera,
   target: WebGLRenderTarget,
   pixels: Uint8Array,
+  size = BRUSH_VISUAL_CONFORMANCE_SIZE,
 ): void {
   renderer.setRenderTarget(target);
   renderer.clear();
@@ -314,29 +323,33 @@ function renderPixels(
     target,
     0,
     0,
-    BRUSH_VISUAL_CONFORMANCE_SIZE,
-    BRUSH_VISUAL_CONFORMANCE_SIZE,
+    size,
+    size,
     pixels,
   );
 }
 
-function createPixelFigure(label: string, pixels: Uint8Array): HTMLElement {
+function createPixelFigure(
+  label: string,
+  pixels: Uint8Array,
+  size = BRUSH_VISUAL_CONFORMANCE_SIZE,
+): HTMLElement {
   const figure = document.createElement("figure");
   const canvas = document.createElement("canvas");
-  canvas.width = BRUSH_VISUAL_CONFORMANCE_SIZE;
-  canvas.height = BRUSH_VISUAL_CONFORMANCE_SIZE;
-  canvas.style.cssText = "width:384px;max-width:100%;image-rendering:auto;background:#000";
+  canvas.width = size;
+  canvas.height = size;
+  canvas.style.cssText = `width:${size}px;max-width:100%;image-rendering:auto;background:#000`;
   const context = canvas.getContext("2d");
   if (context) {
     const flipped = new Uint8ClampedArray(pixels.length);
-    const rowBytes = BRUSH_VISUAL_CONFORMANCE_SIZE * 4;
-    for (let y = 0; y < BRUSH_VISUAL_CONFORMANCE_SIZE; y += 1) {
+    const rowBytes = size * 4;
+    for (let y = 0; y < size; y += 1) {
       const sourceOffset = y * rowBytes;
-      const targetOffset = (BRUSH_VISUAL_CONFORMANCE_SIZE - y - 1) * rowBytes;
+      const targetOffset = (size - y - 1) * rowBytes;
       flipped.set(pixels.subarray(sourceOffset, sourceOffset + rowBytes), targetOffset);
     }
     context.putImageData(
-      new ImageData(flipped, BRUSH_VISUAL_CONFORMANCE_SIZE, BRUSH_VISUAL_CONFORMANCE_SIZE),
+      new ImageData(flipped, size, size),
       0,
       0,
     );
