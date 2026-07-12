@@ -100,6 +100,7 @@ const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
   "79348357-432d-4746-8e29-0e25c112e3aa", // Matte Hull
   "a8fea537-da7c-4d4b-817f-24f074725d6d", // Unlit Hull
   "c8313697-2563-47fc-832e-290f4c04b901", // Diamond Hull
+  "6a1cf9f9-032c-45ec-9b6e-a6680bee32e9", // HyperGrid
 ]);
 
 interface UniformHolder {
