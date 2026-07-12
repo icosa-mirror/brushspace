@@ -756,6 +756,37 @@ describe("brush geometry generation", () => {
     expect(finalWidth).toBeCloseTo(0.27);
   });
 
+  it("honors DuctTapeGeometry distance UV metadata", () => {
+    const entry = findBrushByGuid(
+      inventory,
+      "84d5bbb2-6634-8434-f8a7-681b576b4664",
+    );
+    expect(entry?.geometryParams?.ribbonUvStyle).toBe("distance");
+    if (!entry) {
+      throw new Error("DuctTapeGeometry inventory entry is missing.");
+    }
+    const stroke = createTwoPointStroke({
+      guid: "duct-tape-geometry-distance-uv",
+      brushSize: 1,
+      pressure: 1,
+    });
+    stroke.controlPoints[1].position = [1, 0, 0];
+    stroke.controlPoints.push({
+      ...stroke.controlPoints[1],
+      position: [3, 0, 0],
+      timestampMs: 32,
+    });
+    const geometry = generateBrushGeometry(stroke, entry.geometryFamily, {
+      pressureSizeRange: entry.pressureSizeRange,
+      pressureOpacityRange: entry.pressureOpacityRange,
+      geometryParams: entry.geometryParams,
+      generatorClass: entry.generatorClass,
+    });
+    const initialU = geometry.uvs[0];
+    expect(geometry.uvs[4] - initialU).toBeCloseTo(0.6);
+    expect(geometry.uvs[8] - initialU).toBeCloseTo(1.8);
+  });
+
   it("packs Midpoint lifetime offsets at its source spray interval", () => {
     const stroke = createTwoPointStroke({
       guid: "midpoint-lifetime-particles",
