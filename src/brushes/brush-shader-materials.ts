@@ -226,9 +226,10 @@ export function createBrushShaderMaterialDescriptor(
  * rewrites them to per-view arrays under multiview), so the shader's own
  * declarations must be dropped to avoid duplicate/broken declarations.
  * Derivative functions are core in GLSL ES 3.00, but the exported derivative
- * bump branch currently produces black strokes on Quest hardware. Keep the
- * authored geometric-normal fallback until the bump path has a headset-tested
- * replacement; defining the reserved GL_* extension macro is not legal GLSL.
+ * bump branch produced black strokes on Quest hardware. The guarded replacement
+ * below rejects degenerate derivatives and falls back per fragment instead of
+ * poisoning the whole stroke; defining the reserved GL_* extension macro is not
+ * legal GLSL.
  */
 export type BrushBumpMappingMode = "fallback" | "guarded";
 
@@ -277,7 +278,7 @@ vec3 PerturbNormal(vec3 position, vec3 normal, vec2 uv) {
 
 export function prepareBrushShaderSource(
   source: string,
-  bumpMappingMode: BrushBumpMappingMode = "fallback",
+  bumpMappingMode: BrushBumpMappingMode = "guarded",
 ): string {
   return (
     source

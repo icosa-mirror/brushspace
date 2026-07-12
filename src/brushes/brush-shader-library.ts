@@ -55,12 +55,12 @@ interface UniformHolder {
 
 function resolveRequestedBumpMappingMode(): BrushBumpMappingMode {
   if (typeof window === "undefined") {
-    return "fallback";
+    return "guarded";
   }
   return new URLSearchParams(window.location.search).get("bump-mapping") ===
-    "guarded"
-    ? "guarded"
-    : "fallback";
+    "fallback"
+    ? "fallback"
+    : "guarded";
 }
 
 /**

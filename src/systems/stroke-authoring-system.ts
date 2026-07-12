@@ -347,7 +347,8 @@ export class StrokeAuthoringSystem extends createSystem({
       mode === "diamond-hull" ||
       mode === "smooth-hull" ||
       mode === "concave-hull" ||
-      mode === "print3d"
+      mode === "print3d" ||
+      mode === "oil-paint"
     ) {
       this.runGeometryVisualConformance(mode);
       return;
@@ -391,7 +392,8 @@ export class StrokeAuthoringSystem extends createSystem({
       | "diamond-hull"
       | "smooth-hull"
       | "concave-hull"
-      | "print3d",
+      | "print3d"
+      | "oil-paint",
   ): void {
     const brushGuid =
       mode === "spray"
@@ -424,6 +426,8 @@ export class StrokeAuthoringSystem extends createSystem({
                                   ? "7ae1f880-a517-44a0-99f9-1cab654498c6"
                                   : mode === "print3d"
                                     ? "d3f3b18a-da03-f694-b838-28ba8e749a98"
+                                    : mode === "oil-paint"
+                                      ? "f72ec0e7-a844-4e38-82e3-140c44772699"
         : "70d79cca-b159-4f35-990c-f02193947fe8";
     const material = openBrushShaderLibrary.get(brushGuid);
     const entry = findBrushByGuid(openBrushInventory, brushGuid);
@@ -549,7 +553,8 @@ export class StrokeAuthoringSystem extends createSystem({
         mode === "diamond-hull" ||
         mode === "smooth-hull" ||
         mode === "concave-hull" ||
-        mode === "print3d"
+        mode === "print3d" ||
+        mode === "oil-paint"
         ? "stroke"
         : "particle",
     );
