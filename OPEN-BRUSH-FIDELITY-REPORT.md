@@ -44,7 +44,7 @@ These are engineering estimates, not conformance scores. Brushspace is best desc
 ## What maps well
 
 1. Brush GUIDs, manifest values, shader parameters, textures, descriptor tags, pressure ranges, and several geometry settings are data-driven.
-2. Original Open Brush glTF-export shaders are used instead of replacing everything with generic Three.js materials.
+2. Original Open Brush glTF-export shaders are currently used instead of replacing everything with generic Three.js materials. The intended replacement pipeline is the maintained shader corpus from `icosa-sketch-assets` plus the Three.js bindings from `three-icosa`.
 3. Color, brush GUID, size, scale, flags, seed, group, layer, pose, pressure, and timestamp are represented.
 4. Authoring includes keeper/trailing-point sampling and a pressure-dependent spawn interval.
 5. Non-raw `ShaderMaterial` is a sensible WebXR adaptation because it permits super-three's GLSL3 and multiview rewriting.
@@ -145,6 +145,18 @@ Genius particles share the latter lifecycle/time-conversion gap.
 ### Performance
 
 Finalized strokes remain separate meshes and draw calls, frustum culling is disabled, and active geometry marks full-capacity attributes dirty. `brush-batching.ts` has tests but no production caller. Large Open Brush sketches need pooled material batches, separate dynamic active-stroke buffers, dirty-range uploads, valid culling bounds, and erase/undo compaction.
+
+## Shader dependency strategy
+
+Brushspace should not own a separately extracted and modified shader corpus. The intended source-of-truth split is:
+
+- [`icosa-sketch-assets`](https://github.com/icosa-foundation/icosa-sketch-assets) supplies the maintained Three.js-compatible GLSL and brush textures. Consume those assets without Brushspace-specific shader edits and pin the repository revision used by production and CI.
+- [`three-icosa`](https://github.com/icosa-foundation/three-icosa) supplies brush GUID/name lookup, texture and uniform setup, vertex-attribute binding, render-state selection, and per-frame camera, lighting, fog, and time integration. Use its glTF extension directly for imported glTF sketches.
+- Brushspace retains Open Brush stroke mesh generation and a thin IWSDK adapter. That adapter may select `ShaderMaterial` instead of `RawShaderMaterial`, connect IWSDK/super-three XR multiview state, and supply dynamically generated geometry, but it should not duplicate the brush binding table or fork shader logic.
+- Binding changes that are generally useful should be contributed to `three-icosa`. In particular, material construction needs to be configurable so IWSDK can use a non-raw material while existing consumers retain the current behavior.
+- Dependency updates must be deliberate: record pinned revisions, regenerate or copy distributable assets reproducibly, and run the representative browser/XR image gates before advancing either pin.
+
+This migration does not make the shaders equivalent to the Unity runtime shaders. The maintained web shaders remain ports of Open Brush behavior, and exact fidelity still depends on correct generated vertex contracts, render context, animation inputs, and brush-specific multipass behavior.
 
 ## Material and shader gaps
 
@@ -266,13 +278,16 @@ Exit: tube topology/attributes match Unity and default tubes pass images.
 
 ### Phase 3: materials and shader context (3-6 engineer-weeks, overlaps 1-2)
 
-1. Define a typed vertex-layout registry shared by geometry and shaders.
-2. Preserve texture color/sampler metadata.
-3. Complete render-state mapping and transparent ordering.
-4. Drive lights, fog, time origin, canvas transform, and other globals from the loaded sketch/environment.
-5. Implement real audio-analysis inputs or classify those variants as non-reactive.
-6. Add per-GUID diagnostics and late material upgrades.
-7. Validate bloom/tone mapping on desktop and Quest.
+1. Pin `icosa-sketch-assets` and `three-icosa`, then replace the locally extracted shader/binding pipeline brush family by brush family.
+2. Add or upstream a configurable `three-icosa` material factory so generated IWSDK strokes can use the authoritative bindings with non-raw `ShaderMaterial` and XR multiview support.
+3. Define a typed vertex-layout registry shared by Brushspace geometry and the `three-icosa` binding adapter.
+4. Preserve the authoritative texture color/sampler metadata.
+5. Complete render-state mapping without introducing transparency behavior absent from Open Brush.
+6. Drive lights, fog, time origin, canvas transform, and other globals from the loaded sketch/environment.
+7. Implement real audio-analysis inputs or classify those variants as non-reactive.
+8. Remove the obsolete extracted shader corpus and duplicated binding tables only after all required brushes resolve through the pinned dependencies.
+9. Add per-GUID diagnostics and late material upgrades.
+10. Validate bloom/tone mapping on desktop and Quest.
 
 ### Phase 4: particles (5-8 engineer-weeks)
 
@@ -336,6 +351,7 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 8. Connect batching to production rendering.
 9. Persist the browser/Quest shader compile matrix.
 10. Complete texture transforms and render states; verify guarded normal mapping on physical Quest.
+11. Migrate shader assets to pinned `icosa-sketch-assets` and material bindings to `three-icosa`, keeping only the IWSDK/XR adapter locally.
 
 ## Primary references
 
@@ -349,6 +365,8 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 - [Brush screenshot generator](https://github.com/icosa-foundation/open-brush/blob/4786d55ad398bfc957d8e8eb26438920026aeaf6/Assets/Editor/UiScreenshotter.cs)
 - Open Brush reference corpus path: `Support/Screenshots/postfx-disabled/`
 - [IWSDK](https://iwsdk.dev/) live scene/ECS inspection and browser/XR runtime tools
+- [`icosa-sketch-assets`](https://github.com/icosa-foundation/icosa-sketch-assets) maintained web shader and texture assets
+- [`three-icosa`](https://github.com/icosa-foundation/three-icosa) Three.js Open Brush material extension and bindings
 
 ## Verification note
 
