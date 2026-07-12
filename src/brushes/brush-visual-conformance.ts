@@ -24,6 +24,8 @@ export const BRUSH_VISUAL_CONFORMANCE_SIZE = 256;
 
 export interface BrushVisualConformanceResult extends PixelDifference {
   passed: boolean;
+  bumpCoveredPixelRatio: number;
+  flatCoveredPixelRatio: number;
   bumpPixels: Uint8Array;
   flatPixels: Uint8Array;
 }
@@ -46,6 +48,7 @@ export function runBrushGeometryVisualConformance(
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new BufferAttribute(generated.positions, 3));
   geometry.setAttribute("normal", new BufferAttribute(generated.normals, 3));
+  geometry.setAttribute("tangent", new BufferAttribute(generated.tangents, 4));
   geometry.setAttribute("color", new BufferAttribute(generated.colors, 4));
   geometry.setAttribute("uv", new BufferAttribute(generated.uvs, 2));
   if (generated.packedUvs) {
@@ -141,9 +144,11 @@ export function runBumpVisualConformance(
 ): BrushVisualConformanceResult {
   const bumpMaterial = sourceMaterial.clone();
   const flatMaterial = sourceMaterial.clone();
-  const normalCall =
-    "vec3 normal = PerturbNormal(v_position.xyz, normalize(v_normal), v_texcoord0);";
-  if (!flatMaterial.fragmentShader.includes(normalCall)) {
+  const normalCall = [
+    "vec3 normal = PerturbNormal(v_tangent, v_bitangent, v_normal, v_texcoord0);",
+    "vec3 normal = PerturbNormal(v_position.xyz, normalize(v_normal), v_texcoord0);",
+  ].find((candidate) => flatMaterial.fragmentShader.includes(candidate));
+  if (!normalCall) {
     bumpMaterial.dispose();
     flatMaterial.dispose();
     throw new Error("Open Brush shader no longer contains the expected bump-normal call.");
@@ -190,13 +195,19 @@ export function runBumpVisualConformance(
   }
 
   const difference = compareRgbPixels(bumpPixels, flatPixels);
+  const bumpCoveredPixelRatio = coloredPixelRatio(bumpPixels);
+  const flatCoveredPixelRatio = coloredPixelRatio(flatPixels);
   return {
     ...difference,
     // Both coverage and magnitude matter: this rejects a few unstable edge
     // pixels while catching the former all-flat PerturbNormal fallback.
     passed:
       difference.changedPixelRatio >= 0.05 &&
-      difference.rootMeanSquareDifference >= 1,
+      difference.rootMeanSquareDifference >= 1 &&
+      bumpCoveredPixelRatio >= 0.05 &&
+      flatCoveredPixelRatio >= 0.05,
+    bumpCoveredPixelRatio,
+    flatCoveredPixelRatio,
     bumpPixels,
     flatPixels,
   };
@@ -225,7 +236,7 @@ export function showBumpVisualConformance(
   heading.textContent = `Oil Paint bump A/B: ${result.passed ? "PASS" : "FAIL"}`;
   root.append(heading);
   const details = document.createElement("p");
-  details.textContent = `coverage ${(result.comparedPixelRatio * 100).toFixed(2)}% · changed ${(result.changedPixelRatio * 100).toFixed(2)}% · RMS ${result.rootMeanSquareDifference.toFixed(2)} · mean ${result.meanAbsoluteDifference.toFixed(2)}`;
+  details.textContent = `bump coverage ${(result.bumpCoveredPixelRatio * 100).toFixed(2)}% · flat coverage ${(result.flatCoveredPixelRatio * 100).toFixed(2)}% · changed ${(result.changedPixelRatio * 100).toFixed(2)}% · RMS ${result.rootMeanSquareDifference.toFixed(2)} · mean ${result.meanAbsoluteDifference.toFixed(2)}`;
   root.append(details);
   const row = document.createElement("div");
   row.style.cssText = "display:flex;gap:16px;flex-wrap:wrap";
@@ -249,6 +260,10 @@ function createConformanceQuad(): BufferGeometry {
     new BufferAttribute(new Float32Array([0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1]), 3),
   );
   geometry.setAttribute(
+    "tangent",
+    new BufferAttribute(new Float32Array([1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1]), 4),
+  );
+  geometry.setAttribute(
     "color",
     new BufferAttribute(new Float32Array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]), 4),
   );
@@ -259,6 +274,14 @@ function createConformanceQuad(): BufferGeometry {
   geometry.setIndex([0, 1, 2, 0, 2, 3]);
   applyBrushShaderAttributeAliases(geometry);
   return geometry;
+}
+
+function coloredPixelRatio(pixels: Uint8Array): number {
+  let covered = 0;
+  for (let offset = 0; offset < pixels.length; offset += 4) {
+    covered += Number(pixels[offset] + pixels[offset + 1] + pixels[offset + 2] > 3);
+  }
+  return covered / (pixels.length / 4);
 }
 
 function renderPixels(

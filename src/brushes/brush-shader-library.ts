@@ -29,7 +29,9 @@ import {
   Vector4,
   WebGLRenderer,
 } from "@iwsdk/core";
+import { TiltShaderLoader } from "three-icosa";
 
+import { assetUrl } from "../app/asset-url.js";
 import type { BrushInventoryEntry } from "./brush-inventory.js";
 import {
   openBrushShaderCompatibility,
@@ -48,6 +50,12 @@ import {
   type BrushShaderMaterialDescriptor,
   type BrushBumpMappingMode,
 } from "./brush-shader-materials.js";
+import { createIwsdkTiltMaterial } from "./iwsdk-tilt-material.js";
+
+const AUTHORITATIVE_BRUSH_ASSET_URL = assetUrl(
+  "/openbrush/icosa-brushes/",
+);
+const OIL_PAINT_GUID = "f72ec0e7-a844-4e38-82e3-140c44772699";
 
 interface UniformHolder {
   value: unknown;
@@ -79,6 +87,9 @@ export class BrushShaderLibrary {
   private readonly lightWorld0 = new Matrix4().fromArray(OPENBRUSH_SCENE_LIGHT_0_MATRIX);
   private readonly lightWorld1 = new Matrix4().fromArray(OPENBRUSH_SCENE_LIGHT_1_MATRIX);
   private readonly viewMatrix = new Matrix4();
+  private readonly tiltShaderLoader = new TiltShaderLoader(undefined, {
+    materialFactory: createIwsdkTiltMaterial,
+  }).setPath(AUTHORITATIVE_BRUSH_ASSET_URL);
 
   readonly frameUniforms = {
     u_time: { value: new Vector4(0, 0, 0, 0) },
@@ -237,6 +248,9 @@ export class BrushShaderLibrary {
     options?: { allowAnyGeometry?: boolean },
     targetMaterials: Map<string, ShaderMaterial> = this.materials,
   ): Promise<ShaderMaterial | undefined> {
+    if (entry.guid === OIL_PAINT_GUID) {
+      return this.createAuthoritativeMaterial(entry, targetMaterials);
+    }
     const descriptor = createBrushShaderMaterialDescriptor(entry, options);
     if (!descriptor) {
       return undefined;
@@ -298,6 +312,55 @@ export class BrushShaderLibrary {
     } catch (error) {
       console.warn(
         `OpenBrush shader material for ${descriptor.name} (${entry.guid}) failed to load; using fallback material.`,
+        error,
+      );
+      openBrushShaderCompatibility.record({
+        guid: entry.guid,
+        name: entry.name,
+        context: "asset-load",
+        status: "load-failed",
+        message: toErrorMessage(error),
+      });
+      return undefined;
+    }
+  }
+
+  private async createAuthoritativeMaterial(
+    entry: BrushInventoryEntry,
+    targetMaterials: Map<string, ShaderMaterial>,
+  ): Promise<ShaderMaterial | undefined> {
+    try {
+      let material: ShaderMaterial | undefined;
+      await this.tiltShaderLoader.load(
+        entry.name,
+        (loaded: ShaderMaterial) => {
+          material = loaded;
+        },
+        undefined,
+        undefined,
+      );
+      if (!material) {
+        throw new Error(`three-icosa has no material binding for ${entry.name}`);
+      }
+      for (const [name, holder] of Object.entries(this.frameUniforms)) {
+        material.uniforms[name] = holder;
+      }
+      targetMaterials.set(entry.guid, material);
+      if (targetMaterials === this.materials) {
+        for (const listener of this.materialLoadedListeners) {
+          listener(entry.guid, material);
+        }
+      }
+      openBrushShaderCompatibility.record({
+        guid: entry.guid,
+        name: entry.name,
+        context: "asset-load",
+        status: "ready",
+      });
+      return material;
+    } catch (error) {
+      console.warn(
+        `Authoritative OpenBrush material for ${entry.name} (${entry.guid}) failed to load; using fallback material.`,
         error,
       );
       openBrushShaderCompatibility.record({
