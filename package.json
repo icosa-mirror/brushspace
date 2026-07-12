@@ -39,7 +39,7 @@
     "peerjs": "^1.5.5",
     "three": "npm:super-three@0.181.0",
     "three-icosa": "https://github.com/icosa-foundation/three-icosa/archive/d2f79a4c62330c0f0efc7d2afbd8db9f0dca35ac.tar.gz",
-    "three-tiltloader": "https://github.com/icosa-foundation/three-tiltloader/archive/d19ff1e28b11343f34d6e04f264fdade5524736c.tar.gz"
+    "three-tiltloader": "https://github.com/icosa-foundation/three-tiltloader/archive/e1976437651cec19c2de0a2db576ec35f1743df7.tar.gz"
   },
   "devDependencies": {
     "@iwsdk/cli": "0.4.2",
