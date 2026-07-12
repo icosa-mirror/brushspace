@@ -84,6 +84,9 @@ const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
   "0eb4db27-3f82-408d-b5a1-19ebd7d5b711", // Stars
   "89d104cd-d012-426b-b5b3-bbaee63ac43c", // Bubbles
   "6a1cf9f9-032c-45ec-9b1d-a6680bee30f7", // Dots
+  "0d3889f3-3ede-470c-8af4-de4813306126", // Double Tapered Marker
+  "0d3889f3-3ede-470c-8af4-f44813306126", // Double Tapered Flat
+  "f6e85de3-6dcc-4e7f-87fd-cee8c3d25d51", // Electricity
 ]);
 
 interface UniformHolder {
