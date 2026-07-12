@@ -336,6 +336,8 @@ function createPixelFigure(
 ): HTMLElement {
   const figure = document.createElement("figure");
   const canvas = document.createElement("canvas");
+  canvas.setAttribute("role", "img");
+  canvas.setAttribute("aria-label", label);
   canvas.width = size;
   canvas.height = size;
   canvas.style.cssText = `width:${size}px;max-width:100%;image-rendering:auto;background:#000`;

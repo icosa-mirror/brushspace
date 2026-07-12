@@ -62,16 +62,16 @@ describe("brush conformance fixtures", () => {
 
   it("matches the Open Brush brush-screenshot stroke fixture", () => {
     const points = createOpenBrushScreenshotControlPoints();
-    expect(points).toHaveLength(29);
+    expect(points).toHaveLength(30);
     expect(points[0]).toEqual({
       position: [-1.25, 0, -4],
       orientation: [0, 0, 0, 1],
       pressure: 1,
       timestampMs: 0,
     });
-    expect(points[28].position[0]).toBeCloseTo(1.55);
-    expect(points[28].position[1]).toBeCloseTo(
-      Math.sin(14) * (1 - 2.8 / 3),
+    expect(points[29].position[0]).toBeCloseTo(1.6499994);
+    expect(points[29].position[1]).toBeCloseTo(
+      Math.sin(2.8999994 * 5) * (1 - 2.8999994 / 3),
     );
     expect(OPEN_BRUSH_SCREENSHOT_SHADER_TIME_SECONDS).toBe(0.5);
   });

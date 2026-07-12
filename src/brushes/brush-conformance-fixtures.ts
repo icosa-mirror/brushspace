@@ -107,12 +107,16 @@ export function createBrushConformanceFixtures(): BrushConformanceFixture[] {
 
 /**
  * Matches the stroke drawn by Open Brush's brush screenshot generator.
- * Open Brush creates 30 path transforms and DrawStrokes intentionally omits
+ * Open Brush's float32 loop creates 31 path transforms (the accumulated value
+ * before the final increment is 2.9999993). DrawStrokes intentionally omits
  * the final transform when converting that path to control points.
  */
 export function createOpenBrushScreenshotControlPoints(): ControlPoint[] {
-  return Array.from({ length: 29 }, (_, index) => {
-    const x = index * 0.1;
+  const path: number[] = [];
+  for (let x = Math.fround(0); x < 3; x = Math.fround(x + Math.fround(0.1))) {
+    path.push(x);
+  }
+  return path.slice(0, -1).map((x, index) => {
     return point(
       [-1.25 + x, Math.sin(x * 5) * (1 - x / 3), -4],
       index,
