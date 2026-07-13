@@ -6,7 +6,7 @@ import mkcert from "vite-plugin-mkcert";
 
 export default defineConfig(({ mode }) => ({
   plugins: [
-    ...(mode === "test" || mode === "http" ? [] : [mkcert()]),
+    ...(mode === "test" || mode.endsWith("http") ? [] : [mkcert()]),
     iwsdkDev({
       emulator: {
         device: "metaQuest3",

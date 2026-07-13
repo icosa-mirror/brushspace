@@ -342,8 +342,11 @@ current generator emits.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
 limited to unknown compatibility fallbacks.
-The extracted local corpus remains only for compatibility records and extraction
-diagnostics and should be pruned once those uses are separated.
+Runtime material loading defaults to the immutable approved `icosa-sketch-assets`
+revision on jsDelivr and can be redirected with
+`VITE_ICOSA_BRUSH_ASSET_BASE_URL`. The submodule is retained as a conformance
+source and for the explicit `assets:brushes:mirror`/`build:mirror` self-hosting
+path; ordinary development and production builds no longer copy it.
 
 ### Vertex data is the limiting contract
 
@@ -595,8 +598,8 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
    distributable and render a representative existing sketch. Digital and Race
    retain their dedicated dependency tests; repeat both checks before advancing
    the pin.
-2. Replace the asset submodule path with configurable pinned asset URLs and an
-   optional CI self-host/mirror step.
+2. Implemented: runtime assets use a configurable immutable pinned URL by
+   default, with explicit mirror commands for self-hosted/offline builds.
 3. Implemented: `npm run dev:http` provides a repeatable local HTTP route that
    never invokes CA installation. `npm run test:browser:materials` runs the
    111/111 WebGL compile check and deterministic Oil Paint coverage gate in

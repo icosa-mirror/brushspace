@@ -14,4 +14,4 @@ if (!existsSync(source)) {
 
 rmSync(target, { recursive: true, force: true });
 cpSync(source, target, { recursive: true });
-console.log("Copied pinned icosa-sketch-assets brush assets.");
+console.log("Mirrored pinned icosa-sketch-assets brush assets for self-hosting.");

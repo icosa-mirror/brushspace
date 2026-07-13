@@ -10,10 +10,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "assets:brushes": "node scripts/sync-icosa-brush-assets.mjs",
-    "predev": "npm run assets:brushes",
+    "assets:brushes:mirror": "node scripts/sync-icosa-brush-assets.mjs",
     "dev": "iwsdk dev up --open --foreground",
     "dev:http": "vite --mode http --host 127.0.0.1 --port 8081 --open false --force",
+    "dev:http:mirror": "npm run assets:brushes:mirror && vite --mode mirror-http --host 127.0.0.1 --port 8081 --open false --force",
     "dev:runtime": "vite",
     "dev:down": "iwsdk dev down",
     "dev:status": "iwsdk dev status",
@@ -29,8 +29,8 @@
     "test:browser:materials": "node scripts/browser-material-smoke.mjs",
     "test:browser": "node scripts/runtime-check.mjs browser",
     "test:xr": "node scripts/runtime-check.mjs xr",
-    "prebuild": "npm run assets:brushes",
     "build": "vite build",
+    "build:mirror": "npm run assets:brushes:mirror && vite build --mode mirror",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -31,8 +31,8 @@ import {
 } from "@iwsdk/core";
 import { TiltShaderLoader } from "three-icosa";
 
-import { assetUrl } from "../app/asset-url.js";
 import type { BrushInventoryEntry } from "./brush-inventory.js";
+import { resolveBrushAssetBaseUrl } from "./brush-asset-base-url.js";
 import {
   openBrushShaderCompatibility,
   type BrushShaderCompatibilityContext,
@@ -53,9 +53,7 @@ import {
 } from "./brush-shader-materials.js";
 import { createIwsdkTiltMaterial } from "./iwsdk-tilt-material.js";
 
-const AUTHORITATIVE_BRUSH_ASSET_URL = assetUrl(
-  "/openbrush/icosa-brushes/",
-);
+const AUTHORITATIVE_BRUSH_ASSET_URL = resolveBrushAssetBaseUrl();
 const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
   "f72ec0e7-a844-4e38-82e3-140c44772699", // Oil Paint
   "f5c336cf-5108-4b40-ade9-c687504385ab", // Ink
