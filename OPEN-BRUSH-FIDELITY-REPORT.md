@@ -254,9 +254,9 @@ and 4D UV1 corner-offset/birth-time contract. Midpoint preview rebuilds restart
 that salt layout from the rebuilt knot indices rather than carrying the
 decayed-knot offset used by Spray and Genius. Unlike Spray and Genius, Midpoint
 retains GeometryBrush's distance-smoothed pressure for live keeper spacing,
-spawn count, size, and opacity. The approved DanceFloor shader still requests
-an `a_timestamp` attribute that the generator does not emit; its lifetime
-color/normal pulse is therefore a known generated-mesh contract gap.
+spawn count, size, and opacity. DanceFloor now exposes the generated UV1 birth
+time through the scalar `a_timestamp` binding used by its maintained shader,
+restoring its lifetime color/normal pulse input.
 WaveformParticles retains its birth-time-driven curl displacement.
 HyperGrid now reproduces
 Unity's lifetime-dependent transition from its fine birth grid to its

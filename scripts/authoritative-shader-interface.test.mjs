@@ -69,6 +69,7 @@ function emittedVertexAttributes(entry) {
     );
   } else if (entry.generatorClass === "MidpointPlusLifetimeSprayBrush") {
     attributes.set("a_texcoord1", 4);
+    attributes.set("a_timestamp", 1);
   }
   return attributes;
 }
@@ -90,7 +91,6 @@ const requiredBrushes = requiredOpenBrushes.map((entry) => [
 
 const knownGeneratedMeshContractGaps = new Map([
   ["LeakyPen", ["a_texcoord1: active vertex input is not emitted"]],
-  ["DanceFloor", ["a_timestamp: active vertex input is not emitted"]],
 ]);
 
 function resolveShaderPair(name) {
