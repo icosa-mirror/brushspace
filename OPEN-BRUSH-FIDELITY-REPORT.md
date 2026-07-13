@@ -44,7 +44,7 @@ These are engineering estimates, not conformance scores. Brushspace is best desc
 ## What maps well
 
 1. Brush GUIDs, manifest values, shader parameters, textures, descriptor tags, pressure ranges, and several geometry settings are data-driven.
-2. All 95 required brushes currently resolve materials through pinned `icosa-sketch-assets` and `three-icosa` revisions, and `three-tiltloader` supplies the reusable mesh generators. The current Brushspace pins still point at quarantined integration revisions and must be moved back to the trusted dependency baselines described below. The intended local material adapter is limited to IWSDK-compatible material construction, frame uniforms, diagnostics, and compatibility-only fallbacks.
+2. All 95 required brushes currently resolve materials through pinned `icosa-sketch-assets` and `three-icosa` revisions, and `three-tiltloader` supplies the reusable mesh generators. The current Brushspace pins use the reviewed dependency revisions described below; quarantined integration branches are excluded. The intended local material adapter is limited to IWSDK-compatible material construction, frame uniforms, diagnostics, and compatibility-only fallbacks.
 3. Color, brush GUID, size, scale, flags, seed, group, layer, pose, pressure, and timestamp are represented.
 4. Authoring includes keeper/trailing-point sampling and a pressure-dependent spawn interval.
 5. Non-raw `ShaderMaterial` is a sensible WebXR adaptation because it permits super-three's GLSL3 and multiview rewriting.
@@ -316,9 +316,9 @@ branches. They are not approved pins.
   tests and Brushspace browser rendering pass. The earlier exact
   `three-icosa@ab2cd19` distributable was also built into `gallery-viewer` and
   used there to load and render an existing sketch. The `gallery-viewer`
-  `build:local` path builds against the preceding `b405813` distributable and
-  copies it byte-for-byte; repeat the rendered-sketch check before treating the
-  new pin as fully advanced.
+  `build:local` path also builds against `b398f64` and copies its distributable
+  byte-for-byte. Repeat the rendered-sketch check before treating the new pin as
+  fully advanced.
 - Approved `three-tiltloader` revision: `a60b1ec`, based on `5b610c0`. It pins
   the approved `three-icosa` revision without changing the loader API or mesh
   generation. Current trusted `three-tiltloader` work remains the place for reusable live
@@ -620,9 +620,9 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 
 1. In progress: the exact `three-icosa@ab2cd19` distributable was built into
    `gallery-viewer` and used to render a representative existing sketch. The
-   downstream `build:local` path passes with alias-correction revision `b405813`
-   and copies that distributable byte-for-byte. Repeat both the build and rendered-
-   sketch checks against current culling revision `b398f64`.
+   downstream `build:local` path passes with current culling revision `b398f64`
+   and copies that distributable byte-for-byte. The rendered-sketch check remains
+   pending against that revision.
    Digital and Race retain their dedicated dependency tests.
 2. Implemented: runtime assets use a configurable immutable pinned URL by
    default, with explicit mirror commands for self-hosted/offline builds.
