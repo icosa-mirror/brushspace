@@ -173,6 +173,16 @@ describe("authoritative required-brush shader interfaces", () => {
     },
   );
 
+  it("preserves Space simplex FBM", () => {
+    const shader = readShaderPair("Space").fragment;
+
+    expect(shader).toContain("float snoise(vec2 v)");
+    expect(shader).toContain("float snoise(vec3 v)");
+    expect(shader).toContain("for (int i = 0; i < 6; i++)");
+    expect(shader).toContain("amplitude *= 0.516");
+    expect(shader).not.toContain("float noise(vec2 p)");
+  });
+
   it.each(requiredBrushes)(
     "$0.name links active fragment varyings to its vertex stage",
     (entry, record) => {

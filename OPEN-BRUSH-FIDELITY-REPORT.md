@@ -145,6 +145,9 @@ distance/stretch UVs restarted per section. Important remaining differences are:
   stroke color and discard texture/stroke alpha below the material cutoff,
   matching their Unity `DiffuseSingleSided` surface shader instead of drawing
   every fragment opaque.
+- Space now uses the Unity shader's 2D/3D simplex-noise basis and six-octave
+  `0.516`-persistence FBM instead of the maintained web shader's three-octave
+  value-noise substitute.
 - Toon now recreates its radius-packed, front-culled black outline pass. Its
   blue surface remains too narrow against the Unity reference, so exact tube
   radius/topology is still required.
@@ -294,7 +297,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
 All required material lookups now use the maintained dependency path. The pinned
-revisions at this milestone are `icosa-sketch-assets@187c23a`,
+revisions at this milestone are `icosa-sketch-assets@8c8cae5`,
 `three-icosa@d88b16d`, and `three-tiltloader@6703dc7`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
