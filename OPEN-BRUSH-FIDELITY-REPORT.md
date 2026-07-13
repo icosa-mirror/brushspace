@@ -220,10 +220,11 @@ A DanceFloor pixel gate rejects empty or black output. HyperGrid now reproduces
 Unity's lifetime-dependent transition from its fine birth grid to its
 particle-size grid; its additional audio-reactive behavior remains absent. Finalized loaded
 Midpoint and Genius particle strokes now use Open Brush's deterministic zero
-birth time, while live-authored strokes retain their sampled timestamps.
-Preview decay, imported-sketch phase policy, and fixture validation of the
-sketch-time-to-level-time conversion remain open. Genius particles share that
-lifecycle/time-conversion gap.
+birth time, while live-authored strokes retain timestamps in the same
+level-relative time domain supplied to shader `u_time`. Preview decay uses that
+same origin through its accumulated frame deltas. Imported sketches therefore
+retain Open Brush's zero-birth animation policy without inheriting an arbitrary
+browser/system clock offset.
 
 ### Performance
 

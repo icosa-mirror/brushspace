@@ -253,6 +253,7 @@ export class StrokeAuthoringSystem extends createSystem({
   private readonly previewPointPool: ControlPoint[] = [];
   private readonly previewBirths: number[] = [];
   private previewClock = 0;
+  private levelTimeOriginSeconds: number | undefined;
   private readonly previewWorldPosition = new Vector3();
   private readonly previewWorldQuaternion = new Quaternion();
   private readonly previewPoseQuaternion = new Quaternion();
@@ -654,7 +655,8 @@ export class StrokeAuthoringSystem extends createSystem({
   }
 
   update(_delta: number, time: number) {
-    openBrushShaderLibrary.updateFrame(time, this.camera);
+    const levelTime = this.toLevelTimeSeconds(time);
+    openBrushShaderLibrary.updateFrame(levelTime, this.camera);
 
     const commandEntity = this.getFirstEntity("commands");
     if (!commandEntity) {
@@ -774,13 +776,13 @@ export class StrokeAuthoringSystem extends createSystem({
       this.clearPanelFocusStatus(appStateEntity, activeTool);
       const pressure = Number(commandEntity.getValue(InputCommandState, "pressure"));
       if (!this.activeStroke) {
-        this.startStroke(commandEntity, time, pressure);
+        this.startStroke(commandEntity, levelTime, pressure);
       } else if (this.activeStroke.samplingMode === "straightedge") {
-        this.sampleStraightedgeStroke(time, pressure);
+        this.sampleStraightedgeStroke(levelTime, pressure);
       } else if (this.activeStroke.samplingMode === "tape") {
-        this.sampleTapeStroke(time, pressure);
+        this.sampleTapeStroke(levelTime, pressure);
       } else {
-        this.sampleActiveStroke(time, pressure, false);
+        this.sampleActiveStroke(levelTime, pressure, false);
       }
     } else if (paintBlockReason === "panel") {
       this.setPanelFocusStatus(appStateEntity, activeTool);
@@ -791,6 +793,16 @@ export class StrokeAuthoringSystem extends createSystem({
     }
 
     this.updateHistoryState();
+  }
+
+  private toLevelTimeSeconds(time: number): number {
+    if (!Number.isFinite(time)) {
+      return 0;
+    }
+    if (this.levelTimeOriginSeconds === undefined) {
+      this.levelTimeOriginSeconds = time;
+    }
+    return Math.max(0, time - this.levelTimeOriginSeconds);
   }
 
   private isHoveringPanel(): boolean {
