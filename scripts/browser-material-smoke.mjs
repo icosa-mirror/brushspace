@@ -74,6 +74,14 @@ try {
   if (visualStatus !== "pass") {
     throw new Error(`Oil Paint visual coverage gate reported ${visualStatus}.`);
   }
+  const textureStatus = await page.evaluate(
+    () => document.documentElement.dataset.brushTextureSettings,
+  );
+  if (textureStatus !== "pass") {
+    throw new Error(
+      `Oil Paint texture importer settings reported ${textureStatus ?? "missing"}.`,
+    );
+  }
 
   const compatibility = await page.evaluate((storageKey) => {
     const value = localStorage.getItem(storageKey);
@@ -102,7 +110,7 @@ try {
   }
 
   console.log(
-    `Browser material smoke passed: ${counts[1]}/${counts[2]} compiled; Oil Paint coverage passed.`,
+    `Browser material smoke passed: ${counts[1]}/${counts[2]} compiled; Oil Paint coverage and texture settings passed.`,
   );
 } catch (error) {
   if (serverOutput.trim()) {

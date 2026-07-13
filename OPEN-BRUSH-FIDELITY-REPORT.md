@@ -307,19 +307,25 @@ branches. They are not approved pins.
   The rejected `a_texcoord1.w` corner index from `9e7f3a5` is not present because
   active UnityGLTF UV1 export truncates that component and the binding layer does
   not synthesize it.
-- Approved `three-icosa` revision: `ab2cd19`, based on trusted baseline
-  `1a738b8`. It contains package exports and declarations, an opt-in material
+- Approved `three-icosa` revision: `2627659`, based on trusted revision
+  `ab2cd19`. It retains package exports and declarations, the opt-in material
   factory whose default remains `RawShaderMaterial`, and the Digital/Race
-  bindings. Package tests and Brushspace browser rendering pass; an exact-checkout
-  The exact `three-icosa@ab2cd19` distributable has also been built into
-  `gallery-viewer` and used there to load and render an existing sketch. Repeat
-  that downstream check before the next pin advance.
-- Current trusted `three-tiltloader` work remains the place for reusable live
+  bindings. It applies generated authoritative color-space and sampler metadata
+  by default for every known brush texture; an optional texture configurator
+  runs afterward as an override, not as the source of correct defaults. Package
+  tests and Brushspace browser rendering pass. The earlier exact
+  `three-icosa@ab2cd19` distributable was also built into `gallery-viewer` and
+  used there to load and render an existing sketch. The `gallery-viewer`
+  `build:local` path now also builds against the exact `2627659` distributable;
+  repeat the rendered-sketch check before treating the new pin as fully advanced.
+- Approved `three-tiltloader` revision: `0ae16bb`, based on `5b610c0`. It pins
+  the approved `three-icosa` revision without changing the loader API or mesh
+  generation. Current trusted `three-tiltloader` work remains the place for reusable live
   mesh generation. Changes there must reproduce the established Open Brush
   export contract rather than require shaders to understand a new
   Brushspace-only layout.
 
-Brushspace pins those approved revisions through `three-tiltloader@5b610c0`.
+Brushspace pins those approved revisions through `three-tiltloader@0ae16bb`.
 The quarantined integration branches remain diagnostic references only.
 
 This migration does not make the shaders equivalent to the Unity runtime shaders. The maintained web shaders remain ports of Open Brush behavior, and exact fidelity still depends on correct generated vertex contracts, render context, animation inputs, and brush-specific multipass behavior.
@@ -333,8 +339,8 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
 All required material lookups use the maintained dependency path. Brushspace
-pins `icosa-sketch-assets@555b90a`, `three-icosa@ab2cd19`, and
-`three-tiltloader@5b610c0`. Browser smoke testing reports 111/111 materials
+pins `icosa-sketch-assets@555b90a`, `three-icosa@2627659`, and
+`three-tiltloader@0ae16bb`. Browser smoke testing reports 111/111 materials
 loaded with no shader compile errors; Oil Paint links with its 1024x1024 normal
 texture bound. Dependency provenance and successful compilation establish source
 ownership and browser-render eligibility; they do not establish Unity image
@@ -406,7 +412,10 @@ Records contain tile rate, atlas count, backface settings, radius packing, opaci
 Extraction and loading preserve sRGB/linear intent, per-axis wrapping, filter mode,
 mipmap generation, and anisotropy, and runtime `_TexelSize` uniforms now use the
 actual loaded image dimensions. The trusted `three-icosa` path supplies authored
-texture scale/offset uniforms; compression/transcoding, platform overrides, and
+texture scale/offset uniforms and applies generated Unity color-space, wrapping,
+mipmap, filter, and anisotropy settings as loader defaults for all consumers.
+Brushspace applies the same extracted metadata only on its non-authoritative
+fallback material path. Compression/transcoding, platform overrides, mip bias, and
 full Unity alpha/import semantics remain unported.
 The exported derivative bump branch made lit brushes render entirely black on
 physical Quest hardware. A guarded replacement is now the default: it clamps
@@ -474,8 +483,9 @@ Suggested gates:
 
 1. Resolve the `9e7f3a5` indexed-particle audit, construct an approved
    `icosa-sketch-assets` revision from the safe baseline plus the independently
-   retained Digital/Race and legacy-directory cleanup changes, and repin
-   `three-icosa@1a738b8`. Retain quarantined revisions only as diagnostic
+   retained Digital/Race and legacy-directory cleanup changes, and advance
+   `three-icosa` only through separately reviewed backward-compatible changes.
+   Retain quarantined revisions only as diagnostic
    references. Record the exact dependency and asset URL revisions used by CI
    and production.
 2. Replace the source-tree asset submodule/copy assumption with a configurable
@@ -601,10 +611,11 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 
 ## Immediate backlog
 
-1. Implemented: build `gallery-viewer` against the exact `three-icosa@ab2cd19`
-   distributable and render a representative existing sketch. Digital and Race
-   retain their dedicated dependency tests; repeat both checks before advancing
-   the pin.
+1. In progress: the exact `three-icosa@ab2cd19` distributable was built into
+   `gallery-viewer` and used to render a representative existing sketch. The
+   downstream `build:local` path passes with current approved revision `2627659`
+   and copies that distributable byte-for-byte; repeat the rendered-sketch check.
+   Digital and Race retain their dedicated dependency tests.
 2. Implemented: runtime assets use a configurable immutable pinned URL by
    default, with explicit mirror commands for self-hosted/offline builds.
 3. Implemented: `npm run dev:http` provides a repeatable local HTTP route that
@@ -626,7 +637,9 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
     particle attributes; do not add Brushspace-specific shader inputs.
 11. Connect batching to production rendering.
 12. Persist the browser/Quest shader compile matrix.
-13. Complete texture transforms and render states; verify guarded normal mapping on physical Quest.
+13. Implemented: preserve trusted texture transforms, render states, and
+    extracted importer sampler/color-space settings. Guarded normal
+    mapping still requires verification on physical Quest.
 14. Move reusable `.tilt` parsing and mesh generators into `three-tiltloader` family by family, switching Brushspace to each upstream implementation before deleting its local copy.
 
 ## Primary references

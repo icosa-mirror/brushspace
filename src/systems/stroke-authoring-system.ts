@@ -16,7 +16,7 @@ import {
   VisibilityState,
   createSystem,
 } from "@iwsdk/core";
-import type { Entity, Material } from "@iwsdk/core";
+import type { Entity, Material, Texture } from "@iwsdk/core";
 
 import {
   BrushPointer,
@@ -72,6 +72,7 @@ import {
   OPEN_BRUSH_SCREENSHOT_SHADER_TIME_SECONDS,
 } from "../brushes/brush-conformance-fixtures.js";
 import { openBrushShaderCompatibility } from "../brushes/brush-shader-compatibility.js";
+import { matchesBrushTextureImporterSettings } from "../brushes/brush-texture-settings.js";
 import {
   applyBrushRenderGroups,
   createBrushRenderMaterial,
@@ -481,6 +482,15 @@ export class StrokeAuthoringSystem extends createSystem({
       );
       document.documentElement.dataset.brushVisualConformance = "fail";
       return;
+    }
+    const mainTextureImporter = entry.shaderAssets?.textureImporters.MainTex;
+    const mainTexture = material.uniforms.u_MainTex?.value as Texture | undefined;
+    if (mainTextureImporter) {
+      document.documentElement.dataset.brushTextureSettings =
+        mainTexture &&
+        matchesBrushTextureImporterSettings(mainTexture, mainTextureImporter)
+          ? "pass"
+          : "fail";
     }
     const stroke = createEmptyStrokeData({
       guid: "brush-visual-conformance-smoke",

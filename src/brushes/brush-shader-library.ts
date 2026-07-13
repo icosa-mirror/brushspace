@@ -4,27 +4,17 @@ import {
   BufferAttribute,
   BufferGeometry,
   Camera,
-  ClampToEdgeWrapping,
   CustomBlending,
   DoubleSide,
   FrontSide,
   Group,
-  LinearFilter,
-  LinearMipmapLinearFilter,
-  LinearMipmapNearestFilter,
   Matrix4,
   Mesh,
-  MirroredRepeatWrapping,
-  NearestFilter,
-  NearestMipmapNearestFilter,
-  NoColorSpace,
   NormalBlending,
   OneFactor,
   ShaderMaterial,
-  RepeatWrapping,
   Scene,
   Texture,
-  SRGBColorSpace,
   Vector3,
   Vector4,
   WebGLRenderer,
@@ -53,6 +43,7 @@ import {
   type BrushBumpMappingMode,
 } from "./brush-shader-materials.js";
 import { createIwsdkTiltMaterial } from "./iwsdk-tilt-material.js";
+import { applyBrushTextureImporterSettings } from "./brush-texture-settings.js";
 
 const AUTHORITATIVE_BRUSH_ASSET_URL = resolveBrushAssetBaseUrl();
 const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
@@ -573,54 +564,11 @@ async function loadBrushTextures(
     descriptor.textures.map(async ({ uniform, url, importer }) => {
       const texture = await AssetManager.loadTexture(url);
       texture.flipY = false;
-      texture.colorSpace = importer?.sRGB ? SRGBColorSpace : NoColorSpace;
-      texture.wrapS = resolveBrushTextureWrapping(importer?.wrapU);
-      texture.wrapT = resolveBrushTextureWrapping(importer?.wrapV);
-      texture.generateMipmaps = importer?.mipmaps ?? true;
-      texture.magFilter = importer?.filter === "point" ? NearestFilter : LinearFilter;
-      texture.minFilter = resolveBrushTextureMinFilter(
-        importer?.filter,
-        texture.generateMipmaps,
-      );
-      texture.anisotropy = importer?.anisotropy ?? 1;
-      texture.needsUpdate = true;
+      applyBrushTextureImporterSettings(texture, importer);
       return [uniform, texture] as const;
     }),
   );
   return new Map(loaded);
-}
-
-export function resolveBrushTextureWrapping(
-  mode: "repeat" | "clamp" | "mirror" | "mirror-once" | undefined,
-) {
-  switch (mode) {
-    case "clamp":
-      return ClampToEdgeWrapping;
-    case "mirror":
-    case "mirror-once":
-      // WebGL has no mirror-once sampler mode; mirrored repeat preserves the
-      // mirrored edge behavior without silently falling back to repeat.
-      return MirroredRepeatWrapping;
-    default:
-      return RepeatWrapping;
-  }
-}
-
-export function resolveBrushTextureMinFilter(
-  filter: "point" | "bilinear" | "trilinear" | undefined,
-  mipmaps: boolean,
-) {
-  if (!mipmaps) {
-    return filter === "point" ? NearestFilter : LinearFilter;
-  }
-  switch (filter) {
-    case "point":
-      return NearestMipmapNearestFilter;
-    case "trilinear":
-      return LinearMipmapLinearFilter;
-    default:
-      return LinearMipmapNearestFilter;
-  }
 }
 
 /**
