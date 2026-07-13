@@ -1232,6 +1232,7 @@ export class StrokeAuthoringSystem extends createSystem({
         deterministicBirthTime: stroke.deterministicParticleBirthTime,
         particleKnotIndexOffset: stroke.particleKnotIndexOffset,
         particleDistanceOffset: stroke.particleDistanceOffset,
+        particlePreview: stroke === this.previewTrail,
         finalized: stroke.geometryFinalized,
         lastControlPointIsKeeper:
           stroke.samplingMode === "freehand" ? stroke.lastPointIsKeeper : true,
