@@ -44,21 +44,38 @@ function isUsed(source, name) {
 }
 
 function emittedVertexAttributes(entry) {
-  const attributes = new Set([
-    "a_position",
-    "a_normal",
-    "a_color",
-    "a_texcoord0",
-    "a_tangent",
+  const uv0Components =
+    entry.generatorClass === "GeniusParticlesBrush"
+      ? 4
+      : entry.geometryParams?.tubeStoreRadiusInTexcoord0Z === true ||
+          entry.geometryFamily === "hull" ||
+          entry.geometryFamily === "concave-hull"
+        ? 3
+        : 2;
+  const attributes = new Map([
+    ["a_position", 3],
+    ["a_normal", 3],
+    ["a_color", 4],
+    ["a_texcoord0", uv0Components],
+    ["a_tangent", 4],
   ]);
   if (
     entry.geometryParams?.ribbonOffsetInTexcoord1 === true ||
-    entry.generatorClass === "GeniusParticlesBrush" ||
-    entry.generatorClass === "MidpointPlusLifetimeSprayBrush"
+    entry.generatorClass === "GeniusParticlesBrush"
   ) {
-    attributes.add("a_texcoord1");
+    attributes.set(
+      "a_texcoord1",
+      entry.generatorClass === "GeniusParticlesBrush" ? 4 : 3,
+    );
+  } else if (entry.generatorClass === "MidpointPlusLifetimeSprayBrush") {
+    attributes.set("a_texcoord1", 4);
   }
   return attributes;
+}
+
+function componentCount(type) {
+  const vector = /^vec([234])$/.exec(type);
+  return vector ? Number(vector[1]) : type === "float" ? 1 : undefined;
 }
 
 const authoritativeFolders = fs
@@ -131,7 +148,7 @@ describe("authoritative required-brush shader interfaces", () => {
       }
 
       const emittedAttributes = emittedVertexAttributes(entry);
-      for (const name of vertexInputs.keys()) {
+      for (const [name, type] of vertexInputs) {
         const newerExporterFallback =
           vertexSource.includes("u_isNewTiltExporter") &&
           (name === "a_texcoord2" ||
@@ -140,10 +157,23 @@ describe("authoritative required-brush shader interfaces", () => {
         if (
           name.startsWith("a_") &&
           isUsed(vertexSource, name) &&
-          !newerExporterFallback &&
-          !emittedAttributes.has(name)
+          !newerExporterFallback
         ) {
-          mismatches.push(`${name}: active vertex input is not emitted`);
+          const emittedComponents = emittedAttributes.get(name);
+          if (emittedComponents === undefined) {
+            mismatches.push(`${name}: active vertex input is not emitted`);
+            continue;
+          }
+          const requiredComponents = componentCount(type);
+          if (
+            name !== "a_position" &&
+            requiredComponents !== undefined &&
+            emittedComponents < requiredComponents
+          ) {
+            mismatches.push(
+              `${name}: shader needs ${requiredComponents} components, geometry emits ${emittedComponents}`,
+            );
+          }
         }
       }
 
