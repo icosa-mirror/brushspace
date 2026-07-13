@@ -161,14 +161,17 @@ describe("authoritative required-brush shader interfaces", () => {
     expect(shader).toContain("v_color.rgb += a_normal.y * 0.2");
   });
 
-  it("preserves SingleSided diffuse texture cutout", () => {
-    const shader = readShaderPair("SingleSided").fragment;
+  it.each(["SingleSided", "DoubleFlat"])(
+    "preserves %s diffuse texture cutout",
+    (brushName) => {
+      const shader = readShaderPair(brushName).fragment;
 
-    expect(shader).toContain("vec4 tex = texture(u_MainTex, v_texcoord0)");
-    expect(shader).toContain("float brushMask = tex.a * v_color.a");
-    expect(shader).toContain("if (brushMask <= u_Cutoff)");
-    expect(shader).toContain("computeLighting(tex.rgb * v_color.rgb)");
-  });
+      expect(shader).toContain("vec4 tex = texture(u_MainTex, v_texcoord0)");
+      expect(shader).toContain("float brushMask = tex.a * v_color.a");
+      expect(shader).toContain("if (brushMask <= u_Cutoff)");
+      expect(shader).toContain("computeLighting(tex.rgb * v_color.rgb)");
+    },
+  );
 
   it.each(requiredBrushes)(
     "$0.name links active fragment varyings to its vertex stage",
