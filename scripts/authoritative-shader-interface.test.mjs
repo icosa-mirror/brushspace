@@ -149,7 +149,7 @@ describe("authoritative required-brush shader interfaces", () => {
     );
   });
 
-  it("keeps TubeToonInverted outline width in scene space", () => {
+  it("preserves TubeToonInverted vertex behavior", () => {
     const shader = readShaderPair("TubeToonInverted").vertex;
 
     expect(shader).toContain(
@@ -158,6 +158,7 @@ describe("authoritative required-brush shader interfaces", () => {
     expect(shader).toContain(
       "u_TubeToonOutlineSize / max(normalScale, 1e-6)",
     );
+    expect(shader).toContain("v_color.rgb += a_normal.y * 0.2");
   });
 
   it.each(requiredBrushes)(
