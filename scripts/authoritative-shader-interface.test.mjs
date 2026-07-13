@@ -43,6 +43,24 @@ function isUsed(source, name) {
   return new RegExp(`\\b${name}\\b`).test(uncommented);
 }
 
+function emittedVertexAttributes(entry) {
+  const attributes = new Set([
+    "a_position",
+    "a_normal",
+    "a_color",
+    "a_texcoord0",
+    "a_tangent",
+  ]);
+  if (
+    entry.geometryParams?.ribbonOffsetInTexcoord1 === true ||
+    entry.generatorClass === "GeniusParticlesBrush" ||
+    entry.generatorClass === "MidpointPlusLifetimeSprayBrush"
+  ) {
+    attributes.add("a_texcoord1");
+  }
+  return attributes;
+}
+
 const authoritativeFolders = fs
   .readdirSync(authoritativeRoot, { withFileTypes: true })
   .filter((entry) => entry.isDirectory() && entry.name !== "legacy")
@@ -96,6 +114,7 @@ describe("authoritative required-brush shader interfaces", () => {
       const vertexSource = fs.readFileSync(vertexPath, "utf8");
       const fragmentSource = fs.readFileSync(fragmentPath, "utf8");
       const vertexOutputs = declarations(vertexSource, "out");
+      const vertexInputs = declarations(vertexSource, "in");
       const fragmentInputs = declarations(fragmentSource, "in");
       const mismatches = [];
 
@@ -108,6 +127,23 @@ describe("authoritative required-brush shader interfaces", () => {
           mismatches.push(
             `${name}: fragment ${fragmentType}, vertex ${vertexType ?? "missing"}`,
           );
+        }
+      }
+
+      const emittedAttributes = emittedVertexAttributes(entry);
+      for (const name of vertexInputs.keys()) {
+        const newerExporterFallback =
+          vertexSource.includes("u_isNewTiltExporter") &&
+          (name === "a_texcoord2" ||
+            (name === "a_texcoord1" &&
+              entry.geometryParams?.tubeStoreRadiusInTexcoord0Z === true));
+        if (
+          name.startsWith("a_") &&
+          isUsed(vertexSource, name) &&
+          !newerExporterFallback &&
+          !emittedAttributes.has(name)
+        ) {
+          mismatches.push(`${name}: active vertex input is not emitted`);
         }
       }
 

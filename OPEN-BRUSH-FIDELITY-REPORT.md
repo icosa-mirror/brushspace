@@ -264,7 +264,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
 All required material lookups now use the maintained dependency path. The pinned
-revisions at this milestone are `icosa-sketch-assets@2a949c3`,
+revisions at this milestone are `icosa-sketch-assets@da2844e`,
 `three-icosa@67b30b4`, and `three-tiltloader@1644547`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
