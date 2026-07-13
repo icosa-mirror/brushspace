@@ -165,6 +165,8 @@ differences are:
 - A break-delimited Tube section now rebuilds its retained back ring from the
   following valid knot's frame, matching the source rather than retaining the
   broken incoming segment's orientation.
+- Distance-UV Tube sections now restart their deterministic atlas row at each
+  break, and each end cap inherits the V range of its own ring.
 - Finalized Tube knot centers use the source three-point smoothing filter;
   incremental adjacent-knot rebuild semantics remain absent.
 - Sin, comet, taper, petal, and double-taper modifier progress now restarts for
@@ -271,7 +273,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@da2844e`,
-`three-icosa@d88b16d`, and `three-tiltloader@0eab3ba`. This establishes source
+`three-icosa@d88b16d`, and `three-tiltloader@98cd9d5`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
