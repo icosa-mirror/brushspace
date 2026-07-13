@@ -614,6 +614,7 @@ describe("brush geometry generation", () => {
     stroke.controlPoints[1].position = [0.1, 0, 0];
     const options = {
       generatorClass: "GeniusParticlesBrush",
+      finalized: true,
       pressureSizeRange: [0.2, 1] as const,
       geometryParams: {
         brushSizeRange: [1, 2] as [number, number],
@@ -865,6 +866,7 @@ describe("brush geometry generation", () => {
 
     const geometry = generateBrushGeometry(stroke, "particle", {
       generatorClass: "GeniusParticlesBrush",
+      finalized: true,
       pressureSizeRange: [0.2, 1],
       geometryParams: {
         brushSizeRange: [1, 2],
