@@ -141,6 +141,9 @@ distance/stretch UVs restarted per section. Important remaining differences are:
 - DoubleTapered and Electricity now consume the emitted edge-vector layout.
   Electricity also recreates the Unity shader's three displacement passes;
   exact `FlatGeometryBrush` smoothing/topology remains open.
+- SingleSided now applies its authored diffuse texture to stroke color and
+  discards texture/stroke alpha below the material cutoff, matching its Unity
+  `DiffuseSingleSided` surface shader instead of drawing every fragment opaque.
 - Toon now recreates its radius-packed, front-culled black outline pass. Its
   blue surface remains too narrow against the Unity reference, so exact tube
   radius/topology is still required.
@@ -290,7 +293,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
 All required material lookups now use the maintained dependency path. The pinned
-revisions at this milestone are `icosa-sketch-assets@c042314`,
+revisions at this milestone are `icosa-sketch-assets@531f151`,
 `three-icosa@d88b16d`, and `three-tiltloader@6703dc7`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
