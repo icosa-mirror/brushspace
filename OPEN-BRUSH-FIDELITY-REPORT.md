@@ -307,7 +307,7 @@ branches. They are not approved pins.
   The rejected `a_texcoord1.w` corner index from `9e7f3a5` is not present because
   active UnityGLTF UV1 export truncates that component and the binding layer does
   not synthesize it.
-- Approved `three-icosa` revision: `2627659`, based on trusted revision
+- Approved `three-icosa` revision: `b405813`, based on trusted revision
   `ab2cd19`. It retains package exports and declarations, the opt-in material
   factory whose default remains `RawShaderMaterial`, and the Digital/Race
   bindings. It applies generated authoritative color-space and sampler metadata
@@ -316,16 +316,16 @@ branches. They are not approved pins.
   tests and Brushspace browser rendering pass. The earlier exact
   `three-icosa@ab2cd19` distributable was also built into `gallery-viewer` and
   used there to load and render an existing sketch. The `gallery-viewer`
-  `build:local` path now also builds against the exact `2627659` distributable;
+  `build:local` path was also built against the exact `2627659` distributable;
   repeat the rendered-sketch check before treating the new pin as fully advanced.
-- Approved `three-tiltloader` revision: `0ae16bb`, based on `5b610c0`. It pins
+- Approved `three-tiltloader` revision: `4086e49`, based on `5b610c0`. It pins
   the approved `three-icosa` revision without changing the loader API or mesh
   generation. Current trusted `three-tiltloader` work remains the place for reusable live
   mesh generation. Changes there must reproduce the established Open Brush
   export contract rather than require shaders to understand a new
   Brushspace-only layout.
 
-Brushspace pins those approved revisions through `three-tiltloader@0ae16bb`.
+Brushspace pins those approved revisions through `three-tiltloader@4086e49`.
 The quarantined integration branches remain diagnostic references only.
 
 This migration does not make the shaders equivalent to the Unity runtime shaders. The maintained web shaders remain ports of Open Brush behavior, and exact fidelity still depends on correct generated vertex contracts, render context, animation inputs, and brush-specific multipass behavior.
@@ -339,8 +339,8 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
 All required material lookups use the maintained dependency path. Brushspace
-pins `icosa-sketch-assets@555b90a`, `three-icosa@2627659`, and
-`three-tiltloader@0ae16bb`. Browser smoke testing reports 111/111 materials
+pins `icosa-sketch-assets@555b90a`, `three-icosa@b405813`, and
+`three-tiltloader@4086e49`. Browser smoke testing reports 111/111 materials
 loaded with no shader compile errors; Oil Paint links with its 1024x1024 normal
 texture bound. Dependency provenance and successful compilation establish source
 ownership and browser-render eligibility; they do not establish Unity image
@@ -613,8 +613,9 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 
 1. In progress: the exact `three-icosa@ab2cd19` distributable was built into
    `gallery-viewer` and used to render a representative existing sketch. The
-   downstream `build:local` path passes with current approved revision `2627659`
-   and copies that distributable byte-for-byte; repeat the rendered-sketch check.
+   downstream `build:local` path passes with sampler-default revision `2627659`
+   and copies that distributable byte-for-byte. Repeat both the build and rendered-
+   sketch checks against current alias-correction revision `b405813`.
    Digital and Race retain their dedicated dependency tests.
 2. Implemented: runtime assets use a configurable immutable pinned URL by
    default, with explicit mirror commands for self-hosted/offline builds.
