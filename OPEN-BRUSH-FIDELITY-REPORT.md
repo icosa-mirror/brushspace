@@ -301,10 +301,14 @@ The Brushspace-driven dependency series have been preserved for reference on
 `codex/brushspace-integration` and removed from the dependencies' default
 branches. They are not approved pins.
 
-- Trusted `icosa-sketch-assets` baseline: `f100560`. This includes the
-  backward-compatible indexed-particle corner fix (`9e7f3a5`) and the explicitly
-  requested Digital/Race shader update (`f100560`). Later shader changes are
-  quarantined.
+- Last known pre-integration `icosa-sketch-assets` baseline: `52c787c`. The
+  indexed-particle corner change (`9e7f3a5`) must be re-audited against the
+  active BrushBaker/UnityGLTF contract before it can be called backward
+  compatible. The requested Digital/Race update in `f100560` should be reapplied
+  independently if that audit rejects its parent. The later removal of the
+  unused `brushes/legacy` directory is independent cleanup, not shader-fidelity
+  evidence. Consequently the dependency's current `main` is not automatically
+  an approved Brushspace pin.
 - Trusted `three-icosa` baseline: `1a738b8`. The standalone optional
   material-factory change is considered a reasonable backward-compatible
   improvement, but it must be reapplied independently and tested with
@@ -332,10 +336,13 @@ All required material lookups currently use the maintained dependency path, but
 the application pins are transitional: `icosa-sketch-assets@8c8cae5` and
 `three-icosa@d88b16d` are quarantined integration revisions, while
 `three-tiltloader@6703dc7` contains the reusable generator work. The recovery
-target is `icosa-sketch-assets@f100560`, `three-icosa@1a738b8` plus only a
-separately verified optional material factory if required, and a reviewed
-`three-tiltloader` revision. Dependency provenance establishes source ownership
-and browser-render eligibility; it does not establish Unity image parity.
+asset target is still under audit: start from `icosa-sketch-assets@52c787c`,
+resolve `9e7f3a5`, then retain the requested Digital/Race update and unused
+legacy-directory removal without inheriting unverified shader changes. The
+other recovery targets are `three-icosa@1a738b8` plus only a separately verified
+optional material factory if required, and a reviewed `three-tiltloader`
+revision. Dependency provenance establishes source ownership and
+browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
 limited to unknown compatibility fallbacks.
@@ -346,43 +353,44 @@ diagnostics and should be pruned once those uses are separated.
 
 The current gate checks `vertexIsDefault` plus explicit Genius, Spray, Midpoint, HyperGrid, Waveform, DoubleTapered, Electricity, Disco, LightWire, Hull, and 3D-print contracts. Even default shaders only match if attribute values have the correct semantics. No extracted brush remains in the `fallback` classification; 12 compatibility-only special generator records remain `unsupported`, all outside the 95-brush target. HyperGrid renders its non-audio export behavior, but real audio-reactive inputs remain absent. The runtime now supplies position, normal, tangent, color, 2D/3D/4D UV0, 3D/4D UV1, vertex IDs, and index where the selected generator defines those semantics.
 
-The contract is not simply "Unity UVs in Three.js." Open Brush live meshes use
-`GeometryPool.VertexLayout`, where each texcoord channel has a component count
-and a semantic such as UV, position, vector, distance, or timestamp. Export then
-performs semantic-dependent conversion:
+The active contract is a pipeline, not a direct copy of Unity UV channels:
 
-- ordinary UV channels flip the V axis for glTF;
-- `XyIsUvZIsDistance` flips V and scales Z as a distance;
-- position/vector payloads stored in normals or texcoords receive basis and unit
-  conversion rather than UV conversion;
-- color representation may change while remaining normalized;
-- legacy particle export can expand UV1 from `vec3` to `vec4` and pack the vertex
-  identifier into W;
-- newer exporter layouts can use a different vertex-ID path and must remain an
-  explicit compatibility branch rather than being mixed into the live layout.
+1. The live brush creates a mesh described by `GeometryPool.VertexLayout`.
+2. `OpenBrushExportPlugin` copies that mesh and passes it through
+   `BrushBaker.ProcessMesh`. Brush-specific compute-shader mappings in
+   `BrushBaker.prefab` can deform vertices and repack values before export.
+3. UnityGLTF serializes the baked result. Positions, normals, and tangents receive
+   coordinate conversion; ordinary UV0/UV1 are written as `vec2` with V flipped,
+   so wider components are not preserved there; the custom UV2 attribute can
+   retain `vec2`, `vec3`, or `vec4` data.
+4. Three.js `GLTFLoader` creates standard `BufferGeometry` attributes.
+5. `three-icosa` detects the `Open Brush UnityGLTF Exporter` generator, remaps
+   those attributes to the shader-facing `a_*` names, performs brush-specific
+   aliases, and sets `u_isNewTiltExporter`.
+6. The maintained shader files in `icosa-sketch-assets` use that flag to select
+   the appropriate packing logic. The deleted `brushes/legacy` shader directory
+   was not part of this runtime path.
 
-For most ribbon, tube, thick, and hull brushes the difference is mechanical:
-UV convention plus basis/unit conversion, with occasional radius or vector data
-in an extra component. The extensive differences are concentrated in special
-families:
+Electricity demonstrates why all stages matter. BrushBaker bakes the time-zero
+displacement into position and packs midpoint XY into UV1 and midpoint Z/width
+into UV2. UnityGLTF emits those channels, `three-icosa` maps them to
+`a_texcoord1`/`a_texcoord2`, and the maintained shader's new-exporter path reads
+the split values and removes the baked displacement before applying animation.
+Judging either the live mesh layout or shader source alone gives the wrong
+contract.
 
-- Genius particles use position for the quad corner, the normal channel for the
-  particle center, UV0 XY for atlas coordinates, UV0 Z/W for rotation and signed
-  birth time, UV1 XYZ for the source position, and—in the legacy export
-  contract—UV1 W for the explicit vertex identifier.
-- Midpoint lifetime particles use UV1 XYZ for per-corner vector offset and UV1 W
-  for birth time.
-- FlatGeometry variants may store a deformation vector in UV1 XYZ.
-- Tube and stretch variants may store radius/distance in UV0 Z.
-- BubbleWand and a small number of custom generators use wider channels with
-  brush-specific non-UV values.
+The extent of live-versus-export differences is therefore brush-specific. Many
+unmapped brushes pass through with only ordinary exporter conversion, while the
+20 configured BrushBaker mappings and the special `three-icosa` remaps can
+change packing substantially. Audit the final shader-facing geometry rather
+than assuming a uniform semantic conversion.
 
-Therefore the recovery rule is: `three-tiltloader` must emit the selected
-export contract exactly, including component widths, semantics, corner order,
-indexing, and time domain. Do not alter a verified shader to accept whatever
-layout the current generator happens to produce. Add per-family contract
-fixtures derived from Open Brush mesh/export dumps, covering both an ordinary
-brush and every special packing pattern.
+The recovery rule is: `three-tiltloader` must reproduce the final contract
+expected by the maintained shader and binding path, including component widths,
+packing, corner order, indexing, time domain, and exporter flag. Fixtures should
+capture the live Unity mesh, post-BrushBaker mesh, exported GLB attributes,
+post-`three-icosa` `BufferGeometry`, selected shader branch, and generated
+`three-tiltloader` geometry for every mapped/special family.
 
 ### Descriptor data is extracted but unused
 
@@ -458,8 +466,10 @@ Suggested gates:
 
 ### Phase 0: trustworthy baseline (1-2 engineer-weeks)
 
-1. Repin Brushspace to `icosa-sketch-assets@f100560` and
-   `three-icosa@1a738b8`; retain the quarantined revisions only as diagnostic
+1. Resolve the `9e7f3a5` indexed-particle audit, construct an approved
+   `icosa-sketch-assets` revision from the safe baseline plus the independently
+   retained Digital/Race and legacy-directory cleanup changes, and repin
+   `three-icosa@1a738b8`. Retain quarantined revisions only as diagnostic
    references. Record the exact dependency and asset URL revisions used by CI
    and production.
 2. Replace the source-tree asset submodule/copy assumption with a configurable
@@ -471,10 +481,11 @@ Suggested gates:
    and asset extraction rejects a checkout at any other revision.
 4. Fix extraction output and regenerate through a temporary-directory byte comparison in CI.
 5. Extract every required prefab field, vertex layout, texture importer setting, render state, keyword, and environment dependency.
-6. Add export-contract fixtures for ordinary UV0, UV0.Z distance/radius,
-   FlatGeometry UV1 vectors, Midpoint UV1 offset/birth, and Genius
-   center/rotation/birth/source-position/vertex-ID packing. Include indexed and
-   non-indexed cases where the exporter supports both.
+6. Add pipeline fixtures spanning live mesh, post-BrushBaker mesh, UnityGLTF
+   attributes, post-`three-icosa` shader attributes, selected maintained-shader
+   branch, and `three-tiltloader` output. Cover all 20 BrushBaker mappings plus
+   ordinary pass-through, special `three-icosa` remaps, and indexed/non-indexed
+   particle cases where supported.
 7. Partially implemented: evidence states distinguish asset readiness, renderer
    eligibility, mesh contract, browser compile, XR compile, and persisted visual
    results. CI also checks active vertex/fragment varying links across all 95
@@ -586,15 +597,18 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 
 ## Immediate backlog
 
-1. Repin Brushspace to the trusted `icosa-sketch-assets` and `three-icosa`
-   baselines; catalogue every resulting compile, blank-output, black-output, and
-   visual failure without importing shader changes from the quarantine branch.
+1. Audit `9e7f3a5`, construct the approved `icosa-sketch-assets` revision from
+   independently justified changes, and repin Brushspace to it and the clean
+   `three-icosa` baseline. Catalogue every resulting compile, blank-output,
+   black-output, and visual failure without importing shader changes from the
+   quarantine branch.
 2. Replace the asset submodule path with configurable pinned asset URLs and an
    optional CI self-host/mirror step.
 3. Reapply and downstream-test only the backward-compatible optional
    `three-icosa` material factory.
-4. Add Unity live-mesh and exported-mesh dumps to the deterministic fixture and
-   codify the semantic conversion between them.
+4. Add live Unity, post-BrushBaker, exported GLB, and post-`three-icosa` geometry
+   dumps to the deterministic fixture and compare the final shader-facing
+   contract with `three-tiltloader` output.
 5. Implemented: reproduce that fixture path, camera, seed, and fixed shader time
    in the browser for per-GUID comparison.
 6. Replace renderer-eligibility labels with persisted mesh/browser/XR/image evidence.
@@ -615,6 +629,10 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 - [`QuadStripBrush.cs`](https://github.com/icosa-foundation/open-brush/blob/4786d55ad398bfc957d8e8eb26438920026aeaf6/Assets/Scripts/Brushes/QuadStripBrush.cs)
 - [`TubeBrush.cs`](https://github.com/icosa-foundation/open-brush/blob/4786d55ad398bfc957d8e8eb26438920026aeaf6/Assets/Scripts/Brushes/TubeBrush.cs)
 - [`GeniusParticlesBrush.cs`](https://github.com/icosa-foundation/open-brush/blob/4786d55ad398bfc957d8e8eb26438920026aeaf6/Assets/Scripts/Brushes/GeniusParticlesBrush.cs)
+- [`Export.cs`](https://github.com/icosa-foundation/open-brush/blob/4786d55ad398bfc957d8e8eb26438920026aeaf6/Assets/Scripts/Export/Export.cs)
+- [`OpenBrushExportPlugin.cs`](https://github.com/icosa-foundation/open-brush/blob/4786d55ad398bfc957d8e8eb26438920026aeaf6/Assets/Scripts/UnityGLTF%20Plugins/OpenBrushExportPlugin.cs)
+- [`BrushBaker.cs`](https://github.com/icosa-foundation/open-brush/blob/4786d55ad398bfc957d8e8eb26438920026aeaf6/Assets/Scripts/Export/BrushBaker.cs)
+- [`BrushBaker.prefab`](https://github.com/icosa-foundation/open-brush/blob/4786d55ad398bfc957d8e8eb26438920026aeaf6/Assets/Prefabs/BrushBaker.prefab)
 - [Export shader sources](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6/Support/GlTFShaders)
 - [Export manifest](https://github.com/icosa-foundation/open-brush/blob/4786d55ad398bfc957d8e8eb26438920026aeaf6/Support/exportManifest.json)
 - [Brush screenshot generator](https://github.com/icosa-foundation/open-brush/blob/4786d55ad398bfc957d8e8eb26438920026aeaf6/Assets/Editor/UiScreenshotter.cs)
@@ -622,6 +640,7 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 - [IWSDK](https://iwsdk.dev/) live scene/ECS inspection and browser/XR runtime tools
 - [`icosa-sketch-assets`](https://github.com/icosa-foundation/icosa-sketch-assets) maintained web shader and texture assets
 - [`three-icosa`](https://github.com/icosa-foundation/three-icosa) Three.js Open Brush material extension and bindings
+- [`GOOGLE_tilt_brush_material.js`](https://github.com/icosa-foundation/three-icosa/blob/main/src/loader/GOOGLE_tilt_brush_material.js) active exported-geometry attribute remapping and exporter detection
 - [`three-tiltloader`](https://github.com/icosa-foundation/three-tiltloader) intended shared `.tilt` parsing and brush-geometry package
 
 ## Verification note
