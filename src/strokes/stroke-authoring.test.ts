@@ -453,4 +453,22 @@ describe("Open Brush stroke sampling", () => {
       resolveStrokeSampleDecision([0, 0, 0], [0.004, 0, 0], 0.00375),
     ).toBe("keep");
   });
+
+  it("uses the pressured Spray interval for preview keeper sampling", () => {
+    const spawnInterval = resolveStrokeSpawnIntervalMeters({
+      brushSize: 0.02,
+      pressure: 1,
+      pressureSizeMin: 0.25,
+      generatorClass: "SprayBrush",
+      sprayRateMultiplier: 4,
+    });
+
+    expect(spawnInterval).toBeCloseTo(0.005);
+    expect(
+      resolveStrokeSampleDecision([0, 0, 0], [0.004, 0, 0], spawnInterval),
+    ).toBe("extend");
+    expect(
+      resolveStrokeSampleDecision([0, 0, 0], [0.006, 0, 0], spawnInterval),
+    ).toBe("keep");
+  });
 });

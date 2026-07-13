@@ -226,11 +226,12 @@ pressure-sized interval, including the 500-quad segment cap, source salt
 layout, size/position/rotation/alpha variance, size ratio, atlas selection,
 raw knot pressure, explicit backfaces, and real default-vertex export shaders.
 A Splatter pixel
-gate rejects empty or black generated output. Preview decay and incremental
-knot rebuild behavior remain approximate, although preview knots now use Open
-Brush's shared 0.2-second lifetime and preserve the source decayed-knot salt
-offset as expired knots are removed. Genius particles also retain the removed
-distance modulo their spawn interval, matching the source length-cache phase.
+gate rejects empty or black generated output. Preview decay remains
+approximate, although preview control points now use the same pressure-sized
+keeper interval and trailing-point extension as persistent strokes. They use
+Open Brush's shared 0.2-second lifetime and preserve the source decayed-knot
+salt offset as expired knots are removed. Genius particles also retain the
+removed distance modulo their spawn interval, matching the source length-cache phase.
 Live Spray and Midpoint Spray strokes use `pressuredSize / sprayRateMultiplier`
 instead of the ribbon/tube keeper formula.
 

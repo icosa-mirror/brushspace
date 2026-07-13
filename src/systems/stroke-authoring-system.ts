@@ -253,6 +253,7 @@ export class StrokeAuthoringSystem extends createSystem({
   private previewBrushGuid = "";
   private readonly previewPointPool: ControlPoint[] = [];
   private readonly previewBirths: number[] = [];
+  private readonly previewSamplePosition: Vec3 = [0, 0, 0];
   private previewClock = 0;
   private levelTimeOriginSeconds: number | undefined;
   private currentLevelTimeSeconds = 0;
@@ -1532,27 +1533,71 @@ export class StrokeAuthoringSystem extends createSystem({
     poseObject.getWorldQuaternion(this.previewPoseQuaternion).invert();
     this.previewWorldQuaternion.premultiply(this.previewPoseQuaternion);
 
-    // The trail appends one point per frame for as long as a paint tool is
-    // idle; recycle expired points through a small pool instead of
-    // allocating fresh ones.
     const points = trail.strokeData.controlPoints;
-    const point = this.previewPointPool.pop() ?? {
-      position: [0, 0, 0],
-      orientation: [0, 0, 0, 1],
+    const poseScale = poseObject.scale.x || 1;
+    if (poseScale !== trail.poseScale) {
+      trail.solidMinLengthMeters *= trail.poseScale / poseScale;
+      trail.poseScale = poseScale;
+    }
+    trail.strokeData.brushSize =
+      Number(settingsEntity.getValue(BrushSettings, "size")) / poseScale;
+    const spawnInterval = resolveStrokeSpawnIntervalMeters({
+      brushSize: trail.strokeData.brushSize,
       pressure: 1,
-      timestampMs: 0,
-    };
-    point.position[0] = this.previewLocalPosition.x;
-    point.position[1] = this.previewLocalPosition.y;
-    point.position[2] = this.previewLocalPosition.z;
-    point.orientation[0] = this.previewWorldQuaternion.x;
-    point.orientation[1] = this.previewWorldQuaternion.y;
-    point.orientation[2] = this.previewWorldQuaternion.z;
-    point.orientation[3] = this.previewWorldQuaternion.w;
-    point.pressure = 1;
-    point.timestampMs = this.previewClock * 1000;
-    points.push(point);
-    this.previewBirths.push(this.previewClock);
+      pressureSizeMin: trail.pressureSizeRange?.[0],
+      solidMinLengthMeters: trail.solidMinLengthMeters,
+      generatorClass: trail.generatorClass,
+      sprayRateMultiplier: trail.geometryParams?.sprayRateMultiplier,
+      particleRate: trail.geometryParams?.particleRate,
+      localUnitsPerMeter: 1 / poseScale,
+    });
+    const currentPosition = this.previewSamplePosition;
+    currentPosition[0] = this.previewLocalPosition.x;
+    currentPosition[1] = this.previewLocalPosition.y;
+    currentPosition[2] = this.previewLocalPosition.z;
+    const decision =
+      points.length === 0
+        ? "keep"
+        : resolveStrokeSampleDecision(
+            trail.lastPosition,
+            currentPosition,
+            spawnInterval,
+            OPEN_BRUSH_MINIMUM_MOVE_METERS / poseScale,
+          );
+    if (decision !== "ignore") {
+      let point: ControlPoint;
+      let pointIndex: number;
+      if (trail.lastPointIsKeeper || points.length === 0) {
+        point = this.previewPointPool.pop() ?? {
+          position: [0, 0, 0],
+          orientation: [0, 0, 0, 1],
+          pressure: 1,
+          timestampMs: 0,
+        };
+        points.push(point);
+        this.previewBirths.push(this.previewClock);
+        pointIndex = points.length - 1;
+      } else {
+        pointIndex = points.length - 1;
+        point = points[pointIndex];
+        this.previewBirths[pointIndex] = this.previewClock;
+      }
+      point.position[0] = currentPosition[0];
+      point.position[1] = currentPosition[1];
+      point.position[2] = currentPosition[2];
+      point.orientation[0] = this.previewWorldQuaternion.x;
+      point.orientation[1] = this.previewWorldQuaternion.y;
+      point.orientation[2] = this.previewWorldQuaternion.z;
+      point.orientation[3] = this.previewWorldQuaternion.w;
+      point.pressure = 1;
+      point.timestampMs = this.previewClock * 1000;
+      trail.lastPointIsKeeper = decision === "keep";
+      if (trail.lastPointIsKeeper) {
+        trail.lastPosition[0] = currentPosition[0];
+        trail.lastPosition[1] = currentPosition[1];
+        trail.lastPosition[2] = currentPosition[2];
+      }
+    }
     while (
       this.previewBirths.length > 2 &&
       this.previewClock - this.previewBirths[0] >
@@ -1581,7 +1626,6 @@ export class StrokeAuthoringSystem extends createSystem({
 
     // Width: taper toward the tail, and thin the whole trail when it is
     // short relative to the ideal length (in room space).
-    const poseScale = poseObject.scale.x || 1;
     let canvasLength = 0;
     for (let i = 1; i < points.length; i += 1) {
       const a = points[i - 1].position;
@@ -1602,8 +1646,6 @@ export class StrokeAuthoringSystem extends createSystem({
       BrushSettings,
       "color",
     ) as Float32Array;
-    trail.strokeData.brushSize =
-      Number(settingsEntity.getValue(BrushSettings, "size")) / poseScale;
     trail.strokeData.color[0] = colorView[0];
     trail.strokeData.color[1] = colorView[1];
     trail.strokeData.color[2] = colorView[2];
@@ -1684,7 +1726,11 @@ export class StrokeAuthoringSystem extends createSystem({
       lastPosition: [0, 0, 0],
       lastPointIsKeeper: false,
       lastKeeperSmoothedPressure: 0,
-      solidMinLengthMeters: 0,
+      solidMinLengthMeters: resolveGeneratorSolidMinLengthMeters({
+        generatorClass: brushEntry?.generatorClass,
+        descriptorValue: brushEntry?.geometryParams?.solidMinLengthMeters,
+        geometryFamily: brushEntry?.geometryFamily ?? "unsupported",
+      }),
       geometryArrays: createBrushGeometryArrays(),
       posePosition: [0, 0, 0],
       poseOrientationInv: [0, 0, 0, 1],
@@ -1704,6 +1750,11 @@ export class StrokeAuthoringSystem extends createSystem({
       this.previewTrail.mesh.visible = false;
       this.previewTrail.particleKnotIndexOffset = 0;
       this.previewTrail.particleDistanceOffset = 0;
+      this.previewTrail.lastPointIsKeeper = false;
+      this.previewTrail.lastKeeperSmoothedPressure = 0;
+      this.previewTrail.lastPosition[0] = 0;
+      this.previewTrail.lastPosition[1] = 0;
+      this.previewTrail.lastPosition[2] = 0;
     }
     this.previewBirths.length = 0;
   }
