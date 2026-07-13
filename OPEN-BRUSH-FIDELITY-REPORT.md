@@ -265,7 +265,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@2a949c3`,
-`three-icosa@67b30b4`, and `three-tiltloader@52f8320`. This establishes source
+`three-icosa@67b30b4`, and `three-tiltloader@1644547`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
