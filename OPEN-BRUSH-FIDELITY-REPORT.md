@@ -316,8 +316,9 @@ branches. They are not approved pins.
   tests and Brushspace browser rendering pass. The earlier exact
   `three-icosa@ab2cd19` distributable was also built into `gallery-viewer` and
   used there to load and render an existing sketch. The `gallery-viewer`
-  `build:local` path was also built against the exact `2627659` distributable;
-  repeat the rendered-sketch check before treating the new pin as fully advanced.
+  `build:local` path also builds against the exact `b405813` distributable and
+  copies it byte-for-byte; repeat the rendered-sketch check before treating the
+  new pin as fully advanced.
 - Approved `three-tiltloader` revision: `4086e49`, based on `5b610c0`. It pins
   the approved `three-icosa` revision without changing the loader API or mesh
   generation. Current trusted `three-tiltloader` work remains the place for reusable live
@@ -613,9 +614,9 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 
 1. In progress: the exact `three-icosa@ab2cd19` distributable was built into
    `gallery-viewer` and used to render a representative existing sketch. The
-   downstream `build:local` path passes with sampler-default revision `2627659`
-   and copies that distributable byte-for-byte. Repeat both the build and rendered-
-   sketch checks against current alias-correction revision `b405813`.
+   downstream `build:local` path passes with current alias-correction revision
+   `b405813` and copies that distributable byte-for-byte. Repeat the rendered-
+   sketch check against that revision.
    Digital and Race retain their dedicated dependency tests.
 2. Implemented: runtime assets use a configurable immutable pinned URL by
    default, with explicit mirror commands for self-hosted/offline builds.
