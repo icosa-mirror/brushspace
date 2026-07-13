@@ -13,6 +13,7 @@
     "assets:brushes": "node scripts/sync-icosa-brush-assets.mjs",
     "predev": "npm run assets:brushes",
     "dev": "iwsdk dev up --open --foreground",
+    "dev:http": "vite --mode http --host 127.0.0.1 --port 8081 --open false --force",
     "dev:runtime": "vite",
     "dev:down": "iwsdk dev down",
     "dev:status": "iwsdk dev status",

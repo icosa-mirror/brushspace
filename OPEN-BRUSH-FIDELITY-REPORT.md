@@ -308,7 +308,9 @@ branches. They are not approved pins.
   `1a738b8`. It contains package exports and declarations, an opt-in material
   factory whose default remains `RawShaderMaterial`, and the Digital/Race
   bindings. Package tests and Brushspace browser rendering pass; an exact-checkout
-  `gallery-viewer` runtime check remains required before the next pin advance.
+  The exact `three-icosa@ab2cd19` distributable has also been built into
+  `gallery-viewer` and used there to load and render an existing sketch. Repeat
+  that downstream check before the next pin advance.
 - Current trusted `three-tiltloader` work remains the place for reusable live
   mesh generation. Changes there must reproduce the established Open Brush
   export contract rather than require shaders to understand a new
@@ -589,12 +591,14 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 
 ## Immediate backlog
 
-1. Run `gallery-viewer` against `three-icosa@ab2cd19`, including Digital, Race,
-   and a representative existing material, before advancing that dependency.
+1. Implemented: build `gallery-viewer` against the exact `three-icosa@ab2cd19`
+   distributable and render a representative existing sketch. Digital and Race
+   retain their dedicated dependency tests; repeat both checks before advancing
+   the pin.
 2. Replace the asset submodule path with configurable pinned asset URLs and an
    optional CI self-host/mirror step.
-3. Add a repeatable Chrome/IWER smoke command that uses local HTTP and never
-   invokes CA installation, then capture the 111/111 compile gate in CI.
+3. In progress: `npm run dev:http` provides a repeatable local HTTP route that
+   never invokes CA installation. Capture the 111/111 compile gate in CI.
 4. Add live Unity, post-BrushBaker, exported GLB, and post-`three-icosa` geometry
    dumps to the deterministic fixture and compare the final shader-facing
    contract with `three-tiltloader` output.
