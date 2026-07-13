@@ -158,6 +158,7 @@ interface RuntimeStroke {
   pressureSizeRange: BrushPressureSizeRange | undefined;
   pressureOpacityRange: BrushPressureOpacityRange | undefined;
   deterministicParticleBirthTime: boolean;
+  particleKnotIndexOffset: number;
   geometryFinalized: boolean;
   toolId: OpenBrushToolId;
   groupId: number;
@@ -984,6 +985,7 @@ export class StrokeAuthoringSystem extends createSystem({
       pressureSizeRange: brushEntry?.pressureSizeRange,
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
       deterministicParticleBirthTime: false,
+      particleKnotIndexOffset: 0,
       geometryFinalized: false,
       toolId: activeTool.id,
       groupId,
@@ -1226,6 +1228,7 @@ export class StrokeAuthoringSystem extends createSystem({
         geometryParams: stroke.geometryParams,
         generatorClass: stroke.generatorClass,
         deterministicBirthTime: stroke.deterministicParticleBirthTime,
+        particleKnotIndexOffset: stroke.particleKnotIndexOffset,
         finalized: stroke.geometryFinalized,
         lastControlPointIsKeeper:
           stroke.samplingMode === "freehand" ? stroke.lastPointIsKeeper : true,
@@ -1508,6 +1511,7 @@ export class StrokeAuthoringSystem extends createSystem({
       const expired = points.shift();
       if (expired) {
         this.previewPointPool.push(expired);
+        trail.particleKnotIndexOffset += 1;
       }
     }
     if (points.length < 2) {
@@ -1605,6 +1609,7 @@ export class StrokeAuthoringSystem extends createSystem({
       pressureSizeRange: brushEntry?.pressureSizeRange,
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
       deterministicParticleBirthTime: false,
+      particleKnotIndexOffset: 0,
       geometryFinalized: false,
       toolId: "free-paint",
       groupId: 0,
@@ -1636,6 +1641,7 @@ export class StrokeAuthoringSystem extends createSystem({
       this.previewPointPool.push(...points);
       points.length = 0;
       this.previewTrail.mesh.visible = false;
+      this.previewTrail.particleKnotIndexOffset = 0;
     }
     this.previewBirths.length = 0;
   }
@@ -2345,6 +2351,7 @@ export class StrokeAuthoringSystem extends createSystem({
       pressureSizeRange: brushEntry?.pressureSizeRange,
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
       deterministicParticleBirthTime: finalized,
+      particleKnotIndexOffset: 0,
       geometryFinalized: finalized,
       toolId: "free-paint",
       groupId: strokeData.groupId,
@@ -2433,6 +2440,7 @@ export class StrokeAuthoringSystem extends createSystem({
       pressureSizeRange: brushEntry?.pressureSizeRange,
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
       deterministicParticleBirthTime: source.deterministicParticleBirthTime,
+      particleKnotIndexOffset: source.particleKnotIndexOffset,
       geometryFinalized: true,
       toolId: source.toolId,
       groupId: source.groupId,
