@@ -236,7 +236,9 @@ instead of the ribbon/tube keeper formula.
 
 The three `MidpointPlusLifetimeSprayBrush` entries now use the same authored
 distance spawning and segment frame, plus their distinct five-quad salt layout
-and 4D UV1 corner-offset/birth-time contract. Unlike Spray and Genius, Midpoint
+and 4D UV1 corner-offset/birth-time contract. Midpoint preview rebuilds restart
+that salt layout from the rebuilt knot indices rather than carrying the
+decayed-knot offset used by Spray and Genius. Unlike Spray and Genius, Midpoint
 retains GeometryBrush's distance-smoothed pressure for live keeper spacing,
 spawn count, size, and opacity. DanceFloor now reads that birth
 time directly, applies Unity's fixed world-space grid, and reproduces its
@@ -288,7 +290,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@c042314`,
-`three-icosa@d88b16d`, and `three-tiltloader@a08c092`. This establishes source
+`three-icosa@d88b16d`, and `three-tiltloader@6703dc7`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
