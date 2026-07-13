@@ -224,7 +224,10 @@ birth time, while live-authored strokes retain timestamps in the same
 level-relative time domain supplied to shader `u_time`. Preview decay uses that
 same origin through its accumulated frame deltas. Imported sketches therefore
 retain Open Brush's zero-birth animation policy without inheriting an arbitrary
-browser/system clock offset.
+browser/system clock offset. A remote live stroke keeps its peer-relative
+particle timing but receives one fixed offset when first observed, aligning its
+newest birth to the receiver's level clock without sliding phase on later
+progress updates.
 
 ### Performance
 
@@ -259,7 +262,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@6a47a10`,
-`three-icosa@67b30b4`, and `three-tiltloader@e984a51`. This establishes source
+`three-icosa@67b30b4`, and `three-tiltloader@52f8320`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains

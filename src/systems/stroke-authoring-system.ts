@@ -160,6 +160,7 @@ interface RuntimeStroke {
   deterministicParticleBirthTime: boolean;
   particleKnotIndexOffset: number;
   particleDistanceOffset: number;
+  particleBirthTimeOffsetSeconds: number;
   geometryFinalized: boolean;
   toolId: OpenBrushToolId;
   groupId: number;
@@ -254,6 +255,7 @@ export class StrokeAuthoringSystem extends createSystem({
   private readonly previewBirths: number[] = [];
   private previewClock = 0;
   private levelTimeOriginSeconds: number | undefined;
+  private currentLevelTimeSeconds = 0;
   private readonly previewWorldPosition = new Vector3();
   private readonly previewWorldQuaternion = new Quaternion();
   private readonly previewPoseQuaternion = new Quaternion();
@@ -656,6 +658,7 @@ export class StrokeAuthoringSystem extends createSystem({
 
   update(_delta: number, time: number) {
     const levelTime = this.toLevelTimeSeconds(time);
+    this.currentLevelTimeSeconds = levelTime;
     openBrushShaderLibrary.updateFrame(levelTime, this.camera);
 
     const commandEntity = this.getFirstEntity("commands");
@@ -1000,6 +1003,7 @@ export class StrokeAuthoringSystem extends createSystem({
       deterministicParticleBirthTime: false,
       particleKnotIndexOffset: 0,
       particleDistanceOffset: 0,
+      particleBirthTimeOffsetSeconds: 0,
       geometryFinalized: false,
       toolId: activeTool.id,
       groupId,
@@ -1244,6 +1248,7 @@ export class StrokeAuthoringSystem extends createSystem({
         deterministicBirthTime: stroke.deterministicParticleBirthTime,
         particleKnotIndexOffset: stroke.particleKnotIndexOffset,
         particleDistanceOffset: stroke.particleDistanceOffset,
+        particleBirthTimeOffsetSeconds: stroke.particleBirthTimeOffsetSeconds,
         particlePreview: stroke === this.previewTrail,
         finalized: stroke.geometryFinalized,
         lastControlPointIsKeeper:
@@ -1665,6 +1670,7 @@ export class StrokeAuthoringSystem extends createSystem({
       deterministicParticleBirthTime: false,
       particleKnotIndexOffset: 0,
       particleDistanceOffset: 0,
+      particleBirthTimeOffsetSeconds: 0,
       geometryFinalized: false,
       toolId: "free-paint",
       groupId: 0,
@@ -2282,7 +2288,16 @@ export class StrokeAuthoringSystem extends createSystem({
           return;
         }
       }
-      const runtime = this.buildStrokeRuntimeFromData(strokeData, true, false);
+      const newestRemotePoint =
+        strokeData.controlPoints[strokeData.controlPoints.length - 1];
+      const newestRemoteTimestampSeconds =
+        (newestRemotePoint?.timestampMs ?? 0) * 0.001;
+      const runtime = this.buildStrokeRuntimeFromData(
+        strokeData,
+        true,
+        false,
+        this.currentLevelTimeSeconds - newestRemoteTimestampSeconds,
+      );
       this.remoteActiveStrokes.set(strokeData.guid, runtime);
       return;
     }
@@ -2351,6 +2366,7 @@ export class StrokeAuthoringSystem extends createSystem({
     strokeData: StrokeData,
     startVisible: boolean,
     finalized = true,
+    particleBirthTimeOffsetSeconds = 0,
   ): RuntimeStroke {
     this.strokeCounter += 1;
     const brushEntry = findBrushByGuid(openBrushInventory, strokeData.brushGuid);
@@ -2409,6 +2425,7 @@ export class StrokeAuthoringSystem extends createSystem({
       deterministicParticleBirthTime: finalized,
       particleKnotIndexOffset: 0,
       particleDistanceOffset: 0,
+      particleBirthTimeOffsetSeconds,
       geometryFinalized: finalized,
       toolId: "free-paint",
       groupId: strokeData.groupId,
@@ -2499,6 +2516,7 @@ export class StrokeAuthoringSystem extends createSystem({
       deterministicParticleBirthTime: source.deterministicParticleBirthTime,
       particleKnotIndexOffset: source.particleKnotIndexOffset,
       particleDistanceOffset: source.particleDistanceOffset,
+      particleBirthTimeOffsetSeconds: source.particleBirthTimeOffsetSeconds,
       geometryFinalized: true,
       toolId: source.toolId,
       groupId: source.groupId,
