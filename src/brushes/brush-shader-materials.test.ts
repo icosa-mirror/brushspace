@@ -312,6 +312,16 @@ describe("shader source preparation for non-raw ShaderMaterial", () => {
     );
   });
 
+  it("aliases declared standard position and RGB color attributes", () => {
+    const prepared = prepareBrushShaderSource(
+      "in vec3 position;\nin vec3 color;\nvoid main() { gl_Position = vec4(position, 1.0); v_color = vec4(color, 1.0); }",
+    );
+    expect(prepared).toContain("in vec3 a_position;");
+    expect(prepared).toContain("in vec3 a_color;");
+    expect(prepared).toContain("vec4(a_position, 1.0)");
+    expect(prepared).toContain("vec4(a_color, 1.0)");
+  });
+
   it("strips the derivatives extension directive (core in GLSL ES 3.00)", () => {
     const prepared = prepareBrushShaderSource(
       "#extension GL_OES_standard_derivatives : enable\nvoid main() { float w = fwidth(1.0); }",

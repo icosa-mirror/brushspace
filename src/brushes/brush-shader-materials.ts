@@ -282,9 +282,14 @@ export function prepareBrushShaderSource(
   source: string,
   bumpMappingMode: BrushBumpMappingMode = "guarded",
 ): string {
-  const hasCustomInverse = /\bmat4\s+inverse\s*\(\s*mat4\b/.test(source);
+  const aliasedSource = renameDeclaredStandardAttribute(
+    renameDeclaredStandardAttribute(source, "position", "a_position"),
+    "color",
+    "a_color",
+  );
+  const hasCustomInverse = /\bmat4\s+inverse\s*\(\s*mat4\b/.test(aliasedSource);
   return (
-    source
+    aliasedSource
       .replace(
         /^[ \t]*uniform[ \t]+(?:highp[ \t]+|mediump[ \t]+|lowp[ \t]+)?(?:mat4[ \t]+(?:modelViewMatrix|projectionMatrix|viewMatrix|modelMatrix)|mat3[ \t]+normalMatrix|vec3[ \t]+cameraPosition)[ \t]*;[^\n]*\n?/gm,
         "",
@@ -305,6 +310,21 @@ export function prepareBrushShaderSource(
         hasCustomInverse ? "tb_inverse" : "inverse",
       )
   );
+}
+
+function renameDeclaredStandardAttribute(
+  source: string,
+  standardName: string,
+  alias: string,
+): string {
+  const declaration = new RegExp(
+    `^[ \\t]*(?:attribute|in)[ \\t]+(?:highp[ \\t]+|mediump[ \\t]+|lowp[ \\t]+)?vec3[ \\t]+${standardName}[ \\t]*;`,
+    "m",
+  );
+  if (!declaration.test(source)) {
+    return source;
+  }
+  return source.replace(new RegExp(`\\b${standardName}\\b`, "g"), alias);
 }
 
 /**
