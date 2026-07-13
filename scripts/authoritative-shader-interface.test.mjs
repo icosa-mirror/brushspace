@@ -149,6 +149,17 @@ describe("authoritative required-brush shader interfaces", () => {
     );
   });
 
+  it("keeps TubeToonInverted outline width in scene space", () => {
+    const shader = readShaderPair("TubeToonInverted").vertex;
+
+    expect(shader).toContain(
+      "length(mat3(modelViewMatrix) * a_normal)",
+    );
+    expect(shader).toContain(
+      "u_TubeToonOutlineSize / max(normalScale, 1e-6)",
+    );
+  });
+
   it.each(requiredBrushes)(
     "$0.name links active fragment varyings to its vertex stage",
     (entry, record) => {

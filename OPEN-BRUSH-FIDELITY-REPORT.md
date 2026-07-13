@@ -145,8 +145,9 @@ distance/stretch UVs restarted per section. Important remaining differences are:
   blue surface remains too narrow against the Unity reference, so exact tube
   radius/topology is still required.
 - TubeToonInverted now recreates its black base and inflated, front-culled
-  color pass. Exact inflation still depends on matching Unity's canvas-space
-  transform and tube normals.
+  color pass. Its fixed scene-space outline is converted through the current
+  model/canvas scale, matching Unity's inverse-canvas inflation rule; exact
+  tube normals still need fixture comparison.
 
 ### Tubes
 
@@ -285,7 +286,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
 All required material lookups now use the maintained dependency path. The pinned
-revisions at this milestone are `icosa-sketch-assets@da2844e`,
+revisions at this milestone are `icosa-sketch-assets@61ea2e8`,
 `three-icosa@d88b16d`, and `three-tiltloader@a08c092`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
