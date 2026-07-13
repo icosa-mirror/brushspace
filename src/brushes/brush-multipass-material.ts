@@ -42,10 +42,12 @@ export function createBrushRenderMaterial(
     }
     const base = cloneWithSharedUniforms(shader, sharedUniforms);
     base.side = FrontSide;
-    base.uniforms.u_TubeToonColorPass = { value: false };
+    base.uniforms.u_TubeToonPass = { value: 1 };
+    base.uniforms.u_TubeToonOutlineSize = { value: 0.05 };
     const color = cloneWithSharedUniforms(shader, sharedUniforms);
     color.side = BackSide;
-    color.uniforms.u_TubeToonColorPass = { value: true };
+    color.uniforms.u_TubeToonPass = { value: 2 };
+    color.uniforms.u_TubeToonOutlineSize = { value: 0.05 };
     const passes = [base, color];
     tubeToonInvertedMaterials.set(shader, passes);
     return passes;

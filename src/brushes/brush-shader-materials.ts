@@ -370,3 +370,16 @@ export function hasBrushMainTextureCutout(fragmentShader: string): boolean {
     /\bdiscard\s*;/.test(fragmentShader)
   );
 }
+
+export function hasTubeToonInvertedPassContract(
+  vertexShader: string,
+  fragmentShader: string,
+): boolean {
+  return (
+    /uniform\s+highp\s+float\s+u_TubeToonPass\s*;/.test(vertexShader) &&
+    /uniform\s+highp\s+float\s+u_TubeToonOutlineSize\s*;/.test(vertexShader) &&
+    vertexShader.includes("a_normal.y * 0.2") &&
+    /uniform\s+highp\s+float\s+u_TubeToonPass\s*;/.test(fragmentShader) &&
+    fragmentShader.includes("bool blackPass")
+  );
+}

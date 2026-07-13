@@ -73,7 +73,10 @@ import {
 } from "../brushes/brush-conformance-fixtures.js";
 import { openBrushShaderCompatibility } from "../brushes/brush-shader-compatibility.js";
 import { matchesBrushTextureImporterSettings } from "../brushes/brush-texture-settings.js";
-import { hasBrushMainTextureCutout } from "../brushes/brush-shader-materials.js";
+import {
+  hasBrushMainTextureCutout,
+  hasTubeToonInvertedPassContract,
+} from "../brushes/brush-shader-materials.js";
 import {
   applyBrushRenderGroups,
   createBrushRenderMaterial,
@@ -341,6 +344,24 @@ export class StrokeAuthoringSystem extends createSystem({
         if (cutoutFailures.length > 0) {
           console.error(
             `[OpenBrushTextureCutout] Missing diffuse cutout logic: ${cutoutFailures.join(", ")}`,
+          );
+        }
+        const tubeToonIndex = shaderBrushes.findIndex(
+          (entry) => entry.name === "TubeToonInverted",
+        );
+        const tubeToonMaterial = materials[tubeToonIndex];
+        const tubeToonPassesReady = Boolean(
+          tubeToonMaterial &&
+            hasTubeToonInvertedPassContract(
+              tubeToonMaterial.vertexShader,
+              tubeToonMaterial.fragmentShader,
+            ),
+        );
+        document.documentElement.dataset.brushTubeToonInverted =
+          tubeToonPassesReady ? "pass" : "fail";
+        if (!tubeToonPassesReady) {
+          console.error(
+            "[OpenBrushTubeToonInverted] Missing opt-in multipass shader contract.",
           );
         }
         if (loadedCount > 0) {

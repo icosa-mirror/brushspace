@@ -11,6 +11,7 @@ import {
   createBrushShaderMaterialDescriptor,
   getBrushShaderEligibility,
   hasBrushMainTextureCutout,
+  hasTubeToonInvertedPassContract,
   packBrushShaderTime,
   prepareBrushShaderSource,
   resolveLoadedTextureTexelSize,
@@ -206,6 +207,16 @@ describe("brush shader material descriptors", () => {
       `),
     ).toBe(true);
     expect(hasBrushMainTextureCutout("fragColor = v_color;")).toBe(false);
+  });
+
+  it("recognizes the opt-in inverted Toon pass contract", () => {
+    expect(
+      hasTubeToonInvertedPassContract(
+        "uniform highp float u_TubeToonPass; uniform highp float u_TubeToonOutlineSize; vec3 color = a_normal.y * 0.2;",
+        "uniform highp float u_TubeToonPass; bool blackPass = true;",
+      ),
+    ).toBe(true);
+    expect(hasTubeToonInvertedPassContract("", "")).toBe(false);
   });
 
   it("selects the original Open Brush packed vertex layout explicitly", () => {

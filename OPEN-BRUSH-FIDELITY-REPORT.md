@@ -162,9 +162,10 @@ distance/stretch UVs restarted per section. Important remaining differences are:
 - Toon now recreates its radius-packed, front-culled black outline pass. Its
   blue surface remains too narrow against the Unity reference, so exact tube
   radius/topology is still required.
-- TubeToonInverted's reviewed inverse-canvas outline inflation and
-  object-space normal-y shading remain outside the approved asset revision.
-  Restore them upstream only after an isolated shader review and fixture check.
+- TubeToonInverted now opts into its Unity black base and inverse-scale inflated
+  color passes, including object-space normal-y shading. The maintained shader's
+  default pass value preserves its former one-pass output for consumers that do
+  not request the new passes.
 
 ### Tubes
 
@@ -301,7 +302,7 @@ The Brushspace-driven dependency series have been preserved for reference on
 `codex/brushspace-integration` and removed from the dependencies' default
 branches. They are not approved pins.
 
-- Approved `icosa-sketch-assets` revision: `1bb64bc`. It retains the independently
+- Approved `icosa-sketch-assets` revision: `ba885b1`. It retains the independently
   reviewed Digital/Race shader fix, removes the unused `brushes/legacy`
   directory, and restores `gl_VertexID` for the six maintained particle shaders.
   The rejected `a_texcoord1.w` corner index from `9e7f3a5` is not present because
@@ -343,7 +344,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
 All required material lookups use the maintained dependency path. Brushspace
-pins `icosa-sketch-assets@1bb64bc`, `three-icosa@b398f64`, and
+pins `icosa-sketch-assets@ba885b1`, `three-icosa@b398f64`, and
 `three-tiltloader@a60b1ec`. Browser smoke testing reports 111/111 materials
 loaded with no shader compile errors; Oil Paint links with its 1024x1024 normal
 texture bound. Dependency provenance and successful compilation establish source
