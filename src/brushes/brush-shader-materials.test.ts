@@ -24,6 +24,7 @@ const MARKER_GUID = "429ed64a-4e97-4466-84d3-145a861ef684";
 const MYLAR_TUBE_GUID = "8e58ceea-7830-49b4-aba9-6215104ab52a";
 const PETAL_GUID = "e0abbc80-0f80-e854-4970-8924a0863dcc";
 const SMOKE_GUID = "70d79cca-b159-4f35-990c-f02193947fe8";
+const TAPERED_MARKER_FLAT_GUID = "1a26b8c0-8a07-4f8a-9fac-d2ef36e0cad0";
 
 function getBrush(guid: string) {
   const entry = findBrushByGuid(openBrushInventory, guid);
@@ -271,6 +272,13 @@ describe("brush shader material descriptors", () => {
     });
     expect(descriptor?.uniforms.u_Shininess).toBeCloseTo(0.68);
     expect(descriptor?.uniforms.u_SpecColor).toEqual([0.75, 0.75, 0.75, 0]);
+  });
+
+  it("uses the exported render-backfaces contract instead of material culling", () => {
+    const entry = getBrush(TAPERED_MARKER_FLAT_GUID);
+    expect(entry.enableCull).toBe(true);
+    expect(entry.geometryParams?.renderBackfaces).toBe(true);
+    expect(createBrushShaderMaterialDescriptor(entry)?.doubleSided).toBe(true);
   });
 
   it("maps every Open Brush export blend mode", () => {

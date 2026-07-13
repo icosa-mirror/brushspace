@@ -82,6 +82,14 @@ try {
       `Oil Paint texture importer settings reported ${textureStatus ?? "missing"}.`,
     );
   }
+  const cullingStatus = await page.evaluate(
+    () => document.documentElement.dataset.brushCullingSettings,
+  );
+  if (cullingStatus !== "pass") {
+    throw new Error(
+      `Required brush culling settings reported ${cullingStatus ?? "missing"}.`,
+    );
+  }
 
   const compatibility = await page.evaluate((storageKey) => {
     const value = localStorage.getItem(storageKey);
@@ -110,7 +118,7 @@ try {
   }
 
   console.log(
-    `Browser material smoke passed: ${counts[1]}/${counts[2]} compiled; Oil Paint coverage and texture settings passed.`,
+    `Browser material smoke passed: ${counts[1]}/${counts[2]} compiled; Oil Paint coverage, texture settings, and required-brush culling passed.`,
   );
 } catch (error) {
   if (serverOutput.trim()) {

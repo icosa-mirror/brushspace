@@ -201,7 +201,7 @@ export function createBrushShaderMaterialDescriptor(
     }));
 
   const blending = resolveBrushShaderBlending(entry.blendMode);
-  const doubleSided = !entry.enableCull;
+  const doubleSided = entry.geometryParams?.renderBackfaces ?? !entry.enableCull;
   return {
     guid: entry.guid,
     name: entry.name,

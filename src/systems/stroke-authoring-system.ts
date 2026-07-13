@@ -308,6 +308,23 @@ export class StrokeAuthoringSystem extends createSystem({
           return;
         }
         const loadedCount = materials.filter(Boolean).length;
+        const cullingFailures = shaderBrushes.flatMap((entry, index) => {
+          if (!entry.portRequired) {
+            return [];
+          }
+          const material = materials[index];
+          const expectedSide = entry.geometryParams?.renderBackfaces
+            ? DoubleSide
+            : FrontSide;
+          return material && material.side === expectedSide ? [] : [entry.name];
+        });
+        document.documentElement.dataset.brushCullingSettings =
+          cullingFailures.length === 0 ? "pass" : "fail";
+        if (cullingFailures.length > 0) {
+          console.error(
+            `[OpenBrushCulling] Required brush side mismatch: ${cullingFailures.join(", ")}`,
+          );
+        }
         if (loadedCount > 0) {
           await openBrushShaderLibrary.warmUp(
             this.renderer,
