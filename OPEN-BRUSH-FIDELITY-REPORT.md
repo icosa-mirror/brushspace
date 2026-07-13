@@ -340,10 +340,11 @@ texture bound. Dependency provenance and successful compilation establish source
 ownership and browser-render eligibility; they do not establish Unity image
 parity.
 DanceFloor now binds the live generator's particle birth time from `uv1.w` to
-the maintained shader's scalar `a_timestamp` input. LeakyPen's maintained web
-shader requests `a_texcoord1`, but the Unity live `QuadStripBrush` layout
-declares no UV1; that export/viewer discrepancy still needs source-contract
-resolution rather than a fabricated live-mesh channel.
+the maintained shader's scalar `a_timestamp` input. LeakyPen correctly retains
+the Unity live `QuadStripBrush` UV0-only layout: its binding aliases UV0 to the
+maintained shader's `a_texcoord1` name because Unity surface-shader
+`uv_SecondaryTex` denotes UV0 transformed by `_SecondaryTex_ST` (UV set 1 would
+be named `uv2_SecondaryTex`).
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
 limited to unknown compatibility fallbacks.
@@ -404,8 +405,9 @@ Records contain tile rate, atlas count, backface settings, radius packing, opaci
 
 Extraction and loading preserve sRGB/linear intent, per-axis wrapping, filter mode,
 mipmap generation, and anisotropy, and runtime `_TexelSize` uniforms now use the
-actual loaded image dimensions. Texture scale/offset, compression/transcoding,
-platform overrides, and full Unity alpha/import semantics remain unported.
+actual loaded image dimensions. The trusted `three-icosa` path supplies authored
+texture scale/offset uniforms; compression/transcoding, platform overrides, and
+full Unity alpha/import semantics remain unported.
 The exported derivative bump branch made lit brushes render entirely black on
 physical Quest hardware. A guarded replacement is now the default: it clamps
 degenerate gradients and falls back per fragment, passes the Oil Paint pixel A/B

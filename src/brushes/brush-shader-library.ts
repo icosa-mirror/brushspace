@@ -649,6 +649,8 @@ export function applyBrushShaderAttributeAliases(geometry: BufferGeometry): void
 
 export const DANCE_FLOOR_BRUSH_GUID =
   "6a1cf9f9-032c-45ec-311e-a6680bee32e9";
+export const LEAKY_PEN_BRUSH_GUID =
+  "ddda8745-4bb5-ac54-88b6-d1480370583e";
 
 /**
  * Supplies shader attributes that are exported separately from the standard
@@ -660,7 +662,17 @@ export function applyBrushShaderSupplementalAttributes(
   brushGuid: string,
   usedVertexCount?: number,
 ): BufferAttribute | undefined {
-  if (brushGuid.toLowerCase() !== DANCE_FLOOR_BRUSH_GUID) {
+  const normalizedGuid = brushGuid.toLowerCase();
+  if (normalizedGuid === LEAKY_PEN_BRUSH_GUID) {
+    const uv0 = geometry.getAttribute("a_texcoord0");
+    if (uv0) {
+      geometry.setAttribute("a_texcoord1", uv0);
+      return uv0 as BufferAttribute;
+    }
+    geometry.deleteAttribute("a_texcoord1");
+    return undefined;
+  }
+  if (normalizedGuid !== DANCE_FLOOR_BRUSH_GUID) {
     return undefined;
   }
   const uv1 = geometry.getAttribute("a_texcoord1");

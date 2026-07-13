@@ -19,6 +19,7 @@ import {
   applyBrushShaderAttributeAliases,
   applyBrushShaderSupplementalAttributes,
   DANCE_FLOOR_BRUSH_GUID,
+  LEAKY_PEN_BRUSH_GUID,
 } from "./brush-shader-library.js";
 import {
   applyBrushRenderGroups,
@@ -89,7 +90,11 @@ export function runBrushGeometryVisualConformance(
   applyBrushShaderAttributeAliases(geometry);
   applyBrushShaderSupplementalAttributes(
     geometry,
-    name === "DanceFloor" ? DANCE_FLOOR_BRUSH_GUID : "",
+    name === "DanceFloor"
+      ? DANCE_FLOOR_BRUSH_GUID
+      : name === "LeakyPen"
+        ? LEAKY_PEN_BRUSH_GUID
+        : "",
     generated.positions.length / 3,
   );
 

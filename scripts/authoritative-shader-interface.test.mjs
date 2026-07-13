@@ -71,6 +71,11 @@ function emittedVertexAttributes(entry) {
     attributes.set("a_texcoord1", 4);
     attributes.set("a_timestamp", 1);
   }
+  if (entry.name === "LeakyPen") {
+    // Unity's uv_SecondaryTex surface input is UV0 transformed by
+    // _SecondaryTex_ST, rather than a second generated UV set.
+    attributes.set("a_texcoord1", 2);
+  }
   return attributes;
 }
 
@@ -89,9 +94,7 @@ const requiredBrushes = requiredOpenBrushes.map((entry) => [
   brushAssets.brushes[entry.guid],
 ]);
 
-const knownGeneratedMeshContractGaps = new Map([
-  ["LeakyPen", ["a_texcoord1: active vertex input is not emitted"]],
-]);
+const knownGeneratedMeshContractGaps = new Map();
 
 function resolveShaderPair(name) {
   const prefix = `${name}-`.toLowerCase();
