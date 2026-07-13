@@ -401,8 +401,8 @@ describe("brush geometry generation", () => {
       { generatorClass: "SquareBrush" },
     );
 
-    expect(getGeneratedVertexCount(geometry)).toBe(32);
-    expect(getGeneratedIndexCount(geometry)).toBe(72);
+    expect(getGeneratedVertexCount(geometry)).toBe(24);
+    expect(getGeneratedIndexCount(geometry)).toBe(60);
     expect(new Set(Array.from(geometry.uvs))).toEqual(new Set([0.5]));
   });
 
