@@ -38,8 +38,8 @@
     "@pmndrs/uikit-lucide": "^1.0.74",
     "peerjs": "^1.5.5",
     "three": "npm:super-three@0.181.0",
-    "three-icosa": "https://github.com/icosa-foundation/three-icosa/archive/67b30b4ae7cee4329c7ecc3289c4edc9c77dc3fd.tar.gz",
-    "three-tiltloader": "https://github.com/icosa-foundation/three-tiltloader/archive/164454729442345fa19144471cf762b56fbc4518.tar.gz"
+    "three-icosa": "https://github.com/icosa-foundation/three-icosa/archive/d88b16d464f4aa94c01b19029084d7187d591892.tar.gz",
+    "three-tiltloader": "https://github.com/icosa-foundation/three-tiltloader/archive/08337e5eb4c738e029afc050812619e22492bc43.tar.gz"
   },
   "devDependencies": {
     "@iwsdk/cli": "0.4.2",
