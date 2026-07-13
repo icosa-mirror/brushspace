@@ -10,6 +10,7 @@ import { generateBrushGeometry } from "./brush-geometry.js";
 import {
   createBrushShaderMaterialDescriptor,
   getBrushShaderEligibility,
+  hasBrushMainTextureCutout,
   packBrushShaderTime,
   prepareBrushShaderSource,
   resolveLoadedTextureTexelSize,
@@ -197,6 +198,16 @@ describe("brush shader eligibility", () => {
 });
 
 describe("brush shader material descriptors", () => {
+  it("recognizes the maintained diffuse texture cutout contract", () => {
+    expect(
+      hasBrushMainTextureCutout(`
+        vec4 mainTex = texture(u_MainTex, v_texcoord0);
+        if (mainTex.a * v_color.a < u_Cutoff) { discard; }
+      `),
+    ).toBe(true);
+    expect(hasBrushMainTextureCutout("fragColor = v_color;")).toBe(false);
+  });
+
   it("selects the original Open Brush packed vertex layout explicitly", () => {
     expect(OPENBRUSH_USES_NEW_TILT_EXPORTER).toBe(false);
   });

@@ -73,6 +73,7 @@ import {
 } from "../brushes/brush-conformance-fixtures.js";
 import { openBrushShaderCompatibility } from "../brushes/brush-shader-compatibility.js";
 import { matchesBrushTextureImporterSettings } from "../brushes/brush-texture-settings.js";
+import { hasBrushMainTextureCutout } from "../brushes/brush-shader-materials.js";
 import {
   applyBrushRenderGroups,
   createBrushRenderMaterial,
@@ -323,6 +324,23 @@ export class StrokeAuthoringSystem extends createSystem({
         if (cullingFailures.length > 0) {
           console.error(
             `[OpenBrushCulling] Required brush side mismatch: ${cullingFailures.join(", ")}`,
+          );
+        }
+        const cutoutBrushes = new Set(["SingleSided", "DoubleFlat"]);
+        const cutoutFailures = shaderBrushes.flatMap((entry, index) => {
+          if (!cutoutBrushes.has(entry.name)) {
+            return [];
+          }
+          const material = materials[index];
+          return material && hasBrushMainTextureCutout(material.fragmentShader)
+            ? []
+            : [entry.name];
+        });
+        document.documentElement.dataset.brushTextureCutouts =
+          cutoutFailures.length === 0 ? "pass" : "fail";
+        if (cutoutFailures.length > 0) {
+          console.error(
+            `[OpenBrushTextureCutout] Missing diffuse cutout logic: ${cutoutFailures.join(", ")}`,
           );
         }
         if (loadedCount > 0) {

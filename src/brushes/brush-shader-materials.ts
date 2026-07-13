@@ -362,3 +362,11 @@ export function packBrushShaderTime(
 ): [number, number, number, number] {
   return [timeSeconds / 20, timeSeconds, timeSeconds * 2, timeSeconds * 3];
 }
+
+export function hasBrushMainTextureCutout(fragmentShader: string): boolean {
+  return (
+    /texture\s*\(\s*u_MainTex\s*,\s*v_texcoord0\s*\)/.test(fragmentShader) &&
+    /mainTex\.a\s*\*\s*v_color\.a\s*<\s*u_Cutoff/.test(fragmentShader) &&
+    /\bdiscard\s*;/.test(fragmentShader)
+  );
+}

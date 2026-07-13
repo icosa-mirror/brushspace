@@ -153,9 +153,9 @@ distance/stretch UVs restarted per section. Important remaining differences are:
 - DoubleTapered and Electricity now consume the emitted edge-vector layout.
   Electricity also recreates the Unity shader's three displacement passes;
   exact `FlatGeometryBrush` smoothing/topology remains open.
-- SingleSided and DoubleFlat still use the maintained web shaders without the
-  Unity diffuse-texture cutout path. A quarantined implementation demonstrated
-  the intended behavior but was not included in the approved asset revision.
+- SingleSided and DoubleFlat now use the Unity diffuse-texture cutout path in the
+  approved maintained shaders. Browser smoke verifies that both loaded fragments
+  retain the texture sample, vertex-alpha cutoff, and discard contract.
 - Space still uses the maintained web shader's three-octave value-noise
   substitute. The Unity 2D/3D simplex-noise basis and six-octave
   `0.516`-persistence FBM remain an upstream asset gap.
@@ -301,12 +301,15 @@ The Brushspace-driven dependency series have been preserved for reference on
 `codex/brushspace-integration` and removed from the dependencies' default
 branches. They are not approved pins.
 
-- Approved `icosa-sketch-assets` revision: `555b90a`. It retains the independently
+- Approved `icosa-sketch-assets` revision: `1bb64bc`. It retains the independently
   reviewed Digital/Race shader fix, removes the unused `brushes/legacy`
   directory, and restores `gl_VertexID` for the six maintained particle shaders.
   The rejected `a_texcoord1.w` corner index from `9e7f3a5` is not present because
   active UnityGLTF UV1 export truncates that component and the binding layer does
-  not synthesize it.
+  not synthesize it. SingleSided and DoubleFlat now sample their declared diffuse
+  textures and apply the Unity alpha-cutout contract. Their current stock textures
+  are opaque white, so this restores shader behavior without claiming a visible
+  stock-image difference.
 - Approved `three-icosa` revision: `b398f64`, based on trusted revision
   `ab2cd19`. It retains package exports and declarations, the opt-in material
   factory whose default remains `RawShaderMaterial`, and the Digital/Race
@@ -340,7 +343,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
 All required material lookups use the maintained dependency path. Brushspace
-pins `icosa-sketch-assets@555b90a`, `three-icosa@b398f64`, and
+pins `icosa-sketch-assets@1bb64bc`, `three-icosa@b398f64`, and
 `three-tiltloader@a60b1ec`. Browser smoke testing reports 111/111 materials
 loaded with no shader compile errors; Oil Paint links with its 1024x1024 normal
 texture bound. Dependency provenance and successful compilation establish source
