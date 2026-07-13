@@ -121,6 +121,9 @@ distance/stretch UVs restarted per section. Important remaining differences are:
 - Ribbon pressure now uses Open Brush's distance-based smoothing window,
   including the shorter M11 FlatGeometry window and its forced zero-pressure
   initial knot in both finalized geometry and live keeper state.
+- Non-M11 FlatGeometry's second pass now smooths each section's final rendered
+  center toward the following non-rendered break knot, while retaining the
+  unsmoothed terminal width used by Unity.
 - Remaining position/frame differences, discard, and adjacent-knot rebuild
   rules are incomplete. Non-M11 `FlatGeometryBrush` strokes clip
   self-intersections and cap width growth against raw knot travel before the
@@ -316,7 +319,7 @@ branches. They are not approved pins.
   export contract rather than require shaders to understand a new
   Brushspace-only layout.
 
-Brushspace pins those approved revisions through `three-tiltloader@2f7f7be`.
+Brushspace pins those approved revisions through `three-tiltloader@5b610c0`.
 The quarantined integration branches remain diagnostic references only.
 
 This migration does not make the shaders equivalent to the Unity runtime shaders. The maintained web shaders remain ports of Open Brush behavior, and exact fidelity still depends on correct generated vertex contracts, render context, animation inputs, and brush-specific multipass behavior.
@@ -331,7 +334,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups use the maintained dependency path. Brushspace
 pins `icosa-sketch-assets@555b90a`, `three-icosa@ab2cd19`, and
-`three-tiltloader@2f7f7be`. Browser smoke testing reports 111/111 materials
+`three-tiltloader@5b610c0`. Browser smoke testing reports 111/111 materials
 loaded with no shader compile errors; Oil Paint links with its 1024x1024 normal
 texture bound. Dependency provenance and successful compilation establish source
 ownership and browser-render eligibility; they do not establish Unity image
@@ -613,7 +616,9 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
    in the browser for per-GUID comparison.
 6. Replace renderer-eligibility labels with persisted mesh/browser/XR/image evidence.
 7. Fail loudly when an extracted required vertex contract is unimplemented.
-8. Port ribbon smoothing and self-intersection width shrinking.
+8. In progress: self-intersection width shrinking and finalized second-pass
+   FlatGeometry smoothing are implemented; incremental adjacent-knot rebuild
+   behavior still needs parity.
 9. Byte-compare tube caps/rings and port Disco and LightWire layouts.
 10. Port preview decay and exact time conversion by producing the established
     particle attributes; do not add Brushspace-specific shader inputs.
