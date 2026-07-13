@@ -1292,22 +1292,43 @@ export class StrokeAuthoringSystem extends createSystem({
       }
       stroke.geometry.setIndex(index);
     } else {
-      (stroke.geometry.getAttribute("position") as BufferAttribute).needsUpdate = true;
-      (stroke.geometry.getAttribute("normal") as BufferAttribute).needsUpdate = true;
-      (stroke.geometry.getAttribute("tangent") as BufferAttribute).needsUpdate = true;
-      (stroke.geometry.getAttribute("color") as BufferAttribute).needsUpdate = true;
-      (stroke.geometry.getAttribute("uv") as BufferAttribute).needsUpdate = true;
+      this.markAttributeRangeUpdated(
+        stroke.geometry.getAttribute("position") as BufferAttribute,
+        arrays.vertexCount,
+      );
+      this.markAttributeRangeUpdated(
+        stroke.geometry.getAttribute("normal") as BufferAttribute,
+        arrays.vertexCount,
+      );
+      this.markAttributeRangeUpdated(
+        stroke.geometry.getAttribute("tangent") as BufferAttribute,
+        arrays.vertexCount,
+      );
+      this.markAttributeRangeUpdated(
+        stroke.geometry.getAttribute("color") as BufferAttribute,
+        arrays.vertexCount,
+      );
+      this.markAttributeRangeUpdated(
+        stroke.geometry.getAttribute("uv") as BufferAttribute,
+        arrays.vertexCount,
+      );
       const shaderUv = stroke.geometry.getAttribute("a_texcoord0");
       if (shaderUv && shaderUv !== stroke.geometry.getAttribute("uv")) {
-        (shaderUv as BufferAttribute).needsUpdate = true;
+        this.markAttributeRangeUpdated(
+          shaderUv as BufferAttribute,
+          arrays.vertexCount,
+        );
       }
       const shaderUv1 = stroke.geometry.getAttribute("a_texcoord1");
       if (shaderUv1) {
-        (shaderUv1 as BufferAttribute).needsUpdate = true;
+        this.markAttributeRangeUpdated(
+          shaderUv1 as BufferAttribute,
+          arrays.vertexCount,
+        );
       }
       const index = stroke.geometry.getIndex();
       if (index) {
-        index.needsUpdate = true;
+        this.markAttributeRangeUpdated(index, arrays.indexCount);
       }
     }
     stroke.geometry.setDrawRange(0, arrays.indexCount);
@@ -1321,6 +1342,15 @@ export class StrokeAuthoringSystem extends createSystem({
         stroke.entity.setValue(BrushStroke, "renderWarning", arrays.warning);
       }
     }
+  }
+
+  private markAttributeRangeUpdated(
+    attribute: BufferAttribute,
+    usedElementCount: number,
+  ): void {
+    attribute.clearUpdateRanges();
+    attribute.addUpdateRange(0, usedElementCount * attribute.itemSize);
+    attribute.needsUpdate = true;
   }
 
   private copyGeneratedBounds(

@@ -227,7 +227,12 @@ lifecycle/time-conversion gap.
 
 ### Performance
 
-Finalized strokes remain separate meshes and draw calls, frustum culling is disabled, and active geometry marks full-capacity attributes dirty. `brush-batching.ts` has tests but no production caller. Large Open Brush sketches need pooled material batches, separate dynamic active-stroke buffers, dirty-range uploads, valid culling bounds, and erase/undo compaction.
+Finalized strokes remain separate meshes and draw calls, and frustum culling is
+disabled. Active geometry now uploads only its used vertex and index ranges
+rather than each geometrically grown buffer's full capacity. `brush-batching.ts`
+has tests but no production caller. Large Open Brush sketches still need pooled
+material batches, separate dynamic active-stroke buffers, deformation-aware
+culling bounds, and erase/undo compaction.
 
 ## Shared dependency architecture
 
