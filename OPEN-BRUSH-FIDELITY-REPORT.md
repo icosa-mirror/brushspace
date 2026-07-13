@@ -161,7 +161,8 @@ differences are:
 - Cap/ring topology has not been byte-compared against each upstream `TubeBrush` variant.
 - `SquareBrush` now uses its source flat rectangular start/end faces and 16
   duplicated corner vertices per solid instead of inheriting pointed TubeBrush
-  cap tips that extended the stroke bounds.
+  cap tips that extended the stroke bounds. Its rings also remain on raw
+  control-point positions rather than inheriting TubeBrush center smoothing.
 - Hard-edged tube rings now use Open Brush's radial tangent channel instead of
   the stroke-forward tangent, restoring the authored tangent basis for their
   normal maps.
@@ -276,7 +277,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@da2844e`,
-`three-icosa@d88b16d`, and `three-tiltloader@4f7e4a1`. This establishes source
+`three-icosa@d88b16d`, and `three-tiltloader@2769e0c`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
