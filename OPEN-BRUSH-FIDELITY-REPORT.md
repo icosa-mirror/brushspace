@@ -178,6 +178,8 @@ differences are:
   incremental adjacent-knot rebuild semantics remain absent.
 - Sin, comet, taper, petal, and double-taper modifier progress now restarts for
   each break-delimited Tube section, as does StretchUV knot progression.
+  StretchUV reproduces the source overwrite pass: its final two rings share
+  `(N - 1) / N`, and cap U values retain the documented Unity limitation.
   Double-taper also applies the source trailing-knot partial-progress
   interpolation and short-stroke attenuation against the Tube spawn interval.
   Exact modifier curves still need Unity mesh-dump validation.
@@ -280,7 +282,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@da2844e`,
-`three-icosa@d88b16d`, and `three-tiltloader@113e83c`. This establishes source
+`three-icosa@d88b16d`, and `three-tiltloader@d58b1b4`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains

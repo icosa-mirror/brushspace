@@ -391,7 +391,9 @@ describe("brush geometry generation", () => {
       Array.from(geometry.normals.slice(3, 6)),
     );
     expect(geometry.uvs[0]).toBeCloseTo(0);
-    expect(geometry.uvs[40]).toBeCloseTo(1);
+    // TubeBrush's StretchUV pass assigns the last geometry knot's U to both
+    // its shared back ring and front ring, so a two-solid section ends at 1/2.
+    expect(geometry.uvs[40]).toBeCloseTo(0.5);
   });
 
   it("generates SquareBrush as a hard-edged rectangular prism", () => {
