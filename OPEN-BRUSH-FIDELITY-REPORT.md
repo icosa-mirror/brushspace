@@ -357,7 +357,9 @@ Suggested gates:
 3. Extract every required prefab field, vertex layout, texture importer setting, render state, keyword, and environment dependency.
 4. Partially implemented: evidence states distinguish asset readiness, renderer
    eligibility, mesh contract, browser compile, XR compile, and persisted visual
-   results. Mesh/image fixture automation and a complete XR matrix remain open.
+   results. CI also checks active vertex/fragment varying links across all 95
+   required authoritative shader pairs. Mesh/image fixture automation and a
+   complete XR matrix remain open.
 5. Partially implemented: the browser route now reproduces the existing Open
    Brush `UiScreenshotter` path, perspective framing, fixed shader time, and
    stroke seed without generator-specific control-point mutations. Unity mesh
