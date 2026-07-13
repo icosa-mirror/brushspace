@@ -186,7 +186,9 @@ and add the source pointer-hanging particle, which finalization removes before
 the stroke becomes persistent. Preview birth times use the source negative-time
 encoding, and six maintained Genius shaders now shrink those particles with the
 source quadratic curve over the shared 0.2-second preview lifetime. Rising
-Bubbles still uses a default vertex shader and needs its Genius contract ported.
+Bubbles now ports its Unity vertex behavior: exponential origin spread,
+rising/jitter displacement, lifetime dimming, rotated camera billboarding, and
+the same preview shrink contract.
 
 The seven `SprayBrush` entries now spawn segment-oriented quads at the source
 pressure-sized interval, including the 500-quad segment cap, source salt
@@ -243,8 +245,8 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
 All required material lookups now use the maintained dependency path. The pinned
-revisions at this milestone are `icosa-sketch-assets@df22d8e`,
-`three-icosa@0d2ffaf`, and `three-tiltloader@2451e14`. This establishes source
+revisions at this milestone are `icosa-sketch-assets@7838a8f`,
+`three-icosa@67b30b4`, and `three-tiltloader@e984a51`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
