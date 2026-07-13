@@ -150,21 +150,18 @@ distance/stretch UVs restarted per section. Important remaining differences are:
 - DoubleTapered and Electricity now consume the emitted edge-vector layout.
   Electricity also recreates the Unity shader's three displacement passes;
   exact `FlatGeometryBrush` smoothing/topology remains open.
-- SingleSided and DoubleFlat now apply their authored diffuse textures to
-  stroke color and discard texture/stroke alpha below the material cutoff,
-  matching their Unity `DiffuseSingleSided` surface shader instead of drawing
-  every fragment opaque.
-- Space now uses the Unity shader's 2D/3D simplex-noise basis and six-octave
-  `0.516`-persistence FBM instead of the maintained web shader's three-octave
-  value-noise substitute.
+- SingleSided and DoubleFlat still use the maintained web shaders without the
+  Unity diffuse-texture cutout path. A quarantined implementation demonstrated
+  the intended behavior but was not included in the approved asset revision.
+- Space still uses the maintained web shader's three-octave value-noise
+  substitute. The Unity 2D/3D simplex-noise basis and six-octave
+  `0.516`-persistence FBM remain an upstream asset gap.
 - Toon now recreates its radius-packed, front-culled black outline pass. Its
   blue surface remains too narrow against the Unity reference, so exact tube
   radius/topology is still required.
-- TubeToonInverted now recreates its black base and inflated, front-culled
-  color pass. Its fixed scene-space outline is converted through the current
-  model/canvas scale, matching Unity's inverse-canvas inflation rule. The
-  colored shell also restores the source shader's object-space normal-y
-  shading; exact tube normals still need fixture comparison.
+- TubeToonInverted's reviewed inverse-canvas outline inflation and
+  object-space normal-y shading remain outside the approved asset revision.
+  Restore them upstream only after an isolated shader review and fixture check.
 
 ### Tubes
 
@@ -257,11 +254,11 @@ and 4D UV1 corner-offset/birth-time contract. Midpoint preview rebuilds restart
 that salt layout from the rebuilt knot indices rather than carrying the
 decayed-knot offset used by Spray and Genius. Unlike Spray and Genius, Midpoint
 retains GeometryBrush's distance-smoothed pressure for live keeper spacing,
-spawn count, size, and opacity. DanceFloor now reads that birth
-time directly, applies Unity's fixed world-space grid, and reproduces its
-lifetime color/normal pulse without the web shader's former invented timestamp
-attribute. WaveformParticles retains its birth-time-driven curl displacement.
-A DanceFloor pixel gate rejects empty or black output. HyperGrid now reproduces
+spawn count, size, and opacity. The approved DanceFloor shader still requests
+an `a_timestamp` attribute that the generator does not emit; its lifetime
+color/normal pulse is therefore a known generated-mesh contract gap.
+WaveformParticles retains its birth-time-driven curl displacement.
+HyperGrid now reproduces
 Unity's lifetime-dependent transition from its fine birth grid to its
 particle-size grid; its additional audio-reactive behavior remains absent. Finalized loaded
 Midpoint and Genius particle strokes now use Open Brush's deterministic zero
@@ -337,6 +334,9 @@ loaded with no shader compile errors; Oil Paint links with its 1024x1024 normal
 texture bound. Dependency provenance and successful compilation establish source
 ownership and browser-render eligibility; they do not establish Unity image
 parity.
+Known generated-mesh interface gaps are explicit: LeakyPen requests
+`a_texcoord1`, and DanceFloor requests `a_timestamp`, neither of which its
+current generator emits.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
 limited to unknown compatibility fallbacks.
