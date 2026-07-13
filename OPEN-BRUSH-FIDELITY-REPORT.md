@@ -167,6 +167,9 @@ differences are:
   interpolation and short-stroke attenuation against the Tube spawn interval.
   Exact modifier curves still need Unity mesh-dump validation.
 - Disco and LightWire consume the radius-packed 3D UV0 tube contract; exact Unity deformation still needs fixture comparison.
+- Rain now uses Unity's 2.25-radius strip separation and exact `_Time.y * 4`
+  scroll/randomization rates instead of the maintained web shader's reduced
+  bulge and 30%-speed compensation.
 - Culling and seam behavior need per-brush visual validation.
 
 ### Particles
@@ -261,7 +264,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
 All required material lookups now use the maintained dependency path. The pinned
-revisions at this milestone are `icosa-sketch-assets@6a47a10`,
+revisions at this milestone are `icosa-sketch-assets@d2a81c1`,
 `three-icosa@67b30b4`, and `three-tiltloader@52f8320`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
