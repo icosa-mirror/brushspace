@@ -301,26 +301,24 @@ The Brushspace-driven dependency series have been preserved for reference on
 `codex/brushspace-integration` and removed from the dependencies' default
 branches. They are not approved pins.
 
-- Last known pre-integration `icosa-sketch-assets` baseline: `52c787c`. The
-  indexed-particle corner change (`9e7f3a5`) must be re-audited against the
-  active BrushBaker/UnityGLTF contract before it can be called backward
-  compatible. The requested Digital/Race update in `f100560` should be reapplied
-  independently if that audit rejects its parent. The later removal of the
-  unused `brushes/legacy` directory is independent cleanup, not shader-fidelity
-  evidence. Consequently the dependency's current `main` is not automatically
-  an approved Brushspace pin.
-- Trusted `three-icosa` baseline: `1a738b8`. The standalone optional
-  material-factory change is considered a reasonable backward-compatible
-  improvement, but it must be reapplied independently and tested with
-  `gallery-viewer` before returning to `main` or becoming Brushspace's pin.
+- Approved `icosa-sketch-assets` revision: `555b90a`. It retains the independently
+  reviewed Digital/Race shader fix, removes the unused `brushes/legacy`
+  directory, and restores `gl_VertexID` for the six maintained particle shaders.
+  The rejected `a_texcoord1.w` corner index from `9e7f3a5` is not present because
+  active UnityGLTF UV1 export truncates that component and the binding layer does
+  not synthesize it.
+- Approved `three-icosa` revision: `ab2cd19`, based on trusted baseline
+  `1a738b8`. It contains package exports and declarations, an opt-in material
+  factory whose default remains `RawShaderMaterial`, and the Digital/Race
+  bindings. Package tests and Brushspace browser rendering pass; an exact-checkout
+  `gallery-viewer` runtime check remains required before the next pin advance.
 - Current trusted `three-tiltloader` work remains the place for reusable live
   mesh generation. Changes there must reproduce the established Open Brush
   export contract rather than require shaders to understand a new
   Brushspace-only layout.
 
-Brushspace currently still pins the quarantined commits, so dependency recovery
-is incomplete until it is repinned and the resulting failures are repaired in
-Brushspace or `three-tiltloader`.
+Brushspace pins those approved revisions through `three-tiltloader@2f7f7be`.
+The quarantined integration branches remain diagnostic references only.
 
 This migration does not make the shaders equivalent to the Unity runtime shaders. The maintained web shaders remain ports of Open Brush behavior, and exact fidelity still depends on correct generated vertex contracts, render context, animation inputs, and brush-specific multipass behavior.
 
@@ -332,17 +330,13 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
-All required material lookups currently use the maintained dependency path, but
-the application pins are transitional: `icosa-sketch-assets@8c8cae5` and
-`three-icosa@d88b16d` are quarantined integration revisions, while
-`three-tiltloader@6703dc7` contains the reusable generator work. The recovery
-asset target is still under audit: start from `icosa-sketch-assets@52c787c`,
-resolve `9e7f3a5`, then retain the requested Digital/Race update and unused
-legacy-directory removal without inheriting unverified shader changes. The
-other recovery targets are `three-icosa@1a738b8` plus only a separately verified
-optional material factory if required, and a reviewed `three-tiltloader`
-revision. Dependency provenance establishes source ownership and
-browser-render eligibility; it does not establish Unity image parity.
+All required material lookups use the maintained dependency path. Brushspace
+pins `icosa-sketch-assets@555b90a`, `three-icosa@ab2cd19`, and
+`three-tiltloader@2f7f7be`. Browser smoke testing reports 111/111 materials
+loaded with no shader compile errors; Oil Paint links with its 1024x1024 normal
+texture bound. Dependency provenance and successful compilation establish source
+ownership and browser-render eligibility; they do not establish Unity image
+parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
 limited to unknown compatibility fallbacks.
@@ -524,14 +518,12 @@ Exit: tube topology/attributes match Unity and default tubes pass images.
 
 ### Phase 3: materials and shader context (3-6 engineer-weeks, overlaps 1-2)
 
-1. In progress: repin `icosa-sketch-assets` and `three-icosa` to the trusted
-   revisions, then restore each required brush without modifying the verified
-   shader source.
-2. Reapply the optional `three-icosa` material factory as an isolated
-   backward-compatible commit: preserve the existing constructor and default
-   `RawShaderMaterial`, add an explicit opt-in factory, test the package, build
-   and visually exercise `gallery-viewer` against that exact checkout, and only
-   then consider it for `main`. Until then, use a local loader wrapper.
+1. Implemented: repin the three dependencies to the reviewed revisions and load
+   all 111 configured materials without modifying maintained shader source.
+2. Implemented upstream and package-tested: the optional `three-icosa` material
+   factory preserves the existing default `RawShaderMaterial` and adds an
+   explicit opt-in factory. Still required: visually exercise `gallery-viewer`
+   against the exact pinned checkout.
 3. Define a typed vertex-layout registry shared by `three-tiltloader` geometry and the Brushspace/`three-icosa` binding adapter.
 4. Preserve the authoritative texture color/sampler metadata.
 5. Complete render-state mapping without introducing transparency behavior absent from Open Brush.
@@ -597,15 +589,12 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 
 ## Immediate backlog
 
-1. Audit `9e7f3a5`, construct the approved `icosa-sketch-assets` revision from
-   independently justified changes, and repin Brushspace to it and the clean
-   `three-icosa` baseline. Catalogue every resulting compile, blank-output,
-   black-output, and visual failure without importing shader changes from the
-   quarantine branch.
+1. Run `gallery-viewer` against `three-icosa@ab2cd19`, including Digital, Race,
+   and a representative existing material, before advancing that dependency.
 2. Replace the asset submodule path with configurable pinned asset URLs and an
    optional CI self-host/mirror step.
-3. Reapply and downstream-test only the backward-compatible optional
-   `three-icosa` material factory.
+3. Add a repeatable Chrome/IWER smoke command that uses local HTTP and never
+   invokes CA installation, then capture the 111/111 compile gate in CI.
 4. Add live Unity, post-BrushBaker, exported GLB, and post-`three-icosa` geometry
    dumps to the deterministic fixture and compare the final shader-facing
    contract with `three-tiltloader` output.
