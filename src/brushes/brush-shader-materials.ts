@@ -6,6 +6,8 @@ import { assetUrl } from "../app/asset-url.js";
 
 export const OPENBRUSH_SHADER_BASE_URL = assetUrl("/openbrush/shaders/");
 export const OPENBRUSH_TEXTURE_BASE_URL = assetUrl("/openbrush/textures/");
+/** Generated strokes use Open Brush's original packed vertex layout. */
+export const OPENBRUSH_USES_NEW_TILT_EXPORTER = false;
 
 /** Open Brush export blend modes (IExportableMaterial.cs). */
 export type BrushShaderBlending = "opaque" | "cutout" | "additive" | "alpha";

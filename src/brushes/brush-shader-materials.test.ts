@@ -14,6 +14,7 @@ import {
   prepareBrushShaderSource,
   resolveLoadedTextureTexelSize,
   resolveBrushShaderBlending,
+  OPENBRUSH_USES_NEW_TILT_EXPORTER,
 } from "./brush-shader-materials.js";
 import { createEmptyStrokeData } from "../types.js";
 
@@ -195,6 +196,10 @@ describe("brush shader eligibility", () => {
 });
 
 describe("brush shader material descriptors", () => {
+  it("selects the original Open Brush packed vertex layout explicitly", () => {
+    expect(OPENBRUSH_USES_NEW_TILT_EXPORTER).toBe(false);
+  });
+
   it("derives texel-size uniforms from the loaded runtime image", () => {
     expect(resolveLoadedTextureTexelSize({ width: 1024, height: 512 })).toEqual([
       1 / 1024,

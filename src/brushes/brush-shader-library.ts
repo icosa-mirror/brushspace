@@ -47,6 +47,7 @@ import {
   OPENBRUSH_SCENE_LIGHT_0_MATRIX,
   OPENBRUSH_SCENE_LIGHT_1_COLOR,
   OPENBRUSH_SCENE_LIGHT_1_MATRIX,
+  OPENBRUSH_USES_NEW_TILT_EXPORTER,
   type BrushShaderMaterialDescriptor,
   type BrushBumpMappingMode,
 } from "./brush-shader-materials.js";
@@ -188,6 +189,9 @@ export class BrushShaderLibrary {
   }).setPath(AUTHORITATIVE_BRUSH_ASSET_URL);
 
   readonly frameUniforms = {
+    // Generated stroke geometry uses Open Brush's original packed vertex
+    // layout. The newer-exporter branches require additional baked UV data.
+    u_isNewTiltExporter: { value: OPENBRUSH_USES_NEW_TILT_EXPORTER },
     u_time: { value: new Vector4(0, 0, 0, 0) },
     u_SceneLight_0_matrix: {
       value: new Matrix4().fromArray(OPENBRUSH_SCENE_LIGHT_0_MATRIX),
