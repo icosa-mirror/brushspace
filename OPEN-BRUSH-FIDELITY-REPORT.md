@@ -195,15 +195,18 @@ instead of the ribbon/tube keeper formula.
 
 The three `MidpointPlusLifetimeSprayBrush` entries now use the same authored
 distance spawning and segment frame, plus their distinct five-quad salt layout
-and 4D UV1 corner-offset/birth-time contract. DanceFloor and WaveformParticles
-render with their default export vertex shaders; a DanceFloor pixel gate
-rejects empty or black output. HyperGrid renders its non-audio export behavior;
-its additional audio-reactive behavior remains absent. Finalized loaded
+and 4D UV1 corner-offset/birth-time contract. DanceFloor now reads that birth
+time directly, applies Unity's fixed world-space grid, and reproduces its
+lifetime color/normal pulse without the web shader's former invented timestamp
+attribute. WaveformParticles retains its birth-time-driven curl displacement.
+A DanceFloor pixel gate rejects empty or black output. HyperGrid now reproduces
+Unity's lifetime-dependent transition from its fine birth grid to its
+particle-size grid; its additional audio-reactive behavior remains absent. Finalized loaded
 Midpoint and Genius particle strokes now use Open Brush's deterministic zero
-birth time, while live-authored strokes retain their sampled timestamps. The
-export shaders do not reproduce Unity's lifetime motion, so runtime animation,
-preview decay, and exact sketch-time-to-level-time conversion remain open.
-Genius particles share that lifecycle/time-conversion gap.
+birth time, while live-authored strokes retain their sampled timestamps.
+Preview decay, imported-sketch phase policy, and fixture validation of the
+sketch-time-to-level-time conversion remain open. Genius particles share that
+lifecycle/time-conversion gap.
 
 ### Performance
 
@@ -232,8 +235,8 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
 All required material lookups now use the maintained dependency path. The pinned
-revisions at this milestone are `icosa-sketch-assets@f2d7185`,
-`three-icosa@d2f79a4`, and `three-tiltloader@9bf7683`. This establishes source
+revisions at this milestone are `icosa-sketch-assets@349411e`,
+`three-icosa@b3d7ee7`, and `three-tiltloader@d0bc92c`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
