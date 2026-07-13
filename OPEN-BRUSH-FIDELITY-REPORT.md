@@ -189,7 +189,9 @@ layout, size/position/rotation/alpha variance, size ratio, atlas selection,
 raw knot pressure, explicit backfaces, and real default-vertex export shaders.
 A Splatter pixel
 gate rejects empty or black generated output. Preview decay and incremental
-knot rebuild behavior remain approximate.
+knot rebuild behavior remain approximate, although preview knots now use Open
+Brush's shared 0.2-second lifetime. Preserving generator salt and distance state
+as expired knots are removed remains open.
 Live Spray and Midpoint Spray strokes use `pressuredSize / sprayRateMultiplier`
 instead of the ribbon/tube keeper formula.
 
