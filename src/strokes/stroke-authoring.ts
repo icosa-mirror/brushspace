@@ -118,7 +118,6 @@ export function shouldSmoothStrokeSamplingPressure(
 ): boolean {
   return (
     generatorClass !== "SprayBrush" &&
-    generatorClass !== "MidpointPlusLifetimeSprayBrush" &&
     generatorClass !== "GeniusParticlesBrush"
   );
 }

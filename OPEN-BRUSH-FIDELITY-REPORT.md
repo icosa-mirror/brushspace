@@ -235,8 +235,8 @@ instead of the ribbon/tube keeper formula.
 The three `MidpointPlusLifetimeSprayBrush` entries now use the same authored
 distance spawning and segment frame, plus their distinct five-quad salt layout
 and 4D UV1 corner-offset/birth-time contract. Unlike Spray and Genius, Midpoint
-retains GeometryBrush's distance-smoothed pressure for spawn count, size, and
-opacity. DanceFloor now reads that birth
+retains GeometryBrush's distance-smoothed pressure for live keeper spacing,
+spawn count, size, and opacity. DanceFloor now reads that birth
 time directly, applies Unity's fixed world-space grid, and reproduces its
 lifetime color/normal pulse without the web shader's former invented timestamp
 attribute. WaveformParticles retains its birth-time-driven curl displacement.

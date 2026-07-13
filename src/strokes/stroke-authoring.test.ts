@@ -415,7 +415,7 @@ describe("Open Brush stroke sampling", () => {
     expect(shouldSmoothStrokeSamplingPressure("SprayBrush")).toBe(false);
     expect(
       shouldSmoothStrokeSamplingPressure("MidpointPlusLifetimeSprayBrush"),
-    ).toBe(false);
+    ).toBe(true);
     expect(shouldSmoothStrokeSamplingPressure("GeniusParticlesBrush")).toBe(
       false,
     );
