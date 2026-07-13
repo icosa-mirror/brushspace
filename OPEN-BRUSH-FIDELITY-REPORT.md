@@ -188,10 +188,11 @@ encoding, and six maintained Genius shaders now shrink those particles with the
 source quadratic curve over the shared 0.2-second preview lifetime. Rising
 Bubbles now ports its Unity vertex behavior: exponential origin spread,
 rising/jitter displacement, lifetime dimming, rotated camera billboarding, and
-the same preview shrink contract. The other six Genius shaders now also move
-from the packed source position to their randomized center using Unity's
-exponential spread curve; this is visually material for Bubbles, Smoke, Snow,
-and Stars, whose generators have nonzero particle speed.
+the same preview shrink contract. Bubbles, Snow, and Stars now move from the
+packed source position to their randomized center using Unity's exponential
+spread curve; Dots and Embers share the contract but have zero displacement.
+Smoke intentionally retains the Unity shader's non-spreading `ParticleVertex_t`
+path. Bubbles and Snow also ramp their displacement by the same spread progress.
 
 The seven `SprayBrush` entries now spawn segment-oriented quads at the source
 pressure-sized interval, including the 500-quad segment cap, source salt
@@ -248,7 +249,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
 All required material lookups now use the maintained dependency path. The pinned
-revisions at this milestone are `icosa-sketch-assets@8f78b59`,
+revisions at this milestone are `icosa-sketch-assets@031ade8`,
 `three-icosa@67b30b4`, and `three-tiltloader@e984a51`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
