@@ -6,6 +6,7 @@ const port = 4173;
 const baseUrl = `http://${host}:${port}`;
 const timeoutMs = 120_000;
 const oilPaintGuid = "f72ec0e7-a844-4e38-82e3-140c44772699";
+const electricityGuid = "f6e85de3-6dcc-4e7f-87fd-cee8c3d25d51";
 const toonGuid = "4391385a-df73-4396-9e33-31e4e4930b27";
 const tubeToonInvertedGuid = "9871385a-df73-4396-9e33-31e4e4930b27";
 const compatibilityStorageKey =
@@ -135,6 +136,7 @@ try {
     throw new Error(`Uncaught page errors: ${pageErrors.join("; ")}`);
   }
 
+  await verifyBrushRenders(browser, electricityGuid, "Electricity");
   await verifyBrushRenders(browser, toonGuid, "Toon");
   await verifyBrushRenders(
     browser,
@@ -143,7 +145,7 @@ try {
   );
 
   console.log(
-    `Browser material smoke passed: ${counts[1]}/${counts[2]} compiled; Oil Paint coverage, texture settings, required-brush culling, flat-brush texture cutouts, and both Toon brush pass/non-black render gates passed.`,
+    `Browser material smoke passed: ${counts[1]}/${counts[2]} compiled; Oil Paint coverage, texture settings, required-brush culling, flat-brush texture cutouts, Electricity, and both Toon brush pass/non-black render gates passed.`,
   );
 } catch (error) {
   if (serverOutput.trim()) {

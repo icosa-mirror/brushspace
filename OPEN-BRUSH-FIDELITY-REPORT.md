@@ -302,7 +302,7 @@ The Brushspace-driven dependency series have been preserved for reference on
 `codex/brushspace-integration` and removed from the dependencies' default
 branches. They are not approved pins.
 
-- Approved `icosa-sketch-assets` revision: `ba885b1`. It retains the independently
+- Approved `icosa-sketch-assets` revision: `1c06159`. It retains the independently
   reviewed Digital/Race shader fix, removes the unused `brushes/legacy`
   directory, and restores `gl_VertexID` for the six maintained particle shaders.
   The rejected `a_texcoord1.w` corner index from `9e7f3a5` is not present because
@@ -310,8 +310,9 @@ branches. They are not approved pins.
   not synthesize it. SingleSided and DoubleFlat now sample their declared diffuse
   textures and apply the Unity alpha-cutout contract. Their current stock textures
   are opaque white, so this restores shader behavior without claiming a visible
-  stock-image difference.
-- Approved `three-icosa` revision: `43cc2e7`, based on trusted revision
+  stock-image difference. Electricity exposes the displacement modifier required
+  to select its three Unity-equivalent material passes.
+- Approved `three-icosa` revision: `1868253`, based on trusted revision
   `ab2cd19`. It retains package exports and declarations, the optional material
   factory hook whose default remains `RawShaderMaterial`, and the Digital/Race
   bindings. It applies generated authoritative color-space and sampler metadata
@@ -319,12 +320,12 @@ branches. They are not approved pins.
   runs afterward as an override, not as the source of correct defaults. Package
   tests and Brushspace browser rendering pass. The earlier exact
   `three-icosa@ab2cd19` distributable was also built into `gallery-viewer` and
-  used there to load and render an existing sketch. Revision `43cc2e7` makes the
-  required Toon and Tube Toon Inverted material passes normal GLTF extension
-  behavior. Gallery Viewer builds from the exact pinned dependency. Visible
-  Chrome verifies Tube Toon Inverted with a focused fixture and Toon within the
-  maintained 48-mesh `all_brushes.glb` sketch.
-- Approved `three-tiltloader` revision: `fef49a3`, based on `5b610c0`. It pins
+  used there to load and render an existing sketch. Revision `1868253` makes the
+  required Electricity, Toon, and Tube Toon Inverted material passes normal GLTF
+  extension behavior. Gallery Viewer builds from the exact pinned dependency.
+  Visible Chrome verifies Tube Toon Inverted with a focused fixture and verifies
+  Toon and Electricity within the maintained 48-mesh `all_brushes.glb` sketch.
+- Approved `three-tiltloader` revision: `045117a`, based on `5b610c0`. It pins
   the approved `three-icosa` revision without changing the loader API or mesh
   generation. Current trusted `three-tiltloader` work remains the place for reusable live
   mesh generation. Changes there must reproduce the established Open Brush
@@ -332,7 +333,7 @@ branches. They are not approved pins.
   Brushspace-only layout.
 
 Brushspace pins those approved revisions directly and uses
-`three-tiltloader@fef49a3` for shared geometry generation.
+`three-tiltloader@045117a` for shared geometry generation.
 The quarantined integration branches remain diagnostic references only.
 
 This migration does not make the shaders equivalent to the Unity runtime shaders. The maintained web shaders remain ports of Open Brush behavior, and exact fidelity still depends on correct generated vertex contracts, render context, animation inputs, and brush-specific multiple material passes.
@@ -346,13 +347,13 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
 All required material lookups use the maintained dependency path. Brushspace
-pins `icosa-sketch-assets@ba885b1`, `three-icosa@43cc2e7`, and
-`three-tiltloader@fef49a3`. Browser smoke testing reports 111/111 materials
+pins `icosa-sketch-assets@1c06159`, `three-icosa@1868253`, and
+`three-tiltloader@045117a`. Browser smoke testing reports 111/111 materials
 loaded with no shader compile errors; Oil Paint links with its 1024x1024 normal
-texture bound, and separate render gates reject black or empty output from Toon
-and Tube Toon Inverted. Dependency provenance and successful compilation
-establish source ownership and browser-render eligibility; they do not establish
-Unity image parity.
+texture bound, and separate render gates reject black or empty output from
+Electricity, Toon, and Tube Toon Inverted. Dependency provenance and successful
+compilation establish source ownership and browser-render eligibility; they do
+not establish Unity image parity.
 DanceFloor now binds the live generator's particle birth time from `uv1.w` to
 the maintained shader's scalar `a_timestamp` input. LeakyPen correctly retains
 the Unity live `QuadStripBrush` UV0-only layout: its binding aliases UV0 to the
@@ -625,20 +626,22 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 
 ## Immediate backlog
 
-1. Implemented: Gallery Viewer pins `three-icosa@43cc2e7` and builds its deployed
+1. Implemented: Gallery Viewer pins `three-icosa@1868253` and builds its deployed
    module from that exact dependency. The loader applies required brush material
    passes automatically. Its visible-Chrome gate verifies Tube Toon Inverted
    against a focused fixture and verifies Toon plus all 48 shader meshes in the
-   maintained `all_brushes.glb` sketch. Brushspace consumes the exported
-   pass/group helper for both Toon brushes rather than duplicating their material
-   construction. Digital and Race retain dedicated dependency tests.
+   maintained `all_brushes.glb` sketch. The same existing-sketch gate verifies
+   Electricity's three distinct displacement modifiers and groups. Brushspace
+   consumes the exported pass/group helper for Electricity and both Toon brushes
+   rather than duplicating their material construction. Digital and Race retain
+   dedicated dependency tests.
 2. Implemented: runtime assets use a configurable immutable pinned URL by
    default, with explicit mirror commands for self-hosted/offline builds.
 3. Implemented: `npm run dev:http` provides a repeatable local HTTP route that
    never invokes CA installation. `npm run test:browser:materials` runs the
    111/111 WebGL compile check and deterministic Oil Paint coverage gate in
-   installed Chrome, locally and in CI. The same gate renders both Toon brushes
-   and rejects black or empty output.
+   installed Chrome, locally and in CI. The same gate renders Electricity and
+   both Toon brushes and rejects black or empty output.
 4. Add live Unity, post-BrushBaker, exported GLB, and post-`three-icosa` geometry
    dumps to the deterministic fixture and compare the final shader-facing
    contract with `three-tiltloader` output.

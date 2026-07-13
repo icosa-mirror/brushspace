@@ -6,13 +6,17 @@ import {
 import {
   applyTiltBrushRenderGroups,
   createTiltBrushRenderMaterial,
+  ELECTRICITY_BRUSH_GUID,
+  ELECTRICITY_DISPLACEMENT_MODS,
   TOON_BRUSH_GUID,
   TUBE_TOON_INVERTED_BRUSH_GUID,
 } from "three-icosa";
-export const ELECTRICITY_BRUSH_GUID =
-  "f6e85de3-6dcc-4e7f-87fd-cee8c3d25d51";
-export const ELECTRICITY_DISPLACEMENT_MODS = [1, 1.333, 1.77] as const;
-export { TOON_BRUSH_GUID, TUBE_TOON_INVERTED_BRUSH_GUID };
+export {
+  ELECTRICITY_BRUSH_GUID,
+  ELECTRICITY_DISPLACEMENT_MODS,
+  TOON_BRUSH_GUID,
+  TUBE_TOON_INVERTED_BRUSH_GUID,
+};
 
 interface UniformHolder {
   value: unknown;
@@ -69,24 +73,13 @@ export function createBrushRenderMaterial(
   if (cached) {
     return cached;
   }
-  const passes = ELECTRICITY_DISPLACEMENT_MODS.map((mod) => {
-    const material = cloneWithSharedUniforms(shader, sharedUniforms);
-    material.uniforms.u_DisplacementMod = { value: mod };
-    return material;
-  });
+  const passes = createTiltBrushRenderMaterial(
+    brushGuid,
+    shader,
+    sharedUniforms,
+  ) as ShaderMaterial[];
   electricityMaterials.set(shader, passes);
   return passes;
-}
-
-function cloneWithSharedUniforms(
-  source: ShaderMaterial,
-  sharedUniforms: Record<string, UniformHolder>,
-): ShaderMaterial {
-  const material = source.clone();
-  for (const [name, holder] of Object.entries(sharedUniforms)) {
-    material.uniforms[name] = holder;
-  }
-  return material;
 }
 
 export function applyBrushRenderGroups(

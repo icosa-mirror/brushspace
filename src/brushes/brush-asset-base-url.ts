@@ -1,7 +1,7 @@
 import { assetUrl } from "../app/asset-url.js";
 
 export const ICOSA_SKETCH_ASSETS_REVISION =
-  "ba885b119d435fa591d2fe1c90feb14e39c432d5";
+  "1c06159516aa7359f2bad8ac5ded1f6d7139bde1";
 export const PINNED_ICOSA_BRUSH_ASSET_BASE_URL =
   `https://cdn.jsdelivr.net/gh/icosa-foundation/icosa-sketch-assets@${ICOSA_SKETCH_ASSETS_REVISION}/brushes/`;
 
