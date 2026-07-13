@@ -15,7 +15,11 @@ import {
 import type { Camera } from "@iwsdk/core";
 import type { GeneratedBrushGeometry } from "./brush-geometry.js";
 
-import { applyBrushShaderAttributeAliases } from "./brush-shader-library.js";
+import {
+  applyBrushShaderAttributeAliases,
+  applyBrushShaderSupplementalAttributes,
+  DANCE_FLOOR_BRUSH_GUID,
+} from "./brush-shader-library.js";
 import {
   applyBrushRenderGroups,
   createBrushRenderMaterial,
@@ -83,6 +87,11 @@ export function runBrushGeometryVisualConformance(
   }
   geometry.setIndex(new BufferAttribute(generated.indices, 1));
   applyBrushShaderAttributeAliases(geometry);
+  applyBrushShaderSupplementalAttributes(
+    geometry,
+    name === "DanceFloor" ? DANCE_FLOOR_BRUSH_GUID : "",
+    generated.positions.length / 3,
+  );
 
   const material = sourceMaterial.clone();
   const renderMaterial = createBrushRenderMaterial(

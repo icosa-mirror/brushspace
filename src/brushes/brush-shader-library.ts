@@ -33,6 +33,7 @@ import { TiltShaderLoader } from "three-icosa";
 
 import type { BrushInventoryEntry } from "./brush-inventory.js";
 import { resolveBrushAssetBaseUrl } from "./brush-asset-base-url.js";
+import { copyUv1BirthTimes } from "./brush-shader-attributes.js";
 import {
   openBrushShaderCompatibility,
   type BrushShaderCompatibilityContext,
@@ -287,8 +288,8 @@ export class BrushShaderLibrary {
       : "browser",
   ): Promise<number> {
     const group = new Group();
-    for (const material of this.materials.values()) {
-      const mesh = new Mesh(createWarmupGeometry(), material);
+    for (const [guid, material] of this.materials) {
+      const mesh = new Mesh(createWarmupGeometry(guid), material);
       mesh.frustumCulled = false;
       group.add(mesh);
     }
@@ -646,15 +647,54 @@ export function applyBrushShaderAttributeAliases(geometry: BufferGeometry): void
   }
 }
 
-function createWarmupGeometry(): BufferGeometry {
+export const DANCE_FLOOR_BRUSH_GUID =
+  "6a1cf9f9-032c-45ec-311e-a6680bee32e9";
+
+/**
+ * Supplies shader attributes that are exported separately from the standard
+ * mesh channels. Dance Floor's live generator stores particle birth time in
+ * uv1.w; three-icosa binds the corresponding exported timestamp as a scalar.
+ */
+export function applyBrushShaderSupplementalAttributes(
+  geometry: BufferGeometry,
+  brushGuid: string,
+  usedVertexCount?: number,
+): BufferAttribute | undefined {
+  if (brushGuid.toLowerCase() !== DANCE_FLOOR_BRUSH_GUID) {
+    return undefined;
+  }
+  const uv1 = geometry.getAttribute("a_texcoord1");
+  if (!uv1 || uv1.itemSize < 4) {
+    geometry.deleteAttribute("a_timestamp");
+    return undefined;
+  }
+  const count = Math.min(usedVertexCount ?? uv1.count, uv1.count);
+  let timestamp = geometry.getAttribute("a_timestamp") as
+    | BufferAttribute
+    | undefined;
+  if (!timestamp || timestamp.itemSize !== 1 || timestamp.count !== uv1.count) {
+    timestamp = new BufferAttribute(new Float32Array(uv1.count), 1);
+    geometry.setAttribute("a_timestamp", timestamp);
+  }
+  const values = timestamp.array as Float32Array;
+  copyUv1BirthTimes(uv1.array, uv1.itemSize, values, count);
+  timestamp.clearUpdateRanges();
+  timestamp.addUpdateRange(0, count);
+  timestamp.needsUpdate = true;
+  return timestamp;
+}
+
+function createWarmupGeometry(brushGuid: string): BufferGeometry {
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new BufferAttribute(new Float32Array(9), 3));
   geometry.setAttribute("normal", new BufferAttribute(new Float32Array(9), 3));
   geometry.setAttribute("tangent", new BufferAttribute(new Float32Array(12), 4));
   geometry.setAttribute("color", new BufferAttribute(new Float32Array(12), 4));
   geometry.setAttribute("uv", new BufferAttribute(new Float32Array(6), 2));
+  geometry.setAttribute("uv1", new BufferAttribute(new Float32Array(12), 4));
   geometry.setIndex(new BufferAttribute(new Uint32Array([0, 1, 2]), 1));
   applyBrushShaderAttributeAliases(geometry);
+  applyBrushShaderSupplementalAttributes(geometry, brushGuid);
   return geometry;
 }
 

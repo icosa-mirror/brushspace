@@ -336,9 +336,11 @@ loaded with no shader compile errors; Oil Paint links with its 1024x1024 normal
 texture bound. Dependency provenance and successful compilation establish source
 ownership and browser-render eligibility; they do not establish Unity image
 parity.
-Known generated-mesh interface gaps are explicit: LeakyPen requests
-`a_texcoord1`, and DanceFloor requests `a_timestamp`, neither of which its
-current generator emits.
+DanceFloor now binds the live generator's particle birth time from `uv1.w` to
+the maintained shader's scalar `a_timestamp` input. LeakyPen's maintained web
+shader requests `a_texcoord1`, but the Unity live `QuadStripBrush` layout
+declares no UV1; that export/viewer discrepancy still needs source-contract
+resolution rather than a fabricated live-mesh channel.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
 limited to unknown compatibility fallbacks.

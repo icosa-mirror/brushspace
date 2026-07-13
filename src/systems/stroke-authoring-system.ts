@@ -55,6 +55,7 @@ import {
 } from "../brushes/brush-materials.js";
 import {
   applyBrushShaderAttributeAliases,
+  applyBrushShaderSupplementalAttributes,
   openBrushShaderLibrary,
 } from "../brushes/brush-shader-library.js";
 import {
@@ -1349,6 +1350,11 @@ export class StrokeAuthoringSystem extends createSystem({
         this.markAttributeRangeUpdated(index, arrays.indexCount);
       }
     }
+    applyBrushShaderSupplementalAttributes(
+      stroke.geometry,
+      stroke.strokeData.brushGuid,
+      arrays.vertexCount,
+    )?.setUsage(DynamicDrawUsage);
     stroke.geometry.setDrawRange(0, arrays.indexCount);
     applyBrushRenderGroups(stroke.geometry, arrays.indexCount, stroke.mesh.material);
     this.copyGeneratedBounds(stroke, arrays.bounds.min, arrays.bounds.max);
