@@ -161,7 +161,9 @@ differences are:
 - Cap/ring topology has not been byte-compared against each upstream `TubeBrush` variant.
 - Finalized Tube knot centers use the source three-point smoothing filter;
   incremental adjacent-knot rebuild semantics remain absent.
-- Modifier behavior is approximate rather than validated against Unity mesh dumps.
+- Sin, comet, taper, petal, and double-taper modifier progress now restarts for
+  each break-delimited Tube section, as does StretchUV knot progression.
+  Exact modifier curves still need Unity mesh-dump validation.
 - Disco and LightWire consume the radius-packed 3D UV0 tube contract; exact Unity deformation still needs fixture comparison.
 - Culling and seam behavior need per-brush visual validation.
 
@@ -229,7 +231,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@f2d7185`,
-`three-icosa@d2f79a4`, and `three-tiltloader@ef1e026`. This establishes source
+`three-icosa@d2f79a4`, and `three-tiltloader@5a98081`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
