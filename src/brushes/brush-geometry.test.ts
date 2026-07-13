@@ -210,6 +210,28 @@ describe("brush geometry generation", () => {
     expect(geometry.uvs[2]).toBeCloseTo(1);
   });
 
+  it("keeps provisional QuadStrip tips live and cleans them on finalization", () => {
+    const stroke = createUnevenThreePointStroke();
+    const live = generateBrushGeometry(stroke, "ribbon", {
+      generatorClass: "QuadStripBrushStretchUV",
+      lastControlPointIsKeeper: false,
+    });
+    const finalizedTrailing = generateBrushGeometry(stroke, "ribbon", {
+      generatorClass: "QuadStripBrushStretchUV",
+      finalized: true,
+      lastControlPointIsKeeper: false,
+    });
+    const finalizedKeeper = generateBrushGeometry(stroke, "ribbon", {
+      generatorClass: "QuadStripBrushStretchUV",
+      finalized: true,
+      lastControlPointIsKeeper: true,
+    });
+
+    expect(getGeneratedVertexCount(live)).toBe(12);
+    expect(getGeneratedVertexCount(finalizedTrailing)).toBe(0);
+    expect(getGeneratedVertexCount(finalizedKeeper)).toBe(12);
+  });
+
   it("omits sub-millimeter ribbon connections", () => {
     const stroke = createUnevenThreePointStroke();
     stroke.controlPoints[1].position = [0.0001, 0, 0];

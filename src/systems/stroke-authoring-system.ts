@@ -158,6 +158,7 @@ interface RuntimeStroke {
   pressureSizeRange: BrushPressureSizeRange | undefined;
   pressureOpacityRange: BrushPressureOpacityRange | undefined;
   deterministicParticleBirthTime: boolean;
+  geometryFinalized: boolean;
   toolId: OpenBrushToolId;
   groupId: number;
   samplingMode: OpenBrushToolSamplingMode;
@@ -983,6 +984,7 @@ export class StrokeAuthoringSystem extends createSystem({
       pressureSizeRange: brushEntry?.pressureSizeRange,
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
       deterministicParticleBirthTime: false,
+      geometryFinalized: false,
       toolId: activeTool.id,
       groupId,
       samplingMode: activeTool.samplingMode,
@@ -1224,6 +1226,9 @@ export class StrokeAuthoringSystem extends createSystem({
         geometryParams: stroke.geometryParams,
         generatorClass: stroke.generatorClass,
         deterministicBirthTime: stroke.deterministicParticleBirthTime,
+        finalized: stroke.geometryFinalized,
+        lastControlPointIsKeeper:
+          stroke.samplingMode === "freehand" ? stroke.lastPointIsKeeper : true,
       },
       arrays,
     );
@@ -1600,6 +1605,7 @@ export class StrokeAuthoringSystem extends createSystem({
       pressureSizeRange: brushEntry?.pressureSizeRange,
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
       deterministicParticleBirthTime: false,
+      geometryFinalized: false,
       toolId: "free-paint",
       groupId: 0,
       samplingMode: "freehand",
@@ -1649,6 +1655,8 @@ export class StrokeAuthoringSystem extends createSystem({
     if (!stroke) {
       return;
     }
+    stroke.geometryFinalized = true;
+    this.rebuildStrokeMesh(stroke);
     if (
       ((stroke.samplingMode === "straightedge" ||
         stroke.samplingMode === "tape") &&
@@ -2235,6 +2243,9 @@ export class StrokeAuthoringSystem extends createSystem({
     this.upsertRemoteStroke(strokeData);
     const runtime = this.remoteActiveStrokes.get(strokeData.guid);
     if (runtime) {
+      runtime.geometryFinalized = true;
+      runtime.lastPointIsKeeper = false;
+      this.rebuildStrokeMesh(runtime);
       runtime.entity.setValue(BrushStroke, "finalized", true);
       this.remoteActiveStrokes.delete(strokeData.guid);
     }
@@ -2334,6 +2345,7 @@ export class StrokeAuthoringSystem extends createSystem({
       pressureSizeRange: brushEntry?.pressureSizeRange,
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
       deterministicParticleBirthTime: finalized,
+      geometryFinalized: finalized,
       toolId: "free-paint",
       groupId: strokeData.groupId,
       samplingMode: "freehand",
@@ -2344,7 +2356,7 @@ export class StrokeAuthoringSystem extends createSystem({
       strokeData,
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
-      lastPointIsKeeper: false,
+      lastPointIsKeeper: finalized,
       lastKeeperSmoothedPressure: 0,
       solidMinLengthMeters: resolveGeneratorSolidMinLengthMeters({
         generatorClass: brushEntry?.generatorClass,
@@ -2421,6 +2433,7 @@ export class StrokeAuthoringSystem extends createSystem({
       pressureSizeRange: brushEntry?.pressureSizeRange,
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
       deterministicParticleBirthTime: source.deterministicParticleBirthTime,
+      geometryFinalized: true,
       toolId: source.toolId,
       groupId: source.groupId,
       samplingMode: source.samplingMode,
@@ -2431,7 +2444,7 @@ export class StrokeAuthoringSystem extends createSystem({
       strokeData,
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
-      lastPointIsKeeper: false,
+      lastPointIsKeeper: source.lastPointIsKeeper,
       lastKeeperSmoothedPressure: 0,
       solidMinLengthMeters: resolveGeneratorSolidMinLengthMeters({
         generatorClass: brushEntry?.generatorClass,

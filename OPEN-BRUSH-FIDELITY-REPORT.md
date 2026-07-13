@@ -131,7 +131,10 @@ distance/stretch UVs restarted per section. Important remaining differences are:
   Finalized geometry also reconstructs the source backward midpoint/fusion pass,
   fused-edge normals, and triangle-derived tangent space. Provisional leading
   edges and incremental late-knot replacement remain incomplete.
-- Head/tail simplification and per-generator minimum-length rules are incomplete.
+- Finalized local and collaboration QuadStrip strokes now apply the source
+  `GetNumUsedVerts` cleanup using the retained keeper/trailing-point state;
+  live provisional tips and keeper-only imported strokes remain visible.
+  Broader head/tail simplification for other generators remains incomplete.
 - DoubleTapered and Electricity now consume the emitted edge-vector layout.
   Electricity also recreates the Unity shader's three displacement passes;
   exact `FlatGeometryBrush` smoothing/topology remains open.
@@ -223,7 +226,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@f2d7185`,
-`three-icosa@d2f79a4`, and `three-tiltloader@bb49f22`. This establishes source
+`three-icosa@d2f79a4`, and `three-tiltloader@aa732e1`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
