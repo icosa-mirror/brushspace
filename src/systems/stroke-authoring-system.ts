@@ -159,6 +159,7 @@ interface RuntimeStroke {
   pressureOpacityRange: BrushPressureOpacityRange | undefined;
   deterministicParticleBirthTime: boolean;
   particleKnotIndexOffset: number;
+  particleDistanceOffset: number;
   geometryFinalized: boolean;
   toolId: OpenBrushToolId;
   groupId: number;
@@ -986,6 +987,7 @@ export class StrokeAuthoringSystem extends createSystem({
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
       deterministicParticleBirthTime: false,
       particleKnotIndexOffset: 0,
+      particleDistanceOffset: 0,
       geometryFinalized: false,
       toolId: activeTool.id,
       groupId,
@@ -1229,6 +1231,7 @@ export class StrokeAuthoringSystem extends createSystem({
         generatorClass: stroke.generatorClass,
         deterministicBirthTime: stroke.deterministicParticleBirthTime,
         particleKnotIndexOffset: stroke.particleKnotIndexOffset,
+        particleDistanceOffset: stroke.particleDistanceOffset,
         finalized: stroke.geometryFinalized,
         lastControlPointIsKeeper:
           stroke.samplingMode === "freehand" ? stroke.lastPointIsKeeper : true,
@@ -1512,6 +1515,14 @@ export class StrokeAuthoringSystem extends createSystem({
       if (expired) {
         this.previewPointPool.push(expired);
         trail.particleKnotIndexOffset += 1;
+        const next = points[0];
+        if (next) {
+          trail.particleDistanceOffset += Math.hypot(
+            next.position[0] - expired.position[0],
+            next.position[1] - expired.position[1],
+            next.position[2] - expired.position[2],
+          );
+        }
       }
     }
     if (points.length < 2) {
@@ -1610,6 +1621,7 @@ export class StrokeAuthoringSystem extends createSystem({
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
       deterministicParticleBirthTime: false,
       particleKnotIndexOffset: 0,
+      particleDistanceOffset: 0,
       geometryFinalized: false,
       toolId: "free-paint",
       groupId: 0,
@@ -1642,6 +1654,7 @@ export class StrokeAuthoringSystem extends createSystem({
       points.length = 0;
       this.previewTrail.mesh.visible = false;
       this.previewTrail.particleKnotIndexOffset = 0;
+      this.previewTrail.particleDistanceOffset = 0;
     }
     this.previewBirths.length = 0;
   }
@@ -2352,6 +2365,7 @@ export class StrokeAuthoringSystem extends createSystem({
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
       deterministicParticleBirthTime: finalized,
       particleKnotIndexOffset: 0,
+      particleDistanceOffset: 0,
       geometryFinalized: finalized,
       toolId: "free-paint",
       groupId: strokeData.groupId,
@@ -2441,6 +2455,7 @@ export class StrokeAuthoringSystem extends createSystem({
       pressureOpacityRange: brushEntry?.pressureOpacityRange,
       deterministicParticleBirthTime: source.deterministicParticleBirthTime,
       particleKnotIndexOffset: source.particleKnotIndexOffset,
+      particleDistanceOffset: source.particleDistanceOffset,
       geometryFinalized: true,
       toolId: source.toolId,
       groupId: source.groupId,
