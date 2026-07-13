@@ -203,7 +203,9 @@ restore camera billboarding and texture animation. A browser pixel gate renders
 generated Smoke geometry through that shader and rejects empty or black output.
 Live Genius strokes keep points at the source `0.0025 / particleRate` interval
 and add the source pointer-hanging particle, which finalization removes before
-the stroke becomes persistent. Preview birth times use the source negative-time
+the stroke becomes persistent. Finalized two-knot strokes rebuild only their
+last particle with Unity's minimum 0.8 trigger pressure, including segments
+that spawned multiple particles. Preview birth times use the source negative-time
 encoding, and six maintained Genius shaders now shrink those particles with the
 source quadratic curve over the shared 0.2-second preview lifetime. Rising
 Bubbles now ports its Unity vertex behavior: exponential origin spread,
@@ -282,7 +284,7 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 
 All required material lookups now use the maintained dependency path. The pinned
 revisions at this milestone are `icosa-sketch-assets@da2844e`,
-`three-icosa@d88b16d`, and `three-tiltloader@d58b1b4`. This establishes source
+`three-icosa@d88b16d`, and `three-tiltloader@da8a9f4`. This establishes source
 ownership and browser-render eligibility; it does not establish Unity image parity.
 Known brush placeholders now preserve the source opaque/cutout or additive render
 state even when stroke color alpha is below one; ordinary alpha blending remains
