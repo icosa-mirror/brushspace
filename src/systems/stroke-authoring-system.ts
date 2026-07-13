@@ -80,7 +80,7 @@ import {
 import {
   applyBrushRenderGroups,
   createBrushRenderMaterial,
-} from "../brushes/brush-multipass-material.js";
+} from "../brushes/brush-render-material.js";
 import {
   createMirroredStrokeDataX,
   resolveDistanceSmoothedPressure,
@@ -361,7 +361,7 @@ export class StrokeAuthoringSystem extends createSystem({
           tubeToonPassesReady ? "pass" : "fail";
         if (!tubeToonPassesReady) {
           console.error(
-            "[OpenBrushTubeToonInverted] Missing opt-in multipass shader contract.",
+            "[OpenBrushTubeToonInverted] Missing brush-pass shader contract.",
           );
         }
         if (loadedCount > 0) {

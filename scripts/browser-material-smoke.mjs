@@ -6,6 +6,7 @@ const port = 4173;
 const baseUrl = `http://${host}:${port}`;
 const timeoutMs = 120_000;
 const oilPaintGuid = "f72ec0e7-a844-4e38-82e3-140c44772699";
+const toonGuid = "4391385a-df73-4396-9e33-31e4e4930b27";
 const tubeToonInvertedGuid = "9871385a-df73-4396-9e33-31e4e4930b27";
 const compatibilityStorageKey =
   "brushspace.openBrushShaderCompatibility.v1";
@@ -134,37 +135,15 @@ try {
     throw new Error(`Uncaught page errors: ${pageErrors.join("; ")}`);
   }
 
-  const tubeToonPage = await browser.newPage({
-    viewport: { width: 1280, height: 720 },
-  });
-  const tubeToonErrors = [];
-  tubeToonPage.on("pageerror", (error) => tubeToonErrors.push(error.message));
-  await tubeToonPage.goto(
-    `${baseUrl}/?visual-conformance=brush&brush-guid=${tubeToonInvertedGuid}`,
-    { waitUntil: "domcontentloaded", timeout: timeoutMs },
+  await verifyBrushRenders(browser, toonGuid, "Toon");
+  await verifyBrushRenders(
+    browser,
+    tubeToonInvertedGuid,
+    "Tube Toon Inverted",
   );
-  await tubeToonPage.waitForFunction(
-    () => document.documentElement.dataset.brushVisualConformance,
-    undefined,
-    { timeout: timeoutMs },
-  );
-  const tubeToonVisualStatus = await tubeToonPage.evaluate(
-    () => document.documentElement.dataset.brushVisualConformance,
-  );
-  if (tubeToonVisualStatus !== "pass") {
-    throw new Error(
-      `Tube Toon Inverted non-black render gate reported ${tubeToonVisualStatus}.`,
-    );
-  }
-  if (tubeToonErrors.length > 0) {
-    throw new Error(
-      `Tube Toon Inverted page errors: ${tubeToonErrors.join("; ")}`,
-    );
-  }
-  await tubeToonPage.close();
 
   console.log(
-    `Browser material smoke passed: ${counts[1]}/${counts[2]} compiled; Oil Paint coverage, texture settings, required-brush culling, flat-brush texture cutouts, and Tube Toon Inverted passes/non-black rendering passed.`,
+    `Browser material smoke passed: ${counts[1]}/${counts[2]} compiled; Oil Paint coverage, texture settings, required-brush culling, flat-brush texture cutouts, and both Toon brush pass/non-black render gates passed.`,
   );
 } catch (error) {
   if (serverOutput.trim()) {
@@ -174,6 +153,38 @@ try {
 } finally {
   await browser?.close();
   server.kill();
+}
+
+async function verifyBrushRenders(browserInstance, brushGuid, brushName) {
+  const page = await browserInstance.newPage({
+    viewport: { width: 1280, height: 720 },
+  });
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  try {
+    await page.goto(
+      `${baseUrl}/?visual-conformance=brush&brush-guid=${brushGuid}`,
+      { waitUntil: "domcontentloaded", timeout: timeoutMs },
+    );
+    await page.waitForFunction(
+      () => document.documentElement.dataset.brushVisualConformance,
+      undefined,
+      { timeout: timeoutMs },
+    );
+    const visualStatus = await page.evaluate(
+      () => document.documentElement.dataset.brushVisualConformance,
+    );
+    if (visualStatus !== "pass") {
+      throw new Error(
+        `${brushName} non-black render gate reported ${visualStatus}.`,
+      );
+    }
+    if (errors.length > 0) {
+      throw new Error(`${brushName} page errors: ${errors.join("; ")}`);
+    }
+  } finally {
+    await page.close();
+  }
 }
 
 async function waitForServer(url, timeout) {

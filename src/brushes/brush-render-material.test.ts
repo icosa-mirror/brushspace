@@ -8,7 +8,7 @@ import {
   ELECTRICITY_DISPLACEMENT_MODS,
   TOON_BRUSH_GUID,
   TUBE_TOON_INVERTED_BRUSH_GUID,
-} from "./brush-multipass-material.js";
+} from "./brush-render-material.js";
 import { BufferGeometry } from "@iwsdk/core";
 
 vi.mock("@iwsdk/core", () => {
@@ -48,7 +48,7 @@ vi.mock("@iwsdk/core", () => {
   };
 });
 
-describe("Open Brush multipass materials", () => {
+describe("Open Brush material passes", () => {
   it("recreates all three Electricity displacement passes", () => {
     const source = new ShaderMaterial({ uniforms: { u_time: { value: 0 } } });
     const time = { value: 1.5 };

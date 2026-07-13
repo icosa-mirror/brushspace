@@ -4,8 +4,8 @@ import type { Material, ShaderMaterial } from "@iwsdk/core";
 import { BrushStroke } from "../components/core.js";
 import { openBrushShaderLibrary } from "../brushes/brush-shader-library.js";
 import { planBrushMaterialUpgrades } from "../brushes/brush-material-upgrade.js";
-import { createBrushRenderMaterial } from "../brushes/brush-multipass-material.js";
-import { applyBrushRenderGroups } from "../brushes/brush-multipass-material.js";
+import { createBrushRenderMaterial } from "../brushes/brush-render-material.js";
+import { applyBrushRenderGroups } from "../brushes/brush-render-material.js";
 
 const LOG_PREFIX = "[BrushMaterialUpgrade]";
 

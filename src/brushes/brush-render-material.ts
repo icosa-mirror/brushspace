@@ -1,16 +1,18 @@
 import {
-  BackSide,
-  FrontSide,
   type BufferGeometry,
   type Material,
   type ShaderMaterial,
 } from "@iwsdk/core";
+import {
+  applyTiltBrushRenderGroups,
+  createTiltBrushRenderMaterial,
+  TOON_BRUSH_GUID,
+  TUBE_TOON_INVERTED_BRUSH_GUID,
+} from "three-icosa";
 export const ELECTRICITY_BRUSH_GUID =
   "f6e85de3-6dcc-4e7f-87fd-cee8c3d25d51";
 export const ELECTRICITY_DISPLACEMENT_MODS = [1, 1.333, 1.77] as const;
-export const TOON_BRUSH_GUID = "4391385a-df73-4396-9e33-31e4e4930b27";
-export const TUBE_TOON_INVERTED_BRUSH_GUID =
-  "9871385a-df73-4396-9e33-31e4e4930b27";
+export { TOON_BRUSH_GUID, TUBE_TOON_INVERTED_BRUSH_GUID };
 
 interface UniformHolder {
   value: unknown;
@@ -29,45 +31,38 @@ export function createBrushRenderMaterial(
   source: Material,
   sharedUniforms: Record<string, UniformHolder> = {},
 ): Material | Material[] {
-  if (
-    !("uniforms" in source)
-  ) {
+  if (!("uniforms" in source)) {
     return source;
   }
   const shader = source as ShaderMaterial;
-  if (brushGuid.toLowerCase() === TUBE_TOON_INVERTED_BRUSH_GUID) {
+  const normalizedGuid = brushGuid.toLowerCase();
+  if (normalizedGuid === TUBE_TOON_INVERTED_BRUSH_GUID) {
     const cached = tubeToonInvertedMaterials.get(shader);
     if (cached) {
       return cached;
     }
-    const base = cloneWithSharedUniforms(shader, sharedUniforms);
-    base.side = FrontSide;
-    base.uniforms.u_TubeToonPass = { value: 1 };
-    base.uniforms.u_TubeToonOutlineSize = { value: 0.05 };
-    const color = cloneWithSharedUniforms(shader, sharedUniforms);
-    color.side = BackSide;
-    color.uniforms.u_TubeToonPass = { value: 2 };
-    color.uniforms.u_TubeToonOutlineSize = { value: 0.05 };
-    const passes = [base, color];
+    const passes = createTiltBrushRenderMaterial(
+      brushGuid,
+      shader,
+      sharedUniforms,
+    ) as ShaderMaterial[];
     tubeToonInvertedMaterials.set(shader, passes);
     return passes;
   }
-  if (brushGuid.toLowerCase() === TOON_BRUSH_GUID) {
+  if (normalizedGuid === TOON_BRUSH_GUID) {
     const cached = toonMaterials.get(shader);
     if (cached) {
       return cached;
     }
-    const surface = cloneWithSharedUniforms(shader, sharedUniforms);
-    surface.side = FrontSide;
-    surface.uniforms.u_ToonOutlinePass = { value: false };
-    const outline = cloneWithSharedUniforms(shader, sharedUniforms);
-    outline.side = BackSide;
-    outline.uniforms.u_ToonOutlinePass = { value: true };
-    const passes = [surface, outline];
+    const passes = createTiltBrushRenderMaterial(
+      brushGuid,
+      shader,
+      sharedUniforms,
+    ) as ShaderMaterial[];
     toonMaterials.set(shader, passes);
     return passes;
   }
-  if (brushGuid.toLowerCase() !== ELECTRICITY_BRUSH_GUID) {
+  if (normalizedGuid !== ELECTRICITY_BRUSH_GUID) {
     return source;
   }
   const cached = electricityMaterials.get(shader);
@@ -99,11 +94,5 @@ export function applyBrushRenderGroups(
   indexCount: number,
   material: Material | Material[],
 ): void {
-  geometry.clearGroups();
-  if (!Array.isArray(material)) {
-    return;
-  }
-  for (let index = 0; index < material.length; index += 1) {
-    geometry.addGroup(0, indexCount, index);
-  }
+  applyTiltBrushRenderGroups(geometry, indexCount, material);
 }

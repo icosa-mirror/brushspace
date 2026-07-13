@@ -27,7 +27,7 @@ import {
   ELECTRICITY_BRUSH_GUID,
   TOON_BRUSH_GUID,
   TUBE_TOON_INVERTED_BRUSH_GUID,
-} from "./brush-multipass-material.js";
+} from "./brush-render-material.js";
 import {
   compareRgbPixels,
   type PixelDifference,
