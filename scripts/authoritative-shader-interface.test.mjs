@@ -105,6 +105,15 @@ function resolveShaderPair(name) {
   };
 }
 
+function readShaderPair(name) {
+  const pair = resolveShaderPair(name);
+  expect(pair, `missing authoritative shader folder for ${name}`).toBeDefined();
+  return {
+    vertex: fs.readFileSync(path.join(pair.folder, pair.vertex), "utf8"),
+    fragment: fs.readFileSync(path.join(pair.folder, pair.fragment), "utf8"),
+  };
+}
+
 describe("authoritative required-brush shader interfaces", () => {
   it("covers the 48 standard and 47 experimental brush target", () => {
     const standard = requiredBrushes.filter(
@@ -115,6 +124,29 @@ describe("authoritative required-brush shader interfaces", () => {
     );
     expect(standard).toHaveLength(48);
     expect(experimental).toHaveLength(47);
+  });
+
+  it("preserves the repaired Digital and Race grid logic", () => {
+    const digital = readShaderPair("Digital");
+    const race = readShaderPair("Race");
+
+    for (const shader of [digital, race]) {
+      expect(shader.vertex).toContain("v_st.x *= 5.0");
+      expect(shader.vertex).toContain("v_st *= 5.0");
+      expect(shader.fragment).toContain("vec2 tileSt = (fract(v_st) - 0.5) * 2.0");
+      expect(shader.fragment).toContain("minBound.x, tileSt.x");
+      expect(shader.fragment).toContain("minBound.y, tileSt.y");
+    }
+
+    expect(digital.fragment).toContain(
+      "random(rc) + random(rc + ij) < 1.0",
+    );
+    expect(race.fragment).toContain(
+      "float threshold = ii == 0 ? 1.5 : 0.5",
+    );
+    expect(race.fragment).toContain(
+      "random(rc) + random(rc + ij) < threshold",
+    );
   });
 
   it.each(requiredBrushes)(
