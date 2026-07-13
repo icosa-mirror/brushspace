@@ -597,8 +597,10 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
    the pin.
 2. Replace the asset submodule path with configurable pinned asset URLs and an
    optional CI self-host/mirror step.
-3. In progress: `npm run dev:http` provides a repeatable local HTTP route that
-   never invokes CA installation. Capture the 111/111 compile gate in CI.
+3. Implemented: `npm run dev:http` provides a repeatable local HTTP route that
+   never invokes CA installation. `npm run test:browser:materials` runs the
+   111/111 WebGL compile check and deterministic Oil Paint coverage gate in
+   installed Chrome, locally and in CI.
 4. Add live Unity, post-BrushBaker, exported GLB, and post-`three-icosa` geometry
    dumps to the deterministic fixture and compare the final shader-facing
    contract with `three-tiltloader` output.
