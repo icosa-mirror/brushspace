@@ -48,6 +48,28 @@ describe("brush batch planning", () => {
     expect(batches[0].visibleStrokeCount).toBe(1);
     expect(batches[0].vertexCount).toBe(12);
     expect(batches[0].indexCount).toBe(24);
+    expect(batches[0].batchable).toBe(true);
+    expect(batches[0].key.materialMode).toBe("managed-shader");
+  });
+
+  it("uses the inventory GUID as the canonical managed-material identity", () => {
+    const first = withOverrides(fixtureStroke, { guid: "stroke-a" });
+    const second = withOverrides(fixtureStroke, {
+      guid: "stroke-b",
+      brushGuid: fixtureStroke.brushGuid.toUpperCase(),
+    });
+
+    const batches = planBrushBatches(
+      [
+        { stroke: first, vertexCount: 6, indexCount: 12 },
+        { stroke: second, vertexCount: 6, indexCount: 12 },
+      ],
+      inventory,
+    );
+
+    expect(batches).toHaveLength(1);
+    expect(batches[0].key.brushGuid).toBe(fixtureStroke.brushGuid);
+    expect(batches[0].key.materialInstanceKey).toBe(fixtureStroke.brushGuid);
   });
 
   it("splits batches by layer", () => {
@@ -86,8 +108,8 @@ describe("brush batch planning", () => {
 
     expect(batches.every((batch) => batch.key.transparent)).toBe(true);
     expect(batches.map((batch) => stringifyBatchKey(batch.key))).toEqual([
-      "0|2241cd32-8ba2-48a5-9ee7-2caef7e9ed62|emissive|additive|transparent|emissive:additive",
-      "0|70d79cca-b159-4f35-990c-f02193947fe8|particle|particle|transparent|particle:particle",
+      "0|2241cd32-8ba2-48a5-9ee7-2caef7e9ed62|emissive|additive|transparent|managed-shader|single|none|2241cd32-8ba2-48a5-9ee7-2caef7e9ed62",
+      "0|70d79cca-b159-4f35-990c-f02193947fe8|particle|particle|transparent|managed-shader|single|none|70d79cca-b159-4f35-990c-f02193947fe8",
     ]);
   });
 
@@ -105,7 +127,31 @@ describe("brush batch planning", () => {
     expect(batches).toHaveLength(1);
     expect(batches[0].key.geometryFamily).toBe("unsupported");
     expect(batches[0].key.materialFamily).toBe("fallback");
-    expect(batches[0].warning).toContain("not been mapped");
+    expect(batches[0].batchable).toBe(false);
+    expect(batches[0].key.materialMode).toBe("per-stroke-fallback");
+    expect(batches[0].warning).toContain("missing from the Open Brush inventory");
+  });
+
+  it("does not group two per-stroke fallback materials", () => {
+    const first = withOverrides(fixtureStroke, {
+      guid: "fallback-a",
+      brushGuid: "00000000-0000-0000-0000-000000000000",
+    });
+    const second = withOverrides(fixtureStroke, {
+      guid: "fallback-b",
+      brushGuid: "00000000-0000-0000-0000-000000000000",
+    });
+
+    const batches = planBrushBatches(
+      [
+        { stroke: first, vertexCount: 6, indexCount: 12 },
+        { stroke: second, vertexCount: 6, indexCount: 12 },
+      ],
+      inventory,
+    );
+
+    expect(batches).toHaveLength(2);
+    expect(batches.every((batch) => !batch.batchable)).toBe(true);
   });
 });
 

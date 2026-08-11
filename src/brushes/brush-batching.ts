@@ -5,6 +5,13 @@ import {
   type BrushMaterialFamily,
 } from "./brush-inventory.js";
 import type { StrokeData } from "../types.js";
+import {
+  auditBrushBatchCompatibility,
+  type BrushBatchMaterialMode,
+  type BrushBatchRenderPassContract,
+  type BrushBatchSupplementalAttributeContract,
+} from "./brush-batch-compatibility.js";
+import { createBrushMaterialSpec } from "./brush-materials.js";
 
 export interface StrokeBatchInput {
   stroke: StrokeData;
@@ -19,7 +26,11 @@ export interface BrushBatchKey {
   geometryFamily: BrushGeometryFamily;
   materialFamily: BrushMaterialFamily;
   transparent: boolean;
-  shaderVariant: string;
+  materialMode: BrushBatchMaterialMode;
+  renderPassContract: BrushBatchRenderPassContract;
+  supplementalAttributeContract: BrushBatchSupplementalAttributeContract;
+  /** Shared brush material identity, or a unique per-stroke fallback key. */
+  materialInstanceKey: string;
 }
 
 export interface BrushBatchPlan {
@@ -28,6 +39,7 @@ export interface BrushBatchPlan {
   visibleStrokeCount: number;
   vertexCount: number;
   indexCount: number;
+  batchable: boolean;
   warning?: string;
 }
 
@@ -38,6 +50,7 @@ export function planBrushBatches(
   const batches = new Map<string, BrushBatchPlan>();
   for (const input of strokes) {
     const entry = findBrushByGuid(inventory, input.stroke.brushGuid);
+    const compatibility = auditBrushBatchCompatibility(entry);
     const key = createBatchKey(input.stroke, entry);
     const keyString = stringifyBatchKey(key);
     let batch = batches.get(keyString);
@@ -48,7 +61,8 @@ export function planBrushBatches(
         visibleStrokeCount: 0,
         vertexCount: 0,
         indexCount: 0,
-        warning: getBatchWarning(entry),
+        batchable: compatibility.batchableWithManagedMaterial,
+        warning: compatibility.reason,
       };
       batches.set(keyString, batch);
     }
@@ -64,18 +78,6 @@ export function planBrushBatches(
   return Array.from(batches.values()).sort(compareBatchPlans);
 }
 
-function getBatchWarning(
-  entry: BrushInventoryEntry | undefined,
-): string | undefined {
-  if (!entry) {
-    return "Brush has not been mapped to an IWSDK geometry/material family yet.";
-  }
-  if (entry.supportStatus !== "unsupported") {
-    return undefined;
-  }
-  return entry.unsupportedReason ?? "Unsupported brush uses fallback batch.";
-}
-
 export function stringifyBatchKey(key: BrushBatchKey): string {
   return [
     key.layerIndex,
@@ -83,26 +85,38 @@ export function stringifyBatchKey(key: BrushBatchKey): string {
     key.geometryFamily,
     key.materialFamily,
     key.transparent ? "transparent" : "opaque",
-    key.shaderVariant,
+    key.materialMode,
+    key.renderPassContract,
+    key.supplementalAttributeContract,
+    key.materialInstanceKey,
   ].join("|");
 }
 
-function createBatchKey(
+export function createBatchKey(
   stroke: StrokeData,
   entry: BrushInventoryEntry | undefined,
 ): BrushBatchKey {
   const geometryFamily = entry?.geometryFamily ?? "unsupported";
   const materialFamily = entry?.materialFamily ?? "fallback";
+  const compatibility = auditBrushBatchCompatibility(entry);
+  const materialSpec = createBrushMaterialSpec(entry, stroke.color);
+  const materialMode: BrushBatchMaterialMode =
+    compatibility.batchableWithManagedMaterial
+      ? "managed-shader"
+      : "per-stroke-fallback";
+  const brushGuid = entry?.guid ?? stroke.brushGuid;
   return {
     layerIndex: stroke.layerIndex,
-    brushGuid: stroke.brushGuid,
+    brushGuid,
     geometryFamily,
     materialFamily,
-    transparent:
-      stroke.color[3] < 1 ||
-      materialFamily === "additive" ||
-      materialFamily === "particle",
-    shaderVariant: `${geometryFamily}:${materialFamily}`,
+    transparent: compatibility.transparent ?? materialSpec.transparent,
+    materialMode,
+    renderPassContract: compatibility.renderPassContract,
+    supplementalAttributeContract:
+      compatibility.supplementalAttributeContract,
+    materialInstanceKey:
+      materialMode === "managed-shader" ? brushGuid : stroke.guid,
   };
 }
 

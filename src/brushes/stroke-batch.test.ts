@@ -72,9 +72,12 @@ function makeKey(overrides: Partial<BrushBatchKey> = {}): BrushBatchKey {
     layerIndex: 0,
     brushGuid: "brush-a",
     geometryFamily: "ribbon",
-    materialFamily: "diffuse",
+    materialFamily: "standard",
     transparent: false,
-    shaderVariant: "ribbon:diffuse",
+    materialMode: "managed-shader",
+    renderPassContract: "single",
+    supplementalAttributeContract: "none",
+    materialInstanceKey: "brush-a",
     ...overrides,
   } as BrushBatchKey;
 }

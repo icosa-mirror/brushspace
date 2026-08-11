@@ -18,7 +18,8 @@
 5. No application code calls the batching core. There is no `BufferGeometry`, `Mesh`, ECS batch entity, material integration, upload loop, or rendered pixel using it.
 6. The current renderer creates one transform entity and one mesh per stroke. `BrushStroke` queries drive save/load, collaboration, layers, selection, undo/redo, erasing, reveal, material upgrades, diagnostics, and export.
 7. `LayerCanvasSystem` writes `stroke.object3D.visible`. `SelectionSystem` moves `stroke.object3D.position`. Those behaviors cannot be redirected to a shared mesh by changing only stroke creation.
-8. The local branch is two commits behind `origin/claude/stroke-batching`, but those two commits modify only `.claude/journal` artifacts. They contain no batching implementation and should not be promoted to `main` as product changes.
+8. Phase 0 is complete: the two reviewed upstream changes were ported to `main`, and the batching branch was updated from that baseline.
+9. Phase 1 now has an executable compatibility contract and checked-in audit at `docs/stroke-batch-render-contract.md`. The full supported inventory is managed-material batchable by the static contract, with explicit pass and supplemental-attribute variants; runtime batching still requires the managed shader to be loaded.
 
 ## 3. Success criteria
 
@@ -168,8 +169,8 @@
 
 ## 9. Immediate next work
 
-1. Integrate the two useful `upstream/main` changes through `main`, not directly through this branch.
-2. Bring the resulting `main` baseline into `claude/stroke-batching` without dropping the batching commits.
-3. Perform the batchability audit and turn its findings into `BrushBatchKey` and fallback tests.
-4. Implement the one-brush static renderer behind a disabled-by-default flag.
-5. Stop and reassess the core API if the audit discovers per-stroke state that cannot be split, encoded, baked, or safely routed through fallback.
+1. Implement the Flat-brush static renderer behind a disabled-by-default flag.
+2. Add deterministic geometry-upload tests for aliases, draw range, render groups, and bounds before runtime validation.
+3. Record batch/fallback counts, upload volume, and renderer call/triangle counts in both renderer modes.
+4. Validate the Flat slice in a GPU-backed browser or headset and compare it with the per-stroke reference path.
+5. Reassess the core API before widening brush coverage if the renderer exposes state that cannot be split, encoded, baked, or safely routed through fallback.
