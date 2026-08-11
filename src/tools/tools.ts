@@ -8,7 +8,16 @@ export type OpenBrushToolId =
   | "tape"
   | "stencil"
   | "dropper"
-  | "camera";
+  | "camera"
+  | "fly";
+
+/**
+ * Tool category, the analog of Open Brush's BaseTool virtuals that decide
+ * where a tool is allowed (`IsViewOnlyNavigationTool`, `AvailableDuringLoading`).
+ * Editing tools mutate the sketch and are resolved away in view-only mode;
+ * navigation tools move the viewer and survive it.
+ */
+export type OpenBrushToolKind = "editing" | "navigation";
 
 export type OpenBrushToolSamplingMode =
   | "none"
@@ -121,6 +130,7 @@ export interface OpenBrushToolDescriptor {
   id: OpenBrushToolId;
   label: string;
   status: string;
+  kind: OpenBrushToolKind;
   paints: boolean;
   erases: boolean;
   samplingMode: OpenBrushToolSamplingMode;
@@ -146,6 +156,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     id: "free-paint",
     label: "Draw",
     status: "draw-ready",
+    kind: "editing",
     paints: true,
     erases: false,
     samplingMode: "freehand",
@@ -158,6 +169,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     id: "eraser",
     label: "Eraser",
     status: "erase-ready",
+    kind: "editing",
     paints: false,
     erases: true,
     samplingMode: "none",
@@ -170,6 +182,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     id: "straightedge",
     label: "Straightedge",
     status: "line-ready",
+    kind: "editing",
     paints: true,
     erases: false,
     samplingMode: "straightedge",
@@ -182,6 +195,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     id: "mirror",
     label: "Mirror",
     status: "mirror-ready",
+    kind: "editing",
     paints: true,
     erases: false,
     samplingMode: "freehand",
@@ -194,6 +208,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     id: "grid-snap",
     label: "Grid Snap",
     status: "grid-ready",
+    kind: "editing",
     paints: true,
     erases: false,
     samplingMode: "freehand",
@@ -206,6 +221,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     id: "lazy-input",
     label: "Lazy Input",
     status: "lazy-ready",
+    kind: "editing",
     paints: true,
     erases: false,
     samplingMode: "freehand",
@@ -218,6 +234,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     id: "tape",
     label: "Tape",
     status: "tape-ready",
+    kind: "editing",
     paints: true,
     erases: false,
     samplingMode: "tape",
@@ -230,6 +247,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     id: "stencil",
     label: "Stencil",
     status: "stencil-ready",
+    kind: "editing",
     paints: true,
     erases: false,
     samplingMode: "freehand",
@@ -242,6 +260,7 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     id: "dropper",
     label: "Dropper",
     status: "dropper-pending",
+    kind: "editing",
     paints: false,
     erases: false,
     samplingMode: "none",
@@ -254,6 +273,22 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     id: "camera",
     label: "Camera",
     status: "camera-ready",
+    kind: "editing",
+    paints: false,
+    erases: false,
+    samplingMode: "none",
+    mirrorMode: "none",
+    snapMode: "none",
+    lazyMode: "none",
+    stencilMode: "none",
+  },
+  // FlyTool: the flatscreen viewer's navigation tool. View-only mode resolves
+  // to it (EnsureViewOnlyNavigationTool) and it never touches the sketch.
+  {
+    id: "fly",
+    label: "Fly",
+    status: "fly-ready",
+    kind: "navigation",
     paints: false,
     erases: false,
     samplingMode: "none",
@@ -263,6 +298,9 @@ export const openBrushTools: readonly OpenBrushToolDescriptor[] = [
     stencilMode: "none",
   },
 ];
+
+/** The tool view-only mode falls back to (EnsureViewOnlyNavigationTool). */
+export const OPEN_BRUSH_VIEW_ONLY_TOOL: OpenBrushToolId = "fly";
 
 
 export function resolveOpenBrushTool(toolId: string): OpenBrushToolDescriptor {
@@ -289,6 +327,19 @@ export function isOpenBrushPanelFocusStatus(status: string): boolean {
 
 export function isOpenBrushToolId(toolId: string): toolId is OpenBrushToolId {
   return openBrushTools.some((tool) => tool.id === toolId);
+}
+
+/** SketchControlsScript.IsViewOnlyNavigationTool. */
+export function isOpenBrushNavigationTool(toolId: string): boolean {
+  return resolveOpenBrushTool(toolId).kind === "navigation";
+}
+
+/**
+ * Whether a tool may stay active in view-only mode. Open Brush allows only
+ * its navigation tools (fly/teleport) and forces anything else away.
+ */
+export function isOpenBrushToolAllowedInViewOnly(toolId: string): boolean {
+  return isOpenBrushNavigationTool(toolId);
 }
 
 // DropperTool scene config: m_DropperBrushSelectRadius 0.1,

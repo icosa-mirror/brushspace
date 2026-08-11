@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  isOpenBrushEditingAllowed,
   isStraightEdgeModeActive,
   resolveEffectiveOpenBrushTool,
 } from "./tool-modes.js";
@@ -30,5 +31,44 @@ describe("tool modes", () => {
       "straightedge",
     );
     expect(isStraightEdgeModeActive("straightedge", false)).toBe(true);
+  });
+});
+
+describe("view-only mode", () => {
+  it("resolves every editing tool away to the navigation tool", () => {
+    for (const toolId of ["free-paint", "eraser", "dropper", "camera"]) {
+      expect(
+        resolveEffectiveOpenBrushTool(toolId, { viewOnly: true }).id,
+      ).toBe("fly");
+    }
+  });
+
+  it("keeps navigation tools active", () => {
+    expect(resolveEffectiveOpenBrushTool("fly", { viewOnly: true }).id).toBe(
+      "fly",
+    );
+  });
+
+  it("outranks the straight edge overlay", () => {
+    expect(
+      resolveEffectiveOpenBrushTool("free-paint", {
+        straightEdgeEnabled: true,
+        viewOnly: true,
+      }).id,
+    ).toBe("fly");
+    expect(
+      isStraightEdgeModeActive("free-paint", {
+        straightEdgeEnabled: true,
+        viewOnly: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("gates editing input on the effective tool", () => {
+    expect(isOpenBrushEditingAllowed("free-paint", {})).toBe(true);
+    expect(isOpenBrushEditingAllowed("free-paint", { viewOnly: true })).toBe(
+      false,
+    );
+    expect(isOpenBrushEditingAllowed("fly", {})).toBe(false);
   });
 });

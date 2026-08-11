@@ -6,7 +6,9 @@ import {
   InputCommandState,
   OpenBrushAppState,
   SettingsState,
+  ViewerModeState,
 } from "../components/core.js";
+import { isOpenBrushEditingAllowed } from "../tools/tool-modes.js";
 import {
   clearOpenBrushCommandActivity,
   createOpenBrushCommandInput,
@@ -46,6 +48,7 @@ export class InputCommandSystem extends createSystem({
   appState: { required: [OpenBrushAppState] },
   settings: { required: [SettingsState] },
   pointers: { required: [BrushPointer] },
+  viewerMode: { required: [ViewerModeState] },
 }) {
   private readonly xrRightInput = createOpenBrushCommandInput("xr-right", "right");
   private readonly xrLeftInput = createOpenBrushCommandInput("xr-left", "left");
@@ -80,12 +83,15 @@ export class InputCommandSystem extends createSystem({
       this.getStringSetting(settings, "dominantHand", "right"),
       this.commandRouting,
     );
-    this.browserPointerEnabled = this.getBooleanSetting(
-      settings,
-      "browserPointerEnabled",
-      true,
-    );
-    this.xrRayEnabled = this.getBooleanSetting(settings, "xrRayEnabled", true);
+    // View-only resolves the active tool to a navigation tool, so no editing
+    // input is accepted at all (SketchControlsScript.ViewOnly disables the
+    // pointer the same way). One gate, no per-tool checks.
+    const editingAllowed = this.resolveEditingAllowed();
+    this.browserPointerEnabled =
+      editingAllowed &&
+      this.getBooleanSetting(settings, "browserPointerEnabled", true);
+    this.xrRayEnabled =
+      editingAllowed && this.getBooleanSetting(settings, "xrRayEnabled", true);
 
     this.browserPointerInput.hand = this.commandRouting.brushHand;
     if (!this.browserPointerEnabled) {
@@ -106,6 +112,11 @@ export class InputCommandSystem extends createSystem({
     );
     this.updateWandPanelRotation(settings);
     this.updateKeyboardInput(this.keyboardInput);
+    if (!editingAllowed) {
+      // Paint/undo/brush-cycle keys must not mutate the sketch while the
+      // viewer owns the keyboard for navigation.
+      resetOpenBrushCommandInput(this.keyboardInput);
+    }
     this.pointerOnUi = this.computeBrushRayOnUi();
 
     resolveOpenBrushCommandFrame(
@@ -128,6 +139,34 @@ export class InputCommandSystem extends createSystem({
     }
 
     this.clearFrameEdges();
+  }
+
+  /**
+   * Single editing gate: the effective tool (after the straight-edge and
+   * view-only overlays) decides whether sketch-mutating input is live.
+   */
+  private resolveEditingAllowed(): boolean {
+    const appState = this.getFirstEntity("appState");
+    if (!appState) {
+      return true;
+    }
+    const viewerMode = this.getFirstEntity("viewerMode");
+    return isOpenBrushEditingAllowed(
+      String(appState.getValue(OpenBrushAppState, "activeTool")),
+      {
+        straightEdgeEnabled: Boolean(
+          appState.getValue(OpenBrushAppState, "straightEdgeEnabled"),
+        ),
+        viewOnly: Boolean(viewerMode?.getValue(ViewerModeState, "viewOnly")),
+      },
+    );
+  }
+
+  private getFirstEntity(
+    queryName: "appState" | "viewerMode" | "settings",
+  ): Entity | undefined {
+    const next = this.queries[queryName].entities.values().next();
+    return next.done ? undefined : next.value;
   }
 
   private updateXrInput(
