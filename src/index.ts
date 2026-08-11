@@ -33,6 +33,12 @@ import {
 } from "./components/core.js";
 
 import { PanelSystem } from "./systems/panel-system.js";
+import { ViewerModeState } from "./components/core.js";
+import {
+  probeImmersiveVrSupport,
+  readViewerModeFlags,
+  resolveViewerMode,
+} from "./app/viewer-mode.js";
 
 import { initialLoad } from "./app/initial-load.js";
 import { setupLoadingScreen } from "./app/loading-screen.js";
@@ -61,6 +67,7 @@ import { SketchLibrarySystem } from "./systems/sketch-library-system.js";
 import { StandardEnvironmentSystem } from "./systems/standard-environment-system.js";
 import { StrokeAuthoringSystem } from "./systems/stroke-authoring-system.js";
 import { TipAnchorTuningSystem } from "./systems/tip-anchor-tuning-system.js";
+import { ViewerNavigationSystem } from "./systems/viewer-navigation-system.js";
 import { WorldGrabSystem } from "./systems/world-grab-system.js";
 import { WorldGrabVisualsSystem } from "./systems/world-grab-visuals-system.js";
 
@@ -122,7 +129,31 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
   camera.position.set(0, 1.3, 1);
   camera.rotateX(-0.08);
 
-  setupOpenBrushShell(world);
+  const shell = setupOpenBrushShell(world);
+
+  // Viewer mode: `?view` forces it (ForceViewOnly), and a browser with no
+  // immersive-vr support falls back to it the way Open Brush falls back to
+  // the no-headset viewer when no HMD initializes. A `?join=` collab link
+  // needs the editing path, so it outranks both.
+  const viewerFlags = readViewerModeFlags(window.location.search);
+  const applyViewerMode = (xrSupported: boolean) => {
+    const resolution = resolveViewerMode({ ...viewerFlags, xrSupported });
+    shell.appState.setValue(ViewerModeState, "viewOnly", resolution.viewOnly);
+    shell.appState.setValue(ViewerModeState, "reason", resolution.reason);
+    // Navigation is a browser-view concept; entering XR hands control back to
+    // the room-scale rig and the two-hand world grab.
+    shell.appState.setValue(
+      ViewerModeState,
+      "navEnabled",
+      resolution.viewOnly &&
+        world.visibilityState.peek() === VisibilityState.NonImmersive,
+    );
+  };
+  applyViewerMode(true);
+  void probeImmersiveVrSupport().then((xrSupported) => {
+    applyViewerMode(xrSupported);
+    world.visibilityState.subscribe(() => applyViewerMode(xrSupported));
+  });
 
   // Plain HTML Enter VR button: the DOM click carries the user activation
   // that XR session requests need, so it can call launchXR() directly.
@@ -219,6 +250,7 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .registerSystem(EraserCursorSystem)
     .registerSystem(LayerCanvasSystem)
     .registerSystem(WorldGrabSystem)
+    .registerSystem(ViewerNavigationSystem)
     .registerSystem(WorldGrabVisualsSystem)
     .registerSystem(StandardEnvironmentSystem)
     .registerSystem(IntroSketchSystem)

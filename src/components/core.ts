@@ -57,6 +57,16 @@ export const InputCommandState = createComponent("InputCommandState", {
   commandRevision: { type: Types.Int32, default: 0 },
 });
 
+// Flatscreen viewer state (SketchControlsScript.m_ViewOnly + the no-headset
+// entry path). `viewOnly` suppresses editing input; `navEnabled` arms the
+// fly navigation, which only runs in the non-immersive browser view.
+export const ViewerModeState = createComponent("ViewerModeState", {
+  viewOnly: { type: Types.Boolean, default: false },
+  navEnabled: { type: Types.Boolean, default: false },
+  invertLook: { type: Types.Boolean, default: false },
+  reason: { type: Types.String, default: "editing" },
+});
+
 export const AudioFeedbackState = createComponent("AudioFeedbackState", {
   enabled: { type: Types.Boolean, default: true },
   eventCount: { type: Types.Int32, default: 0 },

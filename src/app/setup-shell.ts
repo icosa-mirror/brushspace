@@ -33,6 +33,7 @@ import {
   SettingsState,
   StrokeHistoryState,
   UiCommandHistoryState,
+  ViewerModeState,
 } from "../components/core.js";
 import {
   OPEN_BRUSH_DEFAULT_SIZE01,
@@ -129,6 +130,7 @@ export function setupOpenBrushShell(world: World): OpenBrushShellEntities {
     .addComponent(PlaybackState)
     .addComponent(SelectionState)
     .addComponent(StrokeHistoryState)
+    .addComponent(ViewerModeState)
     .addComponent(BrushCatalogState);
   appState.object3D!.name = "OpenBrushAppState";
 
