@@ -14,6 +14,7 @@
     "dev": "iwsdk dev up --open --foreground",
     "dev:http": "vite --mode http --host 127.0.0.1 --port 8081 --open false --force",
     "dev:http:mirror": "npm run assets:brushes:mirror && vite --mode mirror-http --host 127.0.0.1 --port 8081 --open false --force",
+    "dev:https": "vite --mode https --host 0.0.0.0 --port 8081 --force",
     "dev:runtime": "vite",
     "dev:down": "iwsdk dev down",
     "dev:status": "iwsdk dev status",
