@@ -120,6 +120,9 @@ export class StrokeBatch {
   normals = new Float32Array(INITIAL_VERTEX_CAPACITY * 3);
   tangents = new Float32Array(INITIAL_VERTEX_CAPACITY * 4);
   colors = new Float32Array(INITIAL_VERTEX_CAPACITY * 4);
+  /** Standard two-component UV channel used by Three.js and exports. */
+  baseUvs = new Float32Array(INITIAL_VERTEX_CAPACITY * 2);
+  /** Packed shader texcoord0 channel; width is described by `layout`. */
   uvs: Float32Array<ArrayBuffer>;
   uv1s: Float32Array<ArrayBuffer>;
   indices = new Uint32Array(INITIAL_INDEX_CAPACITY);
@@ -190,6 +193,10 @@ export class StrokeBatch {
     this.colors.set(
       arrays.colors.subarray(0, vertexCount * 4),
       startVertex * 4,
+    );
+    this.baseUvs.set(
+      arrays.uvs.subarray(0, vertexCount * 2),
+      startVertex * 2,
     );
 
     const uv0Size = this.layout.uv0Size;
@@ -307,6 +314,7 @@ export class StrokeBatch {
     this.normals = growFloat32(this.normals, vertexCount * 3);
     this.tangents = growFloat32(this.tangents, vertexCount * 4);
     this.colors = growFloat32(this.colors, vertexCount * 4);
+    this.baseUvs = growFloat32(this.baseUvs, vertexCount * 2);
     this.uvs = growFloat32(this.uvs, vertexCount * this.layout.uv0Size);
     if (this.layout.uv1Size > 0) {
       this.uv1s = growFloat32(this.uv1s, vertexCount * this.layout.uv1Size);
