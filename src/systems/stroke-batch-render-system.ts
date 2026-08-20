@@ -18,7 +18,10 @@ import { resolveBrushBatchRuntimeEligibility } from "../brushes/brush-batch-comp
 import { findBrushByGuid } from "../brushes/brush-inventory.js";
 import { openBrushInventory } from "../brushes/brush-catalog.js";
 import type { BrushGeometryArrays } from "../brushes/brush-geometry.js";
-import { uploadStrokeBatchGeometry } from "../brushes/stroke-batch-geometry.js";
+import {
+  uploadStrokeBatchGeometry,
+  uploadStrokeBatchSubsetGeometry,
+} from "../brushes/stroke-batch-geometry.js";
 import {
   FLAT_BATCH_BRUSH_GUID,
   isStrokeBatchingEnabled,
@@ -215,6 +218,7 @@ export class StrokeBatchRenderSystem extends createSystem({
     if (entity.object3D) {
       entity.object3D.visible = false;
     }
+    this.releasePrivateStrokeGeometry(entity);
     return true;
   }
 
@@ -270,6 +274,24 @@ export class StrokeBatchRenderSystem extends createSystem({
     if (this.extractionStart.has(guid)) {
       return true;
     }
+    const location = this.manager.getLocation(guid);
+    if (!location || !(entity.object3D instanceof Mesh)) {
+      return false;
+    }
+    if (!entity.object3D.geometry.getAttribute("position")) {
+      this.metrics.uploadedBytes += uploadStrokeBatchSubsetGeometry(
+        entity.object3D.geometry,
+        location.batch,
+        location.subset,
+        location.key.brushGuid,
+        entity.object3D.material,
+        [
+          entity.object3D.position.x,
+          entity.object3D.position.y,
+          entity.object3D.position.z,
+        ],
+      );
+    }
     const position = entity.object3D.position;
     this.extractionStart.set(guid, [position.x, position.y, position.z]);
     this.manager.setStrokeVisible(guid, false);
@@ -316,6 +338,7 @@ export class StrokeBatchRenderSystem extends createSystem({
     );
     this.flushDirtyBatches();
     entity.object3D.visible = false;
+    this.releasePrivateStrokeGeometry(entity);
     return true;
   }
 
@@ -483,6 +506,16 @@ export class StrokeBatchRenderSystem extends createSystem({
     // The shader material is shared and owned by BrushShaderLibrary.
     target.entity.destroy();
     this.targets.delete(batch);
+  }
+
+  private releasePrivateStrokeGeometry(entity: Entity): void {
+    const object = entity.object3D;
+    if (!(object instanceof Mesh) || !object.geometry.getAttribute("position")) {
+      return;
+    }
+    const previous = object.geometry;
+    object.geometry = new BufferGeometry();
+    previous.dispose();
   }
 
   private disposeAll(): void {

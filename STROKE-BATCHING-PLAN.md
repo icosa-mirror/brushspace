@@ -23,6 +23,7 @@
 10. Phase 2 implementation is present but its merge gate remains open: deterministic upload tests and the production build pass, while a GPU-backed visual comparison and measured draw-call reduction have not yet been recorded.
 11. Selection manipulation now uses temporary extraction: the subset is hidden while the private mesh moves, then its delta is applied once to batch vertices and serialized control points. Active extractions are committed before save. Deterministic tests cover mixed brush/layer batches, move/undo, selected deletion, and visibility restoration; runtime interaction validation remains outstanding.
 12. Reveal, layers, undo/redo, erasing, local and remote finalization, collaboration visibility, save/export, sketch replacement, and shared-material cleanup now route through the batch renderer while logical `BrushStroke` entities remain authoritative. The renderer owns private-mesh/subset visibility and publishes categorized fallback reasons; runtime interaction validation remains outstanding.
+13. A successfully committed stroke now disposes its private geometry. Selection reconstructs only the selected subset as a local private edit mesh, accounts for the entity's accumulated transform, and disposes that temporary geometry again when recommitted.
 
 ## 3. Success criteria
 

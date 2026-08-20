@@ -2,7 +2,10 @@ import { BufferAttribute, BufferGeometry, MeshBasicMaterial } from "@iwsdk/core"
 import { describe, expect, it, vi } from "vitest";
 
 import type { BrushGeometryArrays } from "./brush-geometry.js";
-import { uploadStrokeBatchGeometry } from "./stroke-batch-geometry.js";
+import {
+  uploadStrokeBatchGeometry,
+  uploadStrokeBatchSubsetGeometry,
+} from "./stroke-batch-geometry.js";
 import { StrokeBatch, type BatchVertexLayout } from "./stroke-batch.js";
 
 const FLAT_BRUSH_GUID = "2d35bcf0-e4d8-452c-97b1-3311be063130";
@@ -280,6 +283,31 @@ describe("stroke batch geometry upload", () => {
 
     expect(geometry.getAttribute("position").array).toBe(batch.positions);
     expect(geometry.getAttribute("position").array).not.toBe(oldPositions);
+  });
+
+  it("reconstructs a local private mesh from a translated subset", () => {
+    const batch = new StrokeBatch({ uv0Size: 2, uv1Size: 0 });
+    batch.addSubset("first", makeArrays(4, 1));
+    const second = batch.addSubset("second", makeArrays(4, 5));
+    batch.translateSubset(second, [10, 20, 30]);
+    const geometry = new BufferGeometry();
+    const material = new MeshBasicMaterial();
+
+    uploadStrokeBatchSubsetGeometry(
+      geometry,
+      batch,
+      second,
+      FLAT_BRUSH_GUID,
+      material,
+      [10, 20, 30],
+    );
+
+    expect(
+      Array.from(geometry.getAttribute("position").array.slice(0, 6)),
+    ).toEqual([5000, 0, 0, 5001, 0, 0]);
+    expect(Array.from(geometry.getIndex()!.array)).toEqual([0, 1, 2, 0, 2, 3]);
+    expect(geometry.boundingBox?.min.toArray()).toEqual([5, 5, 5]);
+    expect(geometry.boundingBox?.max.toArray()).toEqual([6, 6, 6]);
   });
 });
 
