@@ -52,6 +52,8 @@ export interface StrokeBatchRendererMetrics {
   uploadedBytes: number;
   rendererCalls: number;
   rendererTriangles: number;
+  averageFrameTimeMs: number;
+  maxFrameTimeMs: number;
 }
 
 /**
@@ -78,6 +80,9 @@ export class StrokeBatchRenderSystem extends createSystem({
   private enabled = false;
   private nextBatchId = 1;
   private metricsClock = 0;
+  private frameTimeTotalMs = 0;
+  private frameTimeSampleCount = 0;
+  private frameTimeMaxMs = 0;
   private readonly metrics: StrokeBatchRendererMetrics = {
     enabled: false,
     activeBatchCount: 0,
@@ -87,6 +92,8 @@ export class StrokeBatchRenderSystem extends createSystem({
     uploadedBytes: 0,
     rendererCalls: 0,
     rendererTriangles: 0,
+    averageFrameTimeMs: 0,
+    maxFrameTimeMs: 0,
   };
 
   init(): void {
@@ -135,16 +142,25 @@ export class StrokeBatchRenderSystem extends createSystem({
   }
 
   update(delta: number): void {
-    if (!this.enabled) {
-      return;
-    }
     this.metricsClock += delta;
+    const frameTimeMs = delta * 1000;
+    this.frameTimeTotalMs += frameTimeMs;
+    this.frameTimeSampleCount += 1;
+    this.frameTimeMaxMs = Math.max(this.frameTimeMaxMs, frameTimeMs);
     if (this.metricsClock < 1) {
       return;
     }
     this.metricsClock = 0;
     this.metrics.rendererCalls = this.renderer.info.render.calls;
     this.metrics.rendererTriangles = this.renderer.info.render.triangles;
+    this.metrics.averageFrameTimeMs =
+      this.frameTimeSampleCount > 0
+        ? this.frameTimeTotalMs / this.frameTimeSampleCount
+        : 0;
+    this.metrics.maxFrameTimeMs = this.frameTimeMaxMs;
+    this.frameTimeTotalMs = 0;
+    this.frameTimeSampleCount = 0;
+    this.frameTimeMaxMs = 0;
     this.refreshBatchMetrics();
   }
 
@@ -554,7 +570,9 @@ export class StrokeBatchRenderSystem extends createSystem({
         continue;
       }
       const guid = String(entity.getValue(BrushStroke, "guid"));
-      const reason = this.fallbackReasonByGuid.get(guid) ?? "not-committed";
+      const reason = this.enabled
+        ? (this.fallbackReasonByGuid.get(guid) ?? "not-committed")
+        : "batching-disabled";
       this.metrics.fallbackReasons[reason] =
         (this.metrics.fallbackReasons[reason] ?? 0) + 1;
     }
@@ -583,5 +601,8 @@ export class StrokeBatchRenderSystem extends createSystem({
     dataset.strokeBatchUploadBytes = String(this.metrics.uploadedBytes);
     dataset.strokeBatchRendererCalls = String(this.metrics.rendererCalls);
     dataset.strokeBatchRendererTriangles = String(this.metrics.rendererTriangles);
+    dataset.strokeBatchAverageFrameTimeMs =
+      this.metrics.averageFrameTimeMs.toFixed(3);
+    dataset.strokeBatchMaxFrameTimeMs = this.metrics.maxFrameTimeMs.toFixed(3);
   }
 }

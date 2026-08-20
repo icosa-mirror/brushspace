@@ -44,7 +44,7 @@ Every currently supported inventory brush is covered by exactly one row below. R
 1. Use Flat (`2d35bcf0-e4d8-452c-97b1-3311be063130`) for the initial disabled-by-default vertical slice.
 2. Flat is opaque, single-pass, double-sided, and requires no brush-specific supplemental attribute. It isolates batch geometry upload and material sharing from transparency ordering and multi-pass behavior.
 3. Keep the per-stroke mesh until the managed Flat material is loaded and the batch upload completes. Switch visibility so the reference and batch paths are never visible simultaneously.
-4. Record renderer calls, triangles, active batches, compatible strokes, fallback strokes, and uploaded bytes for the same loaded sketch in both modes.
+4. Record renderer calls, triangles, average/max frame time, active batches, compatible strokes, fallback strokes, categorized fallback reasons, and uploaded bytes for the same loaded sketch in both modes. The system publishes these counters even when batching is disabled so the reference path uses the same instrumentation.
 5. The slice is enabled with `?strokeBatches=1`. Runtime counters and categorized fallback reasons are published through the `data-stroke-batch-*` fields on the document root for browser validation.
 
 ## 6. Deferred risks
