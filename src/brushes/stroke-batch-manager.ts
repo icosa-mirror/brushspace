@@ -177,6 +177,17 @@ export class StrokeBatchManager {
     return true;
   }
 
+  /** Applies a canvas-space translation to one stroke's stored vertices. */
+  translateStroke(
+    strokeGuid: string,
+    delta: readonly [number, number, number],
+  ): boolean {
+    const location = this.locations.get(strokeGuid);
+    return location
+      ? location.batch.translateSubset(location.subset, delta)
+      : false;
+  }
+
   /**
    * Drops empty batches across all pools (`BatchManager.Update`). Returns the
    * removed batches so the caller can dispose their GPU resources.

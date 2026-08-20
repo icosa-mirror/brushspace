@@ -273,6 +273,37 @@ export class StrokeBatch {
     this.topologyDirty = true;
   }
 
+  /** Translates one subset in canvas space and updates its aggregate bounds. */
+  translateSubset(
+    subset: BatchSubset,
+    delta: readonly [number, number, number],
+  ): boolean {
+    if (!this.subsets.includes(subset)) {
+      return false;
+    }
+    const [dx, dy, dz] = delta;
+    if (dx === 0 && dy === 0 && dz === 0) {
+      return true;
+    }
+    const endVertex = subset.startVertex + subset.vertexCount;
+    for (let vertex = subset.startVertex; vertex < endVertex; vertex += 1) {
+      const offset = vertex * 3;
+      this.positions[offset] += dx;
+      this.positions[offset + 1] += dy;
+      this.positions[offset + 2] += dz;
+    }
+    if (Number.isFinite(subset.bounds.min[0])) {
+      subset.bounds.min[0] += dx;
+      subset.bounds.min[1] += dy;
+      subset.bounds.min[2] += dz;
+      subset.bounds.max[0] += dx;
+      subset.bounds.max[1] += dy;
+      subset.bounds.max[2] += dz;
+    }
+    this.vertexDataDirty = true;
+    return true;
+  }
+
   /**
    * Removes a stroke (`Batch.RemoveSubset`). Its triangles are always
    * disabled; storage is reclaimed only when the subset is the tail, since

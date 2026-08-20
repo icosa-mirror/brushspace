@@ -155,6 +155,23 @@ describe("StrokeBatch", () => {
     expect(batch.indexCount).toBe(6);
   });
 
+  it("translates only one subset and updates its bounds", () => {
+    const batch = new StrokeBatch(LAYOUT);
+    const first = batch.addSubset("a", makeArrays(4, 1));
+    const second = batch.addSubset("b", makeArrays(4, 2));
+    batch.clearDirtyFlags();
+    const firstPosition = batch.positions[first.startVertex * 3];
+    const secondPosition = batch.positions[second.startVertex * 3];
+
+    expect(batch.translateSubset(second, [3, -2, 5])).toBe(true);
+
+    expect(batch.positions[first.startVertex * 3]).toBe(firstPosition);
+    expect(batch.positions[second.startVertex * 3]).toBe(secondPosition + 3);
+    expect(second.bounds).toEqual({ min: [5, 0, 7], max: [6, 1, 8] });
+    expect(batch.vertexDataDirty).toBe(true);
+    expect(batch.topologyDirty).toBe(false);
+  });
+
   it("treats an empty batch as always having space so huge strokes still render", () => {
     const batch = new StrokeBatch(LAYOUT);
     expect(batch.hasSpaceFor(MAX_BATCH_VERTICES * 2)).toBe(true);
@@ -219,6 +236,18 @@ describe("StrokeBatchManager", () => {
     expect(manager.getLocation("b")).toBeUndefined();
     expect(manager.removeStroke("b")).toBe(false);
     expect(manager.setStrokeVisible("missing", false)).toBe(false);
+  });
+
+  it("translates a stroke by guid", () => {
+    const manager = new StrokeBatchManager();
+    manager.addStroke("a", makeKey(), makeArrays(4, 1));
+
+    expect(manager.translateStroke("a", [2, 3, 4])).toBe(true);
+    expect(manager.getLocation("a")?.subset.bounds).toEqual({
+      min: [3, 4, 5],
+      max: [4, 5, 6],
+    });
+    expect(manager.translateStroke("missing", [1, 1, 1])).toBe(false);
   });
 
   it("replaces a stroke's subset when it is re-committed after an edit", () => {
