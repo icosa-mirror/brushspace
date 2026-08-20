@@ -144,6 +144,7 @@ import {
 // Endpoint-move threshold for straightedge/tape tools only; freehand strokes
 // use the Open Brush spawn-interval sampling in sampleActiveStroke.
 import { AudioFeedbackSystem } from "./audio-feedback-system.js";
+import { StrokeBatchRenderSystem } from "./stroke-batch-render-system.js";
 
 const MIN_SAMPLE_DISTANCE = 0.015;
 
@@ -1869,6 +1870,7 @@ export class StrokeAuthoringSystem extends createSystem({
     if (stroke.entity.object3D) {
       stroke.entity.object3D.userData.openBrushStrokeData = stroke.strokeData;
     }
+    this.commitFinalizedStrokeToBatch(stroke);
     const strokeGroup = [stroke.entity];
     if (stroke.mirrorMode === "x" && stroke.controlPoints.length >= 2) {
       strokeGroup.push(this.createMirroredStroke(stroke));
@@ -2447,6 +2449,7 @@ export class StrokeAuthoringSystem extends createSystem({
       runtime.lastPointIsKeeper = false;
       this.rebuildStrokeMesh(runtime);
       runtime.entity.setValue(BrushStroke, "finalized", true);
+      this.commitFinalizedStrokeToBatch(runtime);
       this.remoteActiveStrokes.delete(strokeData.guid);
     }
   }
@@ -2576,6 +2579,9 @@ export class StrokeAuthoringSystem extends createSystem({
     };
     this.recalculateBounds(runtime);
     this.rebuildStrokeMesh(runtime);
+    if (finalized) {
+      this.commitFinalizedStrokeToBatch(runtime);
+    }
     return runtime;
   }
 
@@ -2676,6 +2682,7 @@ export class StrokeAuthoringSystem extends createSystem({
     };
     this.recalculateBounds(mirroredStroke);
     this.rebuildStrokeMesh(mirroredStroke);
+    this.commitFinalizedStrokeToBatch(mirroredStroke);
     return entity;
   }
 
@@ -2767,6 +2774,15 @@ export class StrokeAuthoringSystem extends createSystem({
     if (entity.object3D) {
       entity.object3D.visible = visible;
     }
+    this.world
+      .getSystem(StrokeBatchRenderSystem)
+      ?.setStrokeVisible(String(entity.getValue(BrushStroke, "guid")), visible);
+  }
+
+  private commitFinalizedStrokeToBatch(stroke: RuntimeStroke): void {
+    this.world
+      .getSystem(StrokeBatchRenderSystem)
+      ?.commitStroke(stroke.entity, stroke.geometryArrays);
   }
 
   private samplePointerPose(

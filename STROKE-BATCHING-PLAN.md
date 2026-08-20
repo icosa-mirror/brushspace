@@ -15,11 +15,12 @@
 2. Commit `81303ef` records the pre-batching render baseline.
 3. The core supports subset ranges, index rebasing, index-zeroing hide/show, tail reclamation, pool selection by `BrushBatchKey`, and GUID-to-subset lookup.
 4. Twelve unit tests exercise the bookkeeping, including 500 strokes sharing one batch.
-5. No application code calls the batching core. There is no `BufferGeometry`, `Mesh`, ECS batch entity, material integration, upload loop, or rendered pixel using it.
+5. The feature-flagged Phase 2 path now calls the batching core for finalized Flat strokes. `StrokeBatchRenderSystem` owns batch mesh entities, managed-material integration, geometry/topology uploads, aggregate bounds, visibility routing, cleanup, and runtime metrics behind `?strokeBatches=1`.
 6. The current renderer creates one transform entity and one mesh per stroke. `BrushStroke` queries drive save/load, collaboration, layers, selection, undo/redo, erasing, reveal, material upgrades, diagnostics, and export.
 7. `LayerCanvasSystem` writes `stroke.object3D.visible`. `SelectionSystem` moves `stroke.object3D.position`. Those behaviors cannot be redirected to a shared mesh by changing only stroke creation.
 8. Phase 0 is complete: the two reviewed upstream changes were ported to `main`, and the batching branch was updated from that baseline.
 9. Phase 1 now has an executable compatibility contract and checked-in audit at `docs/stroke-batch-render-contract.md`. The full supported inventory is managed-material batchable by the static contract, with explicit pass and supplemental-attribute variants; runtime batching still requires the managed shader to be loaded.
+10. Phase 2 implementation is present but its merge gate remains open: deterministic upload tests and the production build pass, while a GPU-backed visual comparison and measured draw-call reduction have not yet been recorded.
 
 ## 3. Success criteria
 

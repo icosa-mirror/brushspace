@@ -2,10 +2,12 @@ import { createSystem } from "@iwsdk/core";
 import type { Entity } from "@iwsdk/core";
 
 import {
+  BatchedBrushStroke,
   BrushStroke,
   CanvasLayer,
   OpenBrushAppState,
 } from "../components/core.js";
+import { StrokeBatchRenderSystem } from "./stroke-batch-render-system.js";
 
 export class LayerCanvasSystem extends createSystem({
   appState: { required: [OpenBrushAppState] },
@@ -49,7 +51,17 @@ export class LayerCanvasSystem extends createSystem({
       ) {
         stroke.setValue(BrushStroke, "renderVisible", renderVisible);
       }
-      if (stroke.object3D) {
+      if (stroke.hasComponent(BatchedBrushStroke)) {
+        if (stroke.object3D) {
+          stroke.object3D.visible = false;
+        }
+        this.world
+          .getSystem(StrokeBatchRenderSystem)
+          ?.setStrokeVisible(
+            String(stroke.getValue(BrushStroke, "guid")),
+            renderVisible,
+          );
+      } else if (stroke.object3D) {
         stroke.object3D.visible = renderVisible;
       }
     }

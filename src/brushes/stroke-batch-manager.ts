@@ -108,6 +108,11 @@ export class StrokeBatchManager {
     return total;
   }
 
+  /** Total logical strokes currently represented by batch subsets. */
+  countStrokes(): number {
+    return this.locations.size;
+  }
+
   /** The batch and subset holding a stroke, if it is batched. */
   getLocation(strokeGuid: string): StrokeBatchLocation | undefined {
     return this.locations.get(strokeGuid);

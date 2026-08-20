@@ -182,6 +182,7 @@ describe("StrokeBatchManager", () => {
     // 500 strokes, one material: one batch — this is the whole point of the
     // port. The per-stroke-entity path would have issued 500 draw calls.
     expect(manager.countBatches()).toBe(1);
+    expect(manager.countStrokes()).toBe(500);
     expect(manager.getPools()).toHaveLength(1);
   });
 

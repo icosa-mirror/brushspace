@@ -45,6 +45,7 @@ Every currently supported inventory brush is covered by exactly one row below. R
 2. Flat is opaque, single-pass, double-sided, and requires no brush-specific supplemental attribute. It isolates batch geometry upload and material sharing from transparency ordering and multi-pass behavior.
 3. Keep the per-stroke mesh until the managed Flat material is loaded and the batch upload completes. Switch visibility so the reference and batch paths are never visible simultaneously.
 4. Record renderer calls, triangles, active batches, compatible strokes, fallback strokes, and uploaded bytes for the same loaded sketch in both modes.
+5. The slice is enabled with `?strokeBatches=1`. Runtime counters are published through the `data-stroke-batch-*` fields on the document root for browser validation.
 
 ## 6. Deferred risks
 

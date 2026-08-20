@@ -280,6 +280,19 @@ export const BrushStroke = createComponent("BrushStroke", {
   maxBounds: { type: Types.Vec3, default: [0, 0, 0] },
 });
 
+/** Logical stroke whose pixels are owned by a shared StrokeBatch mesh. */
+export const BatchedBrushStroke = createComponent("BatchedBrushStroke", {
+  batchId: { type: Types.Int32, default: -1 },
+});
+
+/** Scalar identity for a render entity owned by StrokeBatchRenderSystem. */
+export const StrokeBatchMesh = createComponent("StrokeBatchMesh", {
+  batchId: { type: Types.Int32, default: -1 },
+  brushGuid: { type: Types.String, default: "" },
+  layerIndex: { type: Types.Int32, default: 0 },
+  key: { type: Types.String, default: "" },
+});
+
 export const OpenBrushColorPicker = createComponent("OpenBrushColorPicker", {
   hue01: { type: Types.Float32, default: 0.5833 },
   saturation: { type: Types.Float32, default: 0.81 },
