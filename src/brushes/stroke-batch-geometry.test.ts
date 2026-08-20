@@ -290,6 +290,7 @@ describe("stroke batch geometry upload", () => {
     batch.addSubset("first", makeArrays(4, 1));
     const second = batch.addSubset("second", makeArrays(4, 5));
     batch.translateSubset(second, [10, 20, 30]);
+    batch.disableSubset(second);
     const geometry = new BufferGeometry();
     const material = new MeshBasicMaterial();
 
@@ -308,6 +309,30 @@ describe("stroke batch geometry upload", () => {
     expect(Array.from(geometry.getIndex()!.array)).toEqual([0, 1, 2, 0, 2, 3]);
     expect(geometry.boundingBox?.min.toArray()).toEqual([5, 5, 5]);
     expect(geometry.boundingBox?.max.toArray()).toEqual([6, 6, 6]);
+  });
+
+  it("creates one full-range render group per material pass", () => {
+    const batch = new StrokeBatch({ uv0Size: 2, uv1Size: 0 });
+    batch.addSubset("stroke", makeArrays(4, 1));
+    const geometry = new BufferGeometry();
+    const materials = [
+      new MeshBasicMaterial(),
+      new MeshBasicMaterial(),
+      new MeshBasicMaterial(),
+    ];
+
+    uploadStrokeBatchGeometry(
+      geometry,
+      batch,
+      FLAT_BRUSH_GUID,
+      materials,
+    );
+
+    expect(geometry.groups).toEqual([
+      { start: 0, count: batch.indexCount, materialIndex: 0 },
+      { start: 0, count: batch.indexCount, materialIndex: 1 },
+      { start: 0, count: batch.indexCount, materialIndex: 2 },
+    ]);
   });
 });
 
