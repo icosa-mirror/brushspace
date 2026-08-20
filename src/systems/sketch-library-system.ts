@@ -618,6 +618,7 @@ export class SketchLibrarySystem extends createSystem({
   // -------------------------------------------------------------------------
 
   private collectStrokeData(): StrokeData[] {
+    this.world.getSystem(StrokeBatchRenderSystem)?.finishAllExtractions();
     const strokes: Array<{ data: StrokeData; order: number }> = [];
     for (const entity of this.queries.strokes.entities) {
       if (

@@ -1,4 +1,4 @@
-import type { Vec3 } from "../types.js";
+import type { StrokeData, Vec3 } from "../types.js";
 
 export interface RuntimeStrokeSelectionState {
   layerIndex: number;
@@ -101,4 +101,16 @@ export function planSelectedStrokeTranslation(
     });
   }
   return targets.sort((left, right) => left.commandIndex - right.commandIndex);
+}
+
+/** Bakes a canvas-space selection translation into serialized control points. */
+export function translateStrokeDataControlPoints(
+  stroke: StrokeData,
+  delta: Vec3,
+): void {
+  for (const point of stroke.controlPoints) {
+    point.position[0] += delta[0];
+    point.position[1] += delta[1];
+    point.position[2] += delta[2];
+  }
 }

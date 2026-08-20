@@ -2,10 +2,12 @@ import { createSystem, Vector3 } from "@iwsdk/core";
 import type { Entity } from "@iwsdk/core";
 
 import {
+  BatchedBrushStroke,
   BrushStroke,
   SelectionState,
   SelectionWidget,
 } from "../components/core.js";
+import { StrokeBatchRenderSystem } from "./stroke-batch-render-system.js";
 
 export class SelectionSystem extends createSystem({
   selectionState: { required: [SelectionState] },
@@ -28,6 +30,8 @@ export class SelectionSystem extends createSystem({
     if (!selectionState) {
       return;
     }
+
+    this.reconcileBatchExtractions();
 
     const summary = this.summarizeSelection();
     this.setNumberIfChanged(
@@ -207,7 +211,27 @@ export class SelectionSystem extends createSystem({
       if (!stroke.getValue(BrushStroke, "selected") || !stroke.object3D) {
         continue;
       }
+      this.world
+        .getSystem(StrokeBatchRenderSystem)
+        ?.beginStrokeExtraction(stroke);
       stroke.object3D.position.add(delta);
+    }
+  }
+
+  private reconcileBatchExtractions(): void {
+    const batchRenderer = this.world.getSystem(StrokeBatchRenderSystem);
+    if (!batchRenderer) {
+      return;
+    }
+    for (const stroke of this.queries.strokes.entities) {
+      if (!stroke.hasComponent(BatchedBrushStroke)) {
+        continue;
+      }
+      if (stroke.getValue(BrushStroke, "selected")) {
+        batchRenderer.beginStrokeExtraction(stroke);
+      } else {
+        batchRenderer.finishStrokeExtraction(stroke);
+      }
     }
   }
 

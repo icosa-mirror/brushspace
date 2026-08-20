@@ -51,5 +51,5 @@ Every currently supported inventory brush is covered by exactly one row below. R
 
 1. Transparent and additive brushes are statically compatible by material identity, but ordering across subsets still needs GPU-backed visual validation.
 2. Multi-pass brushes are represented in the key and expected-call contract but should enter only after the single-pass renderer is correct.
-3. Layer reveal, selection transforms, erasing, undo/redo, and live authoring still manipulate per-stroke entities or meshes. Their migration remains outside this audit.
+3. Logical state remains per stroke. Reveal, layers, erasing, and undo/redo route visibility through subset operations; selection temporarily extracts the private mesh and recommits one translation when manipulation ends.
 4. Material upgrades must not move a stroke into a batch until the shared managed material exists; the temporary fallback is never a batch material.

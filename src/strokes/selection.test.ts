@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
+import type { StrokeData } from "../types.js";
 
 import {
   planSelectedStrokeTranslation,
   resolveLastSelectableStroke,
   summarizeStrokeSelection,
+  translateStrokeDataControlPoints,
   type RuntimeStrokeSelectionState,
 } from "./selection.js";
 
@@ -108,5 +110,21 @@ describe("Open Brush stroke selection", () => {
       },
     ]);
     expect(transforms[0].position).toEqual([0.4, 1, -0.2]);
+  });
+
+  it("bakes a selection translation into serialized control points", () => {
+    const stroke = {
+      controlPoints: [
+        { position: [1, 2, 3] },
+        { position: [-1, 0, 4] },
+      ],
+    } as unknown as StrokeData;
+
+    translateStrokeDataControlPoints(stroke, [0.5, -2, 1]);
+
+    expect(stroke.controlPoints.map((point) => point.position)).toEqual([
+      [1.5, 0, 4],
+      [-0.5, -2, 5],
+    ]);
   });
 });

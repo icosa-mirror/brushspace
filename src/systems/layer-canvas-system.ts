@@ -5,6 +5,7 @@ import {
   BatchedBrushStroke,
   BrushStroke,
   CanvasLayer,
+  ExtractedBatchedBrushStroke,
   OpenBrushAppState,
 } from "../components/core.js";
 import { StrokeBatchRenderSystem } from "./stroke-batch-render-system.js";
@@ -52,15 +53,14 @@ export class LayerCanvasSystem extends createSystem({
         stroke.setValue(BrushStroke, "renderVisible", renderVisible);
       }
       if (stroke.hasComponent(BatchedBrushStroke)) {
+        const extracted = stroke.hasComponent(ExtractedBatchedBrushStroke);
         if (stroke.object3D) {
-          stroke.object3D.visible = false;
+          stroke.object3D.visible = extracted && renderVisible;
         }
-        this.world
-          .getSystem(StrokeBatchRenderSystem)
-          ?.setStrokeVisible(
-            String(stroke.getValue(BrushStroke, "guid")),
-            renderVisible,
-          );
+        this.world.getSystem(StrokeBatchRenderSystem)?.setStrokeVisible(
+          String(stroke.getValue(BrushStroke, "guid")),
+          extracted ? false : renderVisible,
+        );
       } else if (stroke.object3D) {
         stroke.object3D.visible = renderVisible;
       }

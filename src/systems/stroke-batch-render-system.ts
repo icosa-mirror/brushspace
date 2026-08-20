@@ -9,6 +9,7 @@ import {
 import {
   BatchedBrushStroke,
   BrushStroke,
+  ExtractedBatchedBrushStroke,
   OpenBrushScenePose,
   StrokeBatchMesh,
 } from "../components/core.js";
@@ -27,6 +28,7 @@ import type { StrokeBatch } from "../brushes/stroke-batch.js";
 import { createBrushRenderMaterial } from "../brushes/brush-render-material.js";
 import { openBrushShaderLibrary } from "../brushes/brush-shader-library.js";
 import type { StrokeData } from "../types.js";
+import { translateStrokeDataControlPoints } from "../strokes/selection.js";
 
 const LOG_PREFIX = "[StrokeBatchRender]";
 
@@ -62,6 +64,10 @@ export class StrokeBatchRenderSystem extends createSystem({
   private readonly pending = new Map<string, BrushGeometryArrays>();
   private readonly pendingGuidByEntityIndex = new Map<number, string>();
   private readonly strokeGuidByEntityIndex = new Map<number, string>();
+  private readonly extractionStart = new Map<
+    string,
+    [number, number, number]
+  >();
   private enabled = false;
   private nextBatchId = 1;
   private metricsClock = 0;
@@ -100,6 +106,7 @@ export class StrokeBatchRenderSystem extends createSystem({
       }
       this.strokeGuidByEntityIndex.delete(entity.index);
       this.pending.delete(guid);
+      this.extractionStart.delete(guid);
       this.manager.removeStroke(guid);
       this.trimAndFlush();
       this.refreshBatchMetrics();
@@ -167,6 +174,17 @@ export class StrokeBatchRenderSystem extends createSystem({
     this.pendingGuidByEntityIndex.delete(entity.index);
     const key = createBatchKey(strokeData, entry);
     const location = this.manager.addStroke(guid, key, arrays);
+    const objectPosition = entity.object3D?.position;
+    if (
+      objectPosition &&
+      (objectPosition.x !== 0 || objectPosition.y !== 0 || objectPosition.z !== 0)
+    ) {
+      this.manager.translateStroke(guid, [
+        objectPosition.x,
+        objectPosition.y,
+        objectPosition.z,
+      ]);
+    }
     const target = this.ensureTarget(location.batch, loadedMaterial, key);
     this.trimAndFlush();
 
@@ -211,6 +229,111 @@ export class StrokeBatchRenderSystem extends createSystem({
     return this.metrics;
   }
 
+  /** Switches a batched stroke to its private mesh for interactive movement. */
+  beginStrokeExtraction(entity: Entity): boolean {
+    if (!entity.hasComponent(BatchedBrushStroke) || !entity.object3D) {
+      return false;
+    }
+    const guid = String(entity.getValue(BrushStroke, "guid"));
+    if (this.extractionStart.has(guid)) {
+      return true;
+    }
+    const position = entity.object3D.position;
+    this.extractionStart.set(guid, [position.x, position.y, position.z]);
+    this.manager.setStrokeVisible(guid, false);
+    this.flushDirtyBatches();
+    entity.addComponent(ExtractedBatchedBrushStroke);
+    entity.object3D.visible = Boolean(
+      entity.getValue(BrushStroke, "renderVisible"),
+    );
+    return true;
+  }
+
+  /** Recommits one extracted stroke with a single batch vertex upload. */
+  finishStrokeExtraction(entity: Entity): boolean {
+    if (!entity.object3D) {
+      return false;
+    }
+    const guid = String(entity.getValue(BrushStroke, "guid"));
+    const start = this.extractionStart.get(guid);
+    if (!start) {
+      return false;
+    }
+    const position = entity.object3D.position;
+    const delta: [number, number, number] = [
+      position.x - start[0],
+      position.y - start[1],
+      position.z - start[2],
+    ];
+    if (delta[0] !== 0 || delta[1] !== 0 || delta[2] !== 0) {
+      this.manager.translateStroke(guid, delta);
+      const strokeData = entity.object3D.userData.openBrushStrokeData as
+        | StrokeData
+        | undefined;
+      if (strokeData) {
+        translateStrokeDataControlPoints(strokeData, delta);
+      }
+    }
+    this.extractionStart.delete(guid);
+    if (entity.hasComponent(ExtractedBatchedBrushStroke)) {
+      entity.removeComponent(ExtractedBatchedBrushStroke);
+    }
+    this.manager.setStrokeVisible(
+      guid,
+      Boolean(entity.getValue(BrushStroke, "renderVisible")),
+    );
+    this.flushDirtyBatches();
+    entity.object3D.visible = false;
+    return true;
+  }
+
+  /** Applies an absolute private-mesh transform, extracting when selected. */
+  setStrokeTransform(
+    entity: Entity,
+    position: readonly [number, number, number],
+  ): boolean {
+    if (!entity.hasComponent(BatchedBrushStroke) || !entity.object3D) {
+      return false;
+    }
+    if (entity.getValue(BrushStroke, "selected")) {
+      this.beginStrokeExtraction(entity);
+    }
+    const object = entity.object3D;
+    const delta: [number, number, number] = [
+      position[0] - object.position.x,
+      position[1] - object.position.y,
+      position[2] - object.position.z,
+    ];
+    object.position.set(position[0], position[1], position[2]);
+    if (this.extractionStart.has(String(entity.getValue(BrushStroke, "guid")))) {
+      return true;
+    }
+    const guid = String(entity.getValue(BrushStroke, "guid"));
+    if (this.manager.translateStroke(guid, delta)) {
+      const strokeData = object.userData.openBrushStrokeData as
+        | StrokeData
+        | undefined;
+      if (strokeData) {
+        translateStrokeDataControlPoints(strokeData, delta);
+      }
+      this.flushDirtyBatches();
+    }
+    object.visible = false;
+    return true;
+  }
+
+  /** Bakes all current extractions before save/export or sketch replacement. */
+  finishAllExtractions(): void {
+    for (const guid of this.extractionStart.keys()) {
+      const entity = this.findStrokeEntity(guid);
+      if (entity) {
+        this.finishStrokeExtraction(entity);
+      } else {
+        this.extractionStart.delete(guid);
+      }
+    }
+  }
+
   /** Clears all batch resources in one operation before a sketch replacement. */
   clear(): void {
     for (const batch of this.manager.clear()) {
@@ -219,6 +342,7 @@ export class StrokeBatchRenderSystem extends createSystem({
     this.pending.clear();
     this.pendingGuidByEntityIndex.clear();
     this.strokeGuidByEntityIndex.clear();
+    this.extractionStart.clear();
     this.refreshBatchMetrics();
   }
 
@@ -334,6 +458,7 @@ export class StrokeBatchRenderSystem extends createSystem({
     this.pending.clear();
     this.pendingGuidByEntityIndex.clear();
     this.strokeGuidByEntityIndex.clear();
+    this.extractionStart.clear();
   }
 
   private refreshBatchMetrics(): void {

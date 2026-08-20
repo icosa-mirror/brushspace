@@ -285,6 +285,12 @@ export const BatchedBrushStroke = createComponent("BatchedBrushStroke", {
   batchId: { type: Types.Int32, default: -1 },
 });
 
+/** Batched stroke temporarily rendered by its private mesh during selection. */
+export const ExtractedBatchedBrushStroke = createComponent(
+  "ExtractedBatchedBrushStroke",
+  {},
+);
+
 /** Scalar identity for a render entity owned by StrokeBatchRenderSystem. */
 export const StrokeBatchMesh = createComponent("StrokeBatchMesh", {
   batchId: { type: Types.Int32, default: -1 },
