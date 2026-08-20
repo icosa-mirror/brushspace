@@ -22,6 +22,7 @@
 9. Phase 1 now has an executable compatibility contract and checked-in audit at `docs/stroke-batch-render-contract.md`. The full supported inventory is managed-material batchable by the static contract, with explicit pass and supplemental-attribute variants; runtime batching still requires the managed shader to be loaded.
 10. Phase 2 implementation is present but its merge gate remains open: deterministic upload tests and the production build pass, while a GPU-backed visual comparison and measured draw-call reduction have not yet been recorded.
 11. Selection manipulation now uses temporary extraction: the subset is hidden while the private mesh moves, then its delta is applied once to batch vertices and serialized control points. Active extractions are committed before save. Runtime interaction validation remains outstanding.
+12. Reveal, layers, undo/redo, erasing, local and remote finalization, collaboration visibility, save/export, sketch replacement, and shared-material cleanup now route through the batch renderer while logical `BrushStroke` entities remain authoritative. The renderer owns private-mesh/subset visibility and publishes categorized fallback reasons; runtime interaction validation remains outstanding.
 
 ## 3. Success criteria
 
@@ -171,8 +172,8 @@
 
 ## 9. Immediate next work
 
-1. Implement the Flat-brush static renderer behind a disabled-by-default flag.
-2. Add deterministic geometry-upload tests for aliases, draw range, render groups, and bounds before runtime validation.
-3. Record batch/fallback counts, upload volume, and renderer call/triangle counts in both renderer modes.
-4. Validate the Flat slice in a GPU-backed browser or headset and compare it with the per-stroke reference path.
-5. Reassess the core API before widening brush coverage if the renderer exposes state that cannot be split, encoded, baked, or safely routed through fallback.
+1. Validate the Flat slice in a GPU-backed browser or headset and compare it with the per-stroke reference path.
+2. Record matched batch/fallback counts, upload volume, renderer calls, triangles, and frame time for the baseline sketch in both renderer modes.
+3. Exercise selection extraction, reveal, layers, undo/redo, erasing, save/load, and local/remote finalization through the feature-flagged runtime.
+4. Add the next opaque single-pass brush to the explicit allowlist only after the Flat GPU gate passes, then repeat deterministic and visual checks before moving to cutout or transparent families.
+5. Keep batching disabled by default until the browser and immersive-XR evidence required by Gates B through E is checked in.

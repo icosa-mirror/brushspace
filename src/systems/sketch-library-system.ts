@@ -790,7 +790,8 @@ export class SketchLibrarySystem extends createSystem({
             .getSystem(StrokeBatchRenderSystem)
             ?.setStrokeVisible(
               String(item.entity.getValue(BrushStroke, "guid")),
-              visibleValue,
+              visibleValue &&
+                Boolean(item.entity.getValue(BrushStroke, "renderVisible")),
             );
         }
       }
