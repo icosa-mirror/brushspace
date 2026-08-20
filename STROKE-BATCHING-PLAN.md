@@ -24,6 +24,7 @@
 11. Selection manipulation now uses temporary extraction: the subset is hidden while the private mesh moves, then its delta is applied once to batch vertices and serialized control points. Active extractions are committed before save. Deterministic tests cover mixed brush/layer batches, move/undo, selected deletion, and visibility restoration; runtime interaction validation remains outstanding.
 12. Reveal, layers, undo/redo, erasing, local and remote finalization, collaboration visibility, save/export, sketch replacement, and shared-material cleanup now route through the batch renderer while logical `BrushStroke` entities remain authoritative. The renderer owns private-mesh/subset visibility and publishes categorized fallback reasons; runtime interaction validation remains outstanding.
 13. A successfully committed stroke now disposes its private geometry. Selection reconstructs only the selected subset as a local private edit mesh, accounts for the entity's accumulated transform, and disposes that temporary geometry again when recommitted.
+14. The checked-in evidence ledger at `docs/stroke-batching-validation.md` separates deterministic passes from the GPU/browser/XR evidence that has not yet been recorded.
 
 ## 3. Success criteria
 

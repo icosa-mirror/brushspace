@@ -254,6 +254,8 @@ describe("stroke batch geometry upload", () => {
     const material = new MeshBasicMaterial();
     uploadStrokeBatchGeometry(geometry, batch, FLAT_BRUSH_GUID, material);
     const position = geometry.getAttribute("position");
+    expect(geometry.getAttribute("uv1")).toBeUndefined();
+    expect(geometry.getAttribute("a_texcoord1")).toBeUndefined();
 
     batch.disableSubset(second);
     const result = uploadStrokeBatchGeometry(
