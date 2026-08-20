@@ -22,6 +22,7 @@ import { uploadStrokeBatchGeometry } from "../brushes/stroke-batch-geometry.js";
 import {
   FLAT_BATCH_BRUSH_GUID,
   isStrokeBatchingEnabled,
+  resolveStrokeBatchVisibility,
 } from "../brushes/stroke-batch-feature.js";
 import { StrokeBatchManager } from "../brushes/stroke-batch-manager.js";
 import type { StrokeBatch } from "../brushes/stroke-batch.js";
@@ -44,6 +45,7 @@ export interface StrokeBatchRendererMetrics {
   activeBatchCount: number;
   compatibleStrokeCount: number;
   fallbackStrokeCount: number;
+  fallbackReasons: Record<string, number>;
   uploadedBytes: number;
   rendererCalls: number;
   rendererTriangles: number;
@@ -68,6 +70,8 @@ export class StrokeBatchRenderSystem extends createSystem({
     string,
     [number, number, number]
   >();
+  private readonly fallbackReasonByGuid = new Map<string, string>();
+  private readonly fallbackGuidByEntityIndex = new Map<number, string>();
   private enabled = false;
   private nextBatchId = 1;
   private metricsClock = 0;
@@ -76,6 +80,7 @@ export class StrokeBatchRenderSystem extends createSystem({
     activeBatchCount: 0,
     compatibleStrokeCount: 0,
     fallbackStrokeCount: 0,
+    fallbackReasons: {},
     uploadedBytes: 0,
     rendererCalls: 0,
     rendererTriangles: 0,
@@ -107,17 +112,21 @@ export class StrokeBatchRenderSystem extends createSystem({
       this.strokeGuidByEntityIndex.delete(entity.index);
       this.pending.delete(guid);
       this.extractionStart.delete(guid);
+      this.fallbackReasonByGuid.delete(guid);
       this.manager.removeStroke(guid);
       this.trimAndFlush();
-      this.refreshBatchMetrics();
     });
     this.queries.strokes.subscribe("disqualify", (entity) => {
-      const guid = this.pendingGuidByEntityIndex.get(entity.index);
+      const guid =
+        this.pendingGuidByEntityIndex.get(entity.index) ??
+        this.fallbackGuidByEntityIndex.get(entity.index);
       if (!guid) {
         return;
       }
       this.pendingGuidByEntityIndex.delete(entity.index);
+      this.fallbackGuidByEntityIndex.delete(entity.index);
       this.pending.delete(guid);
+      this.fallbackReasonByGuid.delete(guid);
     });
     this.cleanupFuncs.push(() => this.disposeAll());
   }
@@ -147,6 +156,11 @@ export class StrokeBatchRenderSystem extends createSystem({
     }
     const brushGuid = String(entity.getValue(BrushStroke, "brushGuid"));
     if (brushGuid.toLowerCase() !== FLAT_BATCH_BRUSH_GUID) {
+      this.recordFallback(
+        entity,
+        String(entity.getValue(BrushStroke, "guid")),
+        "brush-not-allowlisted",
+      );
       return false;
     }
     const guid = String(entity.getValue(BrushStroke, "guid"));
@@ -161,6 +175,7 @@ export class StrokeBatchRenderSystem extends createSystem({
     if (!eligibility.eligible || !entry || !loadedMaterial) {
       this.pending.set(guid, arrays);
       this.pendingGuidByEntityIndex.set(entity.index, guid);
+      this.recordFallback(entity, guid, "managed-material-pending");
       return false;
     }
 
@@ -168,10 +183,13 @@ export class StrokeBatchRenderSystem extends createSystem({
       | StrokeData
       | undefined;
     if (!strokeData) {
+      this.recordFallback(entity, guid, "missing-stroke-data");
       return false;
     }
     this.pending.delete(guid);
     this.pendingGuidByEntityIndex.delete(entity.index);
+    this.fallbackGuidByEntityIndex.delete(entity.index);
+    this.fallbackReasonByGuid.delete(guid);
     const key = createBatchKey(strokeData, entry);
     const location = this.manager.addStroke(guid, key, arrays);
     const objectPosition = entity.object3D?.position;
@@ -197,23 +215,37 @@ export class StrokeBatchRenderSystem extends createSystem({
     if (entity.object3D) {
       entity.object3D.visible = false;
     }
-    this.refreshBatchMetrics();
     return true;
   }
 
   setStrokeVisible(strokeGuid: string, visible: boolean): boolean {
-    if (!this.manager.setStrokeVisible(strokeGuid, visible)) {
+    const entity = this.findStrokeEntity(strokeGuid);
+    const extracted = Boolean(
+      entity?.hasComponent(ExtractedBatchedBrushStroke),
+    );
+    const visibility = resolveStrokeBatchVisibility(visible, extracted);
+    if (!this.manager.setStrokeVisible(strokeGuid, visibility.subsetVisible)) {
       return false;
     }
     this.flushDirtyBatches();
+    if (entity?.object3D) {
+      entity.object3D.visible = visibility.privateMeshVisible;
+    }
     return true;
   }
 
   removeStroke(strokeGuid: string): boolean {
     this.pending.delete(strokeGuid);
+    this.fallbackReasonByGuid.delete(strokeGuid);
     for (const [entityIndex, guid] of this.pendingGuidByEntityIndex) {
       if (guid === strokeGuid) {
         this.pendingGuidByEntityIndex.delete(entityIndex);
+        break;
+      }
+    }
+    for (const [entityIndex, guid] of this.fallbackGuidByEntityIndex) {
+      if (guid === strokeGuid) {
+        this.fallbackGuidByEntityIndex.delete(entityIndex);
         break;
       }
     }
@@ -343,6 +375,8 @@ export class StrokeBatchRenderSystem extends createSystem({
     this.pendingGuidByEntityIndex.clear();
     this.strokeGuidByEntityIndex.clear();
     this.extractionStart.clear();
+    this.fallbackReasonByGuid.clear();
+    this.fallbackGuidByEntityIndex.clear();
     this.refreshBatchMetrics();
   }
 
@@ -459,6 +493,8 @@ export class StrokeBatchRenderSystem extends createSystem({
     this.pendingGuidByEntityIndex.clear();
     this.strokeGuidByEntityIndex.clear();
     this.extractionStart.clear();
+    this.fallbackReasonByGuid.clear();
+    this.fallbackGuidByEntityIndex.clear();
   }
 
   private refreshBatchMetrics(): void {
@@ -474,7 +510,27 @@ export class StrokeBatchRenderSystem extends createSystem({
       0,
       finalized - this.metrics.compatibleStrokeCount,
     );
+    for (const key of Object.keys(this.metrics.fallbackReasons)) {
+      delete this.metrics.fallbackReasons[key];
+    }
+    for (const entity of this.queries.strokes.entities) {
+      if (
+        !entity.getValue(BrushStroke, "finalized") ||
+        entity.hasComponent(BatchedBrushStroke)
+      ) {
+        continue;
+      }
+      const guid = String(entity.getValue(BrushStroke, "guid"));
+      const reason = this.fallbackReasonByGuid.get(guid) ?? "not-committed";
+      this.metrics.fallbackReasons[reason] =
+        (this.metrics.fallbackReasons[reason] ?? 0) + 1;
+    }
     this.publishMetrics();
+  }
+
+  private recordFallback(entity: Entity, guid: string, reason: string): void {
+    this.fallbackReasonByGuid.set(guid, reason);
+    this.fallbackGuidByEntityIndex.set(entity.index, guid);
   }
 
   private publishMetrics(): void {
@@ -488,6 +544,9 @@ export class StrokeBatchRenderSystem extends createSystem({
       this.metrics.compatibleStrokeCount,
     );
     dataset.strokeBatchFallbackStrokes = String(this.metrics.fallbackStrokeCount);
+    dataset.strokeBatchFallbackReasons = JSON.stringify(
+      this.metrics.fallbackReasons,
+    );
     dataset.strokeBatchUploadBytes = String(this.metrics.uploadedBytes);
     dataset.strokeBatchRendererCalls = String(this.metrics.rendererCalls);
     dataset.strokeBatchRendererTriangles = String(this.metrics.rendererTriangles);

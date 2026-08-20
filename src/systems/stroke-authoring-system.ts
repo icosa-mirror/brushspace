@@ -2771,12 +2771,12 @@ export class StrokeAuthoringSystem extends createSystem({
     if (!visible) {
       entity.setValue(BrushStroke, "selected", false);
     }
-    if (entity.object3D) {
-      entity.object3D.visible = visible;
-    }
-    this.world
+    const batched = this.world
       .getSystem(StrokeBatchRenderSystem)
       ?.setStrokeVisible(String(entity.getValue(BrushStroke, "guid")), visible);
+    if (!batched && entity.object3D) {
+      entity.object3D.visible = visible;
+    }
   }
 
   private commitFinalizedStrokeToBatch(stroke: RuntimeStroke): void {

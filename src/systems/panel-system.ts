@@ -16,7 +16,6 @@ import {
   BrushStroke,
   CanvasLayer,
   CollabState,
-  ExtractedBatchedBrushStroke,
   OpenBrushAppState,
   OpenBrushEraserCursor,
   PlaybackState,
@@ -1862,19 +1861,15 @@ export class PanelSystem extends createSystem({
     );
     snapshot.entity.setValue(BrushStroke, "selected", snapshot.selected);
     if (snapshot.entity.hasComponent(BatchedBrushStroke)) {
-      const extracted = snapshot.entity.hasComponent(
-        ExtractedBatchedBrushStroke,
-      );
-      if (snapshot.entity.object3D) {
-        snapshot.entity.object3D.visible =
-          extracted && snapshot.renderVisible;
-      }
-      this.world
+      const handled = this.world
         .getSystem(StrokeBatchRenderSystem)
         ?.setStrokeVisible(
           String(snapshot.entity.getValue(BrushStroke, "guid")),
-          extracted ? false : snapshot.renderVisible,
+          snapshot.renderVisible,
         );
+      if (!handled && snapshot.entity.object3D) {
+        snapshot.entity.object3D.visible = snapshot.renderVisible;
+      }
     } else if (snapshot.entity.object3D) {
       snapshot.entity.object3D.visible = snapshot.renderVisible;
     }

@@ -6,3 +6,18 @@ export function isStrokeBatchingEnabled(search: string): boolean {
   const value = new URLSearchParams(search).get("strokeBatches");
   return value === "1" || value === "true";
 }
+
+export interface StrokeBatchVisibility {
+  privateMeshVisible: boolean;
+  subsetVisible: boolean;
+}
+
+/** Guarantees that an extracted stroke and its batch subset never overlap. */
+export function resolveStrokeBatchVisibility(
+  renderVisible: boolean,
+  extracted: boolean,
+): StrokeBatchVisibility {
+  return extracted
+    ? { privateMeshVisible: renderVisible, subsetVisible: false }
+    : { privateMeshVisible: false, subsetVisible: renderVisible };
+}
