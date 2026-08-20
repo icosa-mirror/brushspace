@@ -11,6 +11,7 @@ import {
 import type { Entity } from "@iwsdk/core";
 
 import {
+  BatchedBrushStroke,
   BrushSettings,
   BrushStroke,
   CanvasLayer,
@@ -40,6 +41,7 @@ import {
 import { findBrushByGuid } from "../brushes/brush-inventory.js";
 import { CollabSystem } from "./collab-system.js";
 import { SketchLibrarySystem } from "./sketch-library-system.js";
+import { StrokeBatchRenderSystem } from "./stroke-batch-render-system.js";
 import {
   createNextLayerState,
   cycleLayerIndex,
@@ -1858,7 +1860,17 @@ export class PanelSystem extends createSystem({
       snapshot.renderVisible,
     );
     snapshot.entity.setValue(BrushStroke, "selected", snapshot.selected);
-    if (snapshot.entity.object3D) {
+    if (snapshot.entity.hasComponent(BatchedBrushStroke)) {
+      if (snapshot.entity.object3D) {
+        snapshot.entity.object3D.visible = false;
+      }
+      this.world
+        .getSystem(StrokeBatchRenderSystem)
+        ?.setStrokeVisible(
+          String(snapshot.entity.getValue(BrushStroke, "guid")),
+          snapshot.renderVisible,
+        );
+    } else if (snapshot.entity.object3D) {
       snapshot.entity.object3D.visible = snapshot.renderVisible;
     }
   }
@@ -2115,4 +2127,3 @@ function getPhaseAWandButtonStyle(
     ? WAND_BUTTON_SECONDARY_HOVERABLE_STYLE
     : WAND_BUTTON_SECONDARY_IDLE_STYLE;
 }
-

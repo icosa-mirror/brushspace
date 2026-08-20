@@ -46,6 +46,7 @@ import {
 import { AudioFeedbackSystem } from "./audio-feedback-system.js";
 import { IntroSketchSystem } from "./intro-sketch-system.js";
 import { StrokeAuthoringSystem } from "./stroke-authoring-system.js";
+import { StrokeBatchRenderSystem } from "./stroke-batch-render-system.js";
 import { assetUrl } from "../app/asset-url.js";
 
 const WELCOME_SKETCH_ID = "welcome-sketch";
@@ -784,6 +785,12 @@ export class SketchLibrarySystem extends createSystem({
           Boolean(item.entity.getValue(BrushStroke, "visible")) !== visibleValue
         ) {
           item.entity.setValue(BrushStroke, "visible", visibleValue);
+          this.world
+            .getSystem(StrokeBatchRenderSystem)
+            ?.setStrokeVisible(
+              String(item.entity.getValue(BrushStroke, "guid")),
+              visibleValue,
+            );
         }
       }
     }
@@ -795,6 +802,7 @@ export class SketchLibrarySystem extends createSystem({
 
   private disposeAllStrokes(): void {
     this.world.getSystem(StrokeAuthoringSystem)?.resetStrokeHistory();
+    this.world.getSystem(StrokeBatchRenderSystem)?.clear();
     for (const entity of [...this.queries.strokes.entities]) {
       const object = entity.object3D;
       if (object) {

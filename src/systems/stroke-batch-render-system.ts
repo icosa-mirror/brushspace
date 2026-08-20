@@ -211,6 +211,17 @@ export class StrokeBatchRenderSystem extends createSystem({
     return this.metrics;
   }
 
+  /** Clears all batch resources in one operation before a sketch replacement. */
+  clear(): void {
+    for (const batch of this.manager.clear()) {
+      this.disposeTarget(batch);
+    }
+    this.pending.clear();
+    this.pendingGuidByEntityIndex.clear();
+    this.strokeGuidByEntityIndex.clear();
+    this.refreshBatchMetrics();
+  }
+
   private commitPendingStrokes(): void {
     for (const [guid, arrays] of this.pending) {
       const entity = this.findStrokeEntity(guid);
