@@ -12,6 +12,8 @@ export interface StrokeBatchVisibility {
   subsetVisible: boolean;
 }
 
+export type StrokeBatchExtractionTransition = "begin" | "finish" | "none";
+
 /** Computes layer-composed visibility without allocating per-stroke state. */
 export function resolveStrokeRenderVisibility(
   strokeVisible: boolean,
@@ -28,4 +30,19 @@ export function resolveStrokeBatchVisibility(
   return extracted
     ? { privateMeshVisible: renderVisible, subsetVisible: false }
     : { privateMeshVisible: false, subsetVisible: renderVisible };
+}
+
+/** Returns an extraction operation only when the selection state transitions. */
+export function resolveStrokeBatchExtractionTransition(
+  selected: boolean,
+  batched: boolean,
+  extracted: boolean,
+): StrokeBatchExtractionTransition {
+  if (selected && batched && !extracted) {
+    return "begin";
+  }
+  if (!selected && extracted) {
+    return "finish";
+  }
+  return "none";
 }

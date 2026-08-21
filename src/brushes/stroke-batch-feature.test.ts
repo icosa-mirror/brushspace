@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   isStrokeBatchingEnabled,
+  resolveStrokeBatchExtractionTransition,
   resolveStrokeRenderVisibility,
   resolveStrokeBatchVisibility,
 } from "./stroke-batch-feature.js";
@@ -47,6 +48,21 @@ describe("stroke batch visibility", () => {
         privateMeshVisible,
         subsetVisible,
       });
+    },
+  );
+
+  it.each([
+    [true, true, false, "begin"],
+    [true, true, true, "none"],
+    [false, true, true, "finish"],
+    [false, true, false, "none"],
+    [true, false, false, "none"],
+  ] as const)(
+    "resolves selected=%s batched=%s extracted=%s as %s",
+    (selected, batched, extracted, transition) => {
+      expect(
+        resolveStrokeBatchExtractionTransition(selected, batched, extracted),
+      ).toBe(transition);
     },
   );
 });

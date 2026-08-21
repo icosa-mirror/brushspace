@@ -4,9 +4,13 @@ import type { Entity } from "@iwsdk/core";
 import {
   BatchedBrushStroke,
   BrushStroke,
+  ExtractedBatchedBrushStroke,
   SelectionState,
   SelectionWidget,
 } from "../components/core.js";
+import {
+  resolveStrokeBatchExtractionTransition,
+} from "../brushes/stroke-batch-feature.js";
 import { StrokeBatchRenderSystem } from "./stroke-batch-render-system.js";
 
 export class SelectionSystem extends createSystem({
@@ -31,9 +35,9 @@ export class SelectionSystem extends createSystem({
       return;
     }
 
-    this.reconcileBatchExtractions();
-
-    const summary = this.summarizeSelection();
+    const summary = this.summarizeSelection(
+      this.world.getSystem(StrokeBatchRenderSystem),
+    );
     this.setNumberIfChanged(
       selectionState,
       "selectedStrokeCount",
@@ -52,7 +56,9 @@ export class SelectionSystem extends createSystem({
     this.updateSelectionWidget(selectionState, summary.selectedStrokeCount);
   }
 
-  private summarizeSelection(): {
+  private summarizeSelection(
+    batchRenderer: StrokeBatchRenderSystem | undefined,
+  ): {
     selectedStrokeCount: number;
     activeSelectionLayerIndex: number;
     lastSelectedStrokeCommandIndex: number;
@@ -63,7 +69,20 @@ export class SelectionSystem extends createSystem({
     let hasMixedLayerSelection = false;
 
     for (const stroke of this.queries.strokes.entities) {
-      if (!stroke.getValue(BrushStroke, "selected")) {
+      const selected = Boolean(stroke.getValue(BrushStroke, "selected"));
+      if (batchRenderer) {
+        const transition = resolveStrokeBatchExtractionTransition(
+          selected,
+          stroke.hasComponent(BatchedBrushStroke),
+          stroke.hasComponent(ExtractedBatchedBrushStroke),
+        );
+        if (transition === "begin") {
+          batchRenderer.beginStrokeExtraction(stroke);
+        } else if (transition === "finish") {
+          batchRenderer.finishStrokeExtraction(stroke);
+        }
+      }
+      if (!selected) {
         continue;
       }
       selectedStrokeCount += 1;
@@ -215,23 +234,6 @@ export class SelectionSystem extends createSystem({
         .getSystem(StrokeBatchRenderSystem)
         ?.beginStrokeExtraction(stroke);
       stroke.object3D.position.add(delta);
-    }
-  }
-
-  private reconcileBatchExtractions(): void {
-    const batchRenderer = this.world.getSystem(StrokeBatchRenderSystem);
-    if (!batchRenderer) {
-      return;
-    }
-    for (const stroke of this.queries.strokes.entities) {
-      if (!stroke.hasComponent(BatchedBrushStroke)) {
-        continue;
-      }
-      if (stroke.getValue(BrushStroke, "selected")) {
-        batchRenderer.beginStrokeExtraction(stroke);
-      } else {
-        batchRenderer.finishStrokeExtraction(stroke);
-      }
     }
   }
 
