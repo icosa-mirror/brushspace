@@ -222,6 +222,10 @@ export class StrokeBatchRenderSystem extends createSystem({
         objectPosition.z,
       ]);
     }
+    this.manager.setStrokeVisible(
+      guid,
+      Boolean(entity.getValue(BrushStroke, "renderVisible")),
+    );
     const target = this.ensureTarget(location.batch, loadedMaterial, key);
     this.trimAndFlush();
 
@@ -239,15 +243,41 @@ export class StrokeBatchRenderSystem extends createSystem({
   }
 
   setStrokeVisible(strokeGuid: string, visible: boolean): boolean {
+    return this.applyStrokeVisibility(strokeGuid, visible, true);
+  }
+
+  /** Applies visibility without uploading, so a caller can coalesce changes. */
+  setStrokeVisibleDeferred(strokeGuid: string, visible: boolean): boolean {
+    return this.applyStrokeVisibility(strokeGuid, visible, false);
+  }
+
+  /** Uploads visibility changes queued by setStrokeVisibleDeferred(). */
+  flushDeferredVisibility(): void {
+    this.flushDirtyBatches();
+  }
+
+  private applyStrokeVisibility(
+    strokeGuid: string,
+    visible: boolean,
+    flush: boolean,
+  ): boolean {
     const entity = this.findStrokeEntity(strokeGuid);
     const extracted = Boolean(
       entity?.hasComponent(ExtractedBatchedBrushStroke),
     );
     const visibility = resolveStrokeBatchVisibility(visible, extracted);
-    if (!this.manager.setStrokeVisible(strokeGuid, visibility.subsetVisible)) {
+    const location = this.manager.getLocation(strokeGuid);
+    if (!location) {
       return false;
     }
-    this.flushDirtyBatches();
+    const subsetVisibilityChanged =
+      location.subset.active !== visibility.subsetVisible;
+    if (subsetVisibilityChanged) {
+      this.manager.setStrokeVisible(strokeGuid, visibility.subsetVisible);
+      if (flush) {
+        this.flushDirtyBatches();
+      }
+    }
     if (entity?.object3D) {
       entity.object3D.visible = visibility.privateMeshVisible;
     }

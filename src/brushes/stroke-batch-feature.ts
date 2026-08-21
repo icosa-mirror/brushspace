@@ -12,6 +12,24 @@ export interface StrokeBatchVisibility {
   subsetVisible: boolean;
 }
 
+export interface StrokeRenderVisibilityChange {
+  changed: boolean;
+  renderVisible: boolean;
+}
+
+/** Computes layer-composed visibility and whether renderer state must change. */
+export function resolveStrokeRenderVisibilityChange(
+  currentRenderVisible: boolean,
+  strokeVisible: boolean,
+  layerVisible: boolean,
+): StrokeRenderVisibilityChange {
+  const renderVisible = strokeVisible && layerVisible;
+  return {
+    changed: currentRenderVisible !== renderVisible,
+    renderVisible,
+  };
+}
+
 /** Guarantees that an extracted stroke and its batch subset never overlap. */
 export function resolveStrokeBatchVisibility(
   renderVisible: boolean,

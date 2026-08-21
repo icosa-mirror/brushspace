@@ -7,6 +7,7 @@ import {
   CanvasLayer,
   OpenBrushAppState,
 } from "../components/core.js";
+import { resolveStrokeRenderVisibilityChange } from "../brushes/stroke-batch-feature.js";
 import { StrokeBatchRenderSystem } from "./stroke-batch-render-system.js";
 
 export class LayerCanvasSystem extends createSystem({
@@ -37,6 +38,8 @@ export class LayerCanvasSystem extends createSystem({
       layer.setValue(CanvasLayer, "active", isActive);
     }
 
+    const batchRenderer = this.world.getSystem(StrokeBatchRenderSystem);
+    let hasDeferredBatchVisibility = false;
     for (const stroke of this.queries.strokes.entities) {
       const layer = this.getLayerEntity(
         Number(stroke.getValue(BrushStroke, "layerIndex")),
@@ -45,23 +48,30 @@ export class LayerCanvasSystem extends createSystem({
         ? Boolean(layer.getValue(CanvasLayer, "visible"))
         : true;
       const strokeVisible = Boolean(stroke.getValue(BrushStroke, "visible"));
-      const renderVisible = strokeVisible && layerVisible;
-      if (
-        Boolean(stroke.getValue(BrushStroke, "renderVisible")) !== renderVisible
-      ) {
-        stroke.setValue(BrushStroke, "renderVisible", renderVisible);
+      const visibility = resolveStrokeRenderVisibilityChange(
+        Boolean(stroke.getValue(BrushStroke, "renderVisible")),
+        strokeVisible,
+        layerVisible,
+      );
+      if (!visibility.changed) {
+        continue;
       }
+      stroke.setValue(BrushStroke, "renderVisible", visibility.renderVisible);
       if (stroke.hasComponent(BatchedBrushStroke)) {
-        const handled = this.world.getSystem(StrokeBatchRenderSystem)?.setStrokeVisible(
+        const handled = batchRenderer?.setStrokeVisibleDeferred(
           String(stroke.getValue(BrushStroke, "guid")),
-          renderVisible,
+          visibility.renderVisible,
         );
+        hasDeferredBatchVisibility = Boolean(handled) || hasDeferredBatchVisibility;
         if (!handled && stroke.object3D) {
-          stroke.object3D.visible = renderVisible;
+          stroke.object3D.visible = visibility.renderVisible;
         }
       } else if (stroke.object3D) {
-        stroke.object3D.visible = renderVisible;
+        stroke.object3D.visible = visibility.renderVisible;
       }
+    }
+    if (hasDeferredBatchVisibility) {
+      batchRenderer?.flushDeferredVisibility();
     }
   }
 

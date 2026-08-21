@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   isStrokeBatchingEnabled,
+  resolveStrokeRenderVisibilityChange,
   resolveStrokeBatchVisibility,
 } from "./stroke-batch-feature.js";
 
@@ -22,6 +23,21 @@ describe("stroke batching feature flag", () => {
 });
 
 describe("stroke batch visibility", () => {
+  it.each([
+    [true, true, true, false, true],
+    [false, true, true, true, true],
+    [true, true, false, true, false],
+    [false, false, true, false, false],
+  ] as const)(
+    "detects current=%s stroke=%s layer=%s as changed=%s visible=%s",
+    (current, stroke, layer, changed, renderVisible) => {
+      expect(resolveStrokeRenderVisibilityChange(current, stroke, layer)).toEqual({
+        changed,
+        renderVisible,
+      });
+    },
+  );
+
   it.each([
     [true, false, false, true],
     [false, false, false, false],
