@@ -19,6 +19,7 @@ import { findBrushByGuid } from "../brushes/brush-inventory.js";
 import { openBrushInventory } from "../brushes/brush-catalog.js";
 import type { BrushGeometryArrays } from "../brushes/brush-geometry.js";
 import {
+  strokeBatchSubsetIntersectsSphere,
   uploadStrokeBatchGeometry,
   uploadStrokeBatchSubsetGeometry,
 } from "../brushes/stroke-batch-geometry.js";
@@ -31,7 +32,7 @@ import { StrokeBatchManager } from "../brushes/stroke-batch-manager.js";
 import type { StrokeBatch } from "../brushes/stroke-batch.js";
 import { createBrushRenderMaterial } from "../brushes/brush-render-material.js";
 import { openBrushShaderLibrary } from "../brushes/brush-shader-library.js";
-import type { StrokeData } from "../types.js";
+import type { StrokeData, Vec3 } from "../types.js";
 import { translateStrokeDataControlPoints } from "../strokes/selection.js";
 
 const LOG_PREFIX = "[StrokeBatchRender]";
@@ -309,6 +310,31 @@ export class StrokeBatchRenderSystem extends createSystem({
 
   getMetrics(): Readonly<StrokeBatchRendererMetrics> {
     return this.metrics;
+  }
+
+  /** Precise logical-stroke hit test against its shared batch geometry. */
+  strokeIntersectsSphere(
+    strokeGuid: string,
+    center: Vec3,
+    radius: number,
+  ): boolean | undefined {
+    const location = this.manager.getLocation(strokeGuid);
+    if (!location) {
+      return undefined;
+    }
+    const target = this.targets.get(location.batch);
+    const object = target?.entity.object3D;
+    if (!object) {
+      return undefined;
+    }
+    object.updateWorldMatrix(true, false);
+    return strokeBatchSubsetIntersectsSphere(
+      location.batch,
+      location.subset,
+      center,
+      radius,
+      object.matrixWorld.elements,
+    );
   }
 
   /** Switches a batched stroke to its private mesh for interactive movement. */

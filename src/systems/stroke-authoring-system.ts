@@ -19,6 +19,7 @@ import {
 import type { Entity, Material, Texture } from "@iwsdk/core";
 
 import {
+  BatchedBrushStroke,
   BrushPointer,
   BrushSettings,
   BrushStroke,
@@ -1911,7 +1912,7 @@ export class StrokeAuthoringSystem extends createSystem({
   private readonly eraseTargetScratch = {
     value: undefined as unknown as Entity,
     candidate: this.eraseCandidateScratch,
-    geometryHit: false,
+    geometryHit: undefined as boolean | undefined,
   };
   private readonly erasedStrokesScratch: Entity[] = [];
 
@@ -1953,12 +1954,10 @@ export class StrokeAuthoringSystem extends createSystem({
         this.strokeBoundsOffset,
       );
       target.value = entity;
-      target.geometryHit = Boolean(
-        this.strokeGeometryIntersectsSphere(
-          entity,
-          this.eraserCenter,
-          eraserRadius,
-        ),
+      target.geometryHit = this.strokeGeometryIntersectsSphere(
+        entity,
+        this.eraserCenter,
+        eraserRadius,
       );
       if (isOpenBrushEraserHit(
         target,
@@ -2017,39 +2016,41 @@ export class StrokeAuthoringSystem extends createSystem({
     radius: number,
   ): boolean | undefined {
     const object = entity.object3D;
-    if (
-      !(object instanceof Mesh) ||
-      !(object.geometry instanceof BufferGeometry)
-    ) {
-      return undefined;
+    if (object instanceof Mesh && object.geometry instanceof BufferGeometry) {
+      const position = object.geometry.getAttribute("position");
+      if (position && position.count >= 3) {
+        const index = object.geometry.getIndex();
+        const drawRange = object.geometry.drawRange;
+        const sourceCount = index ? index.count : position.count;
+        const drawCount = Number.isFinite(drawRange.count)
+          ? Math.min(Math.max(0, drawRange.count), sourceCount)
+          : sourceCount;
+        if (drawCount >= 3) {
+          object.updateWorldMatrix(true, false);
+          return indexedTriangleGeometryIntersectsSphere(
+            {
+              positions: position.array as ArrayLike<number>,
+              indices: index?.array as ArrayLike<number> | undefined,
+              drawStart: Math.max(0, Math.floor(drawRange.start)),
+              drawCount,
+              matrixElements: object.matrixWorld.elements,
+            },
+            center,
+            radius,
+          );
+        }
+      }
     }
 
-    const position = object.geometry.getAttribute("position");
-    if (!position || position.count < 3) {
-      return undefined;
-    }
-    const index = object.geometry.getIndex();
-    const drawRange = object.geometry.drawRange;
-    const sourceCount = index ? index.count : position.count;
-    const drawCount = Number.isFinite(drawRange.count)
-      ? Math.min(Math.max(0, drawRange.count), sourceCount)
-      : sourceCount;
-    if (drawCount < 3) {
-      return undefined;
-    }
-
-    object.updateWorldMatrix(true, false);
-    return indexedTriangleGeometryIntersectsSphere(
-      {
-        positions: position.array as ArrayLike<number>,
-        indices: index?.array as ArrayLike<number> | undefined,
-        drawStart: Math.max(0, Math.floor(drawRange.start)),
-        drawCount,
-        matrixElements: object.matrixWorld.elements,
-      },
-      center,
-      radius,
-    );
+    return entity.hasComponent(BatchedBrushStroke)
+      ? this.world
+          .getSystem(StrokeBatchRenderSystem)
+          ?.strokeIntersectsSphere(
+            String(entity.getValue(BrushStroke, "guid")),
+            center,
+            radius,
+          )
+      : undefined;
   }
 
   /** Refreshes the hover preview on the sphere cursor; returns the target. */

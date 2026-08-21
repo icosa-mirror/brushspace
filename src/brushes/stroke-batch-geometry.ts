@@ -14,6 +14,8 @@ import {
   applyBrushShaderSupplementalAttributes,
 } from "./brush-shader-library.js";
 import type { BatchSubset, StrokeBatch } from "./stroke-batch.js";
+import { indexedTriangleGeometryIntersectsSphere } from "../strokes/geometry-intersections.js";
+import type { Vec3 } from "../types.js";
 
 const boundsMinScratch = new Vector3();
 const boundsMaxScratch = new Vector3();
@@ -22,6 +24,31 @@ export interface StrokeBatchUploadResult {
   vertexDataUploaded: boolean;
   topologyUploaded: boolean;
   uploadedBytes: number;
+}
+
+/** Tests one logical stroke's triangles without rebuilding its private mesh. */
+export function strokeBatchSubsetIntersectsSphere(
+  batch: StrokeBatch,
+  subset: BatchSubset,
+  center: Vec3,
+  radius: number,
+  matrixElements?: ArrayLike<number>,
+): boolean {
+  const indices = subset.active ? batch.indices : subset.indexBackup;
+  if (!indices) {
+    return false;
+  }
+  return indexedTriangleGeometryIntersectsSphere(
+    {
+      positions: batch.positions,
+      indices,
+      drawStart: subset.active ? subset.startIndex : 0,
+      drawCount: subset.indexCount,
+      matrixElements,
+    },
+    center,
+    radius,
+  );
 }
 
 /**

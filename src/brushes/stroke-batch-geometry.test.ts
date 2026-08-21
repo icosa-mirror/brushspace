@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { BrushGeometryArrays } from "./brush-geometry.js";
 import {
+  strokeBatchSubsetIntersectsSphere,
   uploadStrokeBatchGeometry,
   uploadStrokeBatchSubsetGeometry,
 } from "./stroke-batch-geometry.js";
@@ -335,6 +336,42 @@ describe("stroke batch geometry upload", () => {
       { start: 0, count: batch.indexCount, materialIndex: 1 },
       { start: 0, count: batch.indexCount, materialIndex: 2 },
     ]);
+  });
+
+  it("tests only one subset's triangles, including hidden and transformed data", () => {
+    const batch = new StrokeBatch({ uv0Size: 2, uv1Size: 0 });
+    const firstArrays = makeArrays(3, 1);
+    firstArrays.positions.set([0, 0, 0, 1, 0, 0, 0, 1, 0]);
+    const secondArrays = makeArrays(3, 2);
+    secondArrays.positions.set([10, 0, 0, 11, 0, 0, 10, 1, 0]);
+    batch.addSubset("first", firstArrays);
+    const second = batch.addSubset("second", secondArrays);
+
+    expect(
+      strokeBatchSubsetIntersectsSphere(batch, second, [10.2, 0.2, 0.05], 0.06),
+    ).toBe(true);
+    expect(
+      strokeBatchSubsetIntersectsSphere(batch, second, [0.2, 0.2, 0.05], 0.06),
+    ).toBe(false);
+
+    batch.disableSubset(second);
+    expect(
+      strokeBatchSubsetIntersectsSphere(batch, second, [10.2, 0.2, 0.05], 0.06),
+    ).toBe(true);
+    expect(
+      strokeBatchSubsetIntersectsSphere(
+        batch,
+        second,
+        [12.2, 3.2, 4.05],
+        0.06,
+        [
+          1, 0, 0, 0,
+          0, 1, 0, 0,
+          0, 0, 1, 0,
+          2, 3, 4, 1,
+        ],
+      ),
+    ).toBe(true);
   });
 });
 
