@@ -130,6 +130,7 @@ export class StrokeBatchManager {
     arrays: BrushGeometryArrays,
   ): StrokeBatchLocation {
     const existing = this.locations.get(strokeGuid);
+    const active = existing?.subset.active ?? true;
     if (existing) {
       this.removeStroke(strokeGuid);
     }
@@ -144,6 +145,9 @@ export class StrokeBatchManager {
     const layout = layoutFromArrays(arrays);
     const batch = pool.acquireBatch(arrays.vertexCount, layout);
     const subset = batch.addSubset(strokeGuid, arrays);
+    if (!active) {
+      batch.disableSubset(subset);
+    }
     const location: StrokeBatchLocation = { key, batch, subset };
     this.locations.set(strokeGuid, location);
     return location;

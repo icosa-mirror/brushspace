@@ -187,6 +187,26 @@ describe("StrokeBatch", () => {
       layoutFromArrays(makeArrays(4, 1, { uv0Size: 3, uv1Size: 4 })),
     ).toEqual({ uv0Size: 3, uv1Size: 4 });
   });
+
+  it("copies each UV1 layout from its matching generated array", () => {
+    const vectorArrays = makeArrays(2, 1, { uv0Size: 2, uv1Size: 3 });
+    vectorArrays.vectorUvs.set([1, 2, 3, 4, 5, 6]);
+    vectorArrays.uv1s.fill(99);
+    const vectorBatch = new StrokeBatch({ uv0Size: 2, uv1Size: 3 });
+    vectorBatch.addSubset("vector", vectorArrays);
+    expect(Array.from(vectorBatch.uv1s.subarray(0, 6))).toEqual([
+      1, 2, 3, 4, 5, 6,
+    ]);
+
+    const fourArrays = makeArrays(2, 1, { uv0Size: 2, uv1Size: 4 });
+    fourArrays.vectorUvs.fill(98);
+    fourArrays.uv1s.set([7, 8, 9, 10, 11, 12, 13, 14]);
+    const fourBatch = new StrokeBatch({ uv0Size: 2, uv1Size: 4 });
+    fourBatch.addSubset("four", fourArrays);
+    expect(Array.from(fourBatch.uv1s.subarray(0, 8))).toEqual([
+      7, 8, 9, 10, 11, 12, 13, 14,
+    ]);
+  });
 });
 
 describe("StrokeBatchManager", () => {
@@ -268,6 +288,29 @@ describe("StrokeBatchManager", () => {
       .flatMap((batch) => batch.subsets)
       .filter((subset) => subset.strokeGuid === "a");
     expect(live).toHaveLength(1);
+  });
+
+  it("preserves hidden state when a stroke is re-committed", () => {
+    const manager = new StrokeBatchManager();
+    const key = makeKey();
+    manager.addStroke("a", key, makeArrays(4, 1));
+    manager.setStrokeVisible("a", false);
+
+    manager.addStroke("a", key, makeArrays(6, 9));
+
+    const replacement = manager.getLocation("a")?.subset;
+    expect(replacement?.active).toBe(false);
+    expect(replacement?.indexBackup).toBeDefined();
+    expect(
+      Array.from(
+        manager
+          .getLocation("a")!
+          .batch.indices.subarray(
+            replacement!.startIndex,
+            replacement!.startIndex + replacement!.indexCount,
+          ),
+      ),
+    ).toEqual(new Array(replacement!.indexCount).fill(0));
   });
 
   it("trims pools that no longer hold any strokes", () => {

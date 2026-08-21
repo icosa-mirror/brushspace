@@ -206,8 +206,9 @@ export class StrokeBatch {
     );
     if (this.layout.uv1Size > 0) {
       const uv1Size = this.layout.uv1Size;
+      const uv1Source = uv1Size === 3 ? arrays.vectorUvs : arrays.uv1s;
       this.uv1s.set(
-        arrays.uv1s.subarray(0, vertexCount * uv1Size),
+        uv1Source.subarray(0, vertexCount * uv1Size),
         startVertex * uv1Size,
       );
     }
