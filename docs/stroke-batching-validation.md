@@ -10,18 +10,20 @@
 ## 2. Deterministic evidence
 
 1. `npx tsc --noEmit` passes.
-2. `npm run check` passes: 75 test files, 553 passing tests, and 4 pre-existing TODO tests.
+2. `npm run check` passes: 75 test files, 561 passing tests, and 4 pre-existing TODO tests.
 3. `npm run build` passes with 2,245 transformed modules.
 4. Batch storage tests cover subset ranges, index rebasing, visibility index backup/restore, middle and tail removal, translation, bounds, pool splitting, and the 500-stroke collapse case.
 5. Geometry upload tests cover standard/shader attributes, supplemental attributes, UV channel removal, draw ranges, active bounds, storage growth, topology-only visibility updates, hidden-subset extraction, local-origin correction, and multi-pass render groups.
 6. Editing lifecycle tests cover mixed brushes and layers, selection move/undo, selected deletion, and visibility restoration.
 7. The feature-flagged renderer routes loaded, authored, mirrored, and remote-finalized Flat strokes through one batch API while preserving per-stroke logical entities and explicit fallback behavior.
+8. Review regression coverage verifies width-three and width-four UV1 sources, hidden-state preservation across recommit, initial and layer-composed visibility transitions, and precise active/hidden subset hit testing with batch transforms.
 
 ## 3. Runtime instrumentation
 
 1. The document root publishes batching mode, active batch count, compatible/fallback stroke counts, categorized fallback reasons, cumulative upload bytes, renderer calls, triangles, and average/max frame time.
 2. The same draw, triangle, and frame-time counters update with batching disabled so a reference run and batching run use identical instrumentation.
 3. Successful batch commits dispose private stroke geometry. Selection recreates one private subset mesh on demand and disposes it after recommit.
+4. Eraser and picker geometry tests route through the logical batch subset after private geometry disposal. Layer visibility changes are state-driven and coalesced into at most one batch upload per layer-system update.
 
 ## 4. Evidence not yet recorded
 
