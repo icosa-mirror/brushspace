@@ -41,16 +41,20 @@ npm install
 npm run dev
 ```
 
-`npm run dev` starts the IWSDK dev server at `https://localhost:8081` with a
-built-in WebXR emulator, so everything works in a plain desktop browser. On a
-headset on the same network, open the LAN URL the server prints and tap
-**Enter VR**.
+`npm run dev` starts the IWSDK dev server at `http://localhost:8081` with a
+built-in WebXR emulator. It does not generate or install a local certificate.
+
+When HTTPS is required, run `npm run dev:https`. That command explicitly
+enables `vite-plugin-mkcert`; its first run may open a system permission dialog
+while `mkcert` installs its local certificate authority. Devices connecting to
+the HTTPS server must trust that authority.
 
 Useful scripts:
 
 | Command | What it does |
 | --- | --- |
-| `npm run dev` | Dev server + WebXR emulator |
+| `npm run dev` | HTTP dev server + WebXR emulator (no `mkcert`) |
+| `npm run dev:https` | HTTPS dev server using `mkcert` |
 | `npm test` | Unit tests (vitest) |
 | `npm run check` | Typecheck + import/feature lint + tests |
 | `npm run build` | Production build to `dist/` |
