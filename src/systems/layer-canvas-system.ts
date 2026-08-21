@@ -7,7 +7,7 @@ import {
   CanvasLayer,
   OpenBrushAppState,
 } from "../components/core.js";
-import { resolveStrokeRenderVisibilityChange } from "../brushes/stroke-batch-feature.js";
+import { resolveStrokeRenderVisibility } from "../brushes/stroke-batch-feature.js";
 import { StrokeBatchRenderSystem } from "./stroke-batch-render-system.js";
 
 export class LayerCanvasSystem extends createSystem({
@@ -48,26 +48,27 @@ export class LayerCanvasSystem extends createSystem({
         ? Boolean(layer.getValue(CanvasLayer, "visible"))
         : true;
       const strokeVisible = Boolean(stroke.getValue(BrushStroke, "visible"));
-      const visibility = resolveStrokeRenderVisibilityChange(
-        Boolean(stroke.getValue(BrushStroke, "renderVisible")),
+      const renderVisible = resolveStrokeRenderVisibility(
         strokeVisible,
         layerVisible,
       );
-      if (!visibility.changed) {
+      if (
+        Boolean(stroke.getValue(BrushStroke, "renderVisible")) === renderVisible
+      ) {
         continue;
       }
-      stroke.setValue(BrushStroke, "renderVisible", visibility.renderVisible);
+      stroke.setValue(BrushStroke, "renderVisible", renderVisible);
       if (stroke.hasComponent(BatchedBrushStroke)) {
         const handled = batchRenderer?.setStrokeVisibleDeferred(
           String(stroke.getValue(BrushStroke, "guid")),
-          visibility.renderVisible,
+          renderVisible,
         );
         hasDeferredBatchVisibility = Boolean(handled) || hasDeferredBatchVisibility;
         if (!handled && stroke.object3D) {
-          stroke.object3D.visible = visibility.renderVisible;
+          stroke.object3D.visible = renderVisible;
         }
       } else if (stroke.object3D) {
-        stroke.object3D.visible = visibility.renderVisible;
+        stroke.object3D.visible = renderVisible;
       }
     }
     if (hasDeferredBatchVisibility) {
