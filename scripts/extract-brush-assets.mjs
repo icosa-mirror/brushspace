@@ -7,7 +7,7 @@
 //   public/openbrush/textures/<manifest texture name>  (copied from Unity brush folders)
 //   public/openbrush/NOTICE
 //   src/brushes/generated/exportManifest.json        (verbatim copy, bundled)
-//   src/brushes/generated/brush-assets.json          (per-GUID shader/texture/geometry metadata)
+//   src/brushes/generated/brush-assets.json          (per-GUID presentation metadata)
 //
 // Shader generation mirrors reference/Support/bin/gltf_export_shaders.py:
 // handcrafted generator files are used when present; otherwise the same
@@ -57,7 +57,6 @@ const metaIndexRoots = [
   path.join(referenceRoot, "Assets", "Textures"),
   path.join(referenceRoot, "Assets", "Resources", "BrushPrefabs"),
 ];
-const scriptIndexRoot = path.join(referenceRoot, "Assets", "Scripts");
 
 const outPublicDir = path.join(repoRoot, "public", "openbrush");
 const outShaderDir = path.join(outPublicDir, "shaders");
@@ -184,13 +183,6 @@ function parseYamlScalar(text, fieldName) {
   return Number.isFinite(value) ? value : match[1].trim();
 }
 
-function parseYamlVec2(text, fieldName) {
-  const match = text.match(
-    new RegExp(`^\\s*${fieldName}: \\{x: ([-0-9.e]+), y: ([-0-9.e]+)\\}$`, "m"),
-  );
-  return match ? [Number(match[1]), Number(match[2])] : undefined;
-}
-
 function collectBrushDescriptors() {
   const descriptors = new Map();
   for (const root of brushAssetRoots) {
@@ -256,69 +248,6 @@ function buildBrushCatalogPositions(descriptors) {
   return positions;
 }
 
-/** Map Unity script GUID → C# class name (file basename) for Assets/Scripts. */
-function buildScriptGuidIndex() {
-  const index = new Map();
-  walkFiles(scriptIndexRoot, (filePath) => {
-    if (!filePath.endsWith(".cs.meta")) {
-      return;
-    }
-    const match = fs.readFileSync(filePath, "utf8").match(/^guid: ([0-9a-f]{32})$/m);
-    if (match) {
-      index.set(match[1], path.basename(filePath, ".cs.meta"));
-    }
-  });
-  return index;
-}
-
-// Geometry generator classes (BaseBrushScript subclasses) → port geometry family.
-const GENERATOR_CLASS_FAMILIES = {
-  QuadStripBrushStretchUV: "ribbon",
-  QuadStripBrushDistanceUV: "ribbon",
-  QuadStripUnitizedUVBrush: "ribbon",
-  FlatGeometryBrush: "ribbon",
-  TubeBrush: "tube",
-  GeniusParticlesBrush: "particle",
-  SprayBrush: "particle",
-  MidpointPlusLifetimeSprayBrush: "particle",
-  SquareBrush: "quad-stamp",
-  ThickGeometryBrush: "thick-strip",
-  GeometryBrush: "geometry",
-  HullBrush: "hull",
-  ConcaveHullBrush: "hull",
-};
-
-/**
- * Resolves the geometry generator class for a brush by following
- * m_BrushPrefab → prefab MonoBehaviour m_Script GUIDs → class names,
- * keeping the first class with a known family mapping.
- */
-function resolveGenerator(descriptorText, metaGuidIndex, scriptGuidIndex) {
-  const prefabMatch = descriptorText.match(
-    /m_BrushPrefab: \{fileID: \d+, guid: ([0-9a-f]{32}),\s+type: \d+\}/,
-  );
-  if (!prefabMatch) {
-    return undefined;
-  }
-  const prefabPath = metaGuidIndex.get(prefabMatch[1]);
-  if (!prefabPath || !fs.existsSync(prefabPath)) {
-    return undefined;
-  }
-  const prefabText = fs.readFileSync(prefabPath, "utf8");
-  const classNames = [];
-  for (const match of prefabText.matchAll(
-    /m_Script: \{fileID: \d+, guid: ([0-9a-f]{32}),\s+type: \d+\}/g,
-  )) {
-    const className = scriptGuidIndex.get(match[1]);
-    if (className) {
-      classNames.push(className);
-    }
-  }
-  const generatorClass =
-    classNames.find((name) => name in GENERATOR_CLASS_FAMILIES) ?? classNames[0];
-  return generatorClass ? { generatorClass, prefabText } : undefined;
-}
-
 function parseMaterialTextures(matText) {
   // m_TexEnvs entries look like:
   //   - _MainTex:
@@ -346,86 +275,6 @@ function extractBrushTags(descriptorText) {
     .split("\n")
     .map((line) => line.replace(/^\s*-\s*/, "").trim())
     .filter(Boolean);
-}
-
-function extractGeometryParams(descriptorText) {
-  return {
-    tileRate: parseYamlScalar(descriptorText, "m_TileRate"),
-    textureAtlasV: parseYamlScalar(descriptorText, "m_TextureAtlasV"),
-    renderBackfaces: parseYamlScalar(descriptorText, "m_RenderBackfaces") === 1,
-    backfaceHueShift: parseYamlScalar(descriptorText, "m_BackfaceHueShift"),
-    tubeStoreRadiusInTexcoord0Z:
-      parseYamlScalar(descriptorText, "m_TubeStoreRadiusInTexcoord0Z") === 1,
-    opacity: parseYamlScalar(descriptorText, "m_Opacity"),
-    solidMinLengthMeters: parseYamlScalar(descriptorText, "m_SolidMinLengthMeters_PS"),
-    audioReactive: parseYamlScalar(descriptorText, "m_AudioReactive") === 1,
-    colorLuminanceMin: parseYamlScalar(descriptorText, "m_ColorLuminanceMin"),
-    colorSaturationMax: parseYamlScalar(descriptorText, "m_ColorSaturationMax"),
-    brushSizeRange: parseYamlVec2(descriptorText, "m_BrushSizeRange"),
-    pressureSizeRange: parseYamlVec2(descriptorText, "m_PressureSizeRange"),
-    pressureOpacityRange: parseYamlVec2(descriptorText, "m_PressureOpacityRange"),
-    m11Compatibility:
-      parseYamlScalar(descriptorText, "m_M11Compatibility") === 1,
-    particleRate: parseYamlScalar(descriptorText, "m_ParticleRate"),
-    sprayRateMultiplier: parseYamlScalar(
-      descriptorText,
-      "m_SprayRateMultiplier",
-    ),
-    particleSpeed: parseYamlScalar(descriptorText, "m_ParticleSpeed"),
-    particleInitialRotationRange: parseYamlScalar(
-      descriptorText,
-      "m_ParticleInitialRotationRange",
-    ),
-    particleRandomizeAlpha:
-      parseYamlScalar(descriptorText, "m_RandomizeAlpha") === 1,
-    particleSizeVariance: parseYamlScalar(descriptorText, "m_SizeVariance"),
-    particlePositionVariance: parseYamlScalar(
-      descriptorText,
-      "m_PositionVariance",
-    ),
-    particleRotationVariance: parseYamlScalar(
-      descriptorText,
-      "m_RotationVariance",
-    ),
-    particleSizeRatio: parseYamlVec2(descriptorText, "m_SizeRatio"),
-  };
-}
-
-function extractGeneratorGeometryParams(generator) {
-  if (generator?.generatorClass === "FlatGeometryBrush") {
-    const uvStyle = parseYamlScalar(generator.prefabText, "m_uvStyle");
-    return {
-      ribbonUvStyle: uvStyle === 1 ? "stretch" : "distance",
-      ribbonOffsetInTexcoord1:
-        parseYamlScalar(generator.prefabText, "m_bOffsetInTexcoord1") === 1,
-    };
-  }
-  if (generator?.generatorClass !== "TubeBrush") {
-    return {};
-  }
-  const prefabText = generator.prefabText;
-  const uvStyle = parseYamlScalar(prefabText, "m_uvStyle");
-  return {
-    tubeCapAspect: parseYamlScalar(prefabText, "m_CapAspect"),
-    tubeSideCount: parseYamlScalar(prefabText, "m_PointsInClosedCircle"),
-    tubeEndCaps: parseYamlScalar(prefabText, "m_EndCaps") === 1,
-    tubeHardEdges: parseYamlScalar(prefabText, "m_HardEdges") === 1,
-    tubeUvStyle: uvStyle === 1 ? "stretch" : "distance",
-    tubeShapeModifier: parseYamlScalar(prefabText, "m_ShapeModifier"),
-    tubeTaperScalar: parseYamlScalar(prefabText, "m_TaperScalar"),
-    tubePetalDisplacementAmount: parseYamlScalar(
-      prefabText,
-      "m_PetalDisplacementAmt",
-    ),
-    tubePetalDisplacementExponent: parseYamlScalar(
-      prefabText,
-      "m_PetalDisplacementExp",
-    ),
-    tubeBreakAngleMultiplier: parseYamlScalar(
-      prefabText,
-      "m_BreakAngleMultiplier",
-    ),
-  };
 }
 
 function extractTextureImporterSettings(sourcePath) {
@@ -481,7 +330,6 @@ async function main() {
   fs.mkdirSync(outGeneratedDir, { recursive: true });
 
   const metaGuidIndex = buildMetaGuidIndex();
-  const scriptGuidIndex = buildScriptGuidIndex();
   const descriptors = collectBrushDescriptors();
   const catalogPositions = buildBrushCatalogPositions(descriptors);
   const defaultVertexNormalized = stripCommentsAndWhitespace(
@@ -508,7 +356,6 @@ async function main() {
       vertexShader: brush.vertexShader,
       fragmentShader: brush.fragmentShader,
       textures: {},
-      geometry: undefined,
     };
     const catalogPosition = catalogPositions.get(guid);
     if (catalogPosition) {
@@ -554,7 +401,7 @@ async function main() {
       injectDefines(fragmentSource, defines),
     );
 
-    // --- descriptor-driven geometry params + textures ---
+    // --- descriptor-driven picker metadata + textures ---
     const descriptor = descriptors.get(guid);
     if (!descriptor) {
       summary.descriptorsMissing += 1;
@@ -577,23 +424,6 @@ async function main() {
         record.buttonIcon = iconName;
       } else {
         problems.push(`${brush.name} (${guid}): button icon unresolved`);
-      }
-      const generator = resolveGenerator(
-        descriptor.text,
-        metaGuidIndex,
-        scriptGuidIndex,
-      );
-      const generatorClass = generator?.generatorClass;
-      record.geometry = {
-        ...extractGeometryParams(descriptor.text),
-        ...extractGeneratorGeometryParams(generator),
-      };
-      record.generatorClass = generatorClass;
-      record.generatorFamily = generatorClass
-        ? GENERATOR_CLASS_FAMILIES[generatorClass]
-        : undefined;
-      if (!generatorClass) {
-        problems.push(`${brush.name} (${guid}): brush prefab generator class unresolved`);
       }
     }
 
