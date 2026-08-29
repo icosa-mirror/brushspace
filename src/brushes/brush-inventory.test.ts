@@ -131,6 +131,20 @@ describe("Open Brush brush inventory", () => {
         sprayRateMultiplier: 3,
       },
     });
+
+    const singleSidedGuid = "f0a2298a-be80-432c-9fee-a86dcc06f4f9";
+    expect(findBrushByGuid(inventory, singleSidedGuid)).toMatchObject({
+      generatorClass: "QuadStripBrushStretchUV",
+      geometryParams: {
+        backIsInvisible: true,
+      },
+    });
+    expect(generatedBrushAssets.brushes[singleSidedGuid]).not.toHaveProperty(
+      "geometry",
+    );
+    expect(generatedBrushAssets.brushes[singleSidedGuid]).not.toHaveProperty(
+      "generatorClass",
+    );
   });
 
   it("preserves standard then experimental Open Brush manifest order", () => {

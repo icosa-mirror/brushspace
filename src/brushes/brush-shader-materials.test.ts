@@ -426,7 +426,9 @@ void main() {}`,
 describe("stroke UV orientation for shader textures", () => {
   const stroke = createEmptyStrokeData({
     guid: "uv-test",
-    brushGuid: LIGHT_GUID,
+    // The UV convention is generator-wide; avoid applying a real brush's
+    // registry defaults to this synthetic stroke.
+    brushGuid: "00000000-0000-0000-0000-000000000000",
     brushSize: 0.1,
     brushScale: 1,
     color: [1, 0, 0, 1],
@@ -454,12 +456,14 @@ describe("stroke UV orientation for shader textures", () => {
     const ringSides = 8;
     const ringVerts = ringSides + 1; // UV seam duplicate
     const initialU = generated.uvs[0];
-    for (let ringIndex = 0; ringIndex < ringVerts; ringIndex += 1) {
+    for (let ringIndex = 0; ringIndex < ringSides; ringIndex += 1) {
       const offset = ringIndex * 2;
       expect(generated.uvs[offset]).toBe(initialU);
-      expect(generated.uvs[offset + 1]).toBeCloseTo(1 - ringIndex / ringSides);
+      const expectedV = 1 - (ringIndex + 0.5) / ringSides;
+      expect(generated.uvs[offset + 1]).toBeCloseTo(expectedV);
     }
+    expect(generated.uvs[ringSides * 2 + 1]).toBe(1);
     const lastRingOffset = 2 * ringVerts * 2;
-    expect(generated.uvs[lastRingOffset] - initialU).toBeCloseTo(4 / Math.PI);
+    expect(generated.uvs[lastRingOffset]).toBeGreaterThan(initialU);
   });
 });

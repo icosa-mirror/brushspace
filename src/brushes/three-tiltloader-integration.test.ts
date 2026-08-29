@@ -10,7 +10,9 @@ describe("three-tiltloader geometry integration", () => {
   it("loads the pinned package and generates ribbon geometry", () => {
     const stroke: StrokeData = {
       guid: "three-tiltloader-ribbon",
-      brushGuid: "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62",
+      // This test exercises the package API's explicit family argument, not
+      // the registry defaults for any particular Open Brush brush.
+      brushGuid: "00000000-0000-0000-0000-000000000000",
       brushSize: 0.2,
       brushScale: 1,
       color: [1, 1, 1, 1],
