@@ -61,6 +61,7 @@ import { SelectionSystem } from "./systems/selection-system.js";
 import { SketchLibrarySystem } from "./systems/sketch-library-system.js";
 import { StandardEnvironmentSystem } from "./systems/standard-environment-system.js";
 import { StrokeAuthoringSystem } from "./systems/stroke-authoring-system.js";
+import { StrokeBatchRenderSystem } from "./systems/stroke-batch-render-system.js";
 import { WorldGrabSystem } from "./systems/world-grab-system.js";
 import { WorldGrabVisualsSystem } from "./systems/world-grab-visuals-system.js";
 
@@ -226,6 +227,7 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .registerSystem(WorldGrabSystem)
     .registerSystem(WorldGrabVisualsSystem)
     .registerSystem(StandardEnvironmentSystem)
+    .registerSystem(StrokeBatchRenderSystem)
     .registerSystem(IntroSketchSystem)
     .registerSystem(StrokeAuthoringSystem)
     .registerSystem(BrushMaterialUpgradeSystem)
