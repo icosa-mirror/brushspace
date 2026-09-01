@@ -180,8 +180,10 @@ export class BrushShaderLibrary {
 
   readonly frameUniforms = {
     // Generated stroke geometry uses Open Brush's original packed vertex
-    // layout. The newer-exporter branches require additional baked UV data.
+    // layout, converted into renderer coordinates. The newer-exporter branches
+    // require additional baked UV data.
     u_isNewTiltExporter: { value: OPENBRUSH_USES_NEW_TILT_EXPORTER },
+    u_isTiltInput: { value: true },
     u_time: { value: new Vector4(0, 0, 0, 0) },
     u_SceneLight_0_matrix: {
       value: new Matrix4().fromArray(OPENBRUSH_SCENE_LIGHT_0_MATRIX),
