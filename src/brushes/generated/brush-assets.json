@@ -42,51 +42,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1.5
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 0,
       "tags": [
         "default"
       ],
-      "buttonIcon": "f72ec0e7-a844-4e38-82e3-140c44772699.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "f72ec0e7-a844-4e38-82e3-140c44772699.png"
     },
     "c515dad7-4393-4681-81ad-162ef052241b": {
       "glslSource": "handcrafted",
@@ -121,47 +82,8 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1.5
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "tags": [],
       "buttonIcon": "c515dad7-4393-4681-81ad-162ef052241b.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon",
       "supersededByGuid": "f72ec0e7-a844-4e38-82e3-140c44772699"
     },
     "f5c336cf-5108-4b40-ade9-c687504385ab": {
@@ -197,51 +119,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 1,
       "tags": [
         "default"
       ],
-      "buttonIcon": "f5c336cf-5108-4b40-ade9-c687504385ab.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "f5c336cf-5108-4b40-ade9-c687504385ab.png"
     },
     "c0012095-3ffd-4040-8ee1-fc180d346eaa": {
       "glslSource": "handcrafted",
@@ -276,47 +159,8 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "tags": [],
       "buttonIcon": "c0012095-3ffd-4040-8ee1-fc180d346eaa.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon",
       "supersededByGuid": "f5c336cf-5108-4b40-ade9-c687504385ab"
     },
     "75b32cf0-fdd6-4d89-a64b-e2a00b247b0f": {
@@ -352,51 +196,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.2,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1.5
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 2,
       "tags": [
         "default"
       ],
-      "buttonIcon": "75b32cf0-fdd6-4d89-a64b-e2a00b247b0f.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "75b32cf0-fdd6-4d89-a64b-e2a00b247b0f.png"
     },
     "fdf0326a-c0d1-4fed-b101-9db0ff6d071f": {
       "glslSource": "handcrafted",
@@ -431,47 +236,8 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.2,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1.5
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "tags": [],
       "buttonIcon": "fdf0326a-c0d1-4fed-b101-9db0ff6d071f.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon",
       "supersededByGuid": "75b32cf0-fdd6-4d89-a64b-e2a00b247b0f"
     },
     "b67c0e81-ce6d-40a8-aeb0-ef036b081aa3": {
@@ -507,51 +273,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0.25,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.01,
-          1.25
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": true,
-        "particleSizeVariance": 1,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 3,
       "tags": [
         "default"
       ],
-      "buttonIcon": "b67c0e81-ce6d-40a8-aeb0-ef036b081aa3.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "b67c0e81-ce6d-40a8-aeb0-ef036b081aa3.png"
     },
     "dea67637-cd1a-27e4-c9b1-52f4bbcb84e5": {
       "glslSource": "handcrafted",
@@ -586,47 +313,8 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0.25,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.01,
-          1.25
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": true,
-        "particleSizeVariance": 1,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "tags": [],
       "buttonIcon": "dea67637-cd1a-27e4-c9b1-52f4bbcb84e5.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon",
       "supersededByGuid": "b67c0e81-ce6d-40a8-aeb0-ef036b081aa3"
     },
     "429ed64a-4e97-4466-84d3-145a861ef684": {
@@ -649,52 +337,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          3
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 4,
       "tags": [
         "whiteboard",
         "default"
       ],
-      "buttonIcon": "429ed64a-4e97-4466-84d3-145a861ef684.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "429ed64a-4e97-4466-84d3-145a861ef684.png"
     },
     "d90c6ad8-af0f-4b54-b422-e0f92abe1b3c": {
       "glslSource": "handcrafted",
@@ -716,52 +365,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          1
-        ],
-        "pressureSizeRange": [
-          0,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 5,
       "tags": [
         "whiteboard",
         "default"
       ],
-      "buttonIcon": "d90c6ad8-af0f-4b54-b422-e0f92abe1b3c.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "d90c6ad8-af0f-4b54-b422-e0f92abe1b3c.png"
     },
     "1a26b8c0-8a07-4f8a-9fac-d2ef36e0cad0": {
       "glslSource": "handcrafted",
@@ -783,53 +393,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          1
-        ],
-        "pressureSizeRange": [
-          0,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "ribbonUvStyle": "stretch",
-        "ribbonOffsetInTexcoord1": false
-      },
       "catalogSection": "experimental",
       "catalogOrder": 22,
       "tags": [
         "experimental"
       ],
       "buttonIcon": "1a26b8c0-8a07-4f8a-9fac-d2ef36e0cad0.png",
-      "generatorClass": "FlatGeometryBrush",
-      "generatorFamily": "ribbon",
       "supersededByGuid": "d90c6ad8-af0f-4b54-b422-e0f92abe1b3c"
     },
     "0d3889f3-3ede-470c-8af4-de4813306126": {
@@ -838,53 +407,12 @@
       "vertexShader": "DoubleTaperedMarker-0d3889f3-3ede-470c-8af4-de4813306126-v10.0-vertex.glsl",
       "fragmentShader": "DoubleTaperedMarker-0d3889f3-3ede-470c-8af4-de4813306126-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          2
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": true,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "ribbonUvStyle": "stretch",
-        "ribbonOffsetInTexcoord1": true
-      },
       "catalogSection": "standard",
       "catalogOrder": 6,
       "tags": [
         "default"
       ],
-      "buttonIcon": "0d3889f3-3ede-470c-8af4-de4813306126.png",
-      "generatorClass": "FlatGeometryBrush",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "0d3889f3-3ede-470c-8af4-de4813306126.png"
     },
     "cf019139-d41c-4eb0-a1d0-5cf54b0a42f3": {
       "glslSource": "handcrafted",
@@ -906,51 +434,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 0.98,
-        "brushSizeRange": [
-          0.025,
-          0.5
-        ],
-        "pressureSizeRange": [
-          0,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 7,
       "tags": [
         "default"
       ],
-      "buttonIcon": "cf019139-d41c-4eb0-a1d0-5cf54b0a42f3.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "cf019139-d41c-4eb0-a1d0-5cf54b0a42f3.png"
     },
     "2d35bcf0-e4d8-452c-97b1-3311be063130": {
       "glslSource": "handcrafted",
@@ -958,51 +447,12 @@
       "vertexShader": "Flat-2d35bcf0-e4d8-452c-97b1-3311be063130-v10.0-vertex.glsl",
       "fragmentShader": "Flat-2d35bcf0-e4d8-452c-97b1-3311be063130-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          3
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 8,
       "tags": [
         "default"
       ],
-      "buttonIcon": "2d35bcf0-e4d8-452c-97b1-3311be063130.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "2d35bcf0-e4d8-452c-97b1-3311be063130.png"
     },
     "280c0a7a-aad8-416c-a7d2-df63d129ca70": {
       "glslSource": "handcrafted",
@@ -1010,47 +460,8 @@
       "vertexShader": "Flat-280c0a7a-aad8-416c-a7d2-df63d129ca70-v10.0-vertex.glsl",
       "fragmentShader": "Flat-280c0a7a-aad8-416c-a7d2-df63d129ca70-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          3
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "tags": [],
       "buttonIcon": "280c0a7a-aad8-416c-a7d2-df63d129ca70.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon",
       "supersededByGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130"
     },
     "55303bc4-c749-4a72-98d9-d23e68e76e18": {
@@ -1059,47 +470,8 @@
       "vertexShader": "FlatDeprecated-55303bc4-c749-4a72-98d9-d23e68e76e18-v10.0-vertex.glsl",
       "fragmentShader": "FlatDeprecated-55303bc4-c749-4a72-98d9-d23e68e76e18-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          3
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "tags": [],
       "buttonIcon": "55303bc4-c749-4a72-98d9-d23e68e76e18.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon",
       "supersededByGuid": "280c0a7a-aad8-416c-a7d2-df63d129ca70"
     },
     "b468c1fb-f254-41ed-8ec9-57030bc5660c": {
@@ -1122,51 +494,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          3
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 9,
       "tags": [
         "default"
       ],
-      "buttonIcon": "b468c1fb-f254-41ed-8ec9-57030bc5660c.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "b468c1fb-f254-41ed-8ec9-57030bc5660c.png"
     },
     "c8ccb53d-ae13-45ef-8afb-b730d81394eb": {
       "glslSource": "handcrafted",
@@ -1188,47 +521,8 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          3
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "tags": [],
       "buttonIcon": "c8ccb53d-ae13-45ef-8afb-b730d81394eb.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon",
       "supersededByGuid": "b468c1fb-f254-41ed-8ec9-57030bc5660c"
     },
     "0d3889f3-3ede-470c-8af4-f44813306126": {
@@ -1237,53 +531,12 @@
       "vertexShader": "DoubleTaperedFlat-0d3889f3-3ede-470c-8af4-f44813306126-v10.0-vertex.glsl",
       "fragmentShader": "DoubleTaperedFlat-0d3889f3-3ede-470c-8af4-f44813306126-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          3
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": true,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "ribbonUvStyle": "stretch",
-        "ribbonOffsetInTexcoord1": true
-      },
       "catalogSection": "standard",
       "catalogOrder": 10,
       "tags": [
         "default"
       ],
-      "buttonIcon": "0d3889f3-3ede-470c-8af4-f44813306126.png",
-      "generatorClass": "FlatGeometryBrush",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "0d3889f3-3ede-470c-8af4-f44813306126.png"
     },
     "accb32f5-4509-454f-93f8-1df3fd31df1b": {
       "glslSource": "handcrafted",
@@ -1305,43 +558,6 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          2
-        ],
-        "pressureSizeRange": [
-          0,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 11,
       "tags": [
@@ -1349,9 +565,7 @@
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "accb32f5-4509-454f-93f8-1df3fd31df1b.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "accb32f5-4509-454f-93f8-1df3fd31df1b.png"
     },
     "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62": {
       "glslSource": "handcrafted",
@@ -1373,52 +587,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          0.2
-        ],
-        "pressureSizeRange": [
-          0.15,
-          1
-        ],
-        "pressureOpacityRange": [
-          0.5,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 12,
       "tags": [
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62.png"
     },
     "cb92b597-94ca-4255-b017-0e3f42f12f9e": {
       "glslSource": "handcrafted",
@@ -1440,52 +615,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 3,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          2
-        ],
-        "pressureSizeRange": [
-          0.5,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 13,
       "tags": [
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "cb92b597-94ca-4255-b017-0e3f42f12f9e.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "cb92b597-94ca-4255-b017-0e3f42f12f9e.png"
     },
     "02ffb866-7fb2-4d15-b761-1012cefb1360": {
       "glslSource": "handcrafted",
@@ -1507,43 +643,6 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          0.075
-        ],
-        "pressureSizeRange": [
-          0,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0.35,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": true,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 14,
       "tags": [
@@ -1551,9 +650,7 @@
         "audioreactive",
         "particle"
       ],
-      "buttonIcon": "02ffb866-7fb2-4d15-b761-1012cefb1360.png",
-      "generatorClass": "GeniusParticlesBrush",
-      "generatorFamily": "particle"
+      "buttonIcon": "02ffb866-7fb2-4d15-b761-1012cefb1360.png"
     },
     "70d79cca-b159-4f35-990c-f02193947fe8": {
       "glslSource": "handcrafted",
@@ -1575,52 +672,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          1,
-          2
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0.05,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0.1,
-        "particleInitialRotationRange": 360,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 15,
       "tags": [
         "default",
         "particle"
       ],
-      "buttonIcon": "70d79cca-b159-4f35-990c-f02193947fe8.png",
-      "generatorClass": "GeniusParticlesBrush",
-      "generatorFamily": "particle"
+      "buttonIcon": "70d79cca-b159-4f35-990c-f02193947fe8.png"
     },
     "d902ed8b-d0d1-476c-a8de-878a79e3a34c": {
       "glslSource": "handcrafted",
@@ -1642,43 +700,6 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          0.15
-        ],
-        "pressureSizeRange": [
-          0,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0.35,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 1,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": true,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 16,
       "tags": [
@@ -1686,9 +707,7 @@
         "audioreactive",
         "particle"
       ],
-      "buttonIcon": "d902ed8b-d0d1-476c-a8de-878a79e3a34c.png",
-      "generatorClass": "GeniusParticlesBrush",
-      "generatorFamily": "particle"
+      "buttonIcon": "d902ed8b-d0d1-476c-a8de-878a79e3a34c.png"
     },
     "ad1ad437-76e2-450d-a23a-e17f8310b960": {
       "glslSource": "handcrafted",
@@ -1696,52 +715,13 @@
       "vertexShader": "Rainbow-ad1ad437-76e2-450d-a23a-e17f8310b960-v10.0-vertex.glsl",
       "fragmentShader": "Rainbow-ad1ad437-76e2-450d-a23a-e17f8310b960-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.2,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 17,
       "tags": [
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "ad1ad437-76e2-450d-a23a-e17f8310b960.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "ad1ad437-76e2-450d-a23a-e17f8310b960.png"
     },
     "0eb4db27-3f82-408d-b5a1-19ebd7d5b711": {
       "glslSource": "handcrafted",
@@ -1763,43 +743,6 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.075,
-          0.15
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0.3,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0.65,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": true,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 18,
       "tags": [
@@ -1807,9 +750,7 @@
         "audioreactive",
         "particle"
       ],
-      "buttonIcon": "0eb4db27-3f82-408d-b5a1-19ebd7d5b711.png",
-      "generatorClass": "GeniusParticlesBrush",
-      "generatorFamily": "particle"
+      "buttonIcon": "0eb4db27-3f82-408d-b5a1-19ebd7d5b711.png"
     },
     "d229d335-c334-495a-a801-660ac8a87360": {
       "glslSource": "handcrafted",
@@ -1831,52 +772,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 0.98,
-        "brushSizeRange": [
-          0.025,
-          0.4
-        ],
-        "pressureSizeRange": [
-          0.15,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": true,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 19,
       "tags": [
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "d229d335-c334-495a-a801-660ac8a87360.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "d229d335-c334-495a-a801-660ac8a87360.png"
     },
     "10201aa3-ebc2-42d8-84b7-2e63f6eeb8ab": {
       "glslSource": "handcrafted",
@@ -1898,52 +800,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1.5,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 0.98,
-        "brushSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 20,
       "tags": [
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "10201aa3-ebc2-42d8-84b7-2e63f6eeb8ab.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "10201aa3-ebc2-42d8-84b7-2e63f6eeb8ab.png"
     },
     "8dc4a70c-d558-4efd-a5ed-d4e860f40dc3": {
       "glslSource": "handcrafted",
@@ -1965,51 +828,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.2,
-        "textureAtlasV": 4,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          0.5
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 3,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0.5,
-        "particlePositionVariance": 0.05,
-        "particleRotationVariance": 180,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 21,
       "tags": [
         "default"
       ],
-      "buttonIcon": "8dc4a70c-d558-4efd-a5ed-d4e860f40dc3.png",
-      "generatorClass": "SprayBrush",
-      "generatorFamily": "particle"
+      "buttonIcon": "8dc4a70c-d558-4efd-a5ed-d4e860f40dc3.png"
     },
     "7a1c8107-50c5-4b70-9a39-421576d6617e": {
       "glslSource": "handcrafted",
@@ -2031,47 +855,8 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.2,
-        "textureAtlasV": 4,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          0.5
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 3,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0.5,
-        "particlePositionVariance": 0.05,
-        "particleRotationVariance": 180,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "tags": [],
       "buttonIcon": "7a1c8107-50c5-4b70-9a39-421576d6617e.png",
-      "generatorClass": "SprayBrush",
-      "generatorFamily": "particle",
       "supersededByGuid": "8dc4a70c-d558-4efd-a5ed-d4e860f40dc3"
     },
     "d0262945-853c-4481-9cbd-88586bed93cb": {
@@ -2107,51 +892,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.6,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1.25
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 22,
       "tags": [
         "default"
       ],
-      "buttonIcon": "d0262945-853c-4481-9cbd-88586bed93cb.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "d0262945-853c-4481-9cbd-88586bed93cb.png"
     },
     "3ca16e2f-bdcd-4da2-8631-dcef342f40f1": {
       "glslSource": "handcrafted",
@@ -2186,47 +932,8 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.6,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1.25
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "tags": [],
       "buttonIcon": "3ca16e2f-bdcd-4da2-8631-dcef342f40f1.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon",
       "supersededByGuid": "d0262945-853c-4481-9cbd-88586bed93cb"
     },
     "f1114e2e-eb8d-4fde-915a-6e653b54e9f5": {
@@ -2262,51 +969,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1.5
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 23,
       "tags": [
         "default"
       ],
-      "buttonIcon": "f1114e2e-eb8d-4fde-915a-6e653b54e9f5.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "f1114e2e-eb8d-4fde-915a-6e653b54e9f5.png"
     },
     "759f1ebd-20cd-4720-8d41-234e0da63716": {
       "glslSource": "handcrafted",
@@ -2341,47 +1009,8 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1.5
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "tags": [],
       "buttonIcon": "759f1ebd-20cd-4720-8d41-234e0da63716.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon",
       "supersededByGuid": "f1114e2e-eb8d-4fde-915a-6e653b54e9f5"
     },
     "1161af82-50cf-47db-9706-0c3576d43c43": {
@@ -2404,51 +1033,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          2
-        ],
-        "pressureSizeRange": [
-          0.5,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 2,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0.3,
-        "particlePositionVariance": 0.05,
-        "particleRotationVariance": 5,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 24,
       "tags": [
         "default"
       ],
-      "buttonIcon": "1161af82-50cf-47db-9706-0c3576d43c43.png",
-      "generatorClass": "SprayBrush",
-      "generatorFamily": "particle"
+      "buttonIcon": "1161af82-50cf-47db-9706-0c3576d43c43.png"
     },
     "79168f10-6961-464a-8be1-57ed364c5600": {
       "glslSource": "handcrafted",
@@ -2470,47 +1060,8 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          2
-        ],
-        "pressureSizeRange": [
-          0.5,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 2,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0.3,
-        "particlePositionVariance": 0.05,
-        "particleRotationVariance": 5,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "tags": [],
       "buttonIcon": "79168f10-6961-464a-8be1-57ed364c5600.png",
-      "generatorClass": "SprayBrush",
-      "generatorFamily": "particle",
       "supersededByGuid": "1161af82-50cf-47db-9706-0c3576d43c43"
     },
     "5347acf0-a8e2-47b6-8346-30c70719d763": {
@@ -2533,52 +1084,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.1,
-        "textureAtlasV": 4,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0.5,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1.5
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          0.01,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 1,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 25,
       "tags": [
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "5347acf0-a8e2-47b6-8346-30c70719d763.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "5347acf0-a8e2-47b6-8346-30c70719d763.png"
     },
     "e814fef1-97fd-7194-4a2f-50c2bb918be2": {
       "glslSource": "handcrafted",
@@ -2600,47 +1112,8 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.1,
-        "textureAtlasV": 4,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0.5,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1.5
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          0.01,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 1,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "tags": [],
       "buttonIcon": "e814fef1-97fd-7194-4a2f-50c2bb918be2.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon",
       "supersededByGuid": "5347acf0-a8e2-47b6-8346-30c70719d763"
     },
     "f6e85de3-6dcc-4e7f-87fd-cee8c3d25d51": {
@@ -2649,54 +1122,13 @@
       "vertexShader": "Electricity-f6e85de3-6dcc-4e7f-87fd-cee8c3d25d51-v10.0-vertex.glsl",
       "fragmentShader": "Electricity-f6e85de3-6dcc-4e7f-87fd-cee8c3d25d51-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.02,
-          0.05
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": true,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "ribbonUvStyle": "stretch",
-        "ribbonOffsetInTexcoord1": true
-      },
       "catalogSection": "standard",
       "catalogOrder": 26,
       "tags": [
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "f6e85de3-6dcc-4e7f-87fd-cee8c3d25d51.png",
-      "generatorClass": "FlatGeometryBrush",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "f6e85de3-6dcc-4e7f-87fd-cee8c3d25d51.png"
     },
     "44bb800a-fbc3-4592-8426-94ecb05ddec3": {
       "glslSource": "handcrafted",
@@ -2718,52 +1150,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.5,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          2
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          0.4,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 27,
       "tags": [
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "44bb800a-fbc3-4592-8426-94ecb05ddec3.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "44bb800a-fbc3-4592-8426-94ecb05ddec3.png"
     },
     "dce872c2-7b49-4684-b59b-c45387949c5c": {
       "glslSource": "handcrafted",
@@ -2798,52 +1191,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 0.98,
-        "brushSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 28,
       "tags": [
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "dce872c2-7b49-4684-b59b-c45387949c5c.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "dce872c2-7b49-4684-b59b-c45387949c5c.png"
     },
     "e8ef32b1-baa8-460a-9c2c-9cf8506794f5": {
       "glslSource": "handcrafted",
@@ -2878,49 +1232,10 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 0.98,
-        "brushSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "tags": [
         "audioreactive"
       ],
       "buttonIcon": "e8ef32b1-baa8-460a-9c2c-9cf8506794f5.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon",
       "supersededByGuid": "dce872c2-7b49-4684-b59b-c45387949c5c"
     },
     "89d104cd-d012-426b-b5b3-bbaee63ac43c": {
@@ -2943,52 +1258,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.075,
-          0.15
-        ],
-        "pressureSizeRange": [
-          0,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0.15,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0.65,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": true,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 29,
       "tags": [
         "default",
         "particle"
       ],
-      "buttonIcon": "89d104cd-d012-426b-b5b3-bbaee63ac43c.png",
-      "generatorClass": "GeniusParticlesBrush",
-      "generatorFamily": "particle"
+      "buttonIcon": "89d104cd-d012-426b-b5b3-bbaee63ac43c.png"
     },
     "b2ffef01-eaaa-4ab5-aa64-95a2c4f5dbc6": {
       "glslSource": "handcrafted",
@@ -2996,62 +1272,13 @@
       "vertexShader": "NeonPulse-b2ffef01-eaaa-4ab5-aa64-95a2c4f5dbc6-v10.0-vertex.glsl",
       "fragmentShader": "NeonPulse-b2ffef01-eaaa-4ab5-aa64-95a2c4f5dbc6-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.01,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 0.98,
-        "brushSizeRange": [
-          0.025,
-          0.15
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": true,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "distance",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "standard",
       "catalogOrder": 30,
       "tags": [
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "b2ffef01-eaaa-4ab5-aa64-95a2c4f5dbc6.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "b2ffef01-eaaa-4ab5-aa64-95a2c4f5dbc6.png"
     },
     "700f3aa8-9a7c-2384-8b8a-ea028905dd8c": {
       "glslSource": "handcrafted",
@@ -3073,52 +1300,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.2,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          1.5
-        ],
-        "pressureSizeRange": [
-          0.5,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 31,
       "tags": [
         "whiteboard",
         "default"
       ],
-      "buttonIcon": "700f3aa8-9a7c-2384-8b8a-ea028905dd8c.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "700f3aa8-9a7c-2384-8b8a-ea028905dd8c.png"
     },
     "6a1cf9f9-032c-45ec-9b6e-a6680bee32e9": {
       "glslSource": "handcrafted",
@@ -3140,52 +1328,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          0.2
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 0,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 32,
       "tags": [
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "6a1cf9f9-032c-45ec-9b6e-a6680bee32e9.png",
-      "generatorClass": "MidpointPlusLifetimeSprayBrush",
-      "generatorFamily": "particle"
+      "buttonIcon": "6a1cf9f9-032c-45ec-9b6e-a6680bee32e9.png"
     },
     "4391aaaa-df81-4396-9e33-31e4e4930b27": {
       "glslSource": "handcrafted",
@@ -3207,62 +1356,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.06,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 0.98,
-        "brushSizeRange": [
-          0.02,
-          0.1
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "distance",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "standard",
       "catalogOrder": 33,
       "tags": [
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "4391aaaa-df81-4396-9e33-31e4e4930b27.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "4391aaaa-df81-4396-9e33-31e4e4930b27.png"
     },
     "0f0ff7b2-a677-45eb-a7d6-0cd7206f4816": {
       "glslSource": "handcrafted",
@@ -3270,62 +1370,13 @@
       "vertexShader": "ChromaticWave-0f0ff7b2-a677-45eb-a7d6-0cd7206f4816-v10.0-vertex.glsl",
       "fragmentShader": "ChromaticWave-0f0ff7b2-a677-45eb-a7d6-0cd7206f4816-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 0.98,
-        "brushSizeRange": [
-          0.1,
-          0.3
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": true,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "distance",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "standard",
       "catalogOrder": 34,
       "tags": [
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "0f0ff7b2-a677-45eb-a7d6-0cd7206f4816.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "0f0ff7b2-a677-45eb-a7d6-0cd7206f4816.png"
     },
     "6a1cf9f9-032c-45ec-9b1d-a6680bee30f7": {
       "glslSource": "handcrafted",
@@ -3347,43 +1398,6 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.4,
-          0.8
-        ],
-        "pressureSizeRange": [
-          0,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0.1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": true,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 35,
       "tags": [
@@ -3392,9 +1406,7 @@
         "audioreactive",
         "particle"
       ],
-      "buttonIcon": "6a1cf9f9-032c-45ec-9b1d-a6680bee30f7.png",
-      "generatorClass": "GeniusParticlesBrush",
-      "generatorFamily": "particle"
+      "buttonIcon": "6a1cf9f9-032c-45ec-9b1d-a6680bee30f7.png"
     },
     "e0abbc80-0f80-e854-4970-8924a0863dcc": {
       "glslSource": "handcrafted",
@@ -3402,61 +1414,12 @@
       "vertexShader": "Petal-e0abbc80-0f80-e854-4970-8924a0863dcc-v10.0-vertex.glsl",
       "fragmentShader": "Petal-e0abbc80-0f80-e854-4970-8924a0863dcc-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 1,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 5,
-        "tubeEndCaps": false,
-        "tubeHardEdges": true,
-        "tubeUvStyle": "stretch",
-        "tubeShapeModifier": 5,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 1.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "standard",
       "catalogOrder": 36,
       "tags": [
         "default"
       ],
-      "buttonIcon": "e0abbc80-0f80-e854-4970-8924a0863dcc.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "e0abbc80-0f80-e854-4970-8924a0863dcc.png"
     },
     "2f212815-f4d3-c1a4-681a-feeaf9c6dc37": {
       "glslSource": "handcrafted",
@@ -3478,62 +1441,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.25,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          0.5
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "distance",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "standard",
       "catalogOrder": 37,
       "tags": [
         "whiteboard",
         "default"
       ],
-      "buttonIcon": "2f212815-f4d3-c1a4-681a-feeaf9c6dc37.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "2f212815-f4d3-c1a4-681a-feeaf9c6dc37.png"
     },
     "4391385a-df73-4396-9e33-31e4e4930b27": {
       "glslSource": "handcrafted",
@@ -3541,53 +1455,6 @@
       "vertexShader": "Toon-4391385a-df73-4396-9e33-31e4e4930b27-v10.0-vertex.glsl",
       "fragmentShader": "Toon-4391385a-df73-4396-9e33-31e4e4930b27-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.02,
-          0.5
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": true,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "distance",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "standard",
       "catalogOrder": 38,
       "tags": [
@@ -3595,9 +1462,7 @@
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "4391385a-df73-4396-9e33-31e4e4930b27.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "4391385a-df73-4396-9e33-31e4e4930b27.png"
     },
     "4391385a-cf83-4396-9e33-31e4e4930b27": {
       "glslSource": "handcrafted",
@@ -3605,62 +1470,13 @@
       "vertexShader": "Wire-4391385a-cf83-4396-9e33-31e4e4930b27-v10.0-vertex.glsl",
       "fragmentShader": "Wire-4391385a-cf83-4396-9e33-31e4e4930b27-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": true,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "distance",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "standard",
       "catalogOrder": 39,
       "tags": [
         "whiteboard",
         "default"
       ],
-      "buttonIcon": "4391385a-cf83-4396-9e33-31e4e4930b27.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "4391385a-cf83-4396-9e33-31e4e4930b27.png"
     },
     "cf7f0059-7aeb-53a4-2b67-c83d863a9ffa": {
       "glslSource": "handcrafted",
@@ -3668,61 +1484,12 @@
       "vertexShader": "Spikes-cf7f0059-7aeb-53a4-2b67-c83d863a9ffa-v10.0-vertex.glsl",
       "fragmentShader": "Spikes-cf7f0059-7aeb-53a4-2b67-c83d863a9ffa-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          2
-        ],
-        "pressureSizeRange": [
-          0.5,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0,
-        "tubeSideCount": 3,
-        "tubeEndCaps": true,
-        "tubeHardEdges": true,
-        "tubeUvStyle": "stretch",
-        "tubeShapeModifier": 4,
-        "tubeTaperScalar": 1.1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "standard",
       "catalogOrder": 40,
       "tags": [
         "default"
       ],
-      "buttonIcon": "cf7f0059-7aeb-53a4-2b67-c83d863a9ffa.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "cf7f0059-7aeb-53a4-2b67-c83d863a9ffa.png"
     },
     "d381e0f5-3def-4a0d-8853-31e9200bcbda": {
       "glslSource": "handcrafted",
@@ -3730,61 +1497,12 @@
       "vertexShader": "Lofted-d381e0f5-3def-4a0d-8853-31e9200bcbda-v10.0-vertex.glsl",
       "fragmentShader": "Lofted-d381e0f5-3def-4a0d-8853-31e9200bcbda-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.2,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.02,
-          0.5
-        ],
-        "pressureSizeRange": [
-          0,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0,
-        "tubeSideCount": 4,
-        "tubeEndCaps": false,
-        "tubeHardEdges": true,
-        "tubeUvStyle": "stretch",
-        "tubeShapeModifier": 1,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 4
-      },
       "catalogSection": "standard",
       "catalogOrder": 41,
       "tags": [
         "default"
       ],
-      "buttonIcon": "d381e0f5-3def-4a0d-8853-31e9200bcbda.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "d381e0f5-3def-4a0d-8853-31e9200bcbda.png"
     },
     "4391aaaa-df73-4396-9e33-31e4e4930b27": {
       "glslSource": "handcrafted",
@@ -3792,62 +1510,13 @@
       "vertexShader": "Disco-4391aaaa-df73-4396-9e33-31e4e4930b27-v10.0-vertex.glsl",
       "fragmentShader": "Disco-4391aaaa-df73-4396-9e33-31e4e4930b27-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.02,
-          0.5
-        ],
-        "pressureSizeRange": [
-          0.5,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": true,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "distance",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "standard",
       "catalogOrder": 42,
       "tags": [
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "4391aaaa-df73-4396-9e33-31e4e4930b27.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "4391aaaa-df73-4396-9e33-31e4e4930b27.png"
     },
     "1caa6d7d-f015-3f54-3a4b-8b5354d39f81": {
       "glslSource": "handcrafted",
@@ -3882,62 +1551,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          1.5
-        ],
-        "pressureSizeRange": [
-          0.4,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.1,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "stretch",
-        "tubeShapeModifier": 3,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "standard",
       "catalogOrder": 43,
       "tags": [
         "default",
         "audioreactive"
       ],
-      "buttonIcon": "1caa6d7d-f015-3f54-3a4b-8b5354d39f81.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "1caa6d7d-f015-3f54-3a4b-8b5354d39f81.png"
     },
     "faaa4d44-fcfb-4177-96be-753ac0421ba3": {
       "glslSource": "handcrafted",
@@ -3945,43 +1565,6 @@
       "vertexShader": "ShinyHull-faaa4d44-fcfb-4177-96be-753ac0421ba3-v10.0-vertex.glsl",
       "fragmentShader": "ShinyHull-faaa4d44-fcfb-4177-96be-753ac0421ba3-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.01,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.005,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": true,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 44,
       "tags": [
@@ -3989,9 +1572,7 @@
         "default",
         "hull"
       ],
-      "buttonIcon": "faaa4d44-fcfb-4177-96be-753ac0421ba3.png",
-      "generatorClass": "HullBrush",
-      "generatorFamily": "hull"
+      "buttonIcon": "faaa4d44-fcfb-4177-96be-753ac0421ba3.png"
     },
     "79348357-432d-4746-8e29-0e25c112e3aa": {
       "glslSource": "handcrafted",
@@ -3999,43 +1580,6 @@
       "vertexShader": "MatteHull-79348357-432d-4746-8e29-0e25c112e3aa-v10.0-vertex.glsl",
       "fragmentShader": "MatteHull-79348357-432d-4746-8e29-0e25c112e3aa-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.01,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.005,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": true,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 45,
       "tags": [
@@ -4043,9 +1587,7 @@
         "default",
         "hull"
       ],
-      "buttonIcon": "79348357-432d-4746-8e29-0e25c112e3aa.png",
-      "generatorClass": "HullBrush",
-      "generatorFamily": "hull"
+      "buttonIcon": "79348357-432d-4746-8e29-0e25c112e3aa.png"
     },
     "a8fea537-da7c-4d4b-817f-24f074725d6d": {
       "glslSource": "handcrafted",
@@ -4053,43 +1595,6 @@
       "vertexShader": "UnlitHull-a8fea537-da7c-4d4b-817f-24f074725d6d-v10.0-vertex.glsl",
       "fragmentShader": "UnlitHull-a8fea537-da7c-4d4b-817f-24f074725d6d-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.01,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.005,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": true,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 46,
       "tags": [
@@ -4097,9 +1602,7 @@
         "default",
         "hull"
       ],
-      "buttonIcon": "a8fea537-da7c-4d4b-817f-24f074725d6d.png",
-      "generatorClass": "HullBrush",
-      "generatorFamily": "hull"
+      "buttonIcon": "a8fea537-da7c-4d4b-817f-24f074725d6d.png"
     },
     "c8313697-2563-47fc-832e-290f4c04b901": {
       "glslSource": "handcrafted",
@@ -4121,52 +1624,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.01,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.005,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": true,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "standard",
       "catalogOrder": 47,
       "tags": [
         "default",
         "hull"
       ],
-      "buttonIcon": "c8313697-2563-47fc-832e-290f4c04b901.png",
-      "generatorClass": "HullBrush",
-      "generatorFamily": "hull"
+      "buttonIcon": "c8313697-2563-47fc-832e-290f4c04b901.png"
     },
     "ea19de07-d0c0-4484-9198-18489a3c1487": {
       "glslSource": "handcrafted",
@@ -4201,47 +1665,8 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.7,
-          1.5
-        ],
-        "pressureSizeRange": [
-          0.5,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 2,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0.3,
-        "particlePositionVariance": 0.15,
-        "particleRotationVariance": 20,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "tags": [],
       "buttonIcon": "ea19de07-d0c0-4484-9198-18489a3c1487.png",
-      "generatorClass": "SprayBrush",
-      "generatorFamily": "particle",
       "supersededByGuid": "4a76a27a-44d8-4bfe-9a8c-713749a499b0"
     },
     "d1d991f2-e7a0-4cf1-b328-f57e915e6260": {
@@ -4264,51 +1689,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          2
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 3,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 0,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 20,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "d1d991f2-e7a0-4cf1-b328-f57e915e6260.png",
-      "generatorClass": "SprayBrush",
-      "generatorFamily": "particle"
+      "buttonIcon": "d1d991f2-e7a0-4cf1-b328-f57e915e6260.png"
     },
     "c33714d1-b2f9-412e-bd50-1884c9d46336": {
       "glslSource": "handcrafted",
@@ -4330,52 +1716,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.5,
-          1
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 23,
       "tags": [
         "experimental",
         "audioreactive"
       ],
-      "buttonIcon": "c33714d1-b2f9-412e-bd50-1884c9d46336.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "c33714d1-b2f9-412e-bd50-1884c9d46336.png"
     },
     "0077f88c-d93a-42f3-b59b-b31c50cdb414": {
       "glslSource": "handcrafted",
@@ -4397,47 +1744,8 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "tags": [],
-      "buttonIcon": "0077f88c-d93a-42f3-b59b-b31c50cdb414.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "0077f88c-d93a-42f3-b59b-b31c50cdb414.png"
     },
     "232998f8-d357-47a2-993a-53415df9be10": {
       "glslSource": "handcrafted",
@@ -4445,45 +1753,7 @@
       "vertexShader": "BlocksGem-232998f8-d357-47a2-993a-53415df9be10-v10.0-vertex.glsl",
       "fragmentShader": "BlocksGem-232998f8-d357-47a2-993a-53415df9be10-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0,
-        "textureAtlasV": 0,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 0,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 0,
-        "brushSizeRange": [
-          0,
-          0
-        ],
-        "pressureSizeRange": [
-          0,
-          0
-        ],
-        "pressureOpacityRange": [
-          0,
-          0
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0,
-        "sprayRateMultiplier": 0,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 0,
-        "particleSizeRatio": [
-          0,
-          0
-        ]
-      },
-      "tags": [],
-      "generatorClass": "BlocksBrushScript"
+      "tags": []
     },
     "3d813d82-5839-4450-8ddc-8e889ecd96c7": {
       "glslSource": "handcrafted",
@@ -4491,45 +1761,7 @@
       "vertexShader": "BlocksGlass-3d813d82-5839-4450-8ddc-8e889ecd96c7-v10.0-vertex.glsl",
       "fragmentShader": "BlocksGlass-3d813d82-5839-4450-8ddc-8e889ecd96c7-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0,
-        "textureAtlasV": 0,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 0,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 0,
-        "brushSizeRange": [
-          0,
-          0
-        ],
-        "pressureSizeRange": [
-          0,
-          0
-        ],
-        "pressureOpacityRange": [
-          0,
-          0
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0,
-        "sprayRateMultiplier": 0,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 0,
-        "particleSizeRatio": [
-          0,
-          0
-        ]
-      },
-      "tags": [],
-      "generatorClass": "BlocksBrushScript"
+      "tags": []
     },
     "0e87b49c-6546-3a34-3a44-8a556d7d6c3e": {
       "glslSource": "handcrafted",
@@ -4537,45 +1769,7 @@
       "vertexShader": "BlocksBasic-0e87b49c-6546-3a34-3a44-8a556d7d6c3e-v10.0-vertex.glsl",
       "fragmentShader": "BlocksBasic-0e87b49c-6546-3a34-3a44-8a556d7d6c3e-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0,
-        "textureAtlasV": 0,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 0,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 0,
-        "brushSizeRange": [
-          0,
-          0
-        ],
-        "pressureSizeRange": [
-          0,
-          0
-        ],
-        "pressureOpacityRange": [
-          0,
-          0
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0,
-        "sprayRateMultiplier": 0,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 0,
-        "particleSizeRatio": [
-          0,
-          0
-        ]
-      },
-      "tags": [],
-      "generatorClass": "BlocksBrushScript"
+      "tags": []
     },
     "f86a096c-2f4f-4f9d-ae19-81b99f2944e0": {
       "glslSource": "handcrafted",
@@ -4583,45 +1777,7 @@
       "vertexShader": "PbrTemplate-f86a096c-2f4f-4f9d-ae19-81b99f2944e0-v1.0-vertex.glsl",
       "fragmentShader": "PbrTemplate-f86a096c-2f4f-4f9d-ae19-81b99f2944e0-v1.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0,
-        "textureAtlasV": 0,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 0,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 0,
-        "brushSizeRange": [
-          0,
-          0
-        ],
-        "pressureSizeRange": [
-          0,
-          0
-        ],
-        "pressureOpacityRange": [
-          0,
-          0
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0,
-        "sprayRateMultiplier": 0,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 0,
-        "particleSizeRatio": [
-          0,
-          0
-        ]
-      },
-      "tags": [],
-      "generatorClass": "PbrBrushScript"
+      "tags": []
     },
     "19826f62-42ac-4a9e-8b77-4231fbd0cfbf": {
       "glslSource": "handcrafted",
@@ -4629,45 +1785,7 @@
       "vertexShader": "PbrTransparentTemplate-19826f62-42ac-4a9e-8b77-4231fbd0cfbf-v1.0-vertex.glsl",
       "fragmentShader": "PbrTransparentTemplate-19826f62-42ac-4a9e-8b77-4231fbd0cfbf-v1.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0,
-        "textureAtlasV": 0,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 0,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 0,
-        "brushSizeRange": [
-          0,
-          0
-        ],
-        "pressureSizeRange": [
-          0,
-          0
-        ],
-        "pressureOpacityRange": [
-          0,
-          0
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0,
-        "sprayRateMultiplier": 0,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 0,
-        "particleSizeRatio": [
-          0,
-          0
-        ]
-      },
-      "tags": [],
-      "generatorClass": "PbrBrushScript"
+      "tags": []
     },
     "0ad58bbd-42bc-484e-ad9a-b61036ff4ce7": {
       "glslSource": "handcrafted",
@@ -4675,45 +1793,7 @@
       "vertexShader": "EnvironmentDiffuse-0ad58bbd-42bc-484e-ad9a-b61036ff4ce7-v1.0-vertex.glsl",
       "fragmentShader": "EnvironmentDiffuse-0ad58bbd-42bc-484e-ad9a-b61036ff4ce7-v1.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0,
-        "textureAtlasV": 0,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 0,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 0,
-        "brushSizeRange": [
-          0,
-          0
-        ],
-        "pressureSizeRange": [
-          0,
-          0
-        ],
-        "pressureOpacityRange": [
-          0,
-          0
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0,
-        "sprayRateMultiplier": 0,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 0,
-        "particleSizeRatio": [
-          0,
-          0
-        ]
-      },
-      "tags": [],
-      "generatorClass": "EnvironmentBrushScript"
+      "tags": []
     },
     "d01d9d6c-9a61-4aba-8146-5891fafb013b": {
       "glslSource": "handcrafted",
@@ -4721,45 +1801,7 @@
       "vertexShader": "EnvironmentDiffuseLightMap-d01d9d6c-9a61-4aba-8146-5891fafb013b-v1.0-vertex.glsl",
       "fragmentShader": "EnvironmentDiffuseLightMap-d01d9d6c-9a61-4aba-8146-5891fafb013b-v1.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0,
-        "textureAtlasV": 0,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 0,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 0,
-        "brushSizeRange": [
-          0,
-          0
-        ],
-        "pressureSizeRange": [
-          0,
-          0
-        ],
-        "pressureOpacityRange": [
-          0,
-          0
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0,
-        "sprayRateMultiplier": 0,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 0,
-        "particleSizeRatio": [
-          0,
-          0
-        ]
-      },
-      "tags": [],
-      "generatorClass": "EnvironmentBrushScript"
+      "tags": []
     },
     "cf3401b3-4ada-4877-995a-1aa64e7b604a": {
       "glslSource": "handcrafted",
@@ -4767,45 +1809,7 @@
       "vertexShader": "SvgTemplate-cf3401b3-4ada-4877-995a-1aa64e7b604a-v1.0-vertex.glsl",
       "fragmentShader": "SvgTemplate-cf3401b3-4ada-4877-995a-1aa64e7b604a-v1.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0,
-        "textureAtlasV": 0,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 0,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 0,
-        "brushSizeRange": [
-          0,
-          0
-        ],
-        "pressureSizeRange": [
-          0,
-          0
-        ],
-        "pressureOpacityRange": [
-          0,
-          0
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0,
-        "sprayRateMultiplier": 0,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 0,
-        "particleSizeRatio": [
-          0,
-          0
-        ]
-      },
-      "tags": [],
-      "generatorClass": "SvgBrushScript"
+      "tags": []
     },
     "1b897b7e-9b76-425a-b031-a867c48df409": {
       "glslSource": "template",
@@ -4840,51 +1844,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1
-        ],
-        "pressureSizeRange": [
-          0.01,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": true,
-        "particleSizeVariance": 1,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 0,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "1b897b7e-9b76-425a-b031-a867c48df409.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "1b897b7e-9b76-425a-b031-a867c48df409.png"
     },
     "4465b5ef-3605-bec4-2b3e-6b04508ddb6b": {
       "glslSource": "template",
@@ -4919,47 +1884,8 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1
-        ],
-        "pressureSizeRange": [
-          0.01,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": true,
-        "particleSizeVariance": 1,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "tags": [],
       "buttonIcon": "4465b5ef-3605-bec4-2b3e-6b04508ddb6b.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon",
       "supersededByGuid": "1b897b7e-9b76-425a-b031-a867c48df409"
     },
     "8e58ceea-7830-49b4-aba9-6215104ab52a": {
@@ -4982,61 +1908,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.08,
-          1
-        ],
-        "pressureSizeRange": [
-          0.25,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "stretch",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "experimental",
       "catalogOrder": 1,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "8e58ceea-7830-49b4-aba9-6215104ab52a.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "8e58ceea-7830-49b4-aba9-6215104ab52a.png"
     },
     "03a529e1-f519-3dd4-582d-2d5cd92c3f4f": {
       "glslSource": "template",
@@ -5058,61 +1935,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.08,
-          0.25
-        ],
-        "pressureSizeRange": [
-          0,
-          1
-        ],
-        "pressureOpacityRange": [
-          0.4,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 6,
-        "tubeEndCaps": false,
-        "tubeHardEdges": true,
-        "tubeUvStyle": "stretch",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "experimental",
       "catalogOrder": 2,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "03a529e1-f519-3dd4-582d-2d5cd92c3f4f.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "03a529e1-f519-3dd4-582d-2d5cd92c3f4f.png"
     },
     "725f4c6a-6427-6524-29ab-da371924adab": {
       "glslSource": "template",
@@ -5147,51 +1975,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.01,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 1,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 3,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "725f4c6a-6427-6524-29ab-da371924adab.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "725f4c6a-6427-6524-29ab-da371924adab.png"
     },
     "ddda8745-4bb5-ac54-88b6-d1480370583e": {
       "glslSource": "template",
@@ -5226,51 +2015,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          0.7
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": true,
-        "particleSizeVariance": 1,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 4,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "ddda8745-4bb5-ac54-88b6-d1480370583e.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "ddda8745-4bb5-ac54-88b6-d1480370583e.png"
     },
     "50e99447-3861-05f4-697d-a1b96e771b98": {
       "glslSource": "template",
@@ -5292,61 +2042,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          1.5
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "stretch",
-        "tubeShapeModifier": 3,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "experimental",
       "catalogOrder": 5,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "50e99447-3861-05f4-697d-a1b96e771b98.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "50e99447-3861-05f4-697d-a1b96e771b98.png"
     },
     "7136a729-1aab-bd24-f8b2-ca88b6adfb67": {
       "glslSource": "template",
@@ -5368,51 +2069,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.4,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.2,
-          2
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 1,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 6,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "7136a729-1aab-bd24-f8b2-ca88b6adfb67.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "7136a729-1aab-bd24-f8b2-ca88b6adfb67.png"
     },
     "a8147ce1-005e-abe4-88e8-09a1eaadcc89": {
       "glslSource": "template",
@@ -5434,52 +2096,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.15,
-          0.15
-        ],
-        "pressureSizeRange": [
-          0,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0.35,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0.05,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": true,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 7,
       "tags": [
         "experimental",
         "particle"
       ],
-      "buttonIcon": "a8147ce1-005e-abe4-88e8-09a1eaadcc89.png",
-      "generatorClass": "GeniusParticlesBrush",
-      "generatorFamily": "particle"
+      "buttonIcon": "a8147ce1-005e-abe4-88e8-09a1eaadcc89.png"
     },
     "9568870f-8594-60f4-1b20-dfbc8a5eac0e": {
       "glslSource": "template",
@@ -5501,61 +2124,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.01,
-          2
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "stretch",
-        "tubeShapeModifier": 4,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "experimental",
       "catalogOrder": 8,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "9568870f-8594-60f4-1b20-dfbc8a5eac0e.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "9568870f-8594-60f4-1b20-dfbc8a5eac0e.png"
     },
     "2e03b1bf-3ebd-4609-9d7e-f4cafadc4dfa": {
       "glslSource": "template",
@@ -5590,51 +2164,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.5,
-          1.5
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 9,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "2e03b1bf-3ebd-4609-9d7e-f4cafadc4dfa.png",
-      "generatorClass": "SquareBrush",
-      "generatorFamily": "quad-stamp"
+      "buttonIcon": "2e03b1bf-3ebd-4609-9d7e-f4cafadc4dfa.png"
     },
     "39ee7377-7a9e-47a7-a0f8-0c77712f75d3": {
       "glslSource": "template",
@@ -5669,51 +2204,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.6,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.5,
-          1.25
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 10,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "39ee7377-7a9e-47a7-a0f8-0c77712f75d3.png",
-      "generatorClass": "ThickGeometryBrush",
-      "generatorFamily": "thick-strip"
+      "buttonIcon": "39ee7377-7a9e-47a7-a0f8-0c77712f75d3.png"
     },
     "2c1a6a63-6552-4d23-86d7-58f6fba8581b": {
       "glslSource": "template",
@@ -5721,52 +2217,13 @@
       "vertexShader": "Wireframe-2c1a6a63-6552-4d23-86d7-58f6fba8581b-v10.0-vertex.glsl",
       "fragmentShader": "Wireframe-2c1a6a63-6552-4d23-86d7-58f6fba8581b-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          2
-        ],
-        "pressureSizeRange": [
-          0,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 11,
       "tags": [
         "experimental",
         "audioreactive"
       ],
-      "buttonIcon": "2c1a6a63-6552-4d23-86d7-58f6fba8581b.png",
-      "generatorClass": "QuadStripUnitizedUVBrush",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "2c1a6a63-6552-4d23-86d7-58f6fba8581b.png"
     },
     "61d2ef63-ed60-49b3-85fb-7267b7d234f2": {
       "glslSource": "template",
@@ -5774,51 +2231,13 @@
       "vertexShader": "CandyCane-61d2ef63-ed60-49b3-85fb-7267b7d234f2-v10.0-vertex.glsl",
       "fragmentShader": "CandyCane-61d2ef63-ed60-49b3-85fb-7267b7d234f2-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 12,
       "tags": [
         "experimental",
         "broken"
       ],
-      "buttonIcon": "61d2ef63-ed60-49b3-85fb-7267b7d234f2.png",
-      "generatorClass": "CandyCane"
+      "buttonIcon": "61d2ef63-ed60-49b3-85fb-7267b7d234f2.png"
     },
     "20a0bf1a-a96e-44e5-84ac-9823d2d65023": {
       "glslSource": "template",
@@ -5826,51 +2245,13 @@
       "vertexShader": "HolidayTree-20a0bf1a-a96e-44e5-84ac-9823d2d65023-v10.0-vertex.glsl",
       "fragmentShader": "HolidayTree-20a0bf1a-a96e-44e5-84ac-9823d2d65023-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 13,
       "tags": [
         "experimental",
         "broken"
       ],
-      "buttonIcon": "20a0bf1a-a96e-44e5-84ac-9823d2d65023.png",
-      "generatorClass": "HolidayTree"
+      "buttonIcon": "20a0bf1a-a96e-44e5-84ac-9823d2d65023.png"
     },
     "2b65cd94-9259-4f10-99d2-d54b6664ac33": {
       "glslSource": "template",
@@ -5878,51 +2259,13 @@
       "vertexShader": "Snowflake-2b65cd94-9259-4f10-99d2-d54b6664ac33-v10.0-vertex.glsl",
       "fragmentShader": "Snowflake-2b65cd94-9259-4f10-99d2-d54b6664ac33-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 14,
       "tags": [
         "experimental",
         "broken"
       ],
-      "buttonIcon": "2b65cd94-9259-4f10-99d2-d54b6664ac33.png",
-      "generatorClass": "SnowflakeBrush"
+      "buttonIcon": "2b65cd94-9259-4f10-99d2-d54b6664ac33.png"
     },
     "22d4f434-23e4-49d9-a9bd-05798aa21e58": {
       "glslSource": "template",
@@ -5930,51 +2273,13 @@
       "vertexShader": "Braid3-22d4f434-23e4-49d9-a9bd-05798aa21e58-v10.0-vertex.glsl",
       "fragmentShader": "Braid3-22d4f434-23e4-49d9-a9bd-05798aa21e58-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          1.5
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1.5
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 15,
       "tags": [
         "experimental",
         "broken"
       ],
-      "buttonIcon": "22d4f434-23e4-49d9-a9bd-05798aa21e58.png",
-      "generatorClass": "PlaitBrush"
+      "buttonIcon": "22d4f434-23e4-49d9-a9bd-05798aa21e58.png"
     },
     "f28c395c-a57d-464b-8f0b-558c59478fa3": {
       "glslSource": "template",
@@ -6009,61 +2314,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0.25,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.01,
-          1.25
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": true,
-        "particleSizeVariance": 1,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "distance",
-        "tubeShapeModifier": 2,
-        "tubeTaperScalar": 0.1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "experimental",
       "catalogOrder": 16,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "f28c395c-a57d-464b-8f0b-558c59478fa3.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "f28c395c-a57d-464b-8f0b-558c59478fa3.png"
     },
     "99aafe96-1645-44cd-99bd-979bc6ef37c5": {
       "glslSource": "template",
@@ -6098,61 +2354,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0.25,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.01,
-          1.25
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": true,
-        "particleSizeVariance": 1,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "distance",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "experimental",
       "catalogOrder": 17,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "99aafe96-1645-44cd-99bd-979bc6ef37c5.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "99aafe96-1645-44cd-99bd-979bc6ef37c5.png"
     },
     "53d753ef-083c-45e1-98e7-4459b4471219": {
       "glslSource": "template",
@@ -6187,52 +2394,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 3,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          2
-        ],
-        "pressureSizeRange": [
-          0.5,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 18,
       "tags": [
         "experimental",
         "audioreactive"
       ],
-      "buttonIcon": "53d753ef-083c-45e1-98e7-4459b4471219.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "53d753ef-083c-45e1-98e7-4459b4471219.png"
     },
     "9871385a-df73-4396-9e33-31e4e4930b27": {
       "glslSource": "template",
@@ -6240,61 +2408,12 @@
       "vertexShader": "TubeToonInverted-9871385a-df73-4396-9e33-31e4e4930b27-v10.0-vertex.glsl",
       "fragmentShader": "TubeToonInverted-9871385a-df73-4396-9e33-31e4e4930b27-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.02,
-          0.5
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "distance",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "experimental",
       "catalogOrder": 19,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "9871385a-df73-4396-9e33-31e4e4930b27.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "9871385a-df73-4396-9e33-31e4e4930b27.png"
     },
     "4391ffaa-df73-4396-9e33-31e4e4930b27": {
       "glslSource": "template",
@@ -6302,61 +2421,12 @@
       "vertexShader": "FacetedTube-4391ffaa-df73-4396-9e33-31e4e4930b27-v10.0-vertex.glsl",
       "fragmentShader": "FacetedTube-4391ffaa-df73-4396-9e33-31e4e4930b27-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.02,
-          0.5
-        ],
-        "pressureSizeRange": [
-          0.5,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "distance",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "experimental",
       "catalogOrder": 21,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "4391ffaa-df73-4396-9e33-31e4e4930b27.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "4391ffaa-df73-4396-9e33-31e4e4930b27.png"
     },
     "6a1cf9f9-032c-45ec-9b6e-a6680bee30f7": {
       "glslSource": "template",
@@ -6378,52 +2448,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          0.1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0,
-        "sprayRateMultiplier": 4,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 0,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 24,
       "tags": [
         "experimental",
         "audioreactive"
       ],
-      "buttonIcon": "6a1cf9f9-032c-45ec-9b6e-a6680bee30f7.png",
-      "generatorClass": "MidpointPlusLifetimeSprayBrush",
-      "generatorFamily": "particle"
+      "buttonIcon": "6a1cf9f9-032c-45ec-9b6e-a6680bee30f7.png"
     },
     "eba3f993-f9a1-4d35-b84e-bb08f48981a4": {
       "glslSource": "template",
@@ -6445,61 +2476,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.08,
-          1
-        ],
-        "pressureSizeRange": [
-          0.25,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "stretch",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "experimental",
       "catalogOrder": 25,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "eba3f993-f9a1-4d35-b84e-bb08f48981a4.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "eba3f993-f9a1-4d35-b84e-bb08f48981a4.png"
     },
     "6a1cf9f9-032c-45ec-311e-a6680bee32e9": {
       "glslSource": "template",
@@ -6521,52 +2503,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.2,
-          0.2
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 0,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 0,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 26,
       "tags": [
         "experimental",
         "audioreactive"
       ],
-      "buttonIcon": "6a1cf9f9-032c-45ec-311e-a6680bee32e9.png",
-      "generatorClass": "MidpointPlusLifetimeSprayBrush",
-      "generatorFamily": "particle"
+      "buttonIcon": "6a1cf9f9-032c-45ec-311e-a6680bee32e9.png"
     },
     "0f5820df-cb6b-4a6c-960e-56e4c8000eda": {
       "glslSource": "template",
@@ -6588,62 +2531,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.5,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          0.3
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "distance",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "experimental",
       "catalogOrder": 27,
       "tags": [
         "experimental",
         "audioreactive"
       ],
-      "buttonIcon": "0f5820df-cb6b-4a6c-960e-56e4c8000eda.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "0f5820df-cb6b-4a6c-960e-56e4c8000eda.png"
     },
     "492b36ff-b337-436a-ba5f-1e87ee86747e": {
       "glslSource": "template",
@@ -6665,51 +2559,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 0.98,
-        "brushSizeRange": [
-          0.025,
-          0.2
-        ],
-        "pressureSizeRange": [
-          0.15,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 28,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "492b36ff-b337-436a-ba5f-1e87ee86747e.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "492b36ff-b337-436a-ba5f-1e87ee86747e.png"
     },
     "f0a2298a-be80-432c-9fee-a86dcc06f4f9": {
       "glslSource": "template",
@@ -6731,51 +2586,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          3
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 50,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "f0a2298a-be80-432c-9fee-a86dcc06f4f9.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "f0a2298a-be80-432c-9fee-a86dcc06f4f9.png"
     },
     "f4a0550c-332a-4e1a-9793-b71508f4a454": {
       "glslSource": "template",
@@ -6797,51 +2613,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 120,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          3
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 49,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "f4a0550c-332a-4e1a-9793-b71508f4a454.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "f4a0550c-332a-4e1a-9793-b71508f4a454.png"
     },
     "c1c9b26d-673a-4dc6-b373-51715654ab96": {
       "glslSource": "template",
@@ -6849,62 +2626,13 @@
       "vertexShader": "TubeAdditive-c1c9b26d-673a-4dc6-b373-51715654ab96-v10.0-vertex.glsl",
       "fragmentShader": "TubeAdditive-c1c9b26d-673a-4dc6-b373-51715654ab96-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 0.98,
-        "brushSizeRange": [
-          0.08,
-          0.5
-        ],
-        "pressureSizeRange": [
-          0.25,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "distance",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "experimental",
       "catalogOrder": 31,
       "tags": [
         "experimental",
         "audioreactive"
       ],
-      "buttonIcon": "c1c9b26d-673a-4dc6-b373-51715654ab96.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "c1c9b26d-673a-4dc6-b373-51715654ab96.png"
     },
     "a555b809-2017-46cb-ac26-e63173d8f45e": {
       "glslSource": "template",
@@ -6926,52 +2654,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          1.5
-        ],
-        "pressureSizeRange": [
-          0.025,
-          1
-        ],
-        "pressureOpacityRange": [
-          0,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 32,
       "tags": [
         "experimental",
         "audioreactive"
       ],
-      "buttonIcon": "a555b809-2017-46cb-ac26-e63173d8f45e.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "a555b809-2017-46cb-ac26-e63173d8f45e.png"
     },
     "84d5bbb2-6634-8434-f8a7-681b576b4664": {
       "glslSource": "template",
@@ -7006,53 +2695,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.6,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1.25
-        ],
-        "pressureSizeRange": [
-          0,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "ribbonUvStyle": "distance",
-        "ribbonOffsetInTexcoord1": false
-      },
       "catalogSection": "experimental",
       "catalogOrder": 33,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "84d5bbb2-6634-8434-f8a7-681b576b4664.png",
-      "generatorClass": "FlatGeometryBrush",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "84d5bbb2-6634-8434-f8a7-681b576b4664.png"
     },
     "3d9755da-56c7-7294-9b1d-5ec349975f52": {
       "glslSource": "template",
@@ -7074,52 +2722,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0.4,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          2
-        ],
-        "pressureSizeRange": [
-          0,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": true,
-        "particleSizeVariance": 0.25,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 34,
       "tags": [
         "experimental",
         "audioreactive"
       ],
-      "buttonIcon": "3d9755da-56c7-7294-9b1d-5ec349975f52.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "3d9755da-56c7-7294-9b1d-5ec349975f52.png"
     },
     "1cf94f63-f57a-4a1a-ad14-295af4f5ab5c": {
       "glslSource": "template",
@@ -7167,51 +2776,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.2,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1.5
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          0,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 35,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "1cf94f63-f57a-4a1a-ad14-295af4f5ab5c.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "1cf94f63-f57a-4a1a-ad14-295af4f5ab5c.png"
     },
     "c86c058d-1bda-2e94-08db-f3d6a96ac4a1": {
       "glslSource": "template",
@@ -7259,52 +2829,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.2,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.01,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 36,
       "tags": [
         "experimental",
         "audioreactive"
       ],
-      "buttonIcon": "c86c058d-1bda-2e94-08db-f3d6a96ac4a1.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "c86c058d-1bda-2e94-08db-f3d6a96ac4a1.png"
     },
     "fde6e778-0f7a-e584-38d6-89d44cee59f6": {
       "glslSource": "template",
@@ -7339,51 +2870,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 0.6,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0.001,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.02,
-          2.5
-        ],
-        "pressureSizeRange": [
-          0,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 37,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "fde6e778-0f7a-e584-38d6-89d44cee59f6.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "fde6e778-0f7a-e584-38d6-89d44cee59f6.png"
     },
     "f8ba3d18-01fc-4d7b-b2d9-b99d10b8e7cf": {
       "glslSource": "template",
@@ -7391,61 +2883,12 @@
       "vertexShader": "KeijiroTube-f8ba3d18-01fc-4d7b-b2d9-b99d10b8e7cf-v10.0-vertex.glsl",
       "fragmentShader": "KeijiroTube-f8ba3d18-01fc-4d7b-b2d9-b99d10b8e7cf-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.025,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          0,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "distance",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "experimental",
       "catalogOrder": 38,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "f8ba3d18-01fc-4d7b-b2d9-b99d10b8e7cf.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "f8ba3d18-01fc-4d7b-b2d9-b99d10b8e7cf.png"
     },
     "c5da2e70-a6e4-63a4-898c-5cfedef09c97": {
       "glslSource": "template",
@@ -7453,62 +2896,13 @@
       "vertexShader": "Lofted (Hue Shift)-c5da2e70-a6e4-63a4-898c-5cfedef09c97-v10.0-vertex.glsl",
       "fragmentShader": "Lofted (Hue Shift)-c5da2e70-a6e4-63a4-898c-5cfedef09c97-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.2,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.02,
-          0.5
-        ],
-        "pressureSizeRange": [
-          0.5,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "stretch",
-        "tubeShapeModifier": 1,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "experimental",
       "catalogOrder": 39,
       "tags": [
         "experimental",
         "audioreactive"
       ],
-      "buttonIcon": "c5da2e70-a6e4-63a4-898c-5cfedef09c97.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "c5da2e70-a6e4-63a4-898c-5cfedef09c97.png"
     },
     "62fef968-e842-3224-4a0e-1fdb7cfb745c": {
       "glslSource": "template",
@@ -7516,61 +2910,12 @@
       "vertexShader": "Wire (Lit)-62fef968-e842-3224-4a0e-1fdb7cfb745c-v10.0-vertex.glsl",
       "fragmentShader": "Wire (Lit)-62fef968-e842-3224-4a0e-1fdb7cfb745c-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.01,
-          1.5
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "tubeCapAspect": 0.8,
-        "tubeSideCount": 8,
-        "tubeEndCaps": true,
-        "tubeHardEdges": false,
-        "tubeUvStyle": "distance",
-        "tubeShapeModifier": 0,
-        "tubeTaperScalar": 1,
-        "tubePetalDisplacementAmount": 0.5,
-        "tubePetalDisplacementExponent": 3,
-        "tubeBreakAngleMultiplier": 8
-      },
       "catalogSection": "experimental",
       "catalogOrder": 40,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "62fef968-e842-3224-4a0e-1fdb7cfb745c.png",
-      "generatorClass": "TubeBrush",
-      "generatorFamily": "tube"
+      "buttonIcon": "62fef968-e842-3224-4a0e-1fdb7cfb745c.png"
     },
     "d120944d-772f-4062-99c6-46a6f219eeaf": {
       "glslSource": "template",
@@ -7592,52 +2937,13 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1.5,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": true,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 0.98,
-        "brushSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureSizeRange": [
-          1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 41,
       "tags": [
         "experimental",
         "audioreactive"
       ],
-      "buttonIcon": "d120944d-772f-4062-99c6-46a6f219eeaf.png",
-      "generatorClass": "QuadStripBrushStretchUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "d120944d-772f-4062-99c6-46a6f219eeaf.png"
     },
     "d9cc5e99-ace1-4d12-96e0-4a7c18c99cfc": {
       "glslSource": "template",
@@ -7645,52 +2951,13 @@
       "vertexShader": "Fairy-d9cc5e99-ace1-4d12-96e0-4a7c18c99cfc-v10.0-vertex.glsl",
       "fragmentShader": "Fairy-d9cc5e99-ace1-4d12-96e0-4a7c18c99cfc-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.2,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 42,
       "tags": [
         "experimental",
         "audioreactive"
       ],
-      "buttonIcon": "d9cc5e99-ace1-4d12-96e0-4a7c18c99cfc.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "d9cc5e99-ace1-4d12-96e0-4a7c18c99cfc.png"
     },
     "bdf65db2-1fb7-4202-b5e0-c6b5e3ea851e": {
       "glslSource": "template",
@@ -7698,52 +2965,13 @@
       "vertexShader": "Space-bdf65db2-1fb7-4202-b5e0-c6b5e3ea851e-v10.0-vertex.glsl",
       "fragmentShader": "Space-bdf65db2-1fb7-4202-b5e0-c6b5e3ea851e-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.2,
-        "textureAtlasV": 1,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 43,
       "tags": [
         "experimental",
         "audioreactive"
       ],
-      "buttonIcon": "bdf65db2-1fb7-4202-b5e0-c6b5e3ea851e.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "bdf65db2-1fb7-4202-b5e0-c6b5e3ea851e.png"
     },
     "30cb9af6-be41-4872-8f3e-cbff63fe3db8": {
       "glslSource": "template",
@@ -7751,51 +2979,12 @@
       "vertexShader": "Digital-30cb9af6-be41-4872-8f3e-cbff63fe3db8-v10.0-vertex.glsl",
       "fragmentShader": "Digital-30cb9af6-be41-4872-8f3e-cbff63fe3db8-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.2,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 44,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "30cb9af6-be41-4872-8f3e-cbff63fe3db8.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "30cb9af6-be41-4872-8f3e-cbff63fe3db8.png"
     },
     "abfbb2aa-70b4-4a5c-8126-8eedda2b3628": {
       "glslSource": "template",
@@ -7803,51 +2992,12 @@
       "vertexShader": "Race-abfbb2aa-70b4-4a5c-8126-8eedda2b3628-v10.0-vertex.glsl",
       "fragmentShader": "Race-abfbb2aa-70b4-4a5c-8126-8eedda2b3628-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.2,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0.04,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 45,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "abfbb2aa-70b4-4a5c-8126-8eedda2b3628.png",
-      "generatorClass": "QuadStripBrushDistanceUV",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "abfbb2aa-70b4-4a5c-8126-8eedda2b3628.png"
     },
     "355b3579-bf1d-4ff5-a200-704437fe684b": {
       "glslSource": "template",
@@ -7855,52 +3005,13 @@
       "vertexShader": "SmoothHull-355b3579-bf1d-4ff5-a200-704437fe684b-v10.0-vertex.glsl",
       "fragmentShader": "SmoothHull-355b3579-bf1d-4ff5-a200-704437fe684b-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.01,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.005,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": true,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 46,
       "tags": [
         "experimental",
         "hull"
       ],
-      "buttonIcon": "355b3579-bf1d-4ff5-a200-704437fe684b.png",
-      "generatorClass": "HullBrush",
-      "generatorFamily": "hull"
+      "buttonIcon": "355b3579-bf1d-4ff5-a200-704437fe684b.png"
     },
     "7259cce5-41c1-ec74-c885-78af28a31d95": {
       "glslSource": "template",
@@ -7935,51 +3046,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.7,
-          1.5
-        ],
-        "pressureSizeRange": [
-          0.5,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 2,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0.3,
-        "particlePositionVariance": 0.15,
-        "particleRotationVariance": 20,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 47,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "7259cce5-41c1-ec74-c885-78af28a31d95.png",
-      "generatorClass": "SprayBrush",
-      "generatorFamily": "particle"
+      "buttonIcon": "7259cce5-41c1-ec74-c885-78af28a31d95.png"
     },
     "7c972c27-d3c2-8af4-7bf8-5d9db8f0b7bb": {
       "glslSource": "template",
@@ -8014,53 +3086,12 @@
           }
         }
       },
-      "geometry": {
-        "tileRate": 1,
-        "textureAtlasV": 4,
-        "renderBackfaces": true,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1
-        ],
-        "pressureSizeRange": [
-          0.2,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": false,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ],
-        "ribbonUvStyle": "stretch",
-        "ribbonOffsetInTexcoord1": false
-      },
       "catalogSection": "experimental",
       "catalogOrder": 48,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "7c972c27-d3c2-8af4-7bf8-5d9db8f0b7bb.png",
-      "generatorClass": "FlatGeometryBrush",
-      "generatorFamily": "ribbon"
+      "buttonIcon": "7c972c27-d3c2-8af4-7bf8-5d9db8f0b7bb.png"
     },
     "7ae1f880-a517-44a0-99f9-1cab654498c6": {
       "glslSource": "template",
@@ -8068,51 +3099,12 @@
       "vertexShader": "ConcaveHull-7ae1f880-a517-44a0-99f9-1cab654498c6-v10.0-vertex.glsl",
       "fragmentShader": "ConcaveHull-7ae1f880-a517-44a0-99f9-1cab654498c6-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.01,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": false,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.005,
-          1
-        ],
-        "pressureSizeRange": [
-          0.1,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": true,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 51,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "7ae1f880-a517-44a0-99f9-1cab654498c6.png",
-      "generatorClass": "ConcaveHullBrush",
-      "generatorFamily": "hull"
+      "buttonIcon": "7ae1f880-a517-44a0-99f9-1cab654498c6.png"
     },
     "d3f3b18a-da03-f694-b838-28ba8e749a98": {
       "glslSource": "template",
@@ -8120,50 +3112,12 @@
       "vertexShader": "3D Printing Brush-d3f3b18a-da03-f694-b838-28ba8e749a98-v10.0-vertex.glsl",
       "fragmentShader": "3D Printing Brush-d3f3b18a-da03-f694-b838-28ba8e749a98-v10.0-fragment.glsl",
       "textures": {},
-      "geometry": {
-        "tileRate": 0.15,
-        "textureAtlasV": 1,
-        "renderBackfaces": false,
-        "backfaceHueShift": 0,
-        "tubeStoreRadiusInTexcoord0Z": true,
-        "opacity": 1,
-        "solidMinLengthMeters": 0.002,
-        "audioReactive": false,
-        "colorLuminanceMin": 0,
-        "colorSaturationMax": 1,
-        "brushSizeRange": [
-          0.05,
-          1
-        ],
-        "pressureSizeRange": [
-          0.9,
-          1
-        ],
-        "pressureOpacityRange": [
-          1,
-          1
-        ],
-        "m11Compatibility": true,
-        "particleRate": 1,
-        "sprayRateMultiplier": 1,
-        "particleSpeed": 0,
-        "particleInitialRotationRange": 0,
-        "particleRandomizeAlpha": false,
-        "particleSizeVariance": 0,
-        "particlePositionVariance": 0,
-        "particleRotationVariance": 360,
-        "particleSizeRatio": [
-          1,
-          1
-        ]
-      },
       "catalogSection": "experimental",
       "catalogOrder": 52,
       "tags": [
         "experimental"
       ],
-      "buttonIcon": "d3f3b18a-da03-f694-b838-28ba8e749a98.png",
-      "generatorClass": "Square3DPrintBrush"
+      "buttonIcon": "d3f3b18a-da03-f694-b838-28ba8e749a98.png"
     }
   }
 }

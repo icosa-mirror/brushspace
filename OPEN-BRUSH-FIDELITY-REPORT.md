@@ -1,16 +1,18 @@
 # Open Brush brush fidelity review
 
-Date: 2026-07-11
+Date: 2026-08-31
 
-Brushspace: `295a8ba`
+Brushspace baseline: `4579dbb`
 
 Open Brush: [`4786d55ad398bfc957d8e8eb26438920026aeaf6`](https://github.com/icosa-foundation/open-brush/tree/4786d55ad398bfc957d8e8eb26438920026aeaf6)
+
+Open Brush mesh-fixture generator: `b05324dbd` on `feature/brush-fixtures`
 
 ## Executive assessment
 
 Brushspace is a functional WebXR painting application derived from Open Brush concepts and assets. It is not currently a faithful port of Open Brush's brush runtime.
 
-The strongest mapping is the data layer: all 123 extracted GUIDs are present, shader and texture assets have been extracted, and the main `.tilt` stroke fields are represented. The required fidelity target matches Open Brush's authored picker catalogs: 48 standard brushes plus 47 experimental brushes. Four additional experimental entries are tagged `broken`, and 24 uncatalogued compatibility records remain loadable for old sketches but are not port requirements. Ribbon, tube, thick-strip, convex/concave-hull, and all three particle-generator families now have dedicated geometry paths, but mesh generation remains the largest gap for stamp, special, and several custom-deformation brushes. Export shaders cannot restore topology, smoothing, or brush-specific silhouette behavior that was never generated.
+The strongest mapping is the data and live-mesh layer: all 123 extracted GUIDs are present, shader and texture assets have been extracted, and the main `.tilt` stroke fields are represented. The required fidelity target matches Open Brush's authored picker catalogs: 48 standard brushes plus 47 experimental brushes. Four additional experimental entries are tagged `broken`, and 24 uncatalogued compatibility records remain loadable for old sketches but are not port requirements. All 95 required brushes now have shared geometry paths in `three-tiltloader` and pass the current deterministic Open Brush live-mesh fixture criteria. That result covers the fixture strokes and attributes described below; it does not establish post-BrushBaker, exported GLB, browser-image, incremental-authoring, or XR parity.
 
 Catalog scope and runtime visibility are independent of fidelity classification:
 
@@ -35,7 +37,7 @@ Estimated current fidelity:
 
 - Catalog and static assets: high, about 90%+.
 - Ordinary `.tilt` stroke fields: moderate to high, about 65-80%.
-- Live mesh generation across the catalog: moderate, about 45-60%.
+- Deterministic live-mesh fixtures: 95/95 required brushes pass the current family-specific criteria.
 - Materials: moderate across supported ribbon, tube, and particle families; low for Unity-only effects.
 - Overall Open Brush product parity: about 20-30%.
 
@@ -312,28 +314,31 @@ branches. They are not approved pins.
   are opaque white, so this restores shader behavior without claiming a visible
   stock-image difference. Electricity exposes the displacement modifier required
   to select its three Unity-equivalent material passes.
-- Approved `three-icosa` revision: `1868253`, based on trusted revision
-  `ab2cd19`. It retains package exports and declarations, the optional material
+- Approved `three-icosa` revision: `6ad0a05`, based on trusted revision
+  `1868253`. It retains package exports and declarations, the optional material
   factory hook whose default remains `RawShaderMaterial`, and the Digital/Race
   bindings. It applies generated authoritative color-space and sampler metadata
   by default for every known brush texture; an optional texture configurator
   runs afterward as an override, not as the source of correct defaults. Package
-  tests and Brushspace browser rendering pass. The earlier exact
+  tests and Gallery Viewer browser rendering pass; Brushspace's check suite and
+  production build pass against the updated pins. It also handles the maintained
+  Electricity export variants. The earlier exact
   `three-icosa@ab2cd19` distributable was also built into `gallery-viewer` and
-  used there to load and render an existing sketch. Revision `1868253` makes the
+  used there to load and render an existing sketch. Revision `1868253` made the
   required Electricity, Toon, and Tube Toon Inverted material passes normal GLTF
   extension behavior. Gallery Viewer builds from the exact pinned dependency.
   Visible Chrome verifies Tube Toon Inverted with a focused fixture and verifies
   Toon and Electricity within the maintained 48-mesh `all_brushes.glb` sketch.
-- Approved `three-tiltloader` revision: `045117a`, based on `5b610c0`. It pins
-  the approved `three-icosa` revision without changing the loader API or mesh
-  generation. Current trusted `three-tiltloader` work remains the place for reusable live
-  mesh generation. Changes there must reproduce the established Open Brush
-  export contract rather than require shaders to understand a new
-  Brushspace-only layout.
+- Approved `three-tiltloader` revision: `075dcea`. It pins
+  `three-icosa@6ad0a05` and contains the ribbon,
+  tube, particle, thick-strip, hull, ConcaveHull, and 3D Print fidelity changes.
+  Its deterministic comparator reports 95/95 required Open Brush fixtures as
+  matches under the family-specific criteria documented below. Changes there
+  must continue to reproduce Open Brush contracts rather than require shaders
+  to understand a Brushspace-only layout.
 
 Brushspace pins those approved revisions directly and uses
-`three-tiltloader@045117a` for shared geometry generation.
+`three-tiltloader@075dcea` for shared geometry generation.
 The quarantined integration branches remain diagnostic references only.
 
 This migration does not make the shaders equivalent to the Unity runtime shaders. The maintained web shaders remain ports of Open Brush behavior, and exact fidelity still depends on correct generated vertex contracts, render context, animation inputs, and brush-specific multiple material passes.
@@ -347,8 +352,8 @@ Move the implementation upstream incrementally: establish the neutral stroke/geo
 `Support/GlTFShaders` contains Open Brush's export/viewer shaders. They are primary-source approximations, but not translations of every Unity runtime pass, keyword, or render state. Forty-nine local shaders are produced from official templates. UI and reports should distinguish handcrafted export shaders, export templates, web fallbacks, and validated Unity-runtime ports rather than calling all of them the "real shader."
 
 All required material lookups use the maintained dependency path. Brushspace
-pins `icosa-sketch-assets@1c06159`, `three-icosa@1868253`, and
-`three-tiltloader@045117a`. Browser smoke testing reports 111/111 materials
+pins `icosa-sketch-assets@1c06159`, `three-icosa@6ad0a05`, and
+`three-tiltloader@075dcea`. Browser smoke testing reports 111/111 materials
 loaded with no shader compile errors; Oil Paint links with its 1024x1024 normal
 texture bound, and separate render gates reject black or empty output from
 Electricity, Toon, and Tube Toon Inverted. Dependency provenance and successful
@@ -512,55 +517,49 @@ Suggested gates:
    and asset extraction rejects a checkout at any other revision.
 4. Fix extraction output and regenerate through a temporary-directory byte comparison in CI.
 5. Extract every required prefab field, vertex layout, texture importer setting, render state, keyword, and environment dependency.
-6. Add pipeline fixtures spanning live mesh, post-BrushBaker mesh, UnityGLTF
-   attributes, post-`three-icosa` shader attributes, selected maintained-shader
-   branch, and `three-tiltloader` output. Cover all 20 BrushBaker mappings plus
-   ordinary pass-through, special `three-icosa` remaps, and indexed/non-indexed
-   particle cases where supported.
+6. Partially implemented: deterministic fixtures now compare Open Brush live
+   meshes with `three-tiltloader` output for all 95 required brushes. Still add
+   post-BrushBaker meshes, UnityGLTF attributes, post-`three-icosa` shader
+   attributes, and selected maintained-shader branches for the relevant export
+   paths, including all 20 BrushBaker mappings.
 7. Partially implemented: evidence states distinguish asset readiness, renderer
    eligibility, mesh contract, browser compile, XR compile, and persisted visual
    results. CI also checks active vertex/fragment varying links across all 95
-   required authoritative shader pairs. Mesh/image fixture automation and a
-   complete XR matrix remain open.
+   required authoritative shader pairs. The source live-mesh fixture gate is
+   95/95; browser-image automation and a complete XR matrix remain open.
 8. Partially implemented: the browser route now reproduces the existing Open
    Brush `UiScreenshotter` path, perspective framing, fixed shader time, and
-   stroke seed without generator-specific control-point mutations. Unity mesh
-   dumping and automated image comparison remain open;
+   stroke seed without generator-specific control-point mutations. Deterministic
+   Unity live-mesh dumping is implemented; automated image comparison remains open;
    do not replace the existing screenshot corpus with a new visual target.
 
 Exit: CI explains exactly why every GUID passes or fails.
 
-### Phase 1: exact ribbons (3-5 engineer-weeks)
+### Phase 1: ribbons (live-mesh fixtures implemented)
 
-1. Establish the typed-array stroke/geometry API in `three-tiltloader`, move the ribbon generators and tests there, and consume them from Brushspace.
-2. Port knot smoothing, frame, breaks, and incremental rebuild rules.
-3. Split distance, stretch, and unitized UV algorithms.
-4. Add physical-length UVs, tile rate, atlas rows, deterministic offsets, and segment restart.
-5. Emit explicit backfaces/hue shift, normals, tangents, and source vertex layouts.
-6. Apply opacity and color constraints.
-7. Validate DoubleTapered and Electricity against Unity mesh/image fixtures.
+The typed-array ribbon generators and tests live in `three-tiltloader` and are
+consumed by Brushspace. The current source fixtures cover QuadStrip/Flat frames,
+breaks, UV modes, physical-length UVs, atlas selection, backfaces, normals,
+tangents, color, and pressure behavior. Required ribbon brushes pass the live-mesh
+gate. Incremental adjacent-knot rebuild behavior and browser/image validation for
+brush-specific deformation remain open.
 
-Exit: default ribbon fixtures pass mesh and image gates.
+### Phase 2: tubes (live-mesh fixtures implemented)
 
-### Phase 2: exact tubes (3-5 engineer-weeks)
-
-1. Move the tube generators and tests into `three-tiltloader` and switch Brushspace to the shared API.
-2. Honor side count, caps, hard edges, UV style, break sensitivity, and modifiers per prefab.
-3. Port source cap/ring topology and circumference-based UVs.
-4. Add radius packing and tangents.
-5. Validate Disco and LightWire deformation against Unity mesh/image fixtures.
-6. Validate culling rather than forcing tubes double-sided.
-
-Exit: tube topology/attributes match Unity and default tubes pass images.
+The shared tube generators now cover side count, caps, hard edges, source frame
+attributes, distance/circumference UVs, radius packing, tangents, transitions,
+and configured modifiers. Required tube brushes pass the live-mesh fixture gate.
+Browser/image validation of deformation and culling, including Disco and
+LightWire, remains open.
 
 ### Phase 3: materials and shader context (3-6 engineer-weeks, overlaps 1-2)
 
 1. Implemented: repin the three dependencies to the reviewed revisions and load
    all 111 configured materials without modifying maintained shader source.
-2. Implemented upstream and package-tested: the optional `three-icosa` material
-   factory preserves the existing default `RawShaderMaterial` and adds an
-   explicit opt-in factory. Still required: visually exercise `gallery-viewer`
-   against the exact pinned checkout.
+2. Implemented upstream, package-tested, and exercised in Gallery Viewer against
+   the exact pinned checkout: the optional `three-icosa` material factory
+   preserves the existing default `RawShaderMaterial` and adds an explicit
+   opt-in factory.
 3. Define a typed vertex-layout registry shared by `three-tiltloader` geometry and the Brushspace/`three-icosa` binding adapter.
 4. Preserve the authoritative texture color/sampler metadata.
 5. Complete render-state mapping without introducing transparency behavior absent from Open Brush.
@@ -573,22 +572,26 @@ Exit: tube topology/attributes match Unity and default tubes pass images.
 10. Add per-GUID diagnostics and late material upgrades.
 11. Validate bloom/tone mapping on desktop and Quest.
 
-### Phase 4: particles (5-8 engineer-weeks)
+### Phase 4: particles (live-mesh fixtures implemented)
 
-1. Move the particle generators and tests into `three-tiltloader` and switch Brushspace to the shared API.
-2. Port deterministic stateless RNG and Open Brush salts.
-3. Port distance-based spawning and generator-specific placement.
-4. Add 4D UV0, UV1/UV2, center, birth, rotation, velocity, and vertex ID attributes.
-5. Port preview decay and finalization.
-6. Validate phase after `.tilt` load, collaboration, and undo/redo.
-
-Exit: all 17 particle-family brushes have tested behavior; no static-quad placeholder remains.
+The particle generators and tests live in `three-tiltloader` and Brushspace uses
+the shared API. Deterministic RNG/salts, distance spawning, generator-specific
+placement, source frame vectors, packed UVs, and birth data are represented in
+the current live-mesh fixtures; package tests cover preview behavior and
+finalization. Required particle brushes pass the fixture gate. Phase behavior
+after collaboration and undo/redo, plus browser-image and XR validation, remains
+open.
 
 ### Phase 5: required special generators (implemented)
 
 The required hull, ConcaveHull, ThickGeometry, SquarePaper, and 3D Printing
-Brush paths are implemented. Remaining work is fixture-level parity and
-hardening rather than an unmapped required generator.
+Brush paths are implemented and pass the current live-mesh fixture criteria.
+Hull fixtures compare polygonal faces instead of triangle indices because valid
+convex-hull libraries can triangulate the same face differently. ConcaveHull uses
+a deliberately weaker rule: every Open Brush surface vertex must be represented
+within tolerance, while additional decomposition is permitted. Its pass does not
+claim identical face decomposition or triangle indices. Rendering and incremental
+hardening remain separate work.
 Compatibility-only Blocks, Plait/Braid, holiday, SVG, PBR, and environment
 cases are explicitly outside the 95-brush target and remain import-only until
 their scope is reconsidered.
@@ -626,8 +629,9 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
 
 ## Immediate backlog
 
-1. Implemented: Gallery Viewer pins `three-icosa@1868253` and builds its deployed
-   module from that exact dependency. The loader applies required brush material
+1. Implemented: Gallery Viewer pins `three-icosa@6ad0a05` and
+   `three-tiltloader@075dcea`, and builds its deployed module from those exact
+   dependencies. The loader applies required brush material
    passes automatically. Its visible-Chrome gate verifies Tube Toon Inverted
    against a focused fixture and verifies Toon plus all 48 shader meshes in the
    maintained `all_brushes.glb` sketch. The same existing-sketch gate verifies
@@ -642,25 +646,27 @@ Broad parity is therefore a multi-year solo effort or roughly a 9-18 month progr
    111/111 WebGL compile check and deterministic Oil Paint coverage gate in
    installed Chrome, locally and in CI. The same gate renders Electricity and
    both Toon brushes and rejects black or empty output.
-4. Add live Unity, post-BrushBaker, exported GLB, and post-`three-icosa` geometry
-   dumps to the deterministic fixture and compare the final shader-facing
-   contract with `three-tiltloader` output.
+4. Live Unity mesh fixtures and `three-tiltloader` comparison are implemented for
+   all 95 required brushes. Add post-BrushBaker, exported GLB, and
+   post-`three-icosa` fixtures for export-path fidelity; these are different
+   contracts and must not replace the live-mesh gate.
 5. Implemented: reproduce that fixture path, camera, seed, and fixed shader time
    in the browser for per-GUID comparison.
 6. Replace renderer-eligibility labels with persisted mesh/browser/XR/image evidence.
 7. Fail loudly when an extracted required vertex contract is unimplemented.
-8. In progress: self-intersection width shrinking and finalized second-pass
-   FlatGeometry smoothing are implemented; incremental adjacent-knot rebuild
-   behavior still needs parity.
-9. Byte-compare tube caps/rings and port Disco and LightWire layouts.
-10. Port preview decay and exact time conversion by producing the established
-    particle attributes; do not add Brushspace-specific shader inputs.
+8. Live ribbon fixtures pass; incremental adjacent-knot rebuild behavior still
+   needs parity and image validation.
+9. Live tube fixtures pass; validate Disco and LightWire deformation in browser
+   images and XR.
+10. Live particle fixtures pass; validate timing through collaboration,
+    undo/redo, browser images, and XR without adding Brushspace-specific inputs.
 11. Connect batching to production rendering.
 12. Persist the browser/Quest shader compile matrix.
 13. Implemented: preserve trusted texture transforms, render states, and
     extracted importer sampler/color-space settings. Guarded normal
     mapping still requires verification on physical Quest.
-14. Move reusable `.tilt` parsing and mesh generators into `three-tiltloader` family by family, switching Brushspace to each upstream implementation before deleting its local copy.
+14. Implemented: reusable `.tilt` parsing and required mesh generators live in
+    `three-tiltloader`; Brushspace consumes them through its thin adapter.
 
 ## Primary references
 

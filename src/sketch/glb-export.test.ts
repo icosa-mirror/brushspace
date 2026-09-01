@@ -7,7 +7,7 @@ import { createReferenceMediaAsset, toMediaReference } from "./media-assets.js";
 import { createEmptyStrokeData } from "../types.js";
 
 const LIGHT_BRUSH_GUID = "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62";
-const MYLAR_TUBE_GUID = "8e58ceea-7830-49b4-aba9-6215104ab52a";
+const RADIUS_PACKED_TUBE_GUID = "4391aaaa-df81-4396-9e33-31e4e4930b27";
 
 describe("Open Brush GLB export", () => {
   it("exports a valid binary GLB with stroke geometry and metadata extras", () => {
@@ -123,7 +123,7 @@ describe("Open Brush GLB export", () => {
         strokes: [
           createEmptyStrokeData({
             guid: "radius-packed-tube",
-            brushGuid: MYLAR_TUBE_GUID,
+            brushGuid: RADIUS_PACKED_TUBE_GUID,
             brushSize: 0.2,
             color: [1, 1, 1, 1],
             layerIndex: 0,
@@ -160,7 +160,11 @@ describe("Open Brush GLB export", () => {
     expect(standardUv.type).toBe("VEC2");
     expect(packedUv.type).toBe("VEC3");
     expect(packedUv.count).toBe(standardUv.count);
-    expect(view.getFloat32(offset + 2 * 4, true)).toBeCloseTo(0.1);
+    const byteStride = bufferView.byteStride ?? 3 * 4;
+    const packedRadii = Array.from({ length: packedUv.count }, (_, index) =>
+      view.getFloat32(offset + index * byteStride + 2 * 4, true),
+    );
+    expect(Math.max(...packedRadii)).toBeCloseTo(0.1);
   });
 
   it("keeps layer roots and buffer views internally consistent", () => {

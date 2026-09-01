@@ -1,23 +1,20 @@
 import { normalizeGuid } from "../sketch/binary.js";
 import type { BrushSizeRange } from "./brush-size.js";
+import {
+  getOpenBrushGeometryDefaults,
+  type BrushGeometryFamily as TiltBrushGeometryFamily,
+  type BrushGeometryParams as TiltBrushGeometryParams,
+  type BrushPressureOpacityRange as TiltBrushPressureOpacityRange,
+  type BrushPressureSizeRange as TiltBrushPressureSizeRange,
+} from "three-tiltloader";
 
 export type BrushSupportStatus = "supported" | "fallback" | "unsupported";
 export type BrushFidelityConfidence =
   | "likely-mostly-correct"
   | "unverified-or-likely-substantially-wrong";
-export type BrushPressureSizeRange = readonly [number, number];
-export type BrushPressureOpacityRange = readonly [number, number];
-
-export type BrushGeometryFamily =
-  | "ribbon"
-  | "tube"
-  | "thick-strip"
-  | "hull"
-  | "concave-hull"
-  | "print3d"
-  | "emissive"
-  | "particle"
-  | "unsupported";
+export type BrushPressureSizeRange = TiltBrushPressureSizeRange;
+export type BrushPressureOpacityRange = TiltBrushPressureOpacityRange;
+export type BrushGeometryFamily = TiltBrushGeometryFamily;
 
 export type BrushMaterialFamily =
   | "standard"
@@ -70,53 +67,7 @@ export interface BrushTextureImporterSettings {
   mipBias: number;
 }
 
-export interface BrushGeometryParams {
-  brushSizeRange?: BrushSizeRange;
-  tileRate?: number;
-  textureAtlasV?: number;
-  renderBackfaces?: boolean;
-  backfaceHueShift?: number;
-  tubeStoreRadiusInTexcoord0Z?: boolean;
-  tubeCapAspect?: number;
-  tubeSideCount?: number;
-  tubeEndCaps?: boolean;
-  tubeHardEdges?: boolean;
-  tubeUvStyle?: "distance" | "stretch";
-  tubeShapeModifier?: number;
-  tubeTaperScalar?: number;
-  tubePetalDisplacementAmount?: number;
-  tubePetalDisplacementExponent?: number;
-  tubeBreakAngleMultiplier?: number;
-  ribbonUvStyle?: "distance" | "stretch";
-  ribbonOffsetInTexcoord1?: boolean;
-  m11Compatibility?: boolean;
-  opacity?: number;
-  solidMinLengthMeters?: number;
-  audioReactive?: boolean;
-  colorLuminanceMin?: number;
-  colorSaturationMax?: number;
-  particleRate?: number;
-  sprayRateMultiplier?: number;
-  particleSpeed?: number;
-  particleInitialRotationRange?: number;
-  particleRandomizeAlpha?: boolean;
-  particleSizeVariance?: number;
-  particlePositionVariance?: number;
-  particleRotationVariance?: number;
-  particleSizeRatio?: [number, number];
-  hullFaceted?: boolean;
-}
-
-/** Geometry generator family resolved from the Unity brush prefab. */
-export type BrushGeneratorFamily =
-  | "ribbon"
-  | "tube"
-  | "particle"
-  | "quad-stamp"
-  | "thick-strip"
-  | "geometry"
-  | "hull"
-  | "print3d";
+export type BrushGeometryParams = TiltBrushGeometryParams;
 
 /** Raw shape of one entry in src/brushes/generated/brush-assets.json. */
 export interface BrushAssetRecord {
@@ -134,13 +85,6 @@ export interface BrushAssetRecord {
       importer?: BrushTextureImporterSettings;
     }
   >;
-  geometry?: BrushGeometryParams & {
-    brushSizeRange?: [number, number];
-    pressureSizeRange?: [number, number];
-    pressureOpacityRange?: [number, number];
-  };
-  generatorClass?: string;
-  generatorFamily?: BrushGeneratorFamily;
   supersededByGuid?: string;
   /** Open Brush GUI tags from the descriptor (e.g. "default", "experimental", "audioreactive"). */
   tags?: string[];
@@ -206,14 +150,12 @@ const DEFAULT_PRESSURE_OPACITY_RANGE: BrushPressureOpacityRange = [1, 1];
 function resolveBrushSupport(
   brush: OpenBrushExportBrush,
   record: BrushAssetRecord | undefined,
+  defaults: ReturnType<typeof getOpenBrushGeometryDefaults>,
 ): BrushSupportDecision {
-  const generatorFamily =
-    record?.generatorClass === "SquareBrush"
-      ? "tube"
-      : record?.generatorClass === "Square3DPrintBrush"
-        ? "print3d"
-        : record?.generatorFamily;
-  if (!record || !generatorFamily) {
+  const generatorFamily = defaults?.family;
+  const generatorClass = defaults?.generatorClass;
+  const geometryParams = defaults?.geometryParams;
+  if (!record || !defaults || generatorFamily === "unsupported") {
     return {
       supportStatus: "unsupported",
       geometryFamily: "unsupported",
@@ -238,9 +180,8 @@ function resolveBrushSupport(
     generatorFamily === "tube" ||
     generatorFamily === "thick-strip" ||
     generatorFamily === "print3d" ||
-    (generatorFamily === "hull" &&
-      (record.generatorClass === "HullBrush" ||
-        record.generatorClass === "ConcaveHullBrush"))
+    generatorFamily === "hull" ||
+    generatorFamily === "concave-hull"
   ) {
     const geometryFamily: BrushGeometryFamily =
       generatorFamily === "tube"
@@ -249,33 +190,30 @@ function resolveBrushSupport(
           ? "thick-strip"
           : generatorFamily === "print3d"
             ? "print3d"
-          : generatorFamily === "hull"
-            ? record.generatorClass === "ConcaveHullBrush"
-              ? "concave-hull"
-              : "hull"
+          : generatorFamily === "hull" || generatorFamily === "concave-hull"
+            ? generatorFamily
         : brush.blendMode === 2
           ? "emissive"
           : "ribbon";
     const hasWaveformContract =
       brush.name === "Waveform" &&
-      record.generatorClass === "QuadStripBrushStretchUV";
+      generatorClass === "QuadStripBrushStretchUV";
     const hasDoubleTaperedContract =
       (brush.name === "DoubleTaperedMarker" ||
         brush.name === "DoubleTaperedFlat") &&
-      record.generatorClass === "FlatGeometryBrush" &&
-      record.geometry?.ribbonOffsetInTexcoord1 === true;
+      generatorClass === "FlatGeometryBrush" &&
+      geometryParams?.ribbonOffsetInTexcoord1 === true;
     const hasElectricityContract =
       brush.name === "Electricity" &&
-      record.generatorClass === "FlatGeometryBrush" &&
-      record.geometry?.ribbonOffsetInTexcoord1 === true;
+      generatorClass === "FlatGeometryBrush" &&
+      geometryParams?.ribbonOffsetInTexcoord1 === true;
     const hasRadiusPackedTubeContract =
       (brush.name === "Disco" || brush.name === "LightWire") &&
-      record.generatorClass === "TubeBrush" &&
-      record.geometry?.tubeStoreRadiusInTexcoord0Z === true;
+      generatorClass === "TubeBrush" &&
+      geometryParams?.tubeStoreRadiusInTexcoord0Z === true;
     const hasHullContract =
-      generatorFamily === "hull" &&
-      (record.generatorClass === "HullBrush" ||
-        record.generatorClass === "ConcaveHullBrush");
+      (generatorFamily === "hull" || generatorFamily === "concave-hull") &&
+      (generatorClass === "HullBrush" || generatorClass === "ConcaveHullBrush");
     if (
       !record.vertexIsDefault &&
       !hasWaveformContract &&
@@ -309,11 +247,11 @@ function resolveBrushSupport(
 
   if (generatorFamily === "particle") {
     const hasGeniusParticleContract =
-      record.generatorClass === "GeniusParticlesBrush";
+      generatorClass === "GeniusParticlesBrush";
     const hasSprayParticleContract =
-      record.generatorClass === "SprayBrush" && record.vertexIsDefault;
+      generatorClass === "SprayBrush" && record.vertexIsDefault;
     const hasMidpointParticleContract =
-      record.generatorClass === "MidpointPlusLifetimeSprayBrush" &&
+      generatorClass === "MidpointPlusLifetimeSprayBrush" &&
       (record.vertexIsDefault || brush.name === "HyperGrid");
     const hasParticleContract =
       hasGeniusParticleContract ||
@@ -343,7 +281,7 @@ function resolveBrushSupport(
 }
 
 function toRange(
-  value: [number, number] | undefined,
+  value: readonly [number, number] | undefined,
   fallback: readonly [number, number],
   minimum = 0,
 ): readonly [number, number] {
@@ -396,7 +334,8 @@ export function buildBrushInventoryFromExportManifest(
     }
 
     const assetRecord = assetRecords?.[guid];
-    const support = resolveBrushSupport(brush, assetRecord);
+    const geometryDefaults = getOpenBrushGeometryDefaults(guid);
+    const support = resolveBrushSupport(brush, assetRecord, geometryDefaults);
     const fidelityConfidence: BrushFidelityConfidence =
       support.supportStatus === "supported"
         ? "likely-mostly-correct"
@@ -414,29 +353,29 @@ export function buildBrushInventoryFromExportManifest(
       geometryFamily: support.geometryFamily,
       materialFamily: support.materialFamily,
       brushSizeRange: toRange(
-        assetRecord?.geometry?.brushSizeRange,
+        geometryDefaults?.geometryParams.brushSizeRange,
         DEFAULT_BRUSH_SIZE_RANGE,
         Number.MIN_VALUE,
       ),
       pressureSizeRange: toRange(
-        assetRecord?.geometry?.pressureSizeRange,
+        geometryDefaults?.pressureSizeRange,
         DEFAULT_PRESSURE_SIZE_RANGE,
       ),
       pressureOpacityRange: toRange(
-        assetRecord?.geometry?.pressureOpacityRange,
+        geometryDefaults?.pressureOpacityRange,
         DEFAULT_PRESSURE_OPACITY_RANGE,
       ),
       unsupportedReason: support.unsupportedReason,
       shaderAssets: toShaderAssetInfo(assetRecord),
-      geometryParams: assetRecord
+      geometryParams: geometryDefaults
         ? {
-            ...assetRecord.geometry,
-            ...(assetRecord.generatorClass === "HullBrush"
+            ...geometryDefaults.geometryParams,
+            ...(geometryDefaults.generatorClass === "HullBrush"
               ? { hullFaceted: brush.name !== "SmoothHull" }
               : {}),
           }
         : undefined,
-      generatorClass: assetRecord?.generatorClass,
+      generatorClass: geometryDefaults?.generatorClass,
       supersededByGuid: assetRecord?.supersededByGuid,
       tags,
       buttonIconFile: assetRecord?.buttonIcon,

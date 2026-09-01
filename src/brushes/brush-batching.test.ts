@@ -21,8 +21,9 @@ const fixtureStroke = createPhase1FixtureDocument().strokes[0];
 
 describe("brush batch planning", () => {
   it("groups compatible strokes while preserving hidden stroke membership", () => {
-    const first = withOverrides(fixtureStroke, { guid: "stroke-a" });
-    const second = withOverrides(fixtureStroke, { guid: "stroke-b" });
+    const brushGuid = "00000000-0000-0000-0000-000000000000";
+    const first = withOverrides(fixtureStroke, { guid: "stroke-a", brushGuid });
+    const second = withOverrides(fixtureStroke, { guid: "stroke-b", brushGuid });
     const firstGeometry = generateBrushGeometry(first, "ribbon");
     const secondGeometry = generateBrushGeometry(second, "ribbon");
 
