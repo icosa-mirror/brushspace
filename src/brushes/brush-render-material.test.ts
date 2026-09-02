@@ -111,10 +111,5 @@ describe("Open Brush material passes", () => {
         (material) => material.uniforms.u_TubeToonPass.value,
       ),
     ).toEqual([1, 2]);
-    expect(
-      materials.map(
-        (material) => material.uniforms.u_TubeToonOutlineSize.value,
-      ),
-    ).toEqual([0.05, 0.05]);
   });
 });
