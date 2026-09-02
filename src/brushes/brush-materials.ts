@@ -1,3 +1,8 @@
+import {
+  getTiltBrushMaterialRenderState,
+  type TiltBrushMaterialRenderState,
+} from "three-icosa";
+
 import type { BrushInventoryEntry, BrushMaterialFamily } from "./brush-inventory.js";
 import type { Rgba } from "../types.js";
 
@@ -27,6 +32,7 @@ export interface BrushMaterialSpec {
   alphaCutoff: number;
   emissiveIntensity: number;
   textureSlots: BrushTextureSlot[];
+  authoritativeRenderState?: Readonly<TiltBrushMaterialRenderState>;
   warning?: string;
 }
 
@@ -57,13 +63,27 @@ export function createBrushMaterialSpec(
   base.alphaCutoff = getFloatParam(entry, "Cutoff");
   base.emissiveIntensity = getFloatParam(entry, "EmissionGain");
   base.textureSlots = createTextureSlots(entry);
-  base.blending = resolveBlendMode(entry, base.alphaCutoff);
-  base.transparent =
-    base.blending === "transparent" ||
-    base.blending === "additive";
-  base.depthWrite =
-    base.blending === "opaque" ||
-    base.blending === "alpha-cutout";
+  const authoritativeState = getTiltBrushMaterialRenderState(
+    entry.name,
+    entry.guid,
+  );
+  if (authoritativeState) {
+    base.authoritativeRenderState = authoritativeState;
+    base.blending = resolveAuthoritativeBlendMode(
+      authoritativeState,
+      entry,
+      base.alphaCutoff,
+    );
+    base.transparent = authoritativeState.transparent;
+    base.depthWrite = authoritativeState.depthWrite;
+    base.doubleSided = authoritativeState.doubleSided;
+  } else {
+    base.blending = resolveBlendMode(entry, base.alphaCutoff);
+    base.transparent =
+      base.blending === "transparent" || base.blending === "additive";
+    base.depthWrite =
+      base.blending === "opaque" || base.blending === "alpha-cutout";
+  }
   if (entry.supportStatus !== "supported") {
     base.shaderRewrite = "fallback";
     base.warning =
@@ -71,6 +91,20 @@ export function createBrushMaterialSpec(
       "Brush material is not supported yet; using fallback material.";
   }
   return base;
+}
+
+function resolveAuthoritativeBlendMode(
+  state: Readonly<TiltBrushMaterialRenderState>,
+  entry: BrushInventoryEntry,
+  alphaCutoff: number,
+): BrushBlendingMode {
+  if (state.additive) {
+    return "additive";
+  }
+  if (state.transparent) {
+    return "transparent";
+  }
+  return entry.blendMode === 1 || alphaCutoff > 0 ? "alpha-cutout" : "opaque";
 }
 
 function createFamilyMaterialSpec(

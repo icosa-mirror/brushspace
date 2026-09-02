@@ -312,6 +312,14 @@ export class StrokeAuthoringSystem extends createSystem({
           return;
         }
         const loadedCount = materials.filter(Boolean).length;
+        const loadFailures = shaderBrushes
+          .filter((_, index) => !materials[index])
+          .map((entry) => entry.name);
+        if (loadFailures.length > 0) {
+          console.error(
+            `[OpenBrushMaterialLoad] Failed brushes: ${loadFailures.join(", ")}`,
+          );
+        }
         const cullingFailures = shaderBrushes.flatMap((entry, index) => {
           if (!entry.portRequired) {
             return [];
@@ -1293,15 +1301,35 @@ export class StrokeAuthoringSystem extends createSystem({
         );
       }
     }
+    const authoritativeState = materialSpec.authoritativeRenderState;
     return new MeshBasicMaterial({
       vertexColors: materialSpec.vertexColors,
-      side: materialSpec.doubleSided ? DoubleSide : FrontSide,
       opacity,
-      transparent: materialSpec.transparent,
-      depthWrite: materialSpec.depthWrite,
       alphaTest: materialSpec.alphaCutoff,
-      blending:
-        materialSpec.blending === "additive" ? AdditiveBlending : NormalBlending,
+      ...(authoritativeState
+        ? {
+            side: authoritativeState.side,
+            transparent: authoritativeState.transparent,
+            depthWrite: authoritativeState.depthWrite,
+            depthTest: authoritativeState.depthTest,
+            depthFunc: authoritativeState.depthFunc,
+            blending: authoritativeState.blending,
+            blendSrc: authoritativeState.blendSrc,
+            blendDst: authoritativeState.blendDst,
+            blendEquation: authoritativeState.blendEquation,
+            blendSrcAlpha: authoritativeState.blendSrcAlpha,
+            blendDstAlpha: authoritativeState.blendDstAlpha,
+            blendEquationAlpha: authoritativeState.blendEquationAlpha,
+          }
+        : {
+            side: materialSpec.doubleSided ? DoubleSide : FrontSide,
+            transparent: materialSpec.transparent,
+            depthWrite: materialSpec.depthWrite,
+            blending:
+              materialSpec.blending === "additive"
+                ? AdditiveBlending
+                : NormalBlending,
+          }),
     });
   }
 

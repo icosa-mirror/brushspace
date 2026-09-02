@@ -20,7 +20,8 @@ import {
   WebGLRenderer,
 } from "@iwsdk/core";
 import {
-  isTiltBrushMaterialDoubleSided,
+  getTiltBrushMaterialRenderState,
+  hasTiltBrushMaterial,
   TiltShaderLoader,
 } from "three-icosa";
 
@@ -49,104 +50,6 @@ import { createIwsdkTiltMaterial } from "./iwsdk-tilt-material.js";
 import { applyBrushTextureImporterSettings } from "./brush-texture-settings.js";
 
 const AUTHORITATIVE_BRUSH_ASSET_URL = resolveBrushAssetBaseUrl();
-const AUTHORITATIVE_MATERIAL_GUIDS = new Set([
-  "f72ec0e7-a844-4e38-82e3-140c44772699", // Oil Paint
-  "f5c336cf-5108-4b40-ade9-c687504385ab", // Ink
-  "75b32cf0-fdd6-4d89-a64b-e2a00b247b0f", // Thick Paint
-  "b67c0e81-ce6d-40a8-aeb0-ef036b081aa3", // Wet Paint
-  "d0262945-853c-4481-9cbd-88586bed93cb", // Duct Tape
-  "f1114e2e-eb8d-4fde-915a-6e653b54e9f5", // Paper
-  "dce872c2-7b49-4684-b59b-c45387949c5c", // Hypercolor
-  "429ed64a-4e97-4466-84d3-145a861ef684", // Marker
-  "d90c6ad8-af0f-4b54-b422-e0f92abe1b3c", // Tapered Marker
-  "cf019139-d41c-4eb0-a1d0-5cf54b0a42f3", // Highlighter
-  "2d35bcf0-e4d8-452c-97b1-3311be063130", // Flat
-  "b468c1fb-f254-41ed-8ec9-57030bc5660c", // Tapered Flat
-  "accb32f5-4509-454f-93f8-1df3fd31df1b", // Soft Highlighter
-  "2241cd32-8ba2-48a5-9ee7-2caef7e9ed62", // Light
-  "30cb9af6-be41-4872-8f3e-cbff63fe3db8", // Digital
-  "abfbb2aa-70b4-4a5c-8126-8eedda2b3628", // Race
-  "cb92b597-94ca-4255-b017-0e3f42f12f9e", // Fire
-  "ad1ad437-76e2-450d-a23a-e17f8310b960", // Rainbow
-  "d229d335-c334-495a-a801-660ac8a87360", // Velvet Ink
-  "10201aa3-ebc2-42d8-84b7-2e63f6eeb8ab", // Waveform
-  "5347acf0-a8e2-47b6-8346-30c70719d763", // Wiggly Graphite
-  "44bb800a-fbc3-4592-8426-94ecb05ddec3", // Streamers
-  "700f3aa8-9a7c-2384-8b8a-ea028905dd8c", // Cel Vinyl
-  "8dc4a70c-d558-4efd-a5ed-d4e860f40dc3", // Splatter
-  "1161af82-50cf-47db-9706-0c3576d43c43", // Coarse Bristles
-  "02ffb866-7fb2-4d15-b761-1012cefb1360", // Embers
-  "70d79cca-b159-4f35-990c-f02193947fe8", // Smoke
-  "d902ed8b-d0d1-476c-a8de-878a79e3a34c", // Snow
-  "0eb4db27-3f82-408d-b5a1-19ebd7d5b711", // Stars
-  "89d104cd-d012-426b-b5b3-bbaee63ac43c", // Bubbles
-  "6a1cf9f9-032c-45ec-9b1d-a6680bee30f7", // Dots
-  "0d3889f3-3ede-470c-8af4-de4813306126", // Double Tapered Marker
-  "0d3889f3-3ede-470c-8af4-f44813306126", // Double Tapered Flat
-  "f6e85de3-6dcc-4e7f-87fd-cee8c3d25d51", // Electricity
-  "b2ffef01-eaaa-4ab5-aa64-95a2c4f5dbc6", // Neon Pulse
-  "4391aaaa-df81-4396-9e33-31e4e4930b27", // Light Wire
-  "0f0ff7b2-a677-45eb-a7d6-0cd7206f4816", // Chromatic Wave
-  "4391385a-df73-4396-9e33-31e4e4930b27", // Toon
-  "4391385a-cf83-4396-9e33-31e4e4930b27", // Wire
-  "cf7f0059-7aeb-53a4-2b67-c83d863a9ffa", // Spikes
-  "4391aaaa-df73-4396-9e33-31e4e4930b27", // Disco
-  "2f212815-f4d3-c1a4-681a-feeaf9c6dc37", // Icing
-  "1caa6d7d-f015-3f54-3a4b-8b5354d39f81", // Comet
-  "faaa4d44-fcfb-4177-96be-753ac0421ba3", // Shiny Hull
-  "79348357-432d-4746-8e29-0e25c112e3aa", // Matte Hull
-  "a8fea537-da7c-4d4b-817f-24f074725d6d", // Unlit Hull
-  "c8313697-2563-47fc-832e-290f4c04b901", // Diamond Hull
-  "6a1cf9f9-032c-45ec-9b6e-a6680bee32e9", // HyperGrid
-  "e0abbc80-0f80-e854-4970-8924a0863dcc", // Petal
-  "d381e0f5-3def-4a0d-8853-31e9200bcbda", // Lofted
-  "d3f3b18a-da03-f694-b838-28ba8e749a98", // 3D Printing Brush
-  "1b897b7e-9b76-425a-b031-a867c48df409", // Gouache
-  "8e58ceea-7830-49b4-aba9-6215104ab52a", // Mylar Tube
-  "03a529e1-f519-3dd4-582d-2d5cd92c3f4f", // Rain
-  "725f4c6a-6427-6524-29ab-da371924adab", // Dry Brush
-  "ddda8745-4bb5-ac54-88b6-d1480370583e", // Leaky Pen
-  "50e99447-3861-05f4-697d-a1b96e771b98", // Sparks
-  "7136a729-1aab-bd24-f8b2-ca88b6adfb67", // Wind
-  "a8147ce1-005e-abe4-88e8-09a1eaadcc89", // Rising Bubbles
-  "9568870f-8594-60f4-1b20-dfbc8a5eac0e", // Tapered Wire
-  "2e03b1bf-3ebd-4609-9d7e-f4cafadc4dfa", // Square Paper
-  "39ee7377-7a9e-47a7-a0f8-0c77712f75d3", // Thick Geometry
-  "2c1a6a63-6552-4d23-86d7-58f6fba8581b", // Wireframe
-  "f28c395c-a57d-464b-8f0b-558c59478fa3", // Muscle
-  "99aafe96-1645-44cd-99bd-979bc6ef37c5", // Guts
-  "53d753ef-083c-45e1-98e7-4459b4471219", // Fire 2
-  "9871385a-df73-4396-9e33-31e4e4930b27", // Tube Toon Inverted
-  "d1d991f2-e7a0-4cf1-b328-f57e915e6260", // Dot Marker
-  "4391ffaa-df73-4396-9e33-31e4e4930b27", // Faceted Tube
-  "1a26b8c0-8a07-4f8a-9fac-d2ef36e0cad0", // Tapered Marker Flat
-  "c33714d1-b2f9-412e-bd50-1884c9d46336", // Plasma
-  "f0a2298a-be80-432c-9fee-a86dcc06f4f9", // SingleSided
-  "6a1cf9f9-032c-45ec-9b6e-a6680bee30f7", // Waveform Particles
-  "eba3f993-f9a1-4d35-b84e-bb08f48981a4", // Bubble Wand
-  "6a1cf9f9-032c-45ec-311e-a6680bee32e9", // Dance Floor
-  "0f5820df-cb6b-4a6c-960e-56e4c8000eda", // Waveform Tube
-  "492b36ff-b337-436a-ba5f-1e87ee86747e", // Drafting
-  "c1c9b26d-673a-4dc6-b373-51715654ab96", // Tube Additive
-  "a555b809-2017-46cb-ac26-e63173d8f45e", // Feather
-  "84d5bbb2-6634-8434-f8a7-681b576b4664", // Duct Tape Geometry
-  "3d9755da-56c7-7294-9b1d-5ec349975f52", // Tapered Hue Shift
-  "1cf94f63-f57a-4a1a-ad14-295af4f5ab5c", // Lacewing
-  "c86c058d-1bda-2e94-08db-f3d6a96ac4a1", // Marbled Rainbow
-  "fde6e778-0f7a-e584-38d6-89d44cee59f6", // Charcoal
-  "f8ba3d18-01fc-4d7b-b2d9-b99d10b8e7cf", // Keijiro Tube
-  "c5da2e70-a6e4-63a4-898c-5cfedef09c97", // Lofted Hue Shift
-  "62fef968-e842-3224-4a0e-1fdb7cfb745c", // Wire Lit
-  "d120944d-772f-4062-99c6-46a6f219eeaf", // Waveform FFT
-  "d9cc5e99-ace1-4d12-96e0-4a7c18c99cfc", // Fairy
-  "bdf65db2-1fb7-4202-b5e0-c6b5e3ea851e", // Space
-  "355b3579-bf1d-4ff5-a200-704437fe684b", // Smooth Hull
-  "7259cce5-41c1-ec74-c885-78af28a31d95", // Leaves 2
-  "7c972c27-d3c2-8af4-7bf8-5d9db8f0b7bb", // Ink Geometry
-  "f4a0550c-332a-4e1a-9793-b71508f4a454", // Double Flat
-  "7ae1f880-a517-44a0-99f9-1cab654498c6", // Concave Hull
-]);
-
 interface UniformHolder {
   value: unknown;
 }
@@ -223,8 +126,12 @@ export class BrushShaderLibrary {
   }
 
   expectedSide(entry: BrushInventoryEntry): number {
-    if (AUTHORITATIVE_MATERIAL_GUIDS.has(entry.guid)) {
-      return isTiltBrushMaterialDoubleSided(entry.name) ? DoubleSide : FrontSide;
+    const authoritativeState = getTiltBrushMaterialRenderState(
+      entry.name,
+      entry.guid,
+    );
+    if (authoritativeState) {
+      return authoritativeState.side;
     }
     return createBrushShaderMaterialDescriptor(entry)?.doubleSided
       ? DoubleSide
@@ -352,7 +259,7 @@ export class BrushShaderLibrary {
     options?: { allowAnyGeometry?: boolean },
     targetMaterials: Map<string, ShaderMaterial> = this.materials,
   ): Promise<ShaderMaterial | undefined> {
-    if (AUTHORITATIVE_MATERIAL_GUIDS.has(entry.guid)) {
+    if (hasTiltBrushMaterial(entry.name, entry.guid)) {
       return this.createAuthoritativeMaterial(entry, targetMaterials);
     }
     const descriptor = createBrushShaderMaterialDescriptor(entry, options);

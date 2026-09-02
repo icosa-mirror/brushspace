@@ -5,6 +5,7 @@ import {
   type BrushMaterialFamily,
 } from "./brush-inventory.js";
 import type { StrokeData } from "../types.js";
+import { createBrushMaterialSpec } from "./brush-materials.js";
 
 export interface StrokeBatchInput {
   stroke: StrokeData;
@@ -93,15 +94,13 @@ function createBatchKey(
 ): BrushBatchKey {
   const geometryFamily = entry?.geometryFamily ?? "unsupported";
   const materialFamily = entry?.materialFamily ?? "fallback";
+  const materialSpec = createBrushMaterialSpec(entry, stroke.color);
   return {
     layerIndex: stroke.layerIndex,
     brushGuid: stroke.brushGuid,
     geometryFamily,
     materialFamily,
-    transparent:
-      stroke.color[3] < 1 ||
-      materialFamily === "additive" ||
-      materialFamily === "particle",
+    transparent: materialSpec.transparent,
     shaderVariant: `${geometryFamily}:${materialFamily}`,
   };
 }

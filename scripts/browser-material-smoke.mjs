@@ -65,7 +65,12 @@ try {
   const consoleMessage = await readyMessage;
   const counts = consoleMessage.text().match(/ready: (\d+)\/(\d+)/);
   if (!counts || counts[1] !== counts[2]) {
-    throw new Error(`Material load gate failed: ${consoleMessage.text()}`);
+    const detail = consoleMessages.find((message) =>
+      message.startsWith("[OpenBrushMaterialLoad]"),
+    );
+    throw new Error(
+      `Material load gate failed: ${consoleMessage.text()} ${detail ?? "No failure detail reported."}`,
+    );
   }
 
   await page.waitForFunction(
