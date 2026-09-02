@@ -19,7 +19,10 @@ import {
   Vector4,
   WebGLRenderer,
 } from "@iwsdk/core";
-import { TiltShaderLoader } from "three-icosa";
+import {
+  isTiltBrushMaterialDoubleSided,
+  TiltShaderLoader,
+} from "three-icosa";
 
 import type { BrushInventoryEntry } from "./brush-inventory.js";
 import { resolveBrushAssetBaseUrl } from "./brush-asset-base-url.js";
@@ -217,6 +220,15 @@ export class BrushShaderLibrary {
       }
     }
     return false;
+  }
+
+  expectedSide(entry: BrushInventoryEntry): number {
+    if (AUTHORITATIVE_MATERIAL_GUIDS.has(entry.guid)) {
+      return isTiltBrushMaterialDoubleSided(entry.name) ? DoubleSide : FrontSide;
+    }
+    return createBrushShaderMaterialDescriptor(entry)?.doubleSided
+      ? DoubleSide
+      : FrontSide;
   }
 
   subscribeMaterialLoaded(

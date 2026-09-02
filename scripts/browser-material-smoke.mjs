@@ -46,7 +46,9 @@ try {
   });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   const pageErrors = [];
+  const consoleMessages = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
+  page.on("console", (message) => consoleMessages.push(message.text()));
 
   const readyMessage = page.waitForEvent("console", {
     predicate: (message) =>
@@ -89,8 +91,11 @@ try {
     () => document.documentElement.dataset.brushCullingSettings,
   );
   if (cullingStatus !== "pass") {
+    const detail = consoleMessages.find((message) =>
+      message.startsWith("[OpenBrushCulling]"),
+    );
     throw new Error(
-      `Required brush culling settings reported ${cullingStatus ?? "missing"}.`,
+      `Required brush culling settings reported ${cullingStatus ?? "missing"}: ${detail ?? "no diagnostic reported"}.`,
     );
   }
   const cutoutStatus = await page.evaluate(

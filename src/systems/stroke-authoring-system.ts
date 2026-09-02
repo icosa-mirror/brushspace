@@ -317,10 +317,12 @@ export class StrokeAuthoringSystem extends createSystem({
             return [];
           }
           const material = materials[index];
-          const expectedSide = entry.geometryParams?.renderBackfaces
-            ? DoubleSide
-            : FrontSide;
-          return material && material.side === expectedSide ? [] : [entry.name];
+          const expectedSide = openBrushShaderLibrary.expectedSide(entry);
+          return material && material.side === expectedSide
+            ? []
+            : [
+                `${entry.name}(actual=${material?.side ?? "missing"}, expected=${expectedSide}, renderBackfaces=${entry.geometryParams?.renderBackfaces ?? "unset"}, enableCull=${entry.enableCull})`,
+              ];
         });
         document.documentElement.dataset.brushCullingSettings =
           cullingFailures.length === 0 ? "pass" : "fail";
