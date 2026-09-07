@@ -1882,6 +1882,7 @@ export class StrokeAuthoringSystem extends createSystem({
       return;
     }
     stroke.geometryFinalized = true;
+    stroke.strokeData.lastControlPointIsKeeper = stroke.samplingMode !== "freehand" || stroke.lastPointIsKeeper;
     this.rebuildStrokeMesh(stroke);
     if (
       ((stroke.samplingMode === "straightedge" ||
@@ -2484,7 +2485,9 @@ export class StrokeAuthoringSystem extends createSystem({
     const runtime = this.remoteActiveStrokes.get(strokeData.guid);
     if (runtime) {
       runtime.geometryFinalized = true;
-      runtime.lastPointIsKeeper = false;
+      // Imported data has no provisional tail. Live commits carry the sender's
+      // sampler state so finalization matches its geometry instead of guessing.
+      runtime.lastPointIsKeeper = strokeData.lastControlPointIsKeeper ?? true;
       this.rebuildStrokeMesh(runtime);
       runtime.entity.setValue(BrushStroke, "finalized", true);
       this.commitFinalizedStrokeToBatch(runtime);
@@ -2601,7 +2604,7 @@ export class StrokeAuthoringSystem extends createSystem({
       strokeData,
       controlPoints: strokeData.controlPoints,
       lastPosition: [0, 0, 0],
-      lastPointIsKeeper: finalized,
+      lastPointIsKeeper: finalized && (strokeData.lastControlPointIsKeeper ?? true),
       lastKeeperSmoothedPressure: 0,
       solidMinLengthMeters: resolveGeneratorSolidMinLengthMeters({
         generatorClass: brushEntry?.generatorClass,

@@ -1,0 +1,242 @@
+{
+  "enabled": false,
+  "expectedIndices": 24,
+  "localReplay": {
+    "lastControlPointIsKeeper": false,
+    "sourceIndexCount": 204,
+    "remoteIndexCount": 204
+  },
+  "disposed": 1,
+  "observations": [
+    {
+      "stage": "baseline",
+      "batchTriangles": 0,
+      "compatible": 0,
+      "logicalBatched": 0,
+      "strokes": []
+    },
+    {
+      "stage": "progress",
+      "batchTriangles": 0,
+      "compatible": 0,
+      "logicalBatched": 0,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": false,
+          "indexCount": 12,
+          "visible": true,
+          "selected": false,
+          "batched": false,
+          "extracted": false,
+          "privateVisible": true,
+          "privateVertices": 256
+        }
+      ]
+    },
+    {
+      "stage": "finalized-hidden",
+      "batchTriangles": 0,
+      "compatible": 0,
+      "logicalBatched": 0,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": false,
+          "selected": false,
+          "batched": false,
+          "extracted": false,
+          "privateVisible": false,
+          "privateVertices": 256
+        }
+      ]
+    },
+    {
+      "stage": "replayed-final",
+      "batchTriangles": 0,
+      "compatible": 0,
+      "logicalBatched": 0,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": false,
+          "selected": false,
+          "batched": false,
+          "extracted": false,
+          "privateVisible": false,
+          "privateVertices": 256
+        }
+      ]
+    },
+    {
+      "stage": "shown",
+      "batchTriangles": 0,
+      "compatible": 0,
+      "logicalBatched": 0,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": false,
+          "batched": false,
+          "extracted": false,
+          "privateVisible": true,
+          "privateVertices": 256
+        }
+      ]
+    },
+    {
+      "stage": "selected",
+      "batchTriangles": 0,
+      "compatible": 0,
+      "logicalBatched": 0,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": true,
+          "batched": false,
+          "extracted": false,
+          "privateVisible": true,
+          "privateVertices": 256
+        }
+      ]
+    },
+    {
+      "stage": "remote-hide-selected",
+      "batchTriangles": 0,
+      "compatible": 0,
+      "logicalBatched": 0,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": false,
+          "selected": false,
+          "batched": false,
+          "extracted": false,
+          "privateVisible": false,
+          "privateVertices": 256
+        }
+      ]
+    },
+    {
+      "stage": "remote-show-after-selection",
+      "batchTriangles": 0,
+      "compatible": 0,
+      "logicalBatched": 0,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": false,
+          "batched": false,
+          "extracted": false,
+          "privateVisible": true,
+          "privateVertices": 256
+        }
+      ]
+    },
+    {
+      "stage": "finalized-while-selected",
+      "batchTriangles": 0,
+      "compatible": 0,
+      "logicalBatched": 0,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": false,
+          "batched": false,
+          "extracted": false,
+          "privateVisible": true,
+          "privateVertices": 256
+        },
+        {
+          "guid": "batch-validation-remote-selected-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": true,
+          "batched": false,
+          "extracted": false,
+          "privateVisible": true,
+          "privateVertices": 256
+        }
+      ]
+    },
+    {
+      "stage": "deselected-remote-final",
+      "batchTriangles": 0,
+      "compatible": 0,
+      "logicalBatched": 0,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": false,
+          "batched": false,
+          "extracted": false,
+          "privateVisible": true,
+          "privateVertices": 256
+        },
+        {
+          "guid": "batch-validation-remote-selected-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": false,
+          "batched": false,
+          "extracted": false,
+          "privateVisible": true,
+          "privateVertices": 256
+        }
+      ]
+    },
+    {
+      "stage": "dropped-selected-progress",
+      "batchTriangles": 0,
+      "compatible": 0,
+      "logicalBatched": 0,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": false,
+          "batched": false,
+          "extracted": false,
+          "privateVisible": true,
+          "privateVertices": 256
+        },
+        {
+          "guid": "batch-validation-remote-selected-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": false,
+          "batched": false,
+          "extracted": false,
+          "privateVisible": true,
+          "privateVertices": 256
+        }
+      ]
+    }
+  ]
+}

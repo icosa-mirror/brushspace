@@ -1,0 +1,242 @@
+{
+  "enabled": true,
+  "expectedIndices": 24,
+  "localReplay": {
+    "lastControlPointIsKeeper": false,
+    "sourceIndexCount": 204,
+    "remoteIndexCount": 204
+  },
+  "disposed": 1,
+  "observations": [
+    {
+      "stage": "baseline",
+      "batchTriangles": 1796,
+      "compatible": 204,
+      "logicalBatched": 205,
+      "strokes": []
+    },
+    {
+      "stage": "progress",
+      "batchTriangles": 1796,
+      "compatible": 204,
+      "logicalBatched": 206,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": false,
+          "indexCount": 12,
+          "visible": true,
+          "selected": false,
+          "batched": false,
+          "extracted": false,
+          "privateVisible": true,
+          "privateVertices": 256
+        }
+      ]
+    },
+    {
+      "stage": "finalized-hidden",
+      "batchTriangles": 1796,
+      "compatible": 204,
+      "logicalBatched": 207,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": false,
+          "selected": false,
+          "batched": true,
+          "extracted": false,
+          "privateVisible": false,
+          "privateVertices": 0
+        }
+      ]
+    },
+    {
+      "stage": "replayed-final",
+      "batchTriangles": 1796,
+      "compatible": 204,
+      "logicalBatched": 207,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": false,
+          "selected": false,
+          "batched": true,
+          "extracted": false,
+          "privateVisible": false,
+          "privateVertices": 0
+        }
+      ]
+    },
+    {
+      "stage": "shown",
+      "batchTriangles": 1804,
+      "compatible": 204,
+      "logicalBatched": 207,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": false,
+          "batched": true,
+          "extracted": false,
+          "privateVisible": false,
+          "privateVertices": 0
+        }
+      ]
+    },
+    {
+      "stage": "selected",
+      "batchTriangles": 1796,
+      "compatible": 204,
+      "logicalBatched": 207,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": true,
+          "batched": true,
+          "extracted": true,
+          "privateVisible": true,
+          "privateVertices": 24
+        }
+      ]
+    },
+    {
+      "stage": "remote-hide-selected",
+      "batchTriangles": 1796,
+      "compatible": 204,
+      "logicalBatched": 207,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": false,
+          "selected": false,
+          "batched": true,
+          "extracted": false,
+          "privateVisible": false,
+          "privateVertices": 0
+        }
+      ]
+    },
+    {
+      "stage": "remote-show-after-selection",
+      "batchTriangles": 1804,
+      "compatible": 204,
+      "logicalBatched": 207,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": false,
+          "batched": true,
+          "extracted": false,
+          "privateVisible": false,
+          "privateVertices": 0
+        }
+      ]
+    },
+    {
+      "stage": "finalized-while-selected",
+      "batchTriangles": 1804,
+      "compatible": 204,
+      "logicalBatched": 208,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": false,
+          "batched": true,
+          "extracted": false,
+          "privateVisible": false,
+          "privateVertices": 0
+        },
+        {
+          "guid": "batch-validation-remote-selected-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": true,
+          "batched": true,
+          "extracted": true,
+          "privateVisible": true,
+          "privateVertices": 24
+        }
+      ]
+    },
+    {
+      "stage": "deselected-remote-final",
+      "batchTriangles": 1812,
+      "compatible": 204,
+      "logicalBatched": 208,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": false,
+          "batched": true,
+          "extracted": false,
+          "privateVisible": false,
+          "privateVertices": 0
+        },
+        {
+          "guid": "batch-validation-remote-selected-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": false,
+          "batched": true,
+          "extracted": false,
+          "privateVisible": false,
+          "privateVertices": 0
+        }
+      ]
+    },
+    {
+      "stage": "dropped-selected-progress",
+      "batchTriangles": 1812,
+      "compatible": 208,
+      "logicalBatched": 208,
+      "strokes": [
+        {
+          "guid": "batch-validation-remote-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": false,
+          "batched": true,
+          "extracted": false,
+          "privateVisible": false,
+          "privateVertices": 0
+        },
+        {
+          "guid": "batch-validation-remote-selected-final",
+          "finalized": true,
+          "indexCount": 24,
+          "visible": true,
+          "selected": false,
+          "batched": true,
+          "extracted": false,
+          "privateVisible": false,
+          "privateVertices": 0
+        }
+      ]
+    }
+  ]
+}

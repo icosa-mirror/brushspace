@@ -13,6 +13,7 @@ import { readTiltFile, writeTiltFile } from "../sketch/tilt-file.js";
 import { BatchedBrushStroke, BrushSettings, BrushStroke, ExtractedBatchedBrushStroke, OpenBrushAppState, StrokeHistoryState } from "../components/core.js";
 import type { StrokeData } from "../types.js";
 import { OPEN_BRUSH_DROPPER_FORWARD_OFFSET } from "../tools/tools.js";
+import { exerciseStrokeBatchRemoteLifecycle } from "./stroke-batch-remote-validation.js";
 
 let validationWorld: World | undefined;
 
@@ -20,6 +21,7 @@ declare global {
   interface Window {
     exerciseStrokeBatchLifecycle?: typeof exerciseStrokeBatchLifecycle;
     inspectStrokeBatchHistory?: typeof inspectStrokeBatchHistory;
+    exerciseStrokeBatchRemoteLifecycle?: () => ReturnType<typeof exerciseStrokeBatchRemoteLifecycle>;
   }
 }
 
@@ -73,6 +75,7 @@ export async function setupStrokeBatchValidation(world: World): Promise<void> {
   validationWorld = world;
   window.exerciseStrokeBatchLifecycle = exerciseStrokeBatchLifecycle;
   window.inspectStrokeBatchHistory = inspectStrokeBatchHistory;
+  window.exerciseStrokeBatchRemoteLifecycle = () => exerciseStrokeBatchRemoteLifecycle(world);
   console.log(`[StrokeBatchValidation] Ready: ${count} finalized Flat strokes`);
 }
 

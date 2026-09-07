@@ -191,6 +191,19 @@ describe("collab message parsing", () => {
 });
 
 describe("stroke chunking", () => {
+  it.each([undefined, true, false])("preserves optional final-tail state %s", (lastControlPointIsKeeper) => {
+    const stroke = { ...testStroke(), lastControlPointIsKeeper };
+    const message = parseCollabMessage({ t: "stroke-begin", stroke, live: false });
+    expect(message?.t).toBe("stroke-begin");
+    if (message?.t === "stroke-begin") {
+      expect(message.stroke.lastControlPointIsKeeper).toBe(lastControlPointIsKeeper);
+    }
+  });
+
+  it.each([null, 0, "false"])("rejects invalid final-tail state %s", (lastControlPointIsKeeper) => {
+    expect(isValidStrokeData({ ...testStroke(), lastControlPointIsKeeper })).toBe(false);
+  });
+
   it("splits long point lists into wire-safe chunks", () => {
     const point = testStroke().controlPoints[0];
     const points = Array.from({ length: 2 * STROKE_POINTS_PER_MESSAGE + 7 }, () => ({

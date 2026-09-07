@@ -80,12 +80,16 @@ try {
     const inspectHistory = () => page.evaluate(() => window.inspectStrokeBatchHistory());
     const baselineHistory = await page.evaluate(() => window.inspectStrokeBatchHistory(true));
     const baselineGuids = new Set(baselineHistory.strokes.map((stroke) => stroke.guid));
-    const drawStroke = async (y) => {
+    const drawStroke = async (y, provisionalTail = false) => {
       await page.mouse.move(560, y);
       await page.mouse.down();
       for (let x = 570; x <= 730; x += 10) {
         await page.mouse.move(x, y);
         await page.waitForTimeout(30);
+      }
+      if (provisionalTail) {
+        await page.mouse.move(731, y);
+        await page.waitForTimeout(40);
       }
       await page.mouse.up();
       await page.waitForTimeout(250);
@@ -173,6 +177,9 @@ try {
     requireState(afterPickerDraw.undoDepth === pickerHit.undoDepth + 1 && afterPickerDraw.redoDepth === 0, "painting did not resume after releasing dropper press");
     requireState(afterPickerDraw.strokes.length === pickerHit.strokes.length + 1, "post-dropper gesture did not create a stroke");
     await writeFile(path.join(output, enabled ? "batched-picker.json" : "reference-picker.json"), JSON.stringify({ pickerBefore, pickerHidden, pickerMiss, pickerHit, afterPickerDraw }, null, 2));
+    await drawStroke(440, true);
+    const remote = await page.evaluate(() => window.exerciseStrokeBatchRemoteLifecycle());
+    await writeFile(path.join(output, enabled ? "batched-remote.json" : "reference-remote.json"), JSON.stringify(remote, null, 2));
     await page.close();
   }
   await writeFile(path.join(output, "results.json"), JSON.stringify({ browser: browser.version(), results }, null, 2));

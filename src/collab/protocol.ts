@@ -187,6 +187,7 @@ export function isValidStrokeData(value: unknown): value is StrokeData {
     typeof stroke.brushGuid === "string" &&
     Number.isFinite(stroke.brushSize) &&
     Number.isFinite(stroke.brushScale) &&
+    (stroke.lastControlPointIsKeeper === undefined || typeof stroke.lastControlPointIsKeeper === "boolean") &&
     isFiniteNumberArray(stroke.color, 4) &&
     Array.isArray(stroke.controlPoints) &&
     stroke.controlPoints.every(isValidControlPoint)

@@ -47,6 +47,8 @@ export interface StrokeData {
   groupId: number;
   guid: string;
   layerIndex: number;
+  /** Runtime/collaboration tail state; absent on imported persisted strokes. */
+  lastControlPointIsKeeper?: boolean;
 }
 
 export function createEmptyStrokeData(overrides: Partial<StrokeData>): StrokeData {
