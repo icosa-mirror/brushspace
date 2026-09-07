@@ -6,6 +6,12 @@
 2. `npm run check` passes: 74 test files, 519 tests passed, 4 todo. The new inventory-wide test checks managed batch keys against their actual descriptor-derived render state. Existing upload tests remain green.
 3. This checkpoint establishes deterministic contract agreement only. It does not close GPU fidelity, material-upgrade, animated-bounds, browser interaction or XR performance gates. Historical results below retain their original scope.
 
+### Runtime environment preflight: 2026-09-07
+
+1. A fresh visible Chrome instance launched through Playwright with its temporary automation profile, without SwiftShader arguments, successfully created WebGL2. `WEBGL_debug_renderer_info` reported `ANGLE (NVIDIA, NVIDIA GeForce RTX 4090 (0x00002684) Direct3D11 vs_5_0 ps_5_0, D3D11)`.
+2. This is a hardware-availability check, not a rendered batching comparison. The existing `browser-material-smoke.mjs` explicitly forces SwiftShader and must not be used unchanged as hardware performance evidence.
+3. Type checking passed before starting the CLI-managed HTTP runtime. No certificate setup was needed. Controlled Flat comparison, benchmark input location and matched capture settings are still pending; no runtime gate is closed by this preflight.
+
 ## 1. Current scope
 
 1. Branch: `claude/stroke-batching`.
