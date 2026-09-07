@@ -1,181 +1,105 @@
 # Stroke Batching Delivery Plan
 
-## 1. Decision summary
+## 1. Current decision
 
-1. Do not merge `claude/stroke-batching` into `main` in its current state. The data structures are isolated and tested, but no production path renders through them.
-2. Continue on `claude/stroke-batching` until one feature-flagged, end-to-end static batching path renders real finalized strokes and demonstrates fewer draw calls without changing the default renderer.
-3. Keep `BrushStroke` entities as the authoritative identity and editing state during the migration. A finalized batched stroke may have an empty transform entity rather than its own mesh, while `StrokeBatchManager` maps its GUID to a batch subset.
-4. Keep the live/in-progress local and remote stroke on its existing individual mesh. Commit its generated arrays into a batch only when the stroke is finalized.
-5. Treat unsupported or incompatible brushes as an explicit per-stroke fallback. Partial batching is preferable to breaking brush fidelity.
-6. Do not merge the separate `upstream/main` branch into either local branch. Its merge base with `origin/main` is old and the histories have diverged by 235 origin-only commits versus two upstream-only commits. Port the useful commits onto `main` as focused changes, then bring the updated `main` into the batching branch.
+1. The renderer and consumer routing are implemented on `claude/stroke-batching`. Remaining first-merge work is validation and fixes exposed by that validation; this is no longer an isolated data-structure foundation.
+2. Keep batching disabled by default. `?strokeBatches=1` admits finalized Flat strokes (`2d35bcf0-e4d8-452c-97b1-3311be063130`) once their managed material is available. Other strokes retain explicit per-stroke fallbacks.
+3. Keep logical stroke entities authoritative, live strokes on individual meshes, and selected batched strokes on temporary private geometry.
+4. Keep the runtime allowlist restricted to Flat until its applicable visual, lifecycle and performance gates pass. Static compatibility alone does not justify enabling a brush.
+5. This document owns decisions, outstanding work and gates. Attribute/material details belong in [the render contract](docs/stroke-batch-render-contract.md); measurements and artifacts belong in [the validation ledger](docs/stroke-batching-validation.md). Older phase labels in those documents are historical until refreshed.
 
-## 2. Current state
+## 2. Implementation and evidence status
 
-1. Commit `087fca3` adds `StrokeBatch`, `StrokeBatchPool`, and `StrokeBatchManager`.
-2. Commit `81303ef` records the pre-batching render baseline.
-3. The core supports subset ranges, index rebasing, index-zeroing hide/show, tail reclamation, pool selection by `BrushBatchKey`, and GUID-to-subset lookup.
-4. Twelve unit tests exercise the bookkeeping, including 500 strokes sharing one batch.
-5. The feature-flagged Phase 2 path now calls the batching core for finalized Flat strokes. `StrokeBatchRenderSystem` owns batch mesh entities, managed-material integration, geometry/topology uploads, aggregate bounds, visibility routing, cleanup, and runtime metrics behind `?strokeBatches=1`.
-6. The current renderer creates one transform entity and one mesh per stroke. `BrushStroke` queries drive save/load, collaboration, layers, selection, undo/redo, erasing, reveal, material upgrades, diagnostics, and export.
-7. `LayerCanvasSystem` writes `stroke.object3D.visible`. `SelectionSystem` moves `stroke.object3D.position`. Those behaviors cannot be redirected to a shared mesh by changing only stroke creation.
-8. Phase 0 is complete: the two reviewed upstream changes were ported to `main`, and the batching branch was updated from that baseline.
-9. Phase 1 now has an executable compatibility contract and checked-in audit at `docs/stroke-batch-render-contract.md`. The full supported inventory is managed-material batchable by the static contract, with explicit pass and supplemental-attribute variants; runtime batching still requires the managed shader to be loaded.
-10. Phase 2 implementation is present but its merge gate remains open: deterministic upload tests and the production build pass, while a GPU-backed visual comparison and measured draw-call reduction have not yet been recorded.
-11. Selection manipulation now uses temporary extraction: the subset is hidden while the private mesh moves, then its delta is applied once to batch vertices and serialized control points. Active extractions are committed before save. Deterministic tests cover mixed brush/layer batches, move/undo, selected deletion, and visibility restoration; runtime interaction validation remains outstanding.
-12. Reveal, layers, undo/redo, erasing, local and remote finalization, collaboration visibility, save/export, sketch replacement, and shared-material cleanup now route through the batch renderer while logical `BrushStroke` entities remain authoritative. The renderer owns private-mesh/subset visibility and publishes categorized fallback reasons; runtime interaction validation remains outstanding.
-13. A successfully committed stroke now disposes its private geometry. Selection reconstructs only the selected subset as a local private edit mesh, accounts for the entity's accumulated transform, and disposes that temporary geometry again when recommitted.
-14. The checked-in evidence ledger at `docs/stroke-batching-validation.md` separates deterministic passes from the GPU/browser/XR evidence that has not yet been recorded.
+Baseline: merge `1bd04d0`, incorporating `main` at `6b5a889` on 2026-09-07. Results describe that revision, not a permanent guarantee.
 
-## 3. Success criteria
+| Area | Implementation | Deterministic evidence | Runtime evidence outstanding |
+| --- | --- | --- | --- |
+| Storage and keys | Subsets, rebased indices, visibility backups, tail reclamation, pools and GUID lookup | Storage and compatibility tests | Capacity and fragmentation under real workloads |
+| Flat renderer | Batch entities, uploads, aliases, groups, bounds, managed materials and fallback diagnostics | Geometry/upload tests; build passes | Matched GPU images, calls and culling |
+| Loaded-sketch consumers | Reveal, layers, history, erase/picker and cleanup routing | Focused helper/lifecycle tests | Actual system/tool interactions and transition timing |
+| Selection | Temporary extraction and translation recommit | Translation and visibility tests | Movement, deselection, save while selected, undo and deletion |
+| Authoring and collaboration | Local/remote finalization and persistence routing | Relevant existing tests | Live transfers, asynchronous changes and round trips |
+| Broader compatibility | Static classification exists; runtime is Flat-only | Existing audit tests pass | Audit refresh after dependency changes; family-specific evidence |
+| Whole branch | Updated from current main | 74 test files passed; 518 tests passed, 4 todo; production build passed | Browser and immersive-XR gates open |
 
-1. A representative loaded sketch renders through batch meshes with no known brush-fidelity regression relative to the per-stroke path.
-2. The in-progress stroke remains responsive and visually unchanged, then transfers to a batch on finalization without a visible gap or duplicate frame.
-3. Layer visibility, reveal, undo/redo, erase, selection, save/load, collaboration, and export preserve their current behavior.
-4. Draw calls scale primarily with compatible batch keys and required material passes rather than stroke count.
-5. Unsupported brushes continue rendering through the existing per-stroke path.
-6. The default path remains per-stroke until the batched path passes GPU-backed browser or headset validation.
-7. `npx tsc --noEmit` runs before every browser or XR validation, followed by the relevant focused tests and then the full project check before merge.
+Helper tests do not establish that ECS consumers call those helpers correctly. Record direct system coverage separately.
 
-## 4. Non-goals for the first merge
+## 3. Architecture and invariants
 
-1. Do not remove `BrushStroke` entities in the first delivery. That would combine a rendering optimization with a wholesale ECS/data-model rewrite.
-2. Do not batch the actively drawn stroke.
-3. Do not require every brush to be batchable before useful compatible brushes can opt in.
-4. Do not treat SwiftShader screenshots as authoritative visual proof. They remain useful for geometry and initialization failures, but final fidelity and performance evidence require a GPU-backed browser or headset.
-5. Do not add caches or incremental-update machinery unless measured call frequency or upload volume justifies it. Large sketches and per-frame paths should be measured first.
+1. Retain one `BrushStroke` entity and stable GUID per logical stroke. Keep serialized data, visibility, selection, history and bounds on the existing ownership path. Do not duplicate mutable subset offsets in ECS fields or put batch storage in `Types.Object` fields.
+2. `StrokeBatchRenderSystem` owns locations, batch entities, uploads and private geometry disposal. Consumers use its API rather than editing batch meshes. Create batch entities through `world.createTransformEntity` under the appropriate canvas/scene-pose entity.
+3. Each visible stroke has exactly one rendering owner: its individual mesh, batch subset or extracted edit mesh. Hidden strokes have none. Transfers must not create gaps, duplicate geometry or reveal flashes.
+4. Dispose private geometry separately from library-owned materials/textures. Clearing a sketch releases batch entities, locations, pending work and extraction records while preserving shared resources still in use.
+5. Keys separate incompatible attributes, material instances, shader defines, render state and passes. Use authoritative state from the pinned material libraries. Encode stroke-varying values in vertex data only when shader semantics permit it; otherwise split or fall back.
+6. Preserve attribute widths/aliases, supplemental attributes, conditional UV removal, index rebasing, draw ranges, groups and conservative bounds. Rebind attributes after storage growth. Clear dirty flags after updating render geometry successfully; that does not itself prove successful GPU rendering.
+7. Successfully committed strokes release private geometry. Eraser and picker must retain geometry-level subset intersection behavior, using bounds only where the existing tool contract permits it.
+8. Extraction currently follows selection/extraction state, not necessarily drag completion. Deselection recommits accumulated translation. Save/export can force recommit while selection remains active; later reconciliation may extract again. Validate this without duplicate transforms or idle-frame upload churn.
+9. Rotation and scaling are not delivered by translation-only extraction. Preserve existing interaction scope; new transform tools require their own vertex, normal and bounds contract.
 
-## 5. Architecture
+## 4. Refresh the compatibility audit
 
-### 5.1 Authoritative stroke state
+1. Revalidate the audit after the merge: shader dependencies, particle inputs, culling and authoritative material state changed. Record application commit, lockfile, asset revision and exact library revisions with each audit and evidence run.
+2. The merged pins are `three-icosa` at `25fe4ca1f7e52174e7d9dca90c811e307216ba1f` and `three-tiltloader` at `6c92f0035911e8e61755fec3270beb7604d5dc81`. Read current pins when running validation; do not silently reuse evidence from older dependencies.
+3. Recheck keys, per-stroke/batch material creation, supplemental attributes, groups, upgrades and ownership. Invalidate affected audit/visual results when those contracts change; unrelated changes need not invalidate everything.
+4. Distinguish statically compatible, runtime eligible and visually validated brushes. Publish eligible counts and categorized fallback reasons.
+5. Broaden by actual render contracts: opaque single-pass, textured/cutout, additive, particle/animated, then multi-pass variants. Do not imply a supported alpha-blended brush family. Unsupported templates remain fallback; future alpha-blended support needs an explicit ordering contract.
+6. Before enabling particles or animated shaders, establish bounds covering shader displacement and particle extent over time. CPU vertex bounds alone are insufficient. Test frustum edges and immersive views.
 
-1. Retain one `BrushStroke` entity per logical stroke during migration so existing ECS queries remain valid.
-2. Keep GUID, brush, color, layer, visibility, selection, bounds, command index, control points, and serialized stroke data on the existing entity/component path.
-3. Add a tag component such as `BatchedBrushStroke` only when useful for queries. Do not put `StrokeBatch`, `BatchSubset`, materials, or typed-array storage into `Types.Object` component fields.
-4. Use `BrushStroke.guid` as the stable lookup key into `StrokeBatchManager`. Avoid duplicating mutable subset offsets into ECS fields because tail removal or future compaction can invalidate them.
-5. After commit, replace the individual stroke mesh with an empty transform object or otherwise detach and dispose only its private geometry. Preserve the entity transform and `openBrushStrokeData` ownership until selection semantics have migrated.
+## 5. Reproducible evidence protocol
 
-### 5.2 Batch render ownership
+1. Compare batching off/on at the same application/dependency revision with identical assets, camera/scene pose, viewport, pixel ratio, render settings and workload state. Freeze animation time/random inputs where needed. Record browser, GPU, headset and refresh rate.
+2. Use `sample1.imm` as the named benchmark. Add generically labelled controlled workloads: Flat-only, mixed compatibility, spatially dispersed, bulk selection, repeated editing and repeated load/clear. Record strokes, vertices, eligible/fallback counts, batches and passes. If a required fixture is missing, ask whether a suitable local resource exists before declaring a blocker.
+3. Capture cold loading and first-use compilation separately. For steady state, warm assets/shaders, use a fixed 5-second settling period, then at least three 30-second runs per mode, alternating mode order. Replay identical interaction sequences for event workloads.
+4. Record scene calls and stroke-only calls where available, triangles, batch/pass splits, CPU frame-time p50/p95/p99 and missed-frame rate. Record GPU time if supported; browser frame intervals are not GPU execution time. Use consistent XR eye/pass accounting.
+5. Record upload bytes/counts per operation, load/reveal latency, selection/deselection stalls, finalization cost and retained geometry/resource counts. Verify upload-counter accounting before presenting requested buffer work as measured driver traffic.
+6. Before judging results, put numeric image tolerances and performance budgets in the ledger. Calibrate image tolerance from repeat reference captures. Require no new silhouette, depth, cutout, culling or ordering defect, even if an aggregate image score passes.
+7. Require eligible Flat workloads to reduce calls consistently with capacity splits and material passes. Require no repeatable frame-time, event-latency or memory regression beyond recorded baseline variability and agreed budgets. Fewer calls alone do not close the gate.
+8. For default-on XR, specify refresh rate and frame budget (13.89 ms at 72 Hz; 11.11 ms at 90 Hz), acceptable missed-frame rate and event-stall limits before testing. Desktop averages do not establish headset performance.
+9. Save commands, settings, raw results, matched images and interpretation in the ledger. SwiftShader remains useful for initialization/geometry diagnostics but cannot close GPU fidelity or hardware performance gates.
 
-1. Introduce a `StrokeBatchRenderSystem` as the owner of the manager, batch-mesh entities, geometry uploads, and GPU-resource cleanup.
-2. Create each batch mesh through `world.createTransformEntity(mesh, scenePoseEntity)` so it participates in the ECS/level lifecycle and remains in canvas space.
-3. Give each rendered batch an ECS tag/component containing stable scalar identity only, such as a batch ID and serialized key. Let the render system retain the data-layer association between that ID and `StrokeBatch`.
-4. Expose a narrow public API for other systems: `commitStroke`, `setStrokeVisible`, `removeStroke`, `translateStroke` or `rewriteStroke`, `getLocation`, and `clear`.
-5. Do not let consumers manipulate batch `Mesh` or `BufferGeometry` instances directly.
-6. Treat material ownership separately from geometry ownership. If brush materials are shared or library-owned, destroy the batch entity and dispose its private geometry without disposing the shared material.
+## 6. Performance investigations
 
-### 5.3 Batchability contract
+1. Measure bulk append/finalization, reveal and selection transitions first. Individual commit/extraction paths flush batches, so repeated operations can revisit pools or upload growing buffers. If amplification is measured, coalesce work into bounded operation/frame flushes while preserving rendering ownership.
+2. Evaluate the current 65,534-vertex cap against upload cost and culling granularity. Use dispersed geometry to measure extra submitted triangles as the camera moves. Add spatial grouping or change capacity only when results justify it.
+3. Measure retained capacity after non-tail removal and repeated editing. Distinguish hidden strokes retained for undo from deleted storage. Define reclamation budgets before adding compaction; preserve GUID lookup, hidden index backups and extraction state.
+4. Verify idle frames do not repeatedly extract/recommit, allocate visibility results per stroke or flush unchanged batches. Selection summaries still traverse strokes; profile actual ECS cost before a separate query/state-model redesign.
+5. Broad selection can restore many individual draw calls and allocate temporary geometry. Measure and document that cost rather than assuming static batching performance during manipulation.
 
-1. Replace the assumption that `BrushBatchKey` is complete with a documented, tested contract derived from the real render path.
-2. Audit every supported brush/material pass for geometry family, attribute widths, supplemental attributes, shader defines, textures, material instance identity, blending, depth state, culling, render order, material groups, and uniforms.
-3. Classify values that vary per stroke:
-   1. Add discrete render-state or material variants to the batch key.
-   2. Encode continuous per-stroke values as per-vertex attributes when shader semantics allow it.
-   3. Bake compatible transforms into vertices when geometry is committed in canvas space.
-   4. Use the per-stroke fallback when a value cannot be represented safely in one shared draw.
-4. Confirm whether color and all other stroke-varying values are already vertex data. A per-object uniform does not automatically prohibit batching, but it must be split, encoded, or declared incompatible.
-5. Include multi-pass behavior in expected draw-call counts. One batch mesh with two material passes legitimately produces two draw calls.
+## 7. Lifecycle acceptance cases
 
-### 5.4 Geometry upload contract
+1. Load hidden strokes, reveal progressively, hide/show layers, undo/redo visibility and clear/replace the sketch. Inspect transition frames and verify resource counts settle across repeated cycles.
+2. Erase and pick batched, fallback and extracted strokes, including thin geometry and hidden subsets. Match reference hit decisions and history behavior.
+3. Select across brushes/layers; move, deselect, undo/redo, delete, restore and save while selected. Confirm serialized points, entity transforms and bounds apply each translation exactly once. Check idle selection and repeated saves for churn.
+4. Finalize local, mirrored and remote strokes; discard empty strokes; delay managed-material availability and exercise upgrades. Preserve hidden state and exactly one visible representation throughout transfer.
+5. Exercise remote visibility/removal/replacement while strokes are selected or pending material resolution. Stale pending work must not recreate deleted strokes or leak geometry.
+6. Save/load and export identical edited states in both modes. Compare logical/serialized results as well as images. Verify cleanup and subsequent loading after active extractions.
+7. Run relevant cases in a GPU-backed browser and immersive XR, including transformed canvas/scene pose and frustum-edge views. Mark untested cases explicitly instead of inferring them from helper tests.
 
-1. Build standard `position`, `normal`, `tangent`, `color`, `uv`, optional `uv1`, and index attributes from the active ranges in `StrokeBatch`.
-2. Apply `applyBrushShaderAttributeAliases` and `applyBrushShaderSupplementalAttributes` at batch scale.
-3. Reproduce the current conditional `uv1` and `a_texcoord1` removal behavior exactly.
-4. Apply `setDrawRange(0, batch.indexCount)` and `applyBrushRenderGroups` for the batch material/pass layout.
-5. When `vertexDataDirty` is set, replace or update every changed vertex attribute and the index buffer, then update the draw range and bounds.
-6. When only `topologyDirty` is set, update the live index range without rebuilding vertex attributes.
-7. Recreate a `BufferAttribute` when the backing typed array grows; otherwise mark the existing attribute update range and `needsUpdate` appropriately.
-8. Compute aggregate bounds from active subset bounds. Recompute after hide, show, remove, rewrite, or translation so frustum culling cannot hide visible subsets or retain enormous stale bounds.
-9. Clear dirty flags only after all corresponding GPU-side objects have been updated successfully.
+## 8. Gates
 
-## 6. Delivery phases
+| Gate | Required evidence | Current status |
+| --- | --- | --- |
+| A: deterministic foundation | Storage/key/upload tests, type check and build | Passed at recorded merge revision |
+| B: first default-off merge | Refreshed audit, GPU Flat comparison, measured calls and runtime smoke coverage of already-enabled lifecycle paths | Open |
+| C: loaded-sketch readiness | Reveal, layers, history, erase/picker, persistence, cleanup/fallback cases; load and steady-state budgets | Open; routing implemented |
+| D: authoring/collaboration readiness | Local/remote transfer, asynchronous material/remote lifecycle cases; interaction budgets | Open; routing implemented |
+| E: broader/default-on rollout | Family visual/bounds evidence, selection coverage, browser/XR performance/memory budgets and understood fallback behavior | Open |
 
-### 6.1 Phase 0: integrate unrelated upstream fixes correctly
+1. Gate B permits consideration of an opt-in merge. It does not permit default-on activation or waive tests of paths already enabled by the flag.
+2. C and D describe validated capabilities, not separate runtime switches that currently exist. Add separate switches only if staged rollout requires them.
+3. Expand the allowlist one documented contract at a time after Flat passes its applicable gates. Retain the per-stroke mode for diagnostics and fallback.
+4. Type-check before runtime tests; run focused checks after relevant changes and `npm run check` plus production build before proposing merge. Check for an existing dev server and do not implicitly enable HTTPS during validation.
 
-1. Port `df26bda` onto `main` first. It removes the shipped `TipAnchorTuningSystem`, which currently competes with the A-button undo binding. Preserve the tuned constants and remove only the debug import, registration, file, and stale comment references.
-2. Port `66c5d4d` onto `main` as a reviewed adaptation rather than blindly merging `upstream/main`. The network preflight and join-timeout behavior are unrelated to batching and belong in the shared product baseline.
-3. Revalidate the network probe against the current `CollabSystem`, current PeerJS configuration, and current join-panel layout. Keep the probe advisory; it must never block hosting or joining.
-4. Run the network-probe unit tests, collaboration tests, UI compilation/build, type check, and relevant runtime checks on `main`.
-5. After those changes are accepted on `main`, merge or rebase the batching branch onto the updated `main` according to the repository's chosen branch policy. Do not land the upstream fixes only on the batching branch.
-6. Fast-forward the local batching branch over the two origin journal commits only if preserving that shared branch history is desired. They do not affect the technical plan or product integration order.
+## 9. Next executable work
 
-### 6.2 Phase 1: shader and material audit
+1. Refresh the render-contract audit and ledger against merged dependency/asset revisions; identify regressions before changing the allowlist.
+2. Prepare controlled Flat and `sample1.imm` comparisons with reproducible settings, verified counters and declared acceptance budgets.
+3. Capture GPU Flat fidelity and static draw/culling results, then load/reveal and bulk-selection costs. Fix measured failures and repeat affected checks.
+4. Execute lifecycle cases through running systems in browser and XR; record evidence and gaps by gate.
+5. Consider the default-off merge when B closes. Continue capability validation and widen support only according to the gates.
 
-1. Produce a checked-in compatibility table covering every currently supported brush, its passes, required attributes, relevant uniforms, and the resulting batchability decision.
-2. Compare `createBrushMaterialSpec`, `createBrushRenderMaterial`, `applyBrushRenderGroups`, shader-library material ownership, supplemental attributes, and material-upgrade behavior.
-3. Add unit tests proving `BrushBatchKey` changes whenever two strokes cannot safely share a material/draw.
-4. Define an explicit fallback reason for incompatible brushes and expose it to diagnostics.
-5. Treat completion of this audit as the gate for stabilizing the existing `StrokeBatchManager` API.
+## 10. Completed integration and non-goals
 
-### 6.3 Phase 2: static renderer vertical slice
-
-1. Add a disabled-by-default runtime switch such as `?strokeBatches=1` or a development configuration flag.
-2. Start with loaded, finalized strokes using one known opaque, single-pass brush.
-3. Create one batch entity and mesh, upload its arrays, apply aliases/supplemental attributes/groups, and render it under the scene-pose entity.
-4. Keep the original per-stroke meshes available as the reference path, but ensure only one path is visible at a time.
-5. Add geometry-level equivalence tests comparing concatenated per-stroke arrays with the batch attributes, rebased indices, draw range, groups, and aggregate bounds.
-6. Record `renderer.info.render.calls`, triangles, active batch count, compatible/fallback stroke counts, and upload bytes or counts.
-7. Validate at least one real brush through a GPU-backed browser or headset. The first merge threshold is a real rendered batch with a measurable draw-call reduction, not bookkeeping tests alone.
-
-### 6.4 Phase 3: loaded-sketch visibility and lifecycle
-
-1. Route staggered load reveal through `setStrokeVisible(guid, visible)` for batched strokes while retaining the existing entity fields as authoritative state.
-2. Adapt layer visibility, undo/redo, and deletion to call the render-system API after changing `BrushStroke` state.
-3. Replace per-frame direct writes to `stroke.object3D.visible` with state-change-driven batch operations where practical. Preserve current behavior before attempting broader optimization.
-4. Ensure clearing or replacing a sketch releases private batch geometries, batch entities, manager locations, and dead pools without disposing shared brush materials.
-5. Verify save/load and collaboration snapshots still enumerate `BrushStroke` entities and serialize the same `StrokeData`.
-
-### 6.5 Phase 4: eraser and selection
-
-1. Keep eraser hit testing against per-stroke ECS bounds initially. On erase, redirect visual removal to the subset, then update the existing logical state/history.
-2. Preserve eraser preview semantics with temporary subset visibility changes only if the current tool requires them.
-3. Selection is the higher-risk consumer because it currently moves each stroke Object3D. Choose and test one canvas-space strategy:
-   1. Translate the subset's position data in place and update its bounds.
-   2. Regenerate and recommit the moved stroke from authoritative control points.
-   3. Temporarily extract selected strokes to individual meshes and recommit them when the manipulation ends.
-4. Prefer extraction during manipulation if it keeps interactive movement cheap and avoids re-uploading a large batch every frame. Recommit once at the end of the gesture.
-5. Add regression tests for selecting mixed brushes/layers, moving selections, undoing the move, deleting selected strokes, and restoring visibility.
-
-### 6.6 Phase 5: authoring and collaboration finalization
-
-1. Leave the active local stroke on its current dynamic mesh and `DynamicDrawUsage` path.
-2. On successful finalization, commit its final `BrushGeometryArrays` to the batch renderer, then remove its private mesh geometry without disposing shared material resources.
-3. Keep empty or discarded strokes out of the manager.
-4. Apply the same transition to finalized remote strokes. Keep remote in-progress strokes on individual meshes until their final message arrives.
-5. Handle material-upgrade events by updating or rebuilding affected batch materials/pools without duplicating stroke geometry or losing visibility state.
-6. Verify there is no frame with both the individual mesh and batch subset visible, and no frame where both are absent during finalization.
-
-### 6.7 Phase 6: broaden compatibility and retire the default path
-
-1. Add brush families in increasing complexity: opaque single-pass, textured/cutout, transparent/additive, particle/animated, and multi-pass brushes.
-2. Keep an explicit compatibility allowlist until each family has visual evidence.
-3. Make batching the default only after representative sketches pass browser and XR validation and fallback coverage is understood.
-4. Retain the per-stroke renderer as a diagnostic/fallback mode until the batch path has survived normal authoring, collaboration, selection, and load/save use.
-5. Reconsider replacing per-stroke ECS entities with plain stroke records only as a separate project after rendering is stable. Measure entity-capacity and ECS-iteration costs first.
-
-## 7. Test and evidence matrix
-
-1. Run `npx tsc --noEmit` before any runtime test.
-2. Run focused unit tests for batch storage, key compatibility, renderer upload behavior, bounds, visibility, removal, and translation/extraction.
-3. Run the existing brush geometry, shader material, render group, visual conformance, import/export, collaboration, layer, selection, undo/redo, and sketch-library tests affected by each phase.
-4. Run the full `npm run check` before proposing merge.
-5. Compare per-stroke and batched geometry deterministically before relying on screenshots.
-6. Capture matched GPU-backed images for representative opaque, cutout, transparent, particle, and multi-pass brushes.
-7. Test both browser and immersive XR because material compilation, frame budget, and controller-driven lifecycle differ.
-8. Use the saved “The Upside Down” baseline for the scale test and record before/after draw calls, frame time, triangles, batch count, and fallback count.
-9. Treat the target as a reduction from approximately one call per stroke to approximately one call per compatible batch material/pass. Do not claim a specific final count until the shader audit establishes the required key/pass splits.
-
-## 8. Merge gates
-
-1. Gate A, foundation only: current state; do not merge to `main` yet.
-2. Gate B, first acceptable merge: completed compatibility audit, one real feature-flagged rendered batch, deterministic geometry tests, GPU-backed visual evidence for the chosen brush, and measured draw-call reduction.
-3. Gate C, enable for loaded sketches: reveal, layers, undo/redo, erase, save/load, cleanup, and fallback paths pass.
-4. Gate D, enable for authored/collaborative strokes: local and remote finalization transfer cleanly into batches.
-5. Gate E, default-on: representative brush families, selection manipulation, browser/XR evidence, and performance measurements pass with no known fidelity regression.
-
-## 9. Immediate next work
-
-1. Validate the Flat slice in a GPU-backed browser or headset and compare it with the per-stroke reference path.
-2. Record matched batch/fallback counts, upload volume, renderer calls, triangles, and frame time for the baseline sketch in both renderer modes.
-3. Exercise selection extraction, reveal, layers, undo/redo, erasing, save/load, and local/remote finalization through the feature-flagged runtime.
-4. Add the next opaque single-pass brush to the explicit allowlist only after the Flat GPU gate passes, then repeat deterministic and visual checks before moving to cutout or transparent families.
-5. Keep batching disabled by default until the browser and immersive-XR evidence required by Gates B through E is checked in.
+1. The two previously reviewed upstream fixes were ported onto `main` and integrated. Old divergence counts and journal-commit instructions are historical, not pending work.
+2. Merge `1bd04d0` incorporated subsequent shader/material changes from `main`, preserved batching compatibility fields with authoritative transparency, and corrected the compatible-brush test fixture.
+3. Removing per-stroke ECS entities, batching live strokes, adding transform tools and supporting every brush are outside the first delivery. Revisit separately after validated rendering and measured costs justify the work.
