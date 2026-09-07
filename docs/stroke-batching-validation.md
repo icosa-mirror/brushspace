@@ -14,6 +14,14 @@
 
 ## 1. Current scope
 
+### Running-system lifecycle check: 2026-09-07
+
+1. The hardware smoke runner now drives one fixture stroke through logical hide/show, selection, private-mesh translation, deselection, explicit `finishAllExtractions()` and subsequent selection reconciliation. It observes component state, private geometry, first-subset indices, serialized control points and the current upload counter directly. This tests running ECS/renderer integration; it does not simulate controller gestures or exercise actual file export/history commands.
+2. Both renderer modes complete without page errors. In batching mode the hidden/selected subset indices are zeroed, shown/deselected indices are restored, extraction creates 24 private vertices, and recommit releases them. Translations of 0.10 then 0.05 are serialized exactly once across deselection and save-style flushing. Selected idle frames and idle frames after save request no additional uploads.
+3. Observations: [batched lifecycle](evidence/stroke-batching/flat-2026-09-07/batched-lifecycle.json), [reference lifecycle](evidence/stroke-batching/flat-2026-09-07/reference-lifecycle.json). The pre-interaction image comparison again has zero changed RGB channels and scene calls remain 207 versus 8.
+4. Initial batching upload requests total 32,803,200 bytes for 200 strokes; the final full vertex/index update is 326,400 bytes. This roughly 100-fold request amplification justifies investigating deferred bulk commits. These counters describe requested buffer work, not measured GPU driver transfers; no frame-time conclusion follows from them alone.
+5. Still open: actual undo/redo and persistence round trips, eraser/picker tools, local/remote transfer timing, startup gaps, broad selection, XR and sustained performance budgets. These focused successes do not close the entire lifecycle gate.
+
 ### Controlled Flat GPU reproduction: 2026-09-07
 
 Follow-up: after explicitly awaiting the full shader-ready event before the settling interval, two further runs displayed all strokes. The first matched reference and batch images byte-for-byte at decoded RGB level. The second differed in 126 pixels (378 channels), but its batched image was identical to the first reference; the same difference occurred between the two reference captures. Thus the observed repeat difference is reference-run variability, not demonstrated batching error. The earlier blank capture is not explained conclusively and remains a startup/transfer investigation; do not claim a geometry fix from these results.

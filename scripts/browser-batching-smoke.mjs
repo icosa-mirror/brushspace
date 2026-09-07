@@ -49,6 +49,30 @@ try {
       throw new Error(`Expected 200 batched strokes: ${JSON.stringify(result.metrics)}`);
     }
     await page.screenshot({ path: path.join(output, enabled ? "batched.png" : "reference.png") });
+    const lifecycle = await page.evaluate(async () => {
+      if (!window.exerciseStrokeBatchLifecycle) throw new Error("Lifecycle driver unavailable");
+      return window.exerciseStrokeBatchLifecycle();
+    });
+    await writeFile(path.join(output, enabled ? "batched-lifecycle.json" : "reference-lifecycle.json"), JSON.stringify(lifecycle, null, 2));
+    const stages = Object.fromEntries(lifecycle.map((state) => [state.stage, state]));
+    const requireState = (condition, message) => {
+      if (!condition) throw new Error(`${enabled ? "batched" : "reference"} lifecycle: ${message}`);
+    };
+    requireState(!stages.hidden.renderVisible && !stages.hidden.privateVisible, "hidden stroke visible");
+    requireState(stages.shown.renderVisible, "show did not restore visibility");
+    if (enabled) {
+      requireState(!stages.hidden.batchSubsetHasTriangles && stages.shown.batchSubsetHasTriangles, "subset hide/show failed");
+      requireState(!stages.selected.batchSubsetHasTriangles && stages["moved-deselected"].batchSubsetHasTriangles, "selection rendering owners overlap or fail to restore");
+      requireState(stages.initial.privateVertices === 0 && !stages.initial.privateVisible, "private geometry retained after commit");
+      requireState(stages.selected.extracted && stages.selected.privateVisible && stages.selected.privateVertices > 0, "selection did not extract geometry");
+      requireState(stages.selected.uploadBytes === stages["selected-idle"].uploadBytes, "idle selection uploads repeatedly");
+      requireState(!stages["moved-deselected"].extracted && stages["moved-deselected"].privateVertices === 0, "deselection did not reclaim geometry");
+      requireState(Math.abs(stages["moved-deselected"].serializedX - stages.initial.serializedX - 0.1) < 1e-6, "movement was not baked once");
+      requireState(!stages["save-flushed"].extracted && stages["selected-after-save"].extracted, "save/re-extraction transition failed");
+      requireState(stages["selected-after-save"].uploadBytes === stages["after-save-idle"].uploadBytes, "idle after save uploads repeatedly");
+      requireState(Math.abs(stages.final.serializedX - stages.initial.serializedX - 0.15) < 1e-6, "save/deselection duplicated movement");
+    }
+    if (errors.length) throw new Error(`Lifecycle page errors: ${errors[0]}`);
     results.push({ enabled, ...result });
     await page.close();
   }

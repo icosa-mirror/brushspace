@@ -167,6 +167,11 @@ export class StrokeBatchRenderSystem extends createSystem({
     this.refreshBatchMetrics();
   }
 
+  /** Current requested upload volume, without the DOM metrics sampling delay. */
+  getUploadedBytes(): number {
+    return this.metrics.uploadedBytes;
+  }
+
   /** Commit finalized generated arrays; returns false while using fallback. */
   commitStroke(entity: Entity, arrays: BrushGeometryArrays): boolean {
     if (

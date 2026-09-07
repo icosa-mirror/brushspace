@@ -1,0 +1,122 @@
+[
+  {
+    "stage": "initial",
+    "selected": false,
+    "renderVisible": true,
+    "extracted": false,
+    "privateVisible": true,
+    "privateVertices": 256,
+    "objectX": 0,
+    "serializedX": -0.915,
+    "uploadBytes": 0,
+    "batchSubsetHasTriangles": null
+  },
+  {
+    "stage": "hidden",
+    "selected": false,
+    "renderVisible": false,
+    "extracted": false,
+    "privateVisible": false,
+    "privateVertices": 256,
+    "objectX": 0,
+    "serializedX": -0.915,
+    "uploadBytes": 0,
+    "batchSubsetHasTriangles": null
+  },
+  {
+    "stage": "shown",
+    "selected": false,
+    "renderVisible": true,
+    "extracted": false,
+    "privateVisible": true,
+    "privateVertices": 256,
+    "objectX": 0,
+    "serializedX": -0.915,
+    "uploadBytes": 0,
+    "batchSubsetHasTriangles": null
+  },
+  {
+    "stage": "selected",
+    "selected": true,
+    "renderVisible": true,
+    "extracted": false,
+    "privateVisible": true,
+    "privateVertices": 256,
+    "objectX": 0,
+    "serializedX": -0.915,
+    "uploadBytes": 0,
+    "batchSubsetHasTriangles": null
+  },
+  {
+    "stage": "selected-idle",
+    "selected": true,
+    "renderVisible": true,
+    "extracted": false,
+    "privateVisible": true,
+    "privateVertices": 256,
+    "objectX": 0,
+    "serializedX": -0.915,
+    "uploadBytes": 0,
+    "batchSubsetHasTriangles": null
+  },
+  {
+    "stage": "moved-deselected",
+    "selected": false,
+    "renderVisible": true,
+    "extracted": false,
+    "privateVisible": true,
+    "privateVertices": 256,
+    "objectX": 0.10000000149011612,
+    "serializedX": -0.915,
+    "uploadBytes": 0,
+    "batchSubsetHasTriangles": null
+  },
+  {
+    "stage": "save-flushed",
+    "selected": true,
+    "renderVisible": true,
+    "extracted": false,
+    "privateVisible": true,
+    "privateVertices": 256,
+    "objectX": 0.15000000596046448,
+    "serializedX": -0.915,
+    "uploadBytes": 0,
+    "batchSubsetHasTriangles": null
+  },
+  {
+    "stage": "selected-after-save",
+    "selected": true,
+    "renderVisible": true,
+    "extracted": false,
+    "privateVisible": true,
+    "privateVertices": 256,
+    "objectX": 0.15000000596046448,
+    "serializedX": -0.915,
+    "uploadBytes": 0,
+    "batchSubsetHasTriangles": null
+  },
+  {
+    "stage": "after-save-idle",
+    "selected": true,
+    "renderVisible": true,
+    "extracted": false,
+    "privateVisible": true,
+    "privateVertices": 256,
+    "objectX": 0.15000000596046448,
+    "serializedX": -0.915,
+    "uploadBytes": 0,
+    "batchSubsetHasTriangles": null
+  },
+  {
+    "stage": "final",
+    "selected": false,
+    "renderVisible": true,
+    "extracted": false,
+    "privateVisible": true,
+    "privateVertices": 256,
+    "objectX": 0.15000000596046448,
+    "serializedX": -0.915,
+    "uploadBytes": 0,
+    "batchSubsetHasTriangles": null
+  }
+]
