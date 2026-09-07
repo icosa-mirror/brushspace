@@ -14,6 +14,14 @@
 
 ## 1. Current scope
 
+### Controlled Flat GPU reproduction: 2026-09-07
+
+1. Development URL: `?batch-validation=flat&strokeBatches=0` or `1`. It loads 200 deterministic Flat strokes through `spawnStrokeFromData`, hides the intro sketch and fixes the camera. Run against an existing HTTP development server with `node scripts/browser-batching-smoke.mjs http://localhost:8081/ .iwsdk/batching-smoke`.
+2. The runner owns a fresh temporary visible Chrome profile and rejects software rendering. It saves screenshots, metrics and diagnostics locally. Its blue-pixel coverage check detects gross missing geometry; it is not the planned calibrated fidelity comparison or multi-run performance benchmark.
+3. Initial browser execution exposed an unregistered `ExtractedBatchedBrushStroke` check that crashed selection even with batching disabled. Registering that component during batch-renderer initialization removed the observed page error in both modes.
+4. RTX 4090 results: reference 207 scene calls; batching 8 calls, one batch and 200 compatible strokes. Both report 13,374 triangles. However, inspection of matched captures found the blue strokes absent in batching mode. This is a failed visual result, not a successful optimization gate. CPU-side batch positions, aliases and indices are populated; the render failure still requires diagnosis.
+5. Local captures are diagnostic artifacts under `.iwsdk/batching-smoke`; they are not checked-in conformance evidence. Do not close Gate B until missing geometry is fixed and the reproducible visual test passes.
+
 1. Branch: `claude/stroke-batching`.
 2. Runtime switch: `?strokeBatches=1`; batching remains disabled by default.
 3. Runtime allowlist: Flat (`2d35bcf0-e4d8-452c-97b1-3311be063130`) only.
