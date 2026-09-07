@@ -15,5 +15,6 @@
    loaded sketch, plus layer visibility, after the shared culling-policy fix.
 5. `xr.json` records emulated two-eye XR rendering and clean exit. It is not a
    real-headset performance result. Hardware timing is still outstanding.
-6. Batching remains an explicit opt-in. CPU render-submission time improves;
+6. These captures used explicit off/on flags. Batching is now enabled by default
+   with `?strokeBatches=0` available to opt out. CPU render-submission time improves;
    variable GPU timings do not establish a GPU or delivered-frame-rate gain.

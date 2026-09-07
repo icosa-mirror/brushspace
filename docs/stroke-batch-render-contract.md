@@ -28,14 +28,14 @@
 
 ## 3. Supported-brush matrix
 
-Every currently supported inventory brush is covered by exactly one row below. For managed materials, render state comes from the shader descriptor. Transparency is explicit in the key; other fixed per-brush state is separated by brush/material identity. Mutable material variants would require additional key fields. The opt-in runtime uses this contract directly; there is no per-brush allowlist or transparency-order eligibility gate.
+Every currently supported inventory brush is covered by exactly one row below. For managed materials, render state comes from the shader descriptor. Transparency is explicit in the key; other fixed per-brush state is separated by brush/material identity. Mutable material variants would require additional key fields. The runtime uses this contract directly; there is no per-brush allowlist or transparency-order eligibility gate.
 
 ### Upstream batching audit: 2026-09-07
 
 1. Open Brush's `BatchManager.GetPool` groups by brush GUID within its canvas; `GetBatch` appends subsets until vertex capacity is exhausted. It does not disqualify brushes by transparency sorting. Brushspace separates layers in its key because layers share one scene-pose parent here.
 2. Open Brush's `Batch.Create` assigns the brush material and optional overlay. Brushspace uses the same managed shader/material factory and multi-pass render groups for batched and per-stroke rendering. Blend/depth state is reproduced, not used as a speculative exclusion.
 3. The exported catalog's only alpha-blend entry is an unsupported transparent material template. Supported brushes use opaque, cutout, or additive contracts. A regression test guards against accidentally introducing alpha-sorted rendering into that supported catalog.
-4. The previous Flat-only runtime gate was a local validation restriction, not an upstream requirement. It is removed. Missing geometry/shader support remains an explicit fallback; pending shaders are retried when material loading completes. Batching remains opt-in pending runtime validation.
+4. The previous Flat-only runtime gate was a local validation restriction, not an upstream requirement. It is removed. Missing geometry/shader support remains an explicit fallback; pending shaders are retried when material loading completes. Batching is enabled by default; use `?strokeBatches=0` or `?strokeBatches=false` to opt out.
 
 | Population | Pass contract | Draw calls per batch | Supplemental attributes | Decision |
 | --- | --- | ---: | --- | --- |

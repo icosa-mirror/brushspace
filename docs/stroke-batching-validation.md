@@ -2,7 +2,7 @@
 
 ## Real-gallery comparison: 2026-09-07
 
-1. Removed the Flat-only opt-in restriction after comparing the renderer with Open Brush's brush/canvas batch pools. All supported generated-geometry brushes use the existing shared material/attribute/pass contract; unavailable geometry or shader support remains an explicit fallback. Batching is still disabled by default.
+1. Removed the Flat-only opt-in restriction after comparing the renderer with Open Brush's brush/canvas batch pools. All supported generated-geometry brushes use the existing shared material/attribute/pass contract; unavailable geometry or shader support remains an explicit fallback. Batching is now enabled by default; `?strokeBatches=0` or `?strokeBatches=false` restores the private renderer.
 2. The first all-brush capture exposed a real import bug: every `.sketch` stroke received the same all-zero ID, so the ID-keyed batch manager replaced previous strokes. The reader now creates deterministic, distinct document-local IDs, matching the shared tilt reader's approach. A regression test covers uniqueness and repeatability.
 3. Workload: one first-page curated gallery sketch, 4,496 strokes and 388,126 rendered triangles. All strokes batch into 22 meshes. Scene draw calls decrease from 4,503 to 29 (99.36%); reported resident geometries decrease from 4,539 to 65. Neither figure alone establishes frame-time improvement.
 4. Six visible hardware-Chrome runs: off/on, on/off, off/on, 1280×720, device scale 1, identical fitted camera, complete managed-shader loading, five-second settling before capture and another five seconds before each thirty-second sample. Chrome 152.0.7977.76; RTX 4090 via ANGLE D3D11. Benchmark ownership was coordinated through the shared status file; each script closed its own temporary-profile browser, and the turn was released after all six runs.
@@ -18,7 +18,7 @@
 6. Render-submission CPU p95 improved in all three pairs (14.0→3.5, 20.7→4.2, 16.7→4.5 ms). GPU p95 was inconsistent (16.88→19.09, 16.09→18.69, 15.51→6.14 ms). This supports a CPU submission improvement, **not** a GPU or delivered-frame-rate improvement. No hidden-page, sample-overflow, disjoint-timer or in-sample geometry-upload condition was reported.
 7. Matched screenshot RMS differences on 0–255 channels: 0.0359, 0.0505 and 0.0183. Reference-to-reference RMS variation: 0.0511 and 0.0258. Changed-pixel coverage above five channel levels stayed below 0.002%. These captures are consistent with rendering parity at this view and animated-shader variation; they do not establish all-view or headset fidelity. The source scene is very dark in both modes.
 8. Evidence is local under `.iwsdk/batching-gallery-measured/`: three paired raw timing/state/capture sets and `summary.json`. Reproduce each pair with `scripts/browser-gallery-batching.mjs` (`--reverse` for the middle pair), then summarize with `scripts/summarize-gallery-batching.mjs`. Claim the shared benchmark turn before launching. The earlier `.iwsdk/batching-gallery-all` attempt was interrupted and visually failed; its timing data is not used here.
-9. GPU timing variability and target-headset performance remain outstanding. The following merge-preparation checks address the observed editing and culling risks; no default-on decision is made from desktop timings alone.
+9. GPU timing variability and target-headset performance remain outstanding. Default-on activation was subsequently approved using the threshold that regression is unlikely: substantial desktop CPU submission savings, unchanged triangles, rendering comparisons, editing lifecycle checks and emulated stereo XR support that decision. This does not establish a GPU speedup or measured Quest improvement. Hardware testing is follow-up validation, not a blocker; the opt-out remains available.
 
 ### Merge preparation: 2026-09-07
 
@@ -109,7 +109,7 @@ Initial findings, retained for traceability:
 5. Local captures are diagnostic artifacts under `.iwsdk/batching-smoke`; they are not checked-in conformance evidence. Do not close Gate B until missing geometry is fixed and the reproducible visual test passes.
 
 1. Branch: `claude/stroke-batching`.
-2. Runtime switch: `?strokeBatches=1`; batching remains disabled by default.
+2. Runtime switch: batching is enabled by default; `?strokeBatches=0` or `?strokeBatches=false` disables it. Explicit `1` and `true` remain supported.
 3. Runtime eligibility: all supported generated-geometry brushes once their managed shader is loaded; no per-brush allowlist. Earlier Flat-only results retain their original scope.
 4. Reference renderer: the unchanged per-stroke path when the switch is absent.
 
@@ -146,4 +146,4 @@ Initial findings, retained for traceability:
 2. Gate B (first feature-flagged merge): passed by current local validation. The upstream audit, actual-gallery render comparison, repaired import IDs, shared culling policy, browser lifecycle checks, emulated XR stereo check, and clean checks/build support review of a default-off merge. Hardware performance is not inferred from this status.
 3. Gate C (loaded-sketch enablement): open. Runtime ECS lifecycle checks, browser creation/erase undo/redo, Flat eraser/dropper hits and snapshot/tilt round trips are recorded above; movement history, broader hit-test cases, interactive save/load and load/steady-state budgets remain unverified.
 4. Gate D (authored/collaborative strokes): open. Browser receiver lifecycle and provisional-tail replay evidence are recorded above; connected-peer transfers, delayed/asynchronous material cases, broader brush coverage and interaction budgets remain unverified.
-5. Gate E (default-on): open. Batching must not become default until the required family, browser, XR, and performance evidence exists. The opt-in path follows upstream batching semantics across supported brushes; it is not a brush-by-brush permission list.
+5. Gate E (default-on): enabled by user decision based on sufficient confidence that regression is unlikely, with an explicit opt-out. Existing CPU, rendering, editing and emulated XR evidence supports this decision; GPU improvement and physical-headset performance are not claimed. Outstanding coverage in C and D remains follow-up work rather than a default-on prerequisite. The runtime follows upstream batching semantics across supported brushes; it is not a brush-by-brush permission list.

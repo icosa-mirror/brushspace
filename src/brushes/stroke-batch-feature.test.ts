@@ -8,14 +8,21 @@ import {
 } from "./stroke-batch-feature.js";
 
 describe("stroke batching feature flag", () => {
-  it.each(["", "?strokeBatches=0", "?strokeBatches=false"])(
+  it.each(["?strokeBatches=0", "?strokeBatches=false", "?other=1&strokeBatches=0"])(
     "keeps batching disabled for %s",
     (search) => {
       expect(isStrokeBatchingEnabled(search)).toBe(false);
     },
   );
 
-  it.each(["?strokeBatches=1", "?strokeBatches=true"])(
+  it.each([
+    "",
+    "?other=1",
+    "?strokeBatches",
+    "?strokeBatches=unexpected",
+    "?strokeBatches=1",
+    "?strokeBatches=true",
+  ])(
     "enables batching for %s",
     (search) => {
       expect(isStrokeBatchingEnabled(search)).toBe(true);

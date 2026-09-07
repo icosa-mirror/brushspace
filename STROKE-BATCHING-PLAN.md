@@ -3,7 +3,7 @@
 ## 1. Current decision
 
 1. The renderer and consumer routing are implemented on `claude/stroke-batching`. Remaining first-merge work is validation and fixes exposed by that validation; this is no longer an isolated data-structure foundation.
-2. `?strokeBatches=1` batches finalized strokes for all supported generated-geometry brushes once their managed material is available. Missing geometry/shader support retains an explicit fallback. The switch remains default-off while the target-headset performance check is pending.
+2. Batching is enabled by default for finalized strokes of all supported generated-geometry brushes once their managed material is available. Missing geometry/shader support retains an explicit fallback. Use `?strokeBatches=0` or `?strokeBatches=false` to opt out.
 3. Keep logical stroke entities authoritative, live strokes on individual meshes, and selected batched strokes on temporary private geometry.
 4. Follow Open Brush's brush/canvas batching semantics, without a per-brush allowlist or speculative transparency-order exclusions. Fix demonstrated port discrepancies rather than treating individual brushes as requiring permission to batch.
 5. This document owns decisions, outstanding work and gates. Attribute/material details belong in [the render contract](docs/stroke-batch-render-contract.md); measurements and artifacts belong in [the validation ledger](docs/stroke-batching-validation.md). Older phase labels in those documents are historical until refreshed.
@@ -54,7 +54,7 @@ Helper tests do not establish that ECS consumers call those helpers correctly. R
 5. Record upload bytes/counts per operation, load/reveal latency, selection/deselection stalls, finalization cost and retained geometry/resource counts. Verify upload-counter accounting before presenting requested buffer work as measured driver traffic.
 6. Before judging results, put numeric image tolerances and performance budgets in the ledger. Calibrate image tolerance from repeat reference captures. Require no new silhouette, depth, cutout, culling or ordering defect, even if an aggregate image score passes.
 7. Require eligible Flat workloads to reduce calls consistently with capacity splits and material passes. Require no repeatable frame-time, event-latency or memory regression beyond recorded baseline variability and agreed budgets. Fewer calls alone do not close the gate.
-8. For default-on XR, specify refresh rate and frame budget (13.89 ms at 72 Hz; 11.11 ms at 90 Hz), acceptable missed-frame rate and event-stall limits before testing. Desktop averages do not establish headset performance.
+8. For follow-up XR performance testing, specify refresh rate and frame budget (13.89 ms at 72 Hz; 11.11 ms at 90 Hz), acceptable missed-frame rate and event-stall limits before testing. Desktop averages do not establish headset performance; hardware testing is not a default-on prerequisite.
 9. Save commands, settings, raw results, matched images and interpretation in the ledger. SwiftShader remains useful for initialization/geometry diagnostics but cannot close GPU fidelity or hardware performance gates.
 
 ## 6. Performance investigations
@@ -83,19 +83,19 @@ Helper tests do not establish that ECS consumers call those helpers correctly. R
 | B: first default-off merge | Refreshed audit, matched rendering comparison, measured calls and runtime smoke coverage | Passed in current local validation; see ledger for limits |
 | C: loaded-sketch readiness | Reveal, layers, history, erase/picker, persistence, cleanup/fallback cases; load and steady-state budgets | Open; routing implemented |
 | D: authoring/collaboration readiness | Local/remote transfer, asynchronous material/remote lifecycle cases; interaction budgets | Open; routing implemented |
-| E: broader/default-on rollout | Family visual/bounds evidence, selection coverage, browser/XR performance/memory budgets and understood fallback behavior | Open |
+| E: default-on rollout | Sufficient evidence that regression is unlikely, with an explicit opt-out | Enabled by user decision; desktop CPU/rendering and emulated XR evidence support rollout; hardware performance remains unmeasured |
 
-1. Gate B permits consideration of an opt-in merge. It does not permit default-on activation or waive tests of paths already enabled by the flag.
+1. The original Gate B covered an opt-in merge. The subsequent default-on decision uses the agreed threshold of unlikely regression, not proof of improvement on every device. Remaining validation coverage is tracked without treating it as a rollout blocker.
 2. C and D describe validated capabilities, not separate runtime switches that currently exist. Add separate switches only if staged rollout requires them.
 3. There is no per-brush allowlist. Retain the per-stroke mode for reference comparisons and concrete geometry/material fallbacks.
 4. Type-check before runtime tests; run focused checks after relevant changes and `npm run check` plus production build before proposing merge. Check for an existing dev server and do not implicitly enable HTTPS during validation.
 
 ## 9. Next executable work
 
-1. Target-headset off/on performance comparison remains outstanding; no Quest was connected at the latest device check. Emulated XR entered, rendered two views without errors, and exited successfully.
+1. Target-headset off/on performance comparison remains follow-up work, not an enablement gate; no Quest was connected at the latest device check. Emulated XR entered, rendered two views without errors, and exited successfully.
 2. CPU submission gains, unchanged geometry counts, matched captures and three repeated timing pairs are recorded in the ledger. GPU timings vary and are not evidence of a GPU speedup.
 3. Gallery lifecycle checks pass for all 12 brush types present, including hide/show, extraction, move/save/recommit, reverse translation and layer visibility. Batches now match the private stroke path's disabled frustum culling until shader-aware conservative bounds are implemented.
-4. Review and commit the local changes, exclude private agent journals, and retain the explicit no-push/no-PR policy. The default-off merge can be reviewed independently of turning the feature on by default.
+4. Batching work is merged into local main, with default-on activation and an explicit opt-out. Private agent journals are excluded. Retain the explicit no-push/no-PR policy.
 
 ## 10. Completed integration and non-goals
 
