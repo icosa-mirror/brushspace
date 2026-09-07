@@ -10,7 +10,7 @@ import { StrokeBatchRenderSystem } from "../systems/stroke-batch-render-system.j
 import { SketchLibrarySystem } from "../systems/sketch-library-system.js";
 import { createSketchDocument } from "../sketch/document.js";
 import { readTiltFile, writeTiltFile } from "../sketch/tilt-file.js";
-import { BrushStroke, ExtractedBatchedBrushStroke } from "../components/core.js";
+import { BatchedBrushStroke, BrushSettings, BrushStroke, ExtractedBatchedBrushStroke, OpenBrushAppState, StrokeHistoryState } from "../components/core.js";
 import type { StrokeData } from "../types.js";
 
 let validationWorld: World | undefined;
@@ -18,6 +18,7 @@ let validationWorld: World | undefined;
 declare global {
   interface Window {
     exerciseStrokeBatchLifecycle?: typeof exerciseStrokeBatchLifecycle;
+    inspectStrokeBatchHistory?: typeof inspectStrokeBatchHistory;
   }
 }
 
@@ -70,7 +71,48 @@ export async function setupStrokeBatchValidation(world: World): Promise<void> {
   document.documentElement.dataset.strokeBatchValidation = "ready";
   validationWorld = world;
   window.exerciseStrokeBatchLifecycle = exerciseStrokeBatchLifecycle;
+  window.inspectStrokeBatchHistory = inspectStrokeBatchHistory;
   console.log(`[StrokeBatchValidation] Ready: ${count} finalized Flat strokes`);
+}
+
+/** Observe browser-authored strokes without reaching into private history state. */
+function inspectStrokeBatchHistory(prepare = false) {
+  const authoring = validationWorld?.getSystem(StrokeAuthoringSystem);
+  if (!authoring) throw new Error("[StrokeBatchValidation] Workload not ready");
+  if (prepare) {
+    for (const appState of authoring.queries.appState.entities) {
+      appState.setValue(OpenBrushAppState, "mode", "ready");
+      appState.setValue(OpenBrushAppState, "activeTool", "free-paint");
+    }
+    for (const settings of authoring.queries.brushSettings.entities) {
+      settings.setValue(BrushSettings, "brushGuid", FLAT_BATCH_BRUSH_GUID);
+    }
+  }
+  const history = [...authoring.queries.history.entities][0];
+  let batchTriangles = 0;
+  validationWorld!.scene.traverse((object) => {
+    if (!object.name.startsWith("OpenBrushStrokeBatch_")) return;
+    const indices = (object as import("@iwsdk/core").Mesh).geometry.index?.array;
+    if (!indices) return;
+    for (let index = 0; index < indices.length; index += 3) {
+      if (indices[index] !== indices[index + 1] && indices[index + 1] !== indices[index + 2]
+        && indices[index] !== indices[index + 2]) batchTriangles += 1;
+    }
+  });
+  return {
+    batchTriangles,
+    undoDepth: history?.getValue(StrokeHistoryState, "undoDepth"),
+    redoDepth: history?.getValue(StrokeHistoryState, "redoDepth"),
+    strokes: [...authoring.queries.strokes.entities]
+      .filter((entity) => !String(entity.getValue(BrushStroke, "guid")).startsWith("batch-validation-"))
+      .map((entity) => ({
+        guid: String(entity.getValue(BrushStroke, "guid")),
+        visible: Boolean(entity.getValue(BrushStroke, "renderVisible")),
+        finalized: Boolean(entity.getValue(BrushStroke, "finalized")),
+        batched: entity.hasComponent(BatchedBrushStroke),
+        privateVisible: entity.object3D?.visible,
+      })),
+  };
 }
 
 /** Test driver for actual ECS selection reconciliation and renderer transitions. */

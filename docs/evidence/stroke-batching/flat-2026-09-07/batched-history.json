@@ -1,0 +1,64 @@
+{
+  "baselineHistory": {
+    "batchTriangles": 1600,
+    "undoDepth": 0,
+    "redoDepth": 0,
+    "strokes": []
+  },
+  "createdHistory": {
+    "batchTriangles": 1664,
+    "undoDepth": 1,
+    "redoDepth": 0,
+    "strokes": [
+      {
+        "guid": "runtime-stroke-202",
+        "visible": true,
+        "finalized": true,
+        "batched": true,
+        "privateVisible": false
+      }
+    ]
+  },
+  "undoneHistory": {
+    "batchTriangles": 1600,
+    "undoDepth": 0,
+    "redoDepth": 1,
+    "strokes": [
+      {
+        "guid": "runtime-stroke-202",
+        "visible": false,
+        "finalized": true,
+        "batched": true,
+        "privateVisible": false
+      }
+    ]
+  },
+  "redoneHistory": {
+    "batchTriangles": 1664,
+    "undoDepth": 1,
+    "redoDepth": 0,
+    "strokes": [
+      {
+        "guid": "runtime-stroke-202",
+        "visible": true,
+        "finalized": true,
+        "batched": true,
+        "privateVisible": false
+      }
+    ]
+  },
+  "replacedHistory": {
+    "batchTriangles": 1664,
+    "undoDepth": 1,
+    "redoDepth": 0,
+    "strokes": [
+      {
+        "guid": "runtime-stroke-203",
+        "visible": true,
+        "finalized": true,
+        "batched": true,
+        "privateVisible": false
+      }
+    ]
+  }
+}

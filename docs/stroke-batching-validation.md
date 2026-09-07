@@ -14,6 +14,13 @@
 
 ## 1. Current scope
 
+### Browser authoring and creation history: 2026-09-07
+
+1. The development fixture explicitly enters drawing mode and selects Flat; the runner then sends real browser mouse input to draw, `Z` to undo, `Y` to redo, and `Z` followed by a second drawing gesture to abandon the redo branch. The driver observes public ECS state; it does not inject entries into the private history stack or invoke private history methods.
+2. Both modes finalize one visible stroke, increase undo depth, hide it on undo, restore it on redo and dispose the abandoned redo entity when a new stroke is drawn. In batched mode, the finalized stroke has no visible private representation. Direct inspection of nondegenerate shared-buffer index triples confirms undo removes the added triangles and redo restores them.
+3. Evidence: [batched history](evidence/stroke-batching/flat-2026-09-07/batched-history.json), [reference history](evidence/stroke-batching/flat-2026-09-07/reference-history.json). Reproduce with `node scripts/browser-batching-smoke.mjs http://localhost:8081/ .iwsdk/batching-history-final` against an existing runtime. Chrome uses a fresh visible temporary profile on the RTX 4090; type checks precede browser testing.
+4. `npm run check`: 520 passed, 4 todo; production build passed. The same run retained the 207-to-8 steady-state call reduction and pixel-identical pre-interaction Flat captures. This does not validate erase history, movement undo/redo, mirrored authoring, remote history, transition-frame image fidelity or resource-retention budgets; those gates remain open.
+
 ### Save snapshot and reconstructed geometry: 2026-09-07
 
 1. The browser driver now invokes `SketchLibrarySystem.collectVisibleStrokeData()` while selected, encodes/decodes a `.tilt` document, then spawns the decoded stroke through the production authoring path. This covers the snapshot used by save/collaboration and reconstructed geometry, but not the IndexedDB save UI or gallery load transition.
@@ -88,6 +95,6 @@ Initial findings, retained for traceability:
 
 1. Gate A (foundation): passed by deterministic tests, but this is not a merge recommendation by itself.
 2. Gate B (first feature-flagged merge): open. The steady-state Flat GPU comparison and draw-call reduction are recorded above; startup atomicity, broader culling and the remaining fidelity requirements are not yet established.
-3. Gate C (loaded-sketch enablement): open. Runtime ECS lifecycle checks and snapshot/tilt round trips are recorded above; actual history commands, eraser/picker tools, interactive save/load and load/steady-state budgets remain unverified.
+3. Gate C (loaded-sketch enablement): open. Runtime ECS lifecycle checks, browser creation undo/redo and snapshot/tilt round trips are recorded above; erase/movement history, eraser/picker tools, interactive save/load and load/steady-state budgets remain unverified.
 4. Gate D (authored/collaborative strokes): implementation is present; runtime transfer evidence is missing.
 5. Gate E (default-on): open. The allowlist must not widen and batching must not become default until the required family, browser, XR, and performance evidence exists.

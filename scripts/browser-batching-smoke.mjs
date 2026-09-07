@@ -77,6 +77,49 @@ try {
     }
     if (errors.length) throw new Error(`Lifecycle page errors: ${errors[0]}`);
     results.push({ enabled, ...result });
+    const inspectHistory = () => page.evaluate(() => window.inspectStrokeBatchHistory());
+    const baselineHistory = await page.evaluate(() => window.inspectStrokeBatchHistory(true));
+    const baselineGuids = new Set(baselineHistory.strokes.map((stroke) => stroke.guid));
+    const drawStroke = async (y) => {
+      await page.mouse.move(560, y);
+      await page.mouse.down();
+      for (let x = 570; x <= 730; x += 10) {
+        await page.mouse.move(x, y);
+        await page.waitForTimeout(30);
+      }
+      await page.mouse.up();
+      await page.waitForTimeout(250);
+    };
+    const historyKey = async (key) => {
+      await page.keyboard.down(key);
+      await page.waitForTimeout(80);
+      await page.keyboard.up(key);
+      await page.waitForTimeout(250);
+    };
+    await drawStroke(350);
+    const createdHistory = await inspectHistory();
+    await writeFile(path.join(output, enabled ? "batched-history-created.json" : "reference-history-created.json"), JSON.stringify({ baselineHistory, createdHistory }, null, 2));
+    const created = createdHistory.strokes.filter((stroke) => !baselineGuids.has(stroke.guid));
+    requireState(created.length === 1 && created[0].finalized && created[0].visible, "browser drawing did not finalize one visible stroke");
+    requireState(created[0].batched === enabled && created[0].privateVisible === !enabled, "authored stroke has wrong rendering owner");
+    requireState(createdHistory.undoDepth === baselineHistory.undoDepth + 1, "creation not recorded in history");
+    await historyKey("z");
+    const undoneHistory = await inspectHistory();
+    const undone = undoneHistory.strokes.find((stroke) => stroke.guid === created[0].guid);
+    requireState(undone && !undone.visible && !undone.privateVisible && undoneHistory.redoDepth === 1, "undo did not hide stroke and retain redo");
+    await historyKey("y");
+    const redoneHistory = await inspectHistory();
+    requireState(redoneHistory.strokes.find((stroke) => stroke.guid === created[0].guid)?.visible && redoneHistory.redoDepth === 0, "redo did not restore stroke");
+    if (enabled) {
+      requireState(createdHistory.batchTriangles > baselineHistory.batchTriangles, "finalization added no batch triangles");
+      requireState(undoneHistory.batchTriangles === baselineHistory.batchTriangles, "undo left batch triangles visible");
+      requireState(redoneHistory.batchTriangles === createdHistory.batchTriangles, "redo did not restore batch triangles");
+    }
+    await historyKey("z");
+    await drawStroke(380);
+    const replacedHistory = await inspectHistory();
+    requireState(!replacedHistory.strokes.some((stroke) => stroke.guid === created[0].guid) && replacedHistory.redoDepth === 0, "new creation did not dispose abandoned redo stroke");
+    await writeFile(path.join(output, enabled ? "batched-history.json" : "reference-history.json"), JSON.stringify({ baselineHistory, createdHistory, undoneHistory, redoneHistory, replacedHistory }, null, 2));
     await page.close();
   }
   await writeFile(path.join(output, "results.json"), JSON.stringify({ browser: browser.version(), results }, null, 2));
