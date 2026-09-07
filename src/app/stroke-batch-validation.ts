@@ -38,13 +38,14 @@ export async function setupStrokeBatchValidation(world: World): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 2000));
   const geometrySamples: unknown[] = [];
   world.scene.traverse((object) => {
-    if (!object.name.startsWith("OpenBrushStrokeBatch_")) return;
+    if (!object.name.startsWith("OpenBrushStrokeBatch_") && object.name !== "OpenBrushStroke_1") return;
     const mesh = object as import("@iwsdk/core").Mesh;
     object.updateWorldMatrix(true, false);
     geometrySamples.push({
       name: object.name,
       matrix: object.matrixWorld.toArray(),
       drawRange: mesh.geometry.drawRange,
+      material: (Array.isArray(mesh.material) ? mesh.material : [mesh.material]).map((material) => ({ name: material.name, type: material.type, visible: material.visible, side: material.side, transparent: material.transparent, depthWrite: material.depthWrite })),
       attributes: Object.fromEntries(Object.entries(mesh.geometry.attributes).map(([name, attr]) => [name, { size: attr.itemSize, count: attr.count, first: Array.from(attr.array.slice(0, 12)) }])),
       indices: Array.from(mesh.geometry.index?.array.slice(0, 12) ?? []),
     });

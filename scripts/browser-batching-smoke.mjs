@@ -19,11 +19,17 @@ try {
     page.on("console", (message) => {
       if (message.type() === "error" || /GL_INVALID|GL_INVALID_OPERATION/.test(message.text())) consoleErrors.push(message.text());
     });
+    const shadersReady = page.waitForEvent("console", {
+      predicate: (message) => /OpenBrush brush shader materials ready: \d+\/\d+ supported brushes\./.test(message.text()),
+      timeout: 120_000,
+    });
     const url = new URL(baseUrl);
     url.searchParams.set("batch-validation", "flat");
     url.searchParams.set("strokeBatches", enabled ? "1" : "0");
     await page.goto(url.href, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.documentElement.dataset.strokeBatchValidation === "ready", undefined, { timeout: 120_000 });
+    const readyCounts = (await shadersReady).text().match(/ready: (\d+)\/(\d+)/);
+    if (!readyCounts || readyCounts[1] !== readyCounts[2]) throw new Error("Incomplete managed shader loading");
     await page.waitForTimeout(5000);
     const result = await page.evaluate(() => {
       const canvas = document.querySelector("canvas");
@@ -50,6 +56,7 @@ try {
   console.log(JSON.stringify(results.map(({ enabled, renderer, metrics }) => ({ enabled, renderer, calls: metrics.strokeBatchRendererCalls, triangles: metrics.strokeBatchRendererTriangles, batches: metrics.strokeBatchCount, eligible: metrics.strokeBatchCompatibleStrokes }))));
   // Gross visibility gate for this blue Flat workload, not a fidelity metric.
   const coverage = [];
+  const pixels = [];
   for (const file of ["reference.png", "batched.png"]) {
     const { data, info } = await sharp(path.join(output, file)).removeAlpha().raw().toBuffer({ resolveWithObject: true });
     let bluePixels = 0;
@@ -57,8 +64,18 @@ try {
       if (data[offset + 2] > 60 && data[offset + 2] > data[offset] * 1.5 && data[offset + 2] > data[offset + 1] * 1.2) bluePixels += 1;
     }
     coverage.push(bluePixels);
+    pixels.push(data);
   }
-  await writeFile(path.join(output, "coverage.json"), JSON.stringify({ reference: coverage[0], batched: coverage[1] }));
+  let changedChannels = 0;
+  let squaredError = 0;
+  for (let index = 0; index < pixels[0].length; index += 1) {
+    const difference = pixels[0][index] - pixels[1][index];
+    if (difference !== 0) changedChannels += 1;
+    squaredError += difference * difference;
+  }
+  const comparison = { reference: coverage[0], batched: coverage[1], changedChannels, rms: Math.sqrt(squaredError / pixels[0].length) };
+  await writeFile(path.join(output, "coverage.json"), JSON.stringify(comparison));
+  console.log(JSON.stringify(comparison));
   if (coverage[0] < 1000 || coverage[1] < coverage[0] * 0.9) {
     throw new Error(`Flat visibility gate failed: reference=${coverage[0]}, batched=${coverage[1]}`);
   }

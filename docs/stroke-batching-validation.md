@@ -16,6 +16,14 @@
 
 ### Controlled Flat GPU reproduction: 2026-09-07
 
+Follow-up: after explicitly awaiting the full shader-ready event before the settling interval, two further runs displayed all strokes. The first matched reference and batch images byte-for-byte at decoded RGB level. The second differed in 126 pixels (378 channels), but its batched image was identical to the first reference; the same difference occurred between the two reference captures. Thus the observed repeat difference is reference-run variability, not demonstrated batching error. The earlier blank capture is not explained conclusively and remains a startup/transfer investigation; do not claim a geometry fix from these results.
+
+1. Captures and raw metrics: [reference](evidence/stroke-batching/flat-2026-09-07/reference.png), [batched](evidence/stroke-batching/flat-2026-09-07/batched.png), [first results](evidence/stroke-batching/flat-2026-09-07/results.json), [repeat reference](evidence/stroke-batching/flat-2026-09-07/repeat-reference.png), [repeat results](evidence/stroke-batching/flat-2026-09-07/repeat-results.json).
+2. Both runs: 207 reference calls versus 8 batched calls, 13,374 triangles, 200 batched strokes in one batch. First comparison: 138,878 blue pixels in each image, zero changed RGB channels. Repeat: 138,910 reference blue pixels versus 138,878 batched, RMS 2.067 on the full page, matching the measured reference-to-reference variation.
+3. These observations establish a successful steady-state Flat GPU comparison on this camera/workload. They do not establish startup atomicity, general culling, lifecycle behavior, XR behavior or multi-run frame-time budgets. Gate B remains open for its remaining requirements.
+
+Initial findings, retained for traceability:
+
 1. Development URL: `?batch-validation=flat&strokeBatches=0` or `1`. It loads 200 deterministic Flat strokes through `spawnStrokeFromData`, hides the intro sketch and fixes the camera. Run against an existing HTTP development server with `node scripts/browser-batching-smoke.mjs http://localhost:8081/ .iwsdk/batching-smoke`.
 2. The runner owns a fresh temporary visible Chrome profile and rejects software rendering. It saves screenshots, metrics and diagnostics locally. Its blue-pixel coverage check detects gross missing geometry; it is not the planned calibrated fidelity comparison or multi-run performance benchmark.
 3. Initial browser execution exposed an unregistered `ExtractedBatchedBrushStroke` check that crashed selection even with batching disabled. Registering that component during batch-renderer initialization removed the observed page error in both modes.
