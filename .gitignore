@@ -41,6 +41,9 @@ coverage/
 .tmp/
 .temp/
 .iwsdk/
+.wrangler/
+.claude/journal/
+.codex/journal/
 
 # Editor directories and files
 .vscode/*
