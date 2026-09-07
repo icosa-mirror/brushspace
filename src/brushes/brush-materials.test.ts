@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import {
+  getTiltBrushMaterialRenderState,
+  hasTiltBrushMaterial,
+} from "three-icosa";
 
 import referenceManifest from "./generated/exportManifest.json";
 import generatedBrushAssets from "./generated/brush-assets.json";
@@ -18,6 +22,26 @@ const inventory = buildBrushInventoryFromExportManifest(
 );
 
 describe("brush material conversion", () => {
+  it("uses three-icosa render state for every authoritative supported brush", () => {
+    const supported = inventory.filter(
+      (entry) => entry.supportStatus === "supported",
+    );
+    const authoritative = supported.filter((entry) =>
+      hasTiltBrushMaterial(entry.name, entry.guid),
+    );
+
+    expect(authoritative.length).toBeGreaterThan(0);
+    for (const entry of authoritative) {
+      const state = getTiltBrushMaterialRenderState(entry.name, entry.guid);
+      const spec = createBrushMaterialSpec(entry, [1, 1, 1, 1]);
+      expect(state, entry.name).toBeDefined();
+      expect(spec.authoritativeRenderState, entry.name).toEqual(state);
+      expect(spec.transparent, entry.name).toBe(state?.transparent);
+      expect(spec.depthWrite, entry.name).toBe(state?.depthWrite);
+      expect(spec.doubleSided, entry.name).toBe(state?.doubleSided);
+    }
+  });
+
   it("converts marker cutout texture metadata without treating Unity shaders as portable", () => {
     const spec = createBrushMaterialSpec(
       getBrush("429ed64a-4e97-4466-84d3-145a861ef684"),

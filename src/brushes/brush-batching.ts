@@ -110,7 +110,7 @@ export function createBatchKey(
     brushGuid,
     geometryFamily,
     materialFamily,
-    transparent: compatibility.transparent ?? materialSpec.transparent,
+    transparent: materialSpec.transparent,
     materialMode,
     renderPassContract: compatibility.renderPassContract,
     supplementalAttributeContract:

@@ -21,7 +21,7 @@ const fixtureStroke = createPhase1FixtureDocument().strokes[0];
 
 describe("brush batch planning", () => {
   it("groups compatible strokes while preserving hidden stroke membership", () => {
-    const brushGuid = "00000000-0000-0000-0000-000000000000";
+    const brushGuid = "2d35bcf0-e4d8-452c-97b1-3311be063130";
     const first = withOverrides(fixtureStroke, { guid: "stroke-a", brushGuid });
     const second = withOverrides(fixtureStroke, { guid: "stroke-b", brushGuid });
     const firstGeometry = generateBrushGeometry(first, "ribbon");
@@ -47,8 +47,12 @@ describe("brush batch planning", () => {
     expect(batches).toHaveLength(1);
     expect(batches[0].strokeGuids).toEqual(["stroke-a", "stroke-b"]);
     expect(batches[0].visibleStrokeCount).toBe(1);
-    expect(batches[0].vertexCount).toBe(12);
-    expect(batches[0].indexCount).toBe(24);
+    expect(batches[0].vertexCount).toBe(
+      (firstGeometry.positions.length + secondGeometry.positions.length) / 3,
+    );
+    expect(batches[0].indexCount).toBe(
+      firstGeometry.indices.length + secondGeometry.indices.length,
+    );
     expect(batches[0].batchable).toBe(true);
     expect(batches[0].key.materialMode).toBe("managed-shader");
   });
