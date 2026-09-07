@@ -87,7 +87,7 @@ Initial findings, retained for traceability:
 ## 5. Gate status
 
 1. Gate A (foundation): passed by deterministic tests, but this is not a merge recommendation by itself.
-2. Gate B (first feature-flagged merge): open because GPU-backed Flat fidelity and draw-call evidence are missing.
-3. Gate C (loaded-sketch enablement): implementation and deterministic coverage are present; runtime interaction evidence is missing.
+2. Gate B (first feature-flagged merge): open. The steady-state Flat GPU comparison and draw-call reduction are recorded above; startup atomicity, broader culling and the remaining fidelity requirements are not yet established.
+3. Gate C (loaded-sketch enablement): open. Runtime ECS lifecycle checks and snapshot/tilt round trips are recorded above; actual history commands, eraser/picker tools, interactive save/load and load/steady-state budgets remain unverified.
 4. Gate D (authored/collaborative strokes): implementation is present; runtime transfer evidence is missing.
 5. Gate E (default-on): open. The allowlist must not widen and batching must not become default until the required family, browser, XR, and performance evidence exists.
