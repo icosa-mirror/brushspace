@@ -14,6 +14,13 @@
 
 ## 1. Current scope
 
+### Save snapshot and reconstructed geometry: 2026-09-07
+
+1. The browser driver now invokes `SketchLibrarySystem.collectVisibleStrokeData()` while selected, encodes/decodes a `.tilt` document, then spawns the decoded stroke through the production authoring path. This covers the snapshot used by save/collaboration and reconstructed geometry, but not the IndexedDB save UI or gallery load transition.
+2. It exposed a reference-path defect: private stroke meshes retained movement only in their Object3D transform, while snapshots saved the original points. Snapshot collection now clones/translates those private stroke records. Batched records are already baked by extraction flushing and are not translated twice. Repeated private snapshots leave live data unchanged.
+3. Both modes preserve the 0.10 + 0.05 movement in the snapshot, decoded points and regenerated bounds (within float tolerances). Existing visibility, extraction, idle-upload and bulk-scope checks pass. Evidence: [batched persistence](evidence/stroke-batching/flat-2026-09-07/batched-persistence.json), [reference persistence](evidence/stroke-batching/flat-2026-09-07/reference-persistence.json).
+4. Full checks pass: 520 tests, 4 todo. Actual history commands, interactive save/load UI, remote synchronization and XR remain outstanding.
+
 ### Coalesced bulk commits: 2026-09-07
 
 1. `withDeferredUploads` now groups synchronous loaded-sketch creation and pending-material commits. Nested scopes defer until the outermost boundary; a `finally` block flushes completed changes if the operation throws. Individual operations outside a scope retain immediate uploads. The scope must not span asynchronous work or rendering.

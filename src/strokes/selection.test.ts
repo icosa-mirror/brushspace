@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { StrokeData } from "../types.js";
 
 import {
+  createTranslatedStrokeSnapshot,
   planSelectedStrokeTranslation,
   resolveLastSelectableStroke,
   summarizeStrokeSelection,
@@ -45,6 +46,19 @@ const strokes: RuntimeStrokeSelectionState[] = [
 ];
 
 describe("Open Brush stroke selection", () => {
+  it("snapshots a private mesh translation once without mutating live points", () => {
+    const stroke = {
+      controlPoints: [{ position: [1, 2, 3], orientation: [0, 0, 0, 1] }],
+    } as unknown as StrokeData;
+    const first = createTranslatedStrokeSnapshot(stroke, [0.15, 0, 0]);
+    const second = createTranslatedStrokeSnapshot(stroke, [0.15, 0, 0]);
+    expect(first.controlPoints[0].position).toEqual([1.15, 2, 3]);
+    expect(second.controlPoints[0].position).toEqual([1.15, 2, 3]);
+    expect(stroke.controlPoints[0].position).toEqual([1, 2, 3]);
+    first.controlPoints[0].position[0] = 9;
+    expect(second.controlPoints[0].position[0]).toBe(1.15);
+  });
+
   it("selects the newest visible finalized stroke on the active layer", () => {
     expect(resolveLastSelectableStroke(strokes, 0)?.commandIndex).toBe(1);
     expect(resolveLastSelectableStroke(strokes, 2)?.commandIndex).toBe(4);

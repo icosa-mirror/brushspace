@@ -7,6 +7,9 @@ import { openBrushShaderLibrary } from "../brushes/brush-shader-library.js";
 import { IntroSketchSystem } from "../systems/intro-sketch-system.js";
 import { StrokeAuthoringSystem } from "../systems/stroke-authoring-system.js";
 import { StrokeBatchRenderSystem } from "../systems/stroke-batch-render-system.js";
+import { SketchLibrarySystem } from "../systems/sketch-library-system.js";
+import { createSketchDocument } from "../sketch/document.js";
+import { readTiltFile, writeTiltFile } from "../sketch/tilt-file.js";
 import { BrushStroke, ExtractedBatchedBrushStroke } from "../components/core.js";
 import type { StrokeData } from "../types.js";
 
@@ -82,6 +85,8 @@ export async function exerciseStrokeBatchLifecycle() {
   if (!stroke?.object3D) throw new Error("[StrokeBatchValidation] Missing test stroke");
   const mesh = stroke.object3D as import("@iwsdk/core").Mesh;
   const data = mesh.userData.openBrushStrokeData as StrokeData;
+  let savedX: number | null = null;
+  let roundTripX: number | null = null;
   const batchMesh = world.scene.getObjectByName("OpenBrushStrokeBatch_1") as import("@iwsdk/core").Mesh | undefined;
   const snapshot = (stage: string) => ({
     stage,
@@ -91,7 +96,10 @@ export async function exerciseStrokeBatchLifecycle() {
     privateVisible: mesh.visible,
     privateVertices: mesh.geometry.getAttribute("position")?.count ?? 0,
     objectX: mesh.position.x,
+    minBoundsX: (stroke.getVectorView(BrushStroke, "minBounds") as Float32Array)[0],
     serializedX: data.controlPoints[0].position[0],
+    savedX,
+    roundTripX,
     uploadBytes: renderer.getUploadedBytes(),
     // This workload puts its first stroke in the first 24 indices of one batch.
     batchSubsetHasTriangles: batchMesh
@@ -122,7 +130,12 @@ export async function exerciseStrokeBatchLifecycle() {
   stroke.setValue(BrushStroke, "selected", true);
   await tick();
   mesh.position.x += 0.05;
-  renderer.finishAllExtractions();
+  const saved = world.getSystem(SketchLibrarySystem)!.collectVisibleStrokeData()
+    .find((candidate) => candidate.guid === data.guid);
+  if (!saved) throw new Error("[StrokeBatchValidation] Saved stroke missing");
+  savedX = saved.controlPoints[0].position[0];
+  const decoded = readTiltFile(writeTiltFile(createSketchDocument({ strokes: [saved] })));
+  roundTripX = decoded.strokes[0].controlPoints[0].position[0];
   observations.push(snapshot("save-flushed"));
   await tick();
   observations.push(snapshot("selected-after-save"));
@@ -160,5 +173,13 @@ export async function exerciseStrokeBatchLifecycle() {
     renderer.setStrokeVisible("batch-validation-0", true);
     observations.push(snapshot("interrupted-scope-restored"));
   }
+  const reloadedData = decoded.strokes[0];
+  reloadedData.guid = "batch-validation-roundtrip";
+  const reloaded = authoring.spawnStrokeFromData(reloadedData, false);
+  const reloadedMinX = (reloaded.getVectorView(BrushStroke, "minBounds") as Float32Array)[0];
+  if (Math.abs(reloadedMinX - observations[0].minBoundsX - 0.15) > 1e-5) {
+    throw new Error("[StrokeBatchValidation] Reloaded geometry lost or duplicated movement");
+  }
+  observations.push({ ...snapshot("reloaded"), minBoundsX: reloadedMinX });
   return observations;
 }

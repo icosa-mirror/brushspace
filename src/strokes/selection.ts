@@ -114,3 +114,14 @@ export function translateStrokeDataControlPoints(
     point.position[2] += delta[2];
   }
 }
+
+/** Snapshot a private mesh's translation without changing its live data. */
+export function createTranslatedStrokeSnapshot(
+  stroke: StrokeData,
+  delta: Vec3,
+): StrokeData {
+  if (delta[0] === 0 && delta[1] === 0 && delta[2] === 0) return stroke;
+  const snapshot = structuredClone(stroke);
+  translateStrokeDataControlPoints(snapshot, delta);
+  return snapshot;
+}

@@ -60,6 +60,8 @@ try {
     };
     requireState(!stages.hidden.renderVisible && !stages.hidden.privateVisible, "hidden stroke visible");
     requireState(stages.shown.renderVisible, "show did not restore visibility");
+    requireState(Math.abs(stages["save-flushed"].savedX - stages.initial.serializedX - 0.15) < 1e-6, "save snapshot lost or duplicated movement");
+    requireState(Math.abs(stages["save-flushed"].roundTripX - stages["save-flushed"].savedX) < 1e-6, "tilt round trip changed movement");
     if (enabled) {
       requireState(stages.initial.uploadBytes <= 326400, "bulk load uploaded more than one final Flat batch");
       requireState(!stages.hidden.batchSubsetHasTriangles && stages.shown.batchSubsetHasTriangles, "subset hide/show failed");

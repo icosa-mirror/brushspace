@@ -11,6 +11,7 @@ import {
 import type { Entity } from "@iwsdk/core";
 
 import {
+  BatchedBrushStroke,
   BrushStroke,
   CanvasLayer,
   OpenBrushAppState,
@@ -39,6 +40,7 @@ import {
 import { readTiltFile } from "../sketch/tilt-file.js";
 import { convertTiltBrushUnitsToMeters } from "../sketch/tilt-brush-units.js";
 import type { StrokeData } from "../types.js";
+import { createTranslatedStrokeSnapshot } from "../strokes/selection.js";
 import {
   applyUIKitProperties,
   clearUIKitInteractionStateExcept,
@@ -636,8 +638,14 @@ export class SketchLibrarySystem extends createSystem({
         | StrokeData
         | undefined;
       if (data) {
+        const position = entity.object3D?.position;
+        // Batch extractions were baked above. Private meshes still carry their
+        // editing translation separately from the original control points.
+        const snapshot = position && !entity.hasComponent(BatchedBrushStroke)
+          ? createTranslatedStrokeSnapshot(data, [position.x, position.y, position.z])
+          : data;
         strokes.push({
-          data,
+          data: snapshot,
           order: Number(entity.getValue(BrushStroke, "commandIndex")),
         });
       }
