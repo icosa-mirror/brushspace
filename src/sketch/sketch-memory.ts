@@ -113,7 +113,9 @@ export function readSketchMemory(
       color,
       brushGuid,
       brushSize,
-      guid: ZERO_GUID,
+      // .sketch does not store stroke IDs. Assign distinct document-local IDs,
+      // as the shared tilt reader does; batching/selection key strokes by ID.
+      guid: `${ZERO_GUID.slice(0, -8)}${index.toString(16).padStart(8, "0")}`,
     });
 
     forEachSetBit(strokeExtensionMask, (bit) => {

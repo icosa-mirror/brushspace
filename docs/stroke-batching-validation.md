@@ -1,5 +1,33 @@
 # Stroke batching validation ledger
 
+## Real-gallery comparison: 2026-09-07
+
+1. Removed the Flat-only opt-in restriction after comparing the renderer with Open Brush's brush/canvas batch pools. All supported generated-geometry brushes use the existing shared material/attribute/pass contract; unavailable geometry or shader support remains an explicit fallback. Batching is still disabled by default.
+2. The first all-brush capture exposed a real import bug: every `.sketch` stroke received the same all-zero ID, so the ID-keyed batch manager replaced previous strokes. The reader now creates deterministic, distinct document-local IDs, matching the shared tilt reader's approach. A regression test covers uniqueness and repeatability.
+3. Workload: one first-page curated gallery sketch, 4,496 strokes and 388,126 rendered triangles. All strokes batch into 22 meshes. Scene draw calls decrease from 4,503 to 29 (99.36%); reported resident geometries decrease from 4,539 to 65. Neither figure alone establishes frame-time improvement.
+4. Six visible hardware-Chrome runs: off/on, on/off, off/on, 1280×720, device scale 1, identical fitted camera, complete managed-shader loading, five-second settling before capture and another five seconds before each thirty-second sample. Chrome 152.0.7977.76; RTX 4090 via ANGLE D3D11. Benchmark ownership was coordinated through the shared status file; each script closed its own temporary-profile browser, and the turn was released after all six runs.
+5. Median of the three per-run p95 measurements, in milliseconds:
+
+   | Measurement | Reference | Batched |
+   | --- | ---: | ---: |
+   | ECS CPU | 2.90 | 2.70 |
+   | Render-submission CPU | 16.70 | 4.20 |
+   | GPU timer | 16.09 | 18.69 |
+   | Browser frame interval | 16.80 | 16.80 |
+
+6. Render-submission CPU p95 improved in all three pairs (14.0→3.5, 20.7→4.2, 16.7→4.5 ms). GPU p95 was inconsistent (16.88→19.09, 16.09→18.69, 15.51→6.14 ms). This supports a CPU submission improvement, **not** a GPU or delivered-frame-rate improvement. No hidden-page, sample-overflow, disjoint-timer or in-sample geometry-upload condition was reported.
+7. Matched screenshot RMS differences on 0–255 channels: 0.0359, 0.0505 and 0.0183. Reference-to-reference RMS variation: 0.0511 and 0.0258. Changed-pixel coverage above five channel levels stayed below 0.002%. These captures are consistent with rendering parity at this view and animated-shader variation; they do not establish all-view or headset fidelity. The source scene is very dark in both modes.
+8. Evidence is local under `.iwsdk/batching-gallery-measured/`: three paired raw timing/state/capture sets and `summary.json`. Reproduce each pair with `scripts/browser-gallery-batching.mjs` (`--reverse` for the middle pair), then summarize with `scripts/summarize-gallery-batching.mjs`. Claim the shared benchmark turn before launching. The earlier `.iwsdk/batching-gallery-all` attempt was interrupted and visually failed; its timing data is not used here.
+9. GPU timing variability and target-headset performance remain outstanding. The following merge-preparation checks address the observed editing and culling risks; no default-on decision is made from desktop timings alone.
+
+### Merge preparation: 2026-09-07
+
+1. The batch mesh now uses `frustumCulled=false`, matching private strokes. Neither renderer relies on CPU bounds that omit shader displacement. This is a correctness policy shared with the existing renderer, not a new per-brush restriction; conservative shader-aware culling is separate optimization work.
+2. The real-gallery browser lifecycle test passes for every one of its 12 brush types: hide/show, private extraction on selection, movement, save while selected, recommit/private-geometry disposal, reverse translation, and the populated layer's visibility. This test calls the running production system APIs.
+3. Emulated XR enters successfully, renders two views without detected runtime/WebGL errors, and exits. The recorded stereo frame reports 158 scene calls and 810,276 triangles including XR controllers/UI and both eyes. This is functional stereo coverage, not Quest frame-budget evidence.
+4. `npm run check` passes: 77 test files, 551 tests passed, 4 existing TODOs. Type checking and production build pass. Benchmark browsers were closed and the shared turn released afterward.
+5. Browser evidence: `.iwsdk/batching-gallery-lifecycle/lifecycle.json` and `.iwsdk/batching-gallery-xr/xr.json`. No target Quest was connected at the device check; real headset timing remains pending.
+
 ## Revision checkpoint: 2026-09-07
 
 1. Dependency/asset revisions and lockfile fingerprint are recorded in the render contract's revision audit. The review found and corrected a managed-versus-fallback batch-key transparency mismatch introduced during the merge.
@@ -13,6 +41,12 @@
 3. Type checking passed before starting the CLI-managed HTTP runtime. No certificate setup was needed. Controlled Flat comparison, benchmark input location and matched capture settings are still pending; no runtime gate is closed by this preflight.
 
 ## 1. Current scope
+
+### Steady-state diagnostic protocol (declared before timing runs): 2026-09-07
+
+1. Six fresh visible Chrome pages, ordered off/on, on/off, off/on; 200 controlled Flat strokes, 1280×720, device scale 1. Wait for all managed shaders, settle for five seconds, then sample thirty seconds per page. Record application revision, lockfile/instrumentation hashes, browser/GPU, raw samples and memory/call counters.
+2. Measure ECS update CPU duration and renderer-submission CPU duration separately using `performance.now()`. Record browser frame intervals independently. Where WebGL2 timer queries are available, sample GPU render time once per sixteen renders with a fixed four-query pool; report disjoint/missed queries. This instrumentation has overhead and does not measure the whole browser CPU frame or XR presentation.
+3. Candidate diagnostic p95 regression allowances: CPU/GPU max(0.2 ms, 10% of reference median, reference run spread); frame interval max(1 ms, 10%, reference spread). Define a long interval as greater than 1.5× pooled reference median cadence; allow max(1 percentage point, reference run spread). These are predeclared diagnostic candidates, not agreed default-on acceptance budgets. No headset budget is inferred from them.
 
 ### Remote receiver lifecycle and final-tail semantics: 2026-09-07
 
@@ -76,7 +110,7 @@ Initial findings, retained for traceability:
 
 1. Branch: `claude/stroke-batching`.
 2. Runtime switch: `?strokeBatches=1`; batching remains disabled by default.
-3. Runtime allowlist: Flat (`2d35bcf0-e4d8-452c-97b1-3311be063130`) only.
+3. Runtime eligibility: all supported generated-geometry brushes once their managed shader is loaded; no per-brush allowlist. Earlier Flat-only results retain their original scope.
 4. Reference renderer: the unchanged per-stroke path when the switch is absent.
 
 ## 2. Deterministic evidence
@@ -109,7 +143,7 @@ Initial findings, retained for traceability:
 ## 5. Gate status
 
 1. Gate A (foundation): passed by deterministic tests, but this is not a merge recommendation by itself.
-2. Gate B (first feature-flagged merge): open. The steady-state Flat GPU comparison and draw-call reduction are recorded above; startup atomicity, broader culling and the remaining fidelity requirements are not yet established.
+2. Gate B (first feature-flagged merge): passed by current local validation. The upstream audit, actual-gallery render comparison, repaired import IDs, shared culling policy, browser lifecycle checks, emulated XR stereo check, and clean checks/build support review of a default-off merge. Hardware performance is not inferred from this status.
 3. Gate C (loaded-sketch enablement): open. Runtime ECS lifecycle checks, browser creation/erase undo/redo, Flat eraser/dropper hits and snapshot/tilt round trips are recorded above; movement history, broader hit-test cases, interactive save/load and load/steady-state budgets remain unverified.
 4. Gate D (authored/collaborative strokes): open. Browser receiver lifecycle and provisional-tail replay evidence are recorded above; connected-peer transfers, delayed/asynchronous material cases, broader brush coverage and interaction budgets remain unverified.
-5. Gate E (default-on): open. The allowlist must not widen and batching must not become default until the required family, browser, XR, and performance evidence exists.
+5. Gate E (default-on): open. Batching must not become default until the required family, browser, XR, and performance evidence exists. The opt-in path follows upstream batching semantics across supported brushes; it is not a brush-by-brush permission list.

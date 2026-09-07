@@ -1,0 +1,45 @@
+{
+  "firstPage": [
+    {
+      "id": "welcome-sketch",
+      "name": "Welcome Sketch",
+      "thumbUrl": "/openbrush/intro/thumbnail.png"
+    },
+    {
+      "id": "icosa:dIDpf7IS_5S",
+      "name": "Trainscape",
+      "thumbUrl": "https://s3.us-east-005.backblazeb2.com/icosa-gallery/poly/dIDpf7IS_5S/thumbnail.png",
+      "tiltUrl": "https://web.archive.org/web/20250101010101id_/https://poly.googleusercontent.com/downloads/c/fp/1623111539347030/dIDpf7IS_5S/08qAiRH5NB1/tmp4065c0e1.tilt"
+    },
+    {
+      "id": "icosa:ervEzbIlddY",
+      "name": "The Upside Down",
+      "thumbUrl": "https://s3.us-east-005.backblazeb2.com/icosa-gallery/poly/ervEzbIlddY/thumbnail.png",
+      "tiltUrl": "https://s3.us-east-005.backblazeb2.com/icosa-gallery/poly/ervEzbIlddY/Upside Down.tilt"
+    },
+    {
+      "id": "icosa:fv_TG9nYHtT",
+      "name": "Victorious Lucian Splash",
+      "thumbUrl": "https://s3.us-east-005.backblazeb2.com/icosa-gallery/poly/fv_TG9nYHtT/thumbnail.png",
+      "tiltUrl": "https://s3.us-east-005.backblazeb2.com/icosa-gallery/poly/fv_TG9nYHtT/sketch.tilt"
+    },
+    {
+      "id": "icosa:3UL8Bz_Id6I",
+      "name": "Solve et Coagula",
+      "thumbUrl": "https://s3.us-east-005.backblazeb2.com/icosa-gallery/poly/3UL8Bz_Id6I/thumbnail.png",
+      "tiltUrl": "https://s3.us-east-005.backblazeb2.com/icosa-gallery/poly/3UL8Bz_Id6I/sketch.tilt"
+    },
+    {
+      "id": "icosa:5OP5JSQZZn-",
+      "name": "Galactic Cat",
+      "thumbUrl": "https://s3.us-east-005.backblazeb2.com/icosa-gallery/poly/5OP5JSQZZn-/thumbnail.png",
+      "tiltUrl": "https://s3.us-east-005.backblazeb2.com/icosa-gallery/poly/5OP5JSQZZn-/tmp4a2b00cd.tilt"
+    }
+  ],
+  "chosen": {
+    "id": "icosa:dIDpf7IS_5S",
+    "name": "Trainscape",
+    "thumbUrl": "https://s3.us-east-005.backblazeb2.com/icosa-gallery/poly/dIDpf7IS_5S/thumbnail.png",
+    "tiltUrl": "https://web.archive.org/web/20250101010101id_/https://poly.googleusercontent.com/downloads/c/fp/1623111539347030/dIDpf7IS_5S/08qAiRH5NB1/tmp4065c0e1.tilt"
+  }
+}

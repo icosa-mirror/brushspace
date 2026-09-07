@@ -231,6 +231,23 @@ export class SketchLibrarySystem extends createSystem({
     return this.collectStrokeData();
   }
 
+  /** Entries currently offered on the gallery's visible page. */
+  getGalleryPageEntries(): ReadonlyArray<Readonly<GalleryEntry>> {
+    return this.entries.slice(this.page * CELLS_PER_PAGE, (this.page + 1) * CELLS_PER_PAGE);
+  }
+
+  /** Uses the same download, clear and reveal path as clicking a gallery cell. */
+  openGallerySketch(id: string): boolean {
+    const entry = this.entries.find((candidate) => candidate.id === id);
+    if (!entry || this.busy) return false;
+    this.openSketch(entry);
+    return true;
+  }
+
+  isOpeningSketch(): boolean {
+    return this.busy;
+  }
+
   /**
    * Guest side of a collab join: clear the local sketch immediately (no
    * transition) so the host's streamed snapshot lands on a blank canvas.

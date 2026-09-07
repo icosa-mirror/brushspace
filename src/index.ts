@@ -247,6 +247,12 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
       });
   }
 
+  if (import.meta.env.DEV && new URLSearchParams(window.location.search).get("batch-validation") === "gallery") {
+    void import("./app/stroke-batch-gallery-validation.js")
+      .then(({ setupGalleryBatchValidation }) => setupGalleryBatchValidation(world))
+      .catch((error) => console.error("[StrokeBatchGalleryValidation]", error));
+  }
+
   // Share links: brushspace.example/?join=123456 joins straight into the
   // peer's sketch (the in-VR path uses the keypad on the tools panel).
   const joinCode = new URLSearchParams(window.location.search).get("join");

@@ -1,0 +1,288 @@
+{
+  "workload": "curated gallery sketch, 4496 strokes",
+  "order": [
+    "off/on",
+    "on/off",
+    "off/on"
+  ],
+  "caveat": "Browser diagnostic, not headset/XR acceptance. Images contain animated shader variation.",
+  "runs": [
+    {
+      "pair": 1,
+      "mode": "reference",
+      "browser": "152.0.7977.76",
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4090 (0x00002684) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "calls": 4503,
+      "triangles": 388126,
+      "durationMs": 30002.5,
+      "strokes": 4496,
+      "batchedStrokes": 0,
+      "intervalsMs": {
+        "samples": 1795,
+        "p50": 16.69999999999709,
+        "p95": 16.80000000000291
+      },
+      "ecsCpuMs": {
+        "samples": 1796,
+        "p50": 1.9000000059604645,
+        "p95": 2.5999999940395355
+      },
+      "renderCpuMs": {
+        "samples": 1796,
+        "p50": 11,
+        "p95": 14
+      },
+      "gpuRenderMs": {
+        "samples": 112,
+        "p50": 14.642176,
+        "p95": 16.882688
+      },
+      "beforeMemory": {
+        "geometries": 4539,
+        "textures": 25
+      },
+      "afterMemory": {
+        "geometries": 4539,
+        "textures": 25
+      }
+    },
+    {
+      "pair": 1,
+      "mode": "batched",
+      "browser": "152.0.7977.76",
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4090 (0x00002684) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "calls": 29,
+      "triangles": 388126,
+      "durationMs": 30015.100000023842,
+      "strokes": 4496,
+      "batchedStrokes": 4496,
+      "intervalsMs": {
+        "samples": 1795,
+        "p50": 16.69999999999709,
+        "p95": 16.80000000000291
+      },
+      "ecsCpuMs": {
+        "samples": 1796,
+        "p50": 1.800000011920929,
+        "p95": 2.300000011920929
+      },
+      "renderCpuMs": {
+        "samples": 1796,
+        "p50": 2.4000000059604645,
+        "p95": 3.5
+      },
+      "gpuRenderMs": {
+        "samples": 112,
+        "p50": 16.355328,
+        "p95": 19.085312
+      },
+      "beforeMemory": {
+        "geometries": 65,
+        "textures": 25
+      },
+      "afterMemory": {
+        "geometries": 65,
+        "textures": 25
+      }
+    },
+    {
+      "pair": 2,
+      "mode": "reference",
+      "browser": "152.0.7977.76",
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4090 (0x00002684) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "calls": 4503,
+      "triangles": 388126,
+      "durationMs": 30006.899999976158,
+      "strokes": 4496,
+      "batchedStrokes": 0,
+      "intervalsMs": {
+        "samples": 1588,
+        "p50": 16.69999999999709,
+        "p95": 33.39999999999782
+      },
+      "ecsCpuMs": {
+        "samples": 1589,
+        "p50": 2.5999999940395355,
+        "p95": 3.4000000059604645
+      },
+      "renderCpuMs": {
+        "samples": 1589,
+        "p50": 15.700000017881393,
+        "p95": 20.700000017881393
+      },
+      "gpuRenderMs": {
+        "samples": 100,
+        "p50": 11.913216,
+        "p95": 16.091136
+      },
+      "beforeMemory": {
+        "geometries": 4539,
+        "textures": 25
+      },
+      "afterMemory": {
+        "geometries": 4539,
+        "textures": 25
+      }
+    },
+    {
+      "pair": 2,
+      "mode": "batched",
+      "browser": "152.0.7977.76",
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4090 (0x00002684) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "calls": 29,
+      "triangles": 388126,
+      "durationMs": 30012.5,
+      "strokes": 4496,
+      "batchedStrokes": 4496,
+      "intervalsMs": {
+        "samples": 1800,
+        "p50": 16.69999999999709,
+        "p95": 16.80000000000291
+      },
+      "ecsCpuMs": {
+        "samples": 1801,
+        "p50": 1.9000000059604645,
+        "p95": 2.800000011920929
+      },
+      "renderCpuMs": {
+        "samples": 1801,
+        "p50": 2.5,
+        "p95": 4.200000017881393
+      },
+      "gpuRenderMs": {
+        "samples": 113,
+        "p50": 16.388096,
+        "p95": 18.69312
+      },
+      "beforeMemory": {
+        "geometries": 65,
+        "textures": 25
+      },
+      "afterMemory": {
+        "geometries": 65,
+        "textures": 25
+      }
+    },
+    {
+      "pair": 3,
+      "mode": "reference",
+      "browser": "152.0.7977.76",
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4090 (0x00002684) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "calls": 4503,
+      "triangles": 388126,
+      "durationMs": 30000.69999998808,
+      "strokes": 4496,
+      "batchedStrokes": 0,
+      "intervalsMs": {
+        "samples": 1769,
+        "p50": 16.69999999999709,
+        "p95": 16.799999999999272
+      },
+      "ecsCpuMs": {
+        "samples": 1770,
+        "p50": 2.4000000059604645,
+        "p95": 2.9000000059604645
+      },
+      "renderCpuMs": {
+        "samples": 1770,
+        "p50": 12.800000011920929,
+        "p95": 16.69999998807907
+      },
+      "gpuRenderMs": {
+        "samples": 111,
+        "p50": 11.713536,
+        "p95": 15.514624
+      },
+      "beforeMemory": {
+        "geometries": 4539,
+        "textures": 25
+      },
+      "afterMemory": {
+        "geometries": 4539,
+        "textures": 25
+      }
+    },
+    {
+      "pair": 3,
+      "mode": "batched",
+      "browser": "152.0.7977.76",
+      "gpu": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4090 (0x00002684) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "calls": 29,
+      "triangles": 388126,
+      "durationMs": 30001,
+      "strokes": 4496,
+      "batchedStrokes": 4496,
+      "intervalsMs": {
+        "samples": 1799,
+        "p50": 16.69999999999709,
+        "p95": 16.900000000001455
+      },
+      "ecsCpuMs": {
+        "samples": 1800,
+        "p50": 2,
+        "p95": 2.699999988079071
+      },
+      "renderCpuMs": {
+        "samples": 1800,
+        "p50": 2.5,
+        "p95": 4.5
+      },
+      "gpuRenderMs": {
+        "samples": 113,
+        "p50": 3.5072,
+        "p95": 6.135808
+      },
+      "beforeMemory": {
+        "geometries": 65,
+        "textures": 25
+      },
+      "afterMemory": {
+        "geometries": 65,
+        "textures": 25
+      }
+    }
+  ],
+  "mediansOfRunP95Ms": {
+    "reference": {
+      "intervalsMs": 16.80000000000291,
+      "ecsCpuMs": 2.9000000059604645,
+      "renderCpuMs": 16.69999998807907,
+      "gpuRenderMs": 16.091136
+    },
+    "batched": {
+      "intervalsMs": 16.80000000000291,
+      "ecsCpuMs": 2.699999988079071,
+      "renderCpuMs": 4.200000017881393,
+      "gpuRenderMs": 18.69312
+    }
+  },
+  "imageComparisons": [
+    {
+      "pair": 1,
+      "rms": 0.03589344118875161,
+      "changedPixelPercent": 0.0008680555555555555
+    },
+    {
+      "pair": 2,
+      "rms": 0.05052530764837521,
+      "changedPixelPercent": 0.001736111111111111
+    },
+    {
+      "pair": 3,
+      "rms": 0.01827128071794843,
+      "changedPixelPercent": 0.00043402777777777775
+    }
+  ],
+  "referenceVariation": [
+    {
+      "pair": 2,
+      "rms": 0.051126629965866775,
+      "changedPixelPercent": 0.0015190972222222222
+    },
+    {
+      "pair": 3,
+      "rms": 0.025762391391041032,
+      "changedPixelPercent": 0.0006510416666666666
+    }
+  ]
+}

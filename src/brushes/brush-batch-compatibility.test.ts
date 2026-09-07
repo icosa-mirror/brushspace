@@ -49,6 +49,19 @@ describe("brush batch compatibility audit", () => {
     }
   });
 
+  it("admits every supported brush at runtime once its managed shader is loaded", () => {
+    for (const entry of openBrushInventory.filter((brush) => brush.supportStatus === "supported")) {
+      expect(resolveBrushBatchRuntimeEligibility(entry, true).eligible, entry.name).toBe(true);
+      expect(resolveBrushBatchRuntimeEligibility(entry, false).eligible, entry.name).toBe(false);
+    }
+  });
+
+  it("does not invent alpha-sorted rendering for the supported brush catalog", () => {
+    for (const entry of openBrushInventory.filter((brush) => brush.supportStatus === "supported")) {
+      expect(auditBrushBatchCompatibility(entry).blending, entry.name).not.toBe("alpha");
+    }
+  });
+
   it("accepts a supported single-pass brush with entry-level render state", () => {
     const contract = auditBrushBatchCompatibility(getBrush(FLAT_BRUSH_GUID));
 

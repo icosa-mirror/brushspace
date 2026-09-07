@@ -14,6 +14,7 @@ import { BatchedBrushStroke, BrushSettings, BrushStroke, ExtractedBatchedBrushSt
 import type { StrokeData } from "../types.js";
 import { OPEN_BRUSH_DROPPER_FORWARD_OFFSET } from "../tools/tools.js";
 import { exerciseStrokeBatchRemoteLifecycle } from "./stroke-batch-remote-validation.js";
+import { sampleStrokeBatchPerformance } from "./stroke-batch-performance-validation.js";
 
 let validationWorld: World | undefined;
 
@@ -22,6 +23,7 @@ declare global {
     exerciseStrokeBatchLifecycle?: typeof exerciseStrokeBatchLifecycle;
     inspectStrokeBatchHistory?: typeof inspectStrokeBatchHistory;
     exerciseStrokeBatchRemoteLifecycle?: () => ReturnType<typeof exerciseStrokeBatchRemoteLifecycle>;
+    sampleStrokeBatchPerformance?: () => ReturnType<typeof sampleStrokeBatchPerformance>;
   }
 }
 
@@ -76,6 +78,7 @@ export async function setupStrokeBatchValidation(world: World): Promise<void> {
   window.exerciseStrokeBatchLifecycle = exerciseStrokeBatchLifecycle;
   window.inspectStrokeBatchHistory = inspectStrokeBatchHistory;
   window.exerciseStrokeBatchRemoteLifecycle = () => exerciseStrokeBatchRemoteLifecycle(world);
+  window.sampleStrokeBatchPerformance = () => sampleStrokeBatchPerformance(world);
   console.log(`[StrokeBatchValidation] Ready: ${count} finalized Flat strokes`);
 }
 

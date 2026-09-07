@@ -24,7 +24,6 @@ import {
   uploadStrokeBatchSubsetGeometry,
 } from "../brushes/stroke-batch-geometry.js";
 import {
-  FLAT_BATCH_BRUSH_GUID,
   isStrokeBatchingEnabled,
   resolveStrokeBatchVisibility,
 } from "../brushes/stroke-batch-feature.js";
@@ -59,8 +58,8 @@ export interface StrokeBatchRendererMetrics {
 
 /**
  * Owns shared batch meshes and the transition from private finalized meshes.
- * The initial vertical slice is intentionally limited to Flat; incompatible
- * and not-yet-loaded materials remain on the existing per-stroke renderer.
+ * Supported generated geometry shares the upstream brush/layer batch path;
+ * unavailable geometry and not-yet-loaded materials retain per-stroke rendering.
  */
 export class StrokeBatchRenderSystem extends createSystem({
   strokes: { required: [BrushStroke] },
@@ -112,12 +111,10 @@ export class StrokeBatchRenderSystem extends createSystem({
       return;
     }
 
-    console.log(`${LOG_PREFIX} enabled for finalized Flat strokes.`);
+    console.log(`${LOG_PREFIX} enabled for finalized strokes with managed brush materials.`);
     this.cleanupFuncs.push(
-      openBrushShaderLibrary.subscribeMaterialLoaded((guid) => {
-        if (guid.toLowerCase() === FLAT_BATCH_BRUSH_GUID) {
-          this.commitPendingStrokes();
-        }
+      openBrushShaderLibrary.subscribeMaterialLoaded(() => {
+        this.commitPendingStrokes();
       }),
     );
     this.queries.batchedStrokes.subscribe("disqualify", (entity) => {
@@ -202,14 +199,6 @@ export class StrokeBatchRenderSystem extends createSystem({
       return false;
     }
     const brushGuid = String(entity.getValue(BrushStroke, "brushGuid"));
-    if (brushGuid.toLowerCase() !== FLAT_BATCH_BRUSH_GUID) {
-      this.recordFallback(
-        entity,
-        String(entity.getValue(BrushStroke, "guid")),
-        "brush-not-allowlisted",
-      );
-      return false;
-    }
     const guid = String(entity.getValue(BrushStroke, "guid"));
     const entry = findBrushByGuid(openBrushInventory, brushGuid);
     const loadedMaterial = entry
@@ -219,6 +208,11 @@ export class StrokeBatchRenderSystem extends createSystem({
       entry,
       Boolean(loadedMaterial),
     );
+    if (!eligibility.contract.batchableWithManagedMaterial) {
+      // Only concrete port gaps are exclusions. Blend mode is not a batching gate.
+      this.recordFallback(entity, guid, "unsupported-geometry-or-material");
+      return false;
+    }
     if (!eligibility.eligible || !entry || !loadedMaterial) {
       this.pending.set(guid, arrays);
       this.pendingGuidByEntityIndex.set(entity.index, guid);
@@ -548,6 +542,9 @@ export class StrokeBatchRenderSystem extends createSystem({
     );
     const geometry = new BufferGeometry();
     const mesh = new Mesh(geometry, material);
+    // Match private strokes: CPU bounds do not include shader displacement.
+    // Re-enable culling only with conservative bounds for both rendering paths.
+    mesh.frustumCulled = false;
     const id = this.nextBatchId;
     this.nextBatchId += 1;
     mesh.name = `OpenBrushStrokeBatchMesh_${id}`;

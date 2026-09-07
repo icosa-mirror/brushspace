@@ -14,6 +14,17 @@ import {
 } from "./sketch-memory.js";
 
 describe("Open Brush sketch memory", () => {
+  it("assigns distinct, deterministic IDs to imported strokes", () => {
+    const source = Array.from({ length: 3 }, () => createEmptyStrokeData({
+      brushGuid: "429ed64a-4e97-4466-84d3-145a861ef684",
+    }));
+    const payload = writeSketchMemory(source);
+    const first = readSketchMemory(payload.bytes, payload.brushGuids);
+    const second = readSketchMemory(payload.bytes, payload.brushGuids);
+    expect(new Set(first.map((stroke) => stroke.guid)).size).toBe(source.length);
+    expect(first.map((stroke) => stroke.guid)).toEqual(second.map((stroke) => stroke.guid));
+  });
+
   it("round-trips strokes and returns the brush GUID table", () => {
     const stroke = createEmptyStrokeData({
       color: [0.1, 0.2, 0.3, 1],
