@@ -32,19 +32,21 @@ export async function setupStrokeBatchValidation(world: World): Promise<void> {
   world.camera.rotation.set(0, 0, 0);
   const template = createPhase1FixtureDocument().strokes[0];
   const count = 200;
-  for (let index = 0; index < count; index += 1) {
-    const stroke = structuredClone(template);
-    stroke.guid = `batch-validation-${index}`;
-    stroke.brushGuid = FLAT_BATCH_BRUSH_GUID;
-    stroke.brushSize = 0.04;
-    stroke.seed = index + 1;
-    for (const point of stroke.controlPoints) {
-      point.position[0] = point.position[0] * 0.3 + (index % 20 - 9.5) * 0.09;
-      point.position[1] = 0.85 + Math.floor(index / 20) * 0.09 + (point.position[1] - 1.2) * 0.3;
-      point.position[2] = -0.8 + (point.position[2] + 1.1) * 0.3;
+  world.getSystem(StrokeBatchRenderSystem)!.withDeferredUploads(() => {
+    for (let index = 0; index < count; index += 1) {
+      const stroke = structuredClone(template);
+      stroke.guid = `batch-validation-${index}`;
+      stroke.brushGuid = FLAT_BATCH_BRUSH_GUID;
+      stroke.brushSize = 0.04;
+      stroke.seed = index + 1;
+      for (const point of stroke.controlPoints) {
+        point.position[0] = point.position[0] * 0.3 + (index % 20 - 9.5) * 0.09;
+        point.position[1] = 0.85 + Math.floor(index / 20) * 0.09 + (point.position[1] - 1.2) * 0.3;
+        point.position[2] = -0.8 + (point.position[2] + 1.1) * 0.3;
+      }
+      authoring.spawnStrokeFromData(stroke, true);
     }
-    authoring.spawnStrokeFromData(stroke, true);
-  }
+  });
   document.documentElement.dataset.strokeBatchValidationCount = String(count);
   await new Promise((resolve) => setTimeout(resolve, 2000));
   const geometrySamples: unknown[] = [];
@@ -129,5 +131,34 @@ export async function exerciseStrokeBatchLifecycle() {
   stroke.setValue(BrushStroke, "selected", false);
   await tick();
   observations.push(snapshot("final"));
+  if (batchMesh) {
+    const beforeScope = renderer.getUploadedBytes();
+    renderer.withDeferredUploads(() => {
+      renderer.setStrokeVisible("batch-validation-0", false);
+      renderer.withDeferredUploads(() => renderer.setStrokeVisible("batch-validation-0", true));
+      if (renderer.getUploadedBytes() !== beforeScope) {
+        throw new Error("[StrokeBatchValidation] Nested scope flushed early");
+      }
+    });
+    if (renderer.getUploadedBytes() <= beforeScope) {
+      throw new Error("[StrokeBatchValidation] Outer scope did not flush");
+    }
+    observations.push(snapshot("nested-scope-complete"));
+    const expectedError = new Error("[StrokeBatchValidation] Intentional scope interruption");
+    const beforeThrow = renderer.getUploadedBytes();
+    try {
+      renderer.withDeferredUploads(() => {
+        renderer.setStrokeVisible("batch-validation-0", false);
+        throw expectedError;
+      });
+    } catch (error) {
+      if (error !== expectedError) throw error;
+    }
+    if (renderer.getUploadedBytes() <= beforeThrow) {
+      throw new Error("[StrokeBatchValidation] Interrupted scope did not flush");
+    }
+    renderer.setStrokeVisible("batch-validation-0", true);
+    observations.push(snapshot("interrupted-scope-restored"));
+  }
   return observations;
 }

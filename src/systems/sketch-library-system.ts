@@ -369,15 +369,20 @@ export class SketchLibrarySystem extends createSystem({
       this.getIntroSketchSystem()?.setSketchVisible(false);
       const authoring = this.world.getSystem(StrokeAuthoringSystem);
       const spawned: Entity[] = [];
-      for (const strokeData of document.strokes) {
-        const entity = authoring?.spawnStrokeFromData(
-          strokeData as StrokeData,
-          false,
-        );
-        if (entity) {
-          spawned.push(entity);
+      const spawnStrokes = () => {
+        for (const strokeData of document.strokes) {
+          const entity = authoring?.spawnStrokeFromData(
+            strokeData as StrokeData,
+            false,
+          );
+          if (entity) {
+            spawned.push(entity);
+          }
         }
-      }
+      };
+      const batchRenderer = this.world.getSystem(StrokeBatchRenderSystem);
+      if (batchRenderer) batchRenderer.withDeferredUploads(spawnStrokes);
+      else spawnStrokes();
       appState.setValue(PersistenceState, "activeSketchId", id);
       appState.setValue(PersistenceState, "activeSketchName", name);
       appState.setValue(PersistenceState, "status", "loaded");

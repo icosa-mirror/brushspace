@@ -14,6 +14,13 @@
 
 ## 1. Current scope
 
+### Coalesced bulk commits: 2026-09-07
+
+1. `withDeferredUploads` now groups synchronous loaded-sketch creation and pending-material commits. Nested scopes defer until the outermost boundary; a `finally` block flushes completed changes if the operation throws. Individual operations outside a scope retain immediate uploads. The scope must not span asynchronous work or rendering.
+2. The identical 200-stroke workload requests 326,400 bytes initially, down from 32,803,200 (100.5-fold). These are requested upload bytes, not GPU timing or driver traffic measurements. The runner enforces a one-final-batch request ceiling for this fixed fixture.
+3. Hardware smoke/lifecycle checks pass, including no flush inside a nested scope and flushing on intentional interruption. Calls remain 207 versus 8 with equal triangle counts; full-page captures retain only the small reference variability already observed. The full check passes (519 tests) and production build passes.
+4. Evidence: [coalesced lifecycle](evidence/stroke-batching/flat-2026-09-07/bulk-lifecycle.json), [coalesced metrics](evidence/stroke-batching/flat-2026-09-07/bulk-results.json). Broad selection, reveal timing, real sketch loading and sustained frame-time effects still require separate measurements.
+
 ### Running-system lifecycle check: 2026-09-07
 
 1. The hardware smoke runner now drives one fixture stroke through logical hide/show, selection, private-mesh translation, deselection, explicit `finishAllExtractions()` and subsequent selection reconciliation. It observes component state, private geometry, first-subset indices, serialized control points and the current upload counter directly. This tests running ECS/renderer integration; it does not simulate controller gestures or exercise actual file export/history commands.

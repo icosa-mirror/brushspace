@@ -79,6 +79,9 @@ export class StrokeBatchRenderSystem extends createSystem({
   private readonly fallbackReasonByGuid = new Map<string, string>();
   private readonly fallbackGuidByEntityIndex = new Map<number, string>();
   private enabled = false;
+  private uploadScopeDepth = 0;
+  private deferredFlushRequested = false;
+  private deferredTrimRequested = false;
   private nextBatchId = 1;
   private metricsClock = 0;
   private frameTimeTotalMs = 0;
@@ -170,6 +173,23 @@ export class StrokeBatchRenderSystem extends createSystem({
   /** Current requested upload volume, without the DOM metrics sampling delay. */
   getUploadedBytes(): number {
     return this.metrics.uploadedBytes;
+  }
+
+  /** Synchronous bulk operation; uploads complete before returning to rendering. */
+  withDeferredUploads(operation: () => void): void {
+    this.uploadScopeDepth += 1;
+    try {
+      operation();
+    } finally {
+      this.uploadScopeDepth -= 1;
+      if (this.uploadScopeDepth === 0 && this.deferredFlushRequested) {
+        const trim = this.deferredTrimRequested;
+        this.deferredFlushRequested = false;
+        this.deferredTrimRequested = false;
+        if (trim) this.trimAndFlush();
+        else this.flushDirtyBatches();
+      }
+    }
   }
 
   /** Commit finalized generated arrays; returns false while using fallback. */
@@ -483,6 +503,10 @@ export class StrokeBatchRenderSystem extends createSystem({
   }
 
   private commitPendingStrokes(): void {
+    this.withDeferredUploads(() => this.commitPendingStrokesInScope());
+  }
+
+  private commitPendingStrokesInScope(): void {
     for (const [guid, arrays] of this.pending) {
       const entity = this.findStrokeEntity(guid);
       if (!entity) {
@@ -549,6 +573,11 @@ export class StrokeBatchRenderSystem extends createSystem({
   }
 
   private trimAndFlush(): void {
+    if (this.uploadScopeDepth > 0) {
+      this.deferredTrimRequested = true;
+      this.deferredFlushRequested = true;
+      return;
+    }
     for (const removed of this.manager.trim()) {
       this.disposeTarget(removed);
     }
@@ -556,6 +585,10 @@ export class StrokeBatchRenderSystem extends createSystem({
   }
 
   private flushDirtyBatches(): void {
+    if (this.uploadScopeDepth > 0) {
+      this.deferredFlushRequested = true;
+      return;
+    }
     for (const pool of this.manager.getPools()) {
       for (const batch of pool.batches) {
         if (!batch.vertexDataDirty && !batch.topologyDirty) {

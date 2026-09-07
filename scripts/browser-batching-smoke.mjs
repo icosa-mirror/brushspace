@@ -61,6 +61,7 @@ try {
     requireState(!stages.hidden.renderVisible && !stages.hidden.privateVisible, "hidden stroke visible");
     requireState(stages.shown.renderVisible, "show did not restore visibility");
     if (enabled) {
+      requireState(stages.initial.uploadBytes <= 326400, "bulk load uploaded more than one final Flat batch");
       requireState(!stages.hidden.batchSubsetHasTriangles && stages.shown.batchSubsetHasTriangles, "subset hide/show failed");
       requireState(!stages.selected.batchSubsetHasTriangles && stages["moved-deselected"].batchSubsetHasTriangles, "selection rendering owners overlap or fail to restore");
       requireState(stages.initial.privateVertices === 0 && !stages.initial.privateVisible, "private geometry retained after commit");
