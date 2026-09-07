@@ -253,6 +253,7 @@ export class StrokeAuthoringSystem extends createSystem({
     timestampMs: 0,
   };
   private activeStroke: RuntimeStroke | undefined;
+  private suppressPaintUntilRelease = false;
   private strokeCounter = 0;
   // Preview trail (Open Brush's preview line): a short decaying trail of the
   // current brush behind the idle tip. Rebuilt every frame from a rolling
@@ -755,9 +756,11 @@ export class StrokeAuthoringSystem extends createSystem({
       this.redoLastStroke();
     }
 
-    const rawPaintPressed = Boolean(
+    const inputPaintPressed = Boolean(
       commandEntity.getValue(InputCommandState, "paintPressed"),
     );
+    if (!inputPaintPressed) this.suppressPaintUntilRelease = false;
+    const rawPaintPressed = inputPaintPressed && !this.suppressPaintUntilRelease;
     const commandSource = String(commandEntity.getValue(InputCommandState, "source"));
     const activeTool = this.getActiveTool();
     const appStateEntity = this.getFirstEntity("appState");
@@ -2173,6 +2176,10 @@ export class StrokeAuthoringSystem extends createSystem({
     );
     this.clearDropperHover();
     this.world.getSystem(AudioFeedbackSystem)?.playSound("color-picked");
+
+    // The pick consumes this press. Returning to a paint/erase tool while the
+    // button is still held must not start a gesture or discard redo history.
+    this.suppressPaintUntilRelease = true;
 
     const previousToolId = String(
       appStateEntity.getValue(OpenBrushAppState, "previousTool"),

@@ -12,6 +12,7 @@ import { createSketchDocument } from "../sketch/document.js";
 import { readTiltFile, writeTiltFile } from "../sketch/tilt-file.js";
 import { BatchedBrushStroke, BrushSettings, BrushStroke, ExtractedBatchedBrushStroke, OpenBrushAppState, StrokeHistoryState } from "../components/core.js";
 import type { StrokeData } from "../types.js";
+import { OPEN_BRUSH_DROPPER_FORWARD_OFFSET } from "../tools/tools.js";
 
 let validationWorld: World | undefined;
 
@@ -76,19 +77,31 @@ export async function setupStrokeBatchValidation(world: World): Promise<void> {
 }
 
 /** Observe browser-authored strokes without reaching into private history state. */
-function inspectStrokeBatchHistory(prepare = false) {
+function inspectStrokeBatchHistory(prepare: boolean | "eraser" | "dropper" = false) {
   const authoring = validationWorld?.getSystem(StrokeAuthoringSystem);
   if (!authoring) throw new Error("[StrokeBatchValidation] Workload not ready");
   if (prepare) {
+    // Browser sampling is 1.5 m from the camera. Move back by the dropper's
+    // extra tip offset so its pick sphere reaches the same authored plane.
+    if (prepare === "dropper") validationWorld!.camera.translateZ(OPEN_BRUSH_DROPPER_FORWARD_OFFSET);
     for (const appState of authoring.queries.appState.entities) {
       appState.setValue(OpenBrushAppState, "mode", "ready");
-      appState.setValue(OpenBrushAppState, "activeTool", "free-paint");
+      appState.setValue(OpenBrushAppState, "activeTool", typeof prepare === "string" ? prepare : "free-paint");
+      appState.setValue(OpenBrushAppState, "previousTool", "free-paint");
     }
     for (const settings of authoring.queries.brushSettings.entities) {
       settings.setValue(BrushSettings, "brushGuid", FLAT_BATCH_BRUSH_GUID);
+      if (prepare === "dropper") {
+        const otherBrush = openBrushInventory.find((brush) => brush.guid !== FLAT_BATCH_BRUSH_GUID)!;
+        settings.setValue(BrushSettings, "brushGuid", otherBrush.guid);
+        settings.setValue(BrushSettings, "size", 0.123);
+        (settings.getVectorView(BrushSettings, "color") as Float32Array).set([1, 0, 0, 1]);
+      }
     }
   }
   const history = [...authoring.queries.history.entities][0];
+  const appState = [...authoring.queries.appState.entities][0];
+  const settings = [...authoring.queries.brushSettings.entities][0];
   let batchTriangles = 0;
   validationWorld!.scene.traverse((object) => {
     if (!object.name.startsWith("OpenBrushStrokeBatch_")) return;
@@ -101,12 +114,21 @@ function inspectStrokeBatchHistory(prepare = false) {
   });
   return {
     batchTriangles,
+    activeTool: appState?.getValue(OpenBrushAppState, "activeTool"),
+    settings: settings ? {
+      brushGuid: settings.getValue(BrushSettings, "brushGuid"),
+      size: settings.getValue(BrushSettings, "size"),
+      color: Array.from(settings.getVectorView(BrushSettings, "color") as Float32Array),
+    } : null,
     undoDepth: history?.getValue(StrokeHistoryState, "undoDepth"),
     redoDepth: history?.getValue(StrokeHistoryState, "redoDepth"),
     strokes: [...authoring.queries.strokes.entities]
       .filter((entity) => !String(entity.getValue(BrushStroke, "guid")).startsWith("batch-validation-"))
       .map((entity) => ({
         guid: String(entity.getValue(BrushStroke, "guid")),
+        brushGuid: entity.getValue(BrushStroke, "brushGuid"),
+        size: entity.getValue(BrushStroke, "brushSize"),
+        color: Array.from(entity.getVectorView(BrushStroke, "color") as Float32Array),
         visible: Boolean(entity.getValue(BrushStroke, "renderVisible")),
         finalized: Boolean(entity.getValue(BrushStroke, "finalized")),
         batched: entity.hasComponent(BatchedBrushStroke),

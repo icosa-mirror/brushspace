@@ -1,0 +1,182 @@
+{
+  "pickerBefore": {
+    "batchTriangles": 0,
+    "activeTool": "dropper",
+    "settings": {
+      "brushGuid": "f72ec0e7-a844-4e38-82e3-140c44772699",
+      "size": 0.12300000339746475,
+      "color": [
+        1,
+        0,
+        0,
+        1
+      ]
+    },
+    "undoDepth": 2,
+    "redoDepth": 0,
+    "strokes": [
+      {
+        "guid": "runtime-stroke-203",
+        "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+        "size": 0.011250000447034836,
+        "color": [
+          0.10000000149011612,
+          0.44999998807907104,
+          0.949999988079071,
+          1
+        ],
+        "visible": false,
+        "finalized": true,
+        "batched": false,
+        "privateVisible": false
+      }
+    ]
+  },
+  "pickerHidden": {
+    "batchTriangles": 0,
+    "activeTool": "dropper",
+    "settings": {
+      "brushGuid": "f72ec0e7-a844-4e38-82e3-140c44772699",
+      "size": 0.12300000339746475,
+      "color": [
+        1,
+        0,
+        0,
+        1
+      ]
+    },
+    "undoDepth": 2,
+    "redoDepth": 0,
+    "strokes": [
+      {
+        "guid": "runtime-stroke-203",
+        "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+        "size": 0.011250000447034836,
+        "color": [
+          0.10000000149011612,
+          0.44999998807907104,
+          0.949999988079071,
+          1
+        ],
+        "visible": false,
+        "finalized": true,
+        "batched": false,
+        "privateVisible": false
+      }
+    ]
+  },
+  "pickerMiss": {
+    "batchTriangles": 0,
+    "activeTool": "dropper",
+    "settings": {
+      "brushGuid": "f72ec0e7-a844-4e38-82e3-140c44772699",
+      "size": 0.12300000339746475,
+      "color": [
+        1,
+        0,
+        0,
+        1
+      ]
+    },
+    "undoDepth": 1,
+    "redoDepth": 1,
+    "strokes": [
+      {
+        "guid": "runtime-stroke-203",
+        "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+        "size": 0.011250000447034836,
+        "color": [
+          0.10000000149011612,
+          0.44999998807907104,
+          0.949999988079071,
+          1
+        ],
+        "visible": true,
+        "finalized": true,
+        "batched": false,
+        "privateVisible": true
+      }
+    ]
+  },
+  "pickerHit": {
+    "batchTriangles": 0,
+    "activeTool": "free-paint",
+    "settings": {
+      "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+      "size": 0.011250000447034836,
+      "color": [
+        0.10000000149011612,
+        0.44999998807907104,
+        0.949999988079071,
+        1
+      ]
+    },
+    "undoDepth": 1,
+    "redoDepth": 1,
+    "strokes": [
+      {
+        "guid": "runtime-stroke-203",
+        "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+        "size": 0.011250000447034836,
+        "color": [
+          0.10000000149011612,
+          0.44999998807907104,
+          0.949999988079071,
+          1
+        ],
+        "visible": true,
+        "finalized": true,
+        "batched": false,
+        "privateVisible": true
+      }
+    ]
+  },
+  "afterPickerDraw": {
+    "batchTriangles": 0,
+    "activeTool": "free-paint",
+    "settings": {
+      "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+      "size": 0.011250000447034836,
+      "color": [
+        0.10000000149011612,
+        0.44999998807907104,
+        0.949999988079071,
+        1
+      ]
+    },
+    "undoDepth": 2,
+    "redoDepth": 0,
+    "strokes": [
+      {
+        "guid": "runtime-stroke-203",
+        "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+        "size": 0.011250000447034836,
+        "color": [
+          0.10000000149011612,
+          0.44999998807907104,
+          0.949999988079071,
+          1
+        ],
+        "visible": true,
+        "finalized": true,
+        "batched": false,
+        "privateVisible": true
+      },
+      {
+        "guid": "runtime-stroke-204",
+        "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+        "size": 0.011250000447034836,
+        "color": [
+          0.10000000149011612,
+          0.44999998807907104,
+          0.949999988079071,
+          1
+        ],
+        "visible": true,
+        "finalized": true,
+        "batched": false,
+        "privateVisible": true
+      }
+    ]
+  }
+}

@@ -14,6 +14,13 @@
 
 ## 1. Current scope
 
+### Eraser and dropper browser interactions: 2026-09-07
+
+1. The runner selects tools through the development fixture and sends mouse presses through normal browser input. Eraser checks cover a miss, a hit on an authored Flat stroke, undo, redo and another click on the hidden stroke. Both modes match: misses/hidden clicks add no history; the hit hides the stroke; undo restores it; redo hides it again. Shared-buffer nondegenerate triangle counts return to baseline on erase and recover exactly on undo. Evidence: [batched erase](evidence/stroke-batching/flat-2026-09-07/batched-erase.json), [reference erase](evidence/stroke-batching/flat-2026-09-07/reference-erase.json).
+2. Dropper checks use deliberately different brush/size/color settings, reject hidden geometry and a miss, then recover the visible target's brush, size and color and return to the previous tool. The camera is translated backward by the production dropper's 0.22 m forward offset, placing its pick sphere on the browser-authored plane. This is controlled input positioning, not a change to production tool reach.
+3. The test exposed a production bug: a successful pick returned to painting while the button remained held; the resulting empty gesture discarded redo history. The authoring system now consumes a successful pick until the button is released. [Before-fix reference evidence](evidence/stroke-batching/flat-2026-09-07/reference-picker-before-fix.json) shows redo depth falling from 1 to 0 on pick. After the fix both modes retain it, and the next drawing gesture after release creates a stroke normally: [batched picker](evidence/stroke-batching/flat-2026-09-07/batched-picker.json), [reference picker](evidence/stroke-batching/flat-2026-09-07/reference-picker.json).
+4. Reproduce against an existing runtime with `node scripts/browser-batching-smoke.mjs http://localhost:8081/ .iwsdk/batching-tools-final`. Type checks and all 520 tests passed (4 todo); production build passed. Hardware Chrome retained the previous 207-to-8 call comparison and pixel-identical pre-interaction captures. These tests cover an unselected Flat target, not extracted/fallback targets, thin-edge tolerance, transformed canvases, overlap ordering or XR. Those remaining cases keep the full lifecycle gate open.
+
 ### Browser authoring and creation history: 2026-09-07
 
 1. The development fixture explicitly enters drawing mode and selects Flat; the runner then sends real browser mouse input to draw, `Z` to undo, `Y` to redo, and `Z` followed by a second drawing gesture to abandon the redo branch. The driver observes public ECS state; it does not inject entries into the private history stack or invoke private history methods.
@@ -95,6 +102,6 @@ Initial findings, retained for traceability:
 
 1. Gate A (foundation): passed by deterministic tests, but this is not a merge recommendation by itself.
 2. Gate B (first feature-flagged merge): open. The steady-state Flat GPU comparison and draw-call reduction are recorded above; startup atomicity, broader culling and the remaining fidelity requirements are not yet established.
-3. Gate C (loaded-sketch enablement): open. Runtime ECS lifecycle checks, browser creation undo/redo and snapshot/tilt round trips are recorded above; erase/movement history, eraser/picker tools, interactive save/load and load/steady-state budgets remain unverified.
+3. Gate C (loaded-sketch enablement): open. Runtime ECS lifecycle checks, browser creation/erase undo/redo, Flat eraser/dropper hits and snapshot/tilt round trips are recorded above; movement history, broader hit-test cases, interactive save/load and load/steady-state budgets remain unverified.
 4. Gate D (authored/collaborative strokes): implementation is present; runtime transfer evidence is missing.
 5. Gate E (default-on): open. The allowlist must not widen and batching must not become default until the required family, browser, XR, and performance evidence exists.

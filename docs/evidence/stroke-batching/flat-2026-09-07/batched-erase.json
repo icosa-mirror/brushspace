@@ -1,0 +1,167 @@
+{
+  "missedErase": {
+    "batchTriangles": 1664,
+    "activeTool": "eraser",
+    "settings": {
+      "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+      "size": 0.011250000447034836,
+      "color": [
+        0.10000000149011612,
+        0.44999998807907104,
+        0.949999988079071,
+        1
+      ]
+    },
+    "undoDepth": 1,
+    "redoDepth": 0,
+    "strokes": [
+      {
+        "guid": "runtime-stroke-203",
+        "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+        "size": 0.011250000447034836,
+        "color": [
+          0.10000000149011612,
+          0.44999998807907104,
+          0.949999988079071,
+          1
+        ],
+        "visible": true,
+        "finalized": true,
+        "batched": true,
+        "privateVisible": false
+      }
+    ]
+  },
+  "erasedHistory": {
+    "batchTriangles": 1600,
+    "activeTool": "eraser",
+    "settings": {
+      "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+      "size": 0.011250000447034836,
+      "color": [
+        0.10000000149011612,
+        0.44999998807907104,
+        0.949999988079071,
+        1
+      ]
+    },
+    "undoDepth": 2,
+    "redoDepth": 0,
+    "strokes": [
+      {
+        "guid": "runtime-stroke-203",
+        "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+        "size": 0.011250000447034836,
+        "color": [
+          0.10000000149011612,
+          0.44999998807907104,
+          0.949999988079071,
+          1
+        ],
+        "visible": false,
+        "finalized": true,
+        "batched": true,
+        "privateVisible": false
+      }
+    ]
+  },
+  "undoErase": {
+    "batchTriangles": 1664,
+    "activeTool": "eraser",
+    "settings": {
+      "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+      "size": 0.011250000447034836,
+      "color": [
+        0.10000000149011612,
+        0.44999998807907104,
+        0.949999988079071,
+        1
+      ]
+    },
+    "undoDepth": 1,
+    "redoDepth": 1,
+    "strokes": [
+      {
+        "guid": "runtime-stroke-203",
+        "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+        "size": 0.011250000447034836,
+        "color": [
+          0.10000000149011612,
+          0.44999998807907104,
+          0.949999988079071,
+          1
+        ],
+        "visible": true,
+        "finalized": true,
+        "batched": true,
+        "privateVisible": false
+      }
+    ]
+  },
+  "redoErase": {
+    "batchTriangles": 1600,
+    "activeTool": "eraser",
+    "settings": {
+      "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+      "size": 0.011250000447034836,
+      "color": [
+        0.10000000149011612,
+        0.44999998807907104,
+        0.949999988079071,
+        1
+      ]
+    },
+    "undoDepth": 2,
+    "redoDepth": 0,
+    "strokes": [
+      {
+        "guid": "runtime-stroke-203",
+        "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+        "size": 0.011250000447034836,
+        "color": [
+          0.10000000149011612,
+          0.44999998807907104,
+          0.949999988079071,
+          1
+        ],
+        "visible": false,
+        "finalized": true,
+        "batched": true,
+        "privateVisible": false
+      }
+    ]
+  },
+  "hiddenErase": {
+    "batchTriangles": 1600,
+    "activeTool": "eraser",
+    "settings": {
+      "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+      "size": 0.011250000447034836,
+      "color": [
+        0.10000000149011612,
+        0.44999998807907104,
+        0.949999988079071,
+        1
+      ]
+    },
+    "undoDepth": 2,
+    "redoDepth": 0,
+    "strokes": [
+      {
+        "guid": "runtime-stroke-203",
+        "brushGuid": "2d35bcf0-e4d8-452c-97b1-3311be063130",
+        "size": 0.011250000447034836,
+        "color": [
+          0.10000000149011612,
+          0.44999998807907104,
+          0.949999988079071,
+          1
+        ],
+        "visible": false,
+        "finalized": true,
+        "batched": true,
+        "privateVisible": false
+      }
+    ]
+  }
+}
