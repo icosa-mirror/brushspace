@@ -1,0 +1,7 @@
+{
+  "name": "brushspace-tilt-proxy",
+  "main": "index.ts",
+  "compatibility_date": "2026-09-07",
+  "account_id": "6dae4c5b015907d33fbc3b8a1f94d7b3",
+  "workers_dev": true
+}

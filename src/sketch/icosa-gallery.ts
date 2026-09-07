@@ -13,13 +13,13 @@
  * - Most assets ship the `.tilt` twice: a CORS-enabled copy on Backblaze B2
  *   and a mirror on web.archive.org that sends no CORS headers. We prefer the
  *   B2 copy (see `selectTiltUrl`) so the browser can download it directly. For
- *   the rare asset that only has the non-CORS mirror, pass a `tiltProxy` to
- *   route the download through a same-origin or CORS-enabled proxy. In Node
- *   (tests, tooling) either copy downloads directly.
+ *   assets that only have the non-CORS mirror, the default download path uses
+ *   Brushspace's restricted archive proxy. Callers can override `tiltProxy`.
  */
 
 import type { SketchDocument } from "./document.js";
 import { readTiltFile } from "./tilt-file.js";
+import { tiltProxyUrl } from "./tilt-proxy-url.js";
 
 export const ICOSA_API_BASE = "https://api.icosa.gallery/v1";
 
@@ -82,7 +82,7 @@ export interface IcosaFetchOptions {
   signal?: AbortSignal;
   /**
    * Rewrites a `.tilt` download URL before it is fetched — e.g. to prepend a
-   * same-origin CORS proxy. Defaults to the identity transform.
+   * same-origin CORS proxy. Defaults to Brushspace's archive-only proxy.
    */
   tiltProxy?: (url: string) => string;
 }
@@ -164,7 +164,7 @@ export async function downloadRemoteTiltBytes(
   options: IcosaFetchOptions = {},
 ): Promise<Uint8Array> {
   const fetchImpl = options.fetch ?? globalThis.fetch;
-  const target = options.tiltProxy ? options.tiltProxy(url) : url;
+  const target = (options.tiltProxy ?? tiltProxyUrl)(url);
   const response = await fetchImpl(target, { signal: options.signal });
   if (!response.ok) {
     throw new Error(`Failed to download .tilt: HTTP ${response.status}`);

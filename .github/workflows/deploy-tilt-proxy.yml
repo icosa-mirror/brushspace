@@ -1,0 +1,33 @@
+name: Deploy Brushspace tilt proxy
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - workers/tilt-proxy/**
+      - .github/workflows/deploy-tilt-proxy.yml
+permissions:
+  contents: read
+concurrency:
+  group: tilt-proxy
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npx vitest run workers/tilt-proxy
+      - name: Deploy configured proxy
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npx --yes wrangler@4.127.1 deploy --config workers/tilt-proxy/wrangler.jsonc
+      - name: Report missing deployment credentials
+        if: env.CLOUDFLARE_API_TOKEN == ''
+        run: echo "::warning::Proxy tests passed, but deployment was skipped. Configure CLOUDFLARE_API_TOKEN to enable automatic deployment."

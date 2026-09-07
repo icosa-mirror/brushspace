@@ -3,9 +3,11 @@ import { iwsdkDev } from "@iwsdk/vite-plugin-dev";
 import { compileUIKit } from "@iwsdk/vite-plugin-uikitml";
 import { defineConfig } from "vite";
 import mkcert from "vite-plugin-mkcert";
+import { tiltProxyDev } from "./scripts/tilt-proxy-vite";
 
 export default defineConfig(({ mode }) => ({
   plugins: [
+    tiltProxyDev(),
     ...(mode.endsWith("https") ? [mkcert()] : []),
     iwsdkDev({
       emulator: {

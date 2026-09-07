@@ -12,6 +12,7 @@
     "types": []
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "workers/tilt-proxy/**/*.ts"
   ]
 }
