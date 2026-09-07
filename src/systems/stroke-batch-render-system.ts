@@ -98,6 +98,8 @@ export class StrokeBatchRenderSystem extends createSystem({
   };
 
   init(): void {
+    // Consumers query this tag before the first extraction adds it to an entity.
+    this.world.registerComponent(ExtractedBatchedBrushStroke);
     this.enabled =
       typeof window !== "undefined" &&
       isStrokeBatchingEnabled(window.location.search);
