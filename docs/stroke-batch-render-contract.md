@@ -5,7 +5,15 @@
 1. This audit covers every brush whose current inventory status is `supported`. The executable source of truth is `auditBrushBatchCompatibility`; its test iterates the complete supported inventory so a newly supported brush cannot silently fall outside the contract.
 2. A brush is statically batchable only when it has an eligible generated-geometry shader descriptor. A stroke is runtime-eligible only after that managed shader material has loaded.
 3. Brushes marked `fallback` or `unsupported`, missing inventory brushes, and strokes still using the temporary `MeshBasicMaterial` remain on the per-stroke renderer.
-4. This contract establishes safe batch keys. It does not yet prove GPU output; that requires the feature-flagged renderer and GPU-backed comparison in Phase 2.
+4. This contract classifies static batch compatibility. It does not prove GPU output or shader-displacement bounds; those require the delivery plan's runtime gates.
+
+### Revision audit: 2026-09-07
+
+1. Reviewed the implementation after merge `1bd04d0`: `three-icosa` revision `25fe4ca1f7e52174e7d9dca90c811e307216ba1f`, `three-tiltloader` revision `6c92f0035911e8e61755fec3270beb7604d5dc81`, and asset submodule `df593c972751f7f28bc8d47bc4f4fd8cfad45fe5`.
+2. Lockfile SHA-256: `DA798AE6AAD2632C6BFF94089DE586E6FD3AB66E01283E32716C622C833FA1A7`.
+3. Managed shaders still obtain transparency, depth write and sidedness from `createBrushShaderMaterialDescriptor`. Temporary fallback materials obtain authoritative render state through `createBrushMaterialSpec`. These are not interchangeable: CoarseBristles, for example, has different transparency flags between the two paths.
+4. Batch keys now retain the managed descriptor's transparency when a managed shader is eligible, using the material spec for fallback state. An inventory-wide regression test checks that managed keys agree with the audit. This corrects the merge's use of fallback transparency for both paths.
+5. Descriptor eligibility, key agreement and geometry-upload tests pass. This is not a fresh shader-by-shader GPU audit. Managed/fallback upgrade fidelity, particle bounds, runtime lifecycle and measured performance remain open.
 
 ## 2. State ownership
 
@@ -20,7 +28,7 @@
 
 ## 3. Supported-brush matrix
 
-Every currently supported inventory brush is covered by exactly one row below. Render state such as blending, transparency, depth write, and sidedness comes from its shader descriptor and remains part of the batch key.
+Every currently supported inventory brush is covered by exactly one row below. For managed materials, render state comes from the shader descriptor. Transparency is explicit in the key; other fixed per-brush state is separated by brush/material identity. Mutable material variants would require additional key fields. Matrix decisions are static candidates, not runtime allowlist entries; only Flat is currently allowlisted.
 
 | Population | Pass contract | Draw calls per batch | Supplemental attributes | Decision |
 | --- | --- | ---: | --- | --- |
@@ -49,7 +57,7 @@ Every currently supported inventory brush is covered by exactly one row below. R
 
 ## 6. Deferred risks
 
-1. Transparent and additive brushes are statically compatible by material identity, but ordering across subsets still needs GPU-backed visual validation.
+1. Cutout and additive contracts require GPU validation before runtime admission. Do not infer a supported alpha-blended family from a transparent queue flag; unsupported templates remain fallback.
 2. Multi-pass brushes are represented in the key and expected-call contract but should enter only after the single-pass renderer is correct.
-3. Logical state remains per stroke. Reveal, layers, erasing, and undo/redo route visibility through subset operations; selection temporarily extracts the private mesh and recommits one translation when manipulation ends.
+3. Logical state remains per stroke. Reveal, layers, erasing, and undo/redo route visibility through subsets. Selection extracts private geometry and recommits on deselection or an explicit save/export flush, not necessarily at drag end. Saving while selected and subsequent re-extraction need runtime validation.
 4. Material upgrades must not move a stroke into a batch until the shared managed material exists; the temporary fallback is never a batch material.

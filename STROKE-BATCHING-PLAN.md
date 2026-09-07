@@ -101,5 +101,5 @@ Helper tests do not establish that ECS consumers call those helpers correctly. R
 ## 10. Completed integration and non-goals
 
 1. The two previously reviewed upstream fixes were ported onto `main` and integrated. Old divergence counts and journal-commit instructions are historical, not pending work.
-2. Merge `1bd04d0` incorporated subsequent shader/material changes from `main`, preserved batching compatibility fields with authoritative transparency, and corrected the compatible-brush test fixture.
+2. Merge `1bd04d0` incorporated subsequent shader/material changes from `main` and corrected the compatible-brush test fixture. The follow-up audit corrected batch-key transparency to match the actual managed descriptor; authoritative fallback state remains separate. See the render contract's revision audit.
 3. Removing per-stroke ECS entities, batching live strokes, adding transform tools and supporting every brush are outside the first delivery. Revisit separately after validated rendering and measured costs justify the work.

@@ -110,7 +110,9 @@ export function createBatchKey(
     brushGuid,
     geometryFamily,
     materialFamily,
-    transparent: materialSpec.transparent,
+    // Managed shaders use their descriptor; temporary fallback materials use
+    // the authoritative material spec. Those paths can have different queues.
+    transparent: compatibility.transparent ?? materialSpec.transparent,
     materialMode,
     renderPassContract: compatibility.renderPassContract,
     supplementalAttributeContract:

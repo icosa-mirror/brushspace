@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { openBrushInventory } from "./brush-catalog.js";
 import type { BrushInventoryEntry } from "./brush-inventory.js";
+import { createBatchKey } from "./brush-batching.js";
+import { createPhase1FixtureDocument } from "../sketch/fixtures.js";
 import {
   auditBrushBatchCompatibility,
   resolveBrushBatchRuntimeEligibility,
@@ -19,6 +21,21 @@ const LEAKY_PEN_BRUSH_GUID =
   "ddda8745-4bb5-ac54-88b6-d1480370583e";
 
 describe("brush batch compatibility audit", () => {
+  it("keys every supported managed brush by its actual shader render state", () => {
+    const stroke = createPhase1FixtureDocument().strokes[0];
+    for (const entry of openBrushInventory) {
+      if (entry.supportStatus !== "supported") continue;
+      const contract = auditBrushBatchCompatibility(entry);
+      expect(
+        createBatchKey({ ...stroke, brushGuid: entry.guid }, entry),
+        `render-state disagreement for ${entry.name} (${entry.guid})`,
+      ).toMatchObject({
+        materialMode: "managed-shader",
+        transparent: contract.transparent,
+      });
+    }
+  });
+
   it("classifies every currently supported inventory brush as managed-material batchable", () => {
     const supported = openBrushInventory.filter(
       (entry) => entry.supportStatus === "supported",

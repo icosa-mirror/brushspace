@@ -1,5 +1,11 @@
 # Stroke batching validation ledger
 
+## Revision checkpoint: 2026-09-07
+
+1. Dependency/asset revisions and lockfile fingerprint are recorded in the render contract's revision audit. The review found and corrected a managed-versus-fallback batch-key transparency mismatch introduced during the merge.
+2. `npm run check` passes: 74 test files, 519 tests passed, 4 todo. The new inventory-wide test checks managed batch keys against their actual descriptor-derived render state. Existing upload tests remain green.
+3. This checkpoint establishes deterministic contract agreement only. It does not close GPU fidelity, material-upgrade, animated-bounds, browser interaction or XR performance gates. Historical results below retain their original scope.
+
 ## 1. Current scope
 
 1. Branch: `claude/stroke-batching`.
