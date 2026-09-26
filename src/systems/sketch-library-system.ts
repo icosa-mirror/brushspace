@@ -78,6 +78,7 @@ interface TransitionItem {
 
 interface Transition {
   kind: "in" | "out";
+  started: boolean;
   items: TransitionItem[];
   elapsed: number;
   duration: number;
@@ -773,6 +774,7 @@ export class SketchLibrarySystem extends createSystem({
     );
     this.transition = {
       kind: "out",
+      started: false,
       items: entities.map((entity, index) => ({
         entity,
         at: (index / entities.length) * TRANSITION_OUT_SECONDS,
@@ -793,6 +795,7 @@ export class SketchLibrarySystem extends createSystem({
     }
     this.transition = {
       kind: "in",
+      started: false,
       items: entities.map((entity, index) => ({
         entity,
         at: (index / entities.length) * TRANSITION_IN_SECONDS,
@@ -808,7 +811,11 @@ export class SketchLibrarySystem extends createSystem({
     if (!transition) {
       return;
     }
-    transition.elapsed += delta;
+    // Creation/loading before the first transition frame belongs to the
+    // preceding frame. Counting that delta can finish the entire reveal
+    // immediately after a large sketch is spawned.
+    if (transition.started) transition.elapsed += delta;
+    else transition.started = true;
     const visibleValue = transition.kind === "in";
     for (const item of transition.items) {
       if (item.at <= transition.elapsed) {

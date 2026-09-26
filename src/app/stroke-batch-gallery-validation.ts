@@ -1,5 +1,5 @@
 import { Box3, Vector3, type World } from "@iwsdk/core";
-import { BrushStroke, BatchedBrushStroke, PersistenceState } from "../components/core.js";
+import { BrushStroke, BatchedBrushStroke, ExtractedBatchedBrushStroke, PersistenceState } from "../components/core.js";
 import { initialLoad } from "./initial-load.js";
 import { openBrushInventory } from "../brushes/brush-catalog.js";
 import { SketchLibrarySystem } from "../systems/sketch-library-system.js";
@@ -17,10 +17,47 @@ function createGalleryValidation(world: World) {
   const authoring = world.getSystem(StrokeAuthoringSystem)!;
   const batches = world.getSystem(StrokeBatchRenderSystem)!;
   const names = new Map(openBrushInventory.map((brush) => [brush.guid, brush.name]));
+  let selectedGeometryDisposals = 0;
+  let releaseSelectionObserver: (() => void) | undefined;
   return {
     entries: () => library.getGalleryPageEntries(),
     open: (id: string) => library.openGallerySketch(id),
     lifecycle: () => exerciseGalleryBatchLifecycle(world),
+    resources: () => {
+      let strokes = 0, visible = 0, privateVisible = 0, extracted = 0, batchMeshes = 0, batchTriangles = 0;
+      for (const entity of authoring.queries.strokes.entities) {
+        strokes += 1;
+        visible += Number(Boolean(entity.getValue(BrushStroke, "renderVisible")));
+        privateVisible += Number(Boolean(entity.object3D?.visible));
+        extracted += Number(entity.hasComponent(ExtractedBatchedBrushStroke));
+      }
+      world.scene.traverse((object) => {
+        if (!object.name.startsWith("OpenBrushStrokeBatch_")) return;
+        batchMeshes += 1;
+        const indices = (object as import("@iwsdk/core").Mesh).geometry.index?.array;
+        if (!object.visible || !indices) return;
+        for (let i = 0; i < indices.length; i += 3) {
+          if (indices[i] !== indices[i + 1] && indices[i + 1] !== indices[i + 2] && indices[i] !== indices[i + 2]) batchTriangles += 1;
+        }
+      });
+      return { strokes, visible, privateVisible, extracted, batchMeshes, batchTriangles,
+        geometries: world.renderer.info.memory.geometries, textures: world.renderer.info.memory.textures,
+        programs: world.renderer.info.programs?.length ?? 0, selectedGeometryDisposals, busy: library.isOpeningSketch() };
+    },
+    selectFirst: async () => {
+      const stroke = [...authoring.queries.strokes.entities][0];
+      if (!stroke?.object3D) throw new Error("[GalleryBatchValidation] No selection target");
+      stroke.setValue(BrushStroke, "selected", true);
+      for (let i = 0; i < 5; i++) await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      releaseSelectionObserver?.();
+      selectedGeometryDisposals = 0;
+      const geometry = (stroke.object3D as import("@iwsdk/core").Mesh).geometry;
+      const disposed = () => { selectedGeometryDisposals += 1; };
+      geometry.addEventListener("dispose", disposed);
+      releaseSelectionObserver = () => geometry.removeEventListener("dispose", disposed);
+      return { guid: stroke.getValue(BrushStroke, "guid"), extracted: stroke.hasComponent(ExtractedBatchedBrushStroke) };
+    },
+    clear: () => { library.prepareForCollabJoin(); releaseSelectionObserver?.(); releaseSelectionObserver = undefined; },
     xrStatus: () => ({ presenting: world.renderer.xr.isPresenting,
       views: world.renderer.xr.isPresenting ? world.renderer.xr.getCamera().cameras.length : 0,
       calls: world.renderer.info.render.calls, triangles: world.renderer.info.render.triangles }),
