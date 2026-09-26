@@ -56,6 +56,7 @@ Helper tests do not establish that ECS consumers call those helpers correctly. R
 7. Require eligible Flat workloads to reduce calls consistently with capacity splits and material passes. Require no repeatable frame-time, event-latency or memory regression beyond recorded baseline variability and agreed budgets. Fewer calls alone do not close the gate.
 8. For follow-up XR performance testing, specify refresh rate and frame budget (13.89 ms at 72 Hz; 11.11 ms at 90 Hz), acceptable missed-frame rate and event-stall limits before testing. Desktop averages do not establish headset performance; hardware testing is not a default-on prerequisite.
 9. Save commands, settings, raw results, matched images and interpretation in the ledger. SwiftShader remains useful for initialization/geometry diagnostics but cannot close GPU fidelity or hardware performance gates.
+10. User priority clarified on 2026-09-26: rendering and interactive responsiveness matter more than loading time. Use the existing numerical candidates to flag measurements for investigation, not as permission to accept an interactive regression. Treat modest loading costs separately; repeat suspicious rendering/editing results before judging them.
 
 ## 6. Performance investigations
 
@@ -100,7 +101,8 @@ Helper tests do not establish that ECS consumers call those helpers correctly. R
 6. Actual gallery reveal/replacement and three load/select/clear cycles now pass in both modes. Validation exposed and fixed transition elapsed time incorrectly including pre-transition loading/spawning. Warmed loaded geometry counts remain 4,540 reference and 66 batched; both return to 44 after every clear. See the ledger for the narrower rendering-owner and renderer-resource scope, rather than inferring image or memory-budget coverage.
 7. Extracted and pending-material fallback erase/picker checks now pass. Holding real Flat shader requests also verifies hidden/selected arrival and clear/GUID reuse; it exposed and fixed lost serialized movement when a moved fallback first entered batching. Saving while selected and opening the IndexedDB-backed entry after full page reload passes in both modes. VR save/gallery clicks remain untested.
 8. Connected browser peers now pass in both modes: initial snapshot, real live authoring in both directions, a 120-point transfer across multiple protocol chunks, exact logical-data comparison and remote undo/redo visibility. Reconnect, cross-version and adverse network timing remain untested.
-9. Next desktop work: transformed canvases, thin-edge tool cases, transition-frame images and broader resource budgets. The user confirmed that no Quest is available for this follow-up.
+9. The translated/rotated/1.5× scene-pose fixture passes the complete Flat smoke runner in both modes with pixel-identical captures. Nine sampled eraser offsets on a narrow Flat stroke produce identical hit/miss and history decisions. This does not validate physical world-grab gestures or every brush boundary.
+10. Next desktop work: repeated rendering and interactive-cost measurements, transition-frame images and broader resource budgets. Interactive VR save/gallery clicks, adverse peer networking and physical-headset performance remain separate coverage; no Quest is available for this follow-up.
 
 ## 10. Completed integration and non-goals
 

@@ -10,6 +10,7 @@ await mkdir(output, { recursive: true });
 // Playwright owns this temporary profile. Do not attach to a user's browser.
 const browser = await chromium.launch({ channel: "chrome", headless: false });
 const results = [];
+const transformed = process.argv.includes("--transformed");
 try {
   for (const enabled of [false, true]) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
@@ -30,6 +31,7 @@ try {
     await page.waitForFunction(() => document.documentElement.dataset.strokeBatchValidation === "ready", undefined, { timeout: 120_000 });
     const readyCounts = (await shadersReady).text().match(/ready: (\d+)\/(\d+)/);
     if (!readyCounts || readyCounts[1] !== readyCounts[2]) throw new Error("Incomplete managed shader loading");
+    const canvasPose = transformed ? await page.evaluate(() => window.transformStrokeBatchCanvas()) : { scale: 1 };
     await page.waitForTimeout(5000);
     const result = await page.evaluate(() => {
       const canvas = document.querySelector("canvas");
@@ -197,7 +199,7 @@ try {
     await writeFile(path.join(output, enabled ? "batched-picker.json" : "reference-picker.json"), JSON.stringify({ pickerBefore, pickerHidden, pickerMiss, pickerHit }, null, 2));
     requireState(pickerHit.activeTool === "free-paint", "dropper did not return to previous tool on hit");
     requireState(pickerHit.settings.brushGuid === eraseTarget.brushGuid, "dropper picked wrong brush");
-    requireState(Math.abs(pickerHit.settings.size - eraseTarget.size) < 1e-6, "dropper picked wrong size");
+    requireState(Math.abs(pickerHit.settings.size - eraseTarget.size * canvasPose.scale) < 1e-6, "dropper picked wrong room-space size");
     requireState(pickerHit.settings.color.every((value, index) => Math.abs(value - eraseTarget.color[index]) < 1e-6), "dropper picked wrong color");
     requireState(pickerHit.undoDepth === pickerMiss.undoDepth && pickerHit.redoDepth === pickerMiss.redoDepth, "dropper changed stroke history");
     await page.evaluate((guid) => window.manipulateStrokeBatchSelection(guid, "deselect"), eraseTarget.guid);
@@ -209,9 +211,31 @@ try {
     await drawStroke(440, true);
     const remote = await page.evaluate(() => window.exerciseStrokeBatchRemoteLifecycle());
     await writeFile(path.join(output, enabled ? "batched-remote.json" : "reference-remote.json"), JSON.stringify(remote, null, 2));
+    await page.evaluate(() => window.setStrokeBatchBrushSize(0.002));
+    const beforeThin = await inspectHistory();
+    await drawStroke(520);
+    const afterThin = await inspectHistory();
+    const thin = afterThin.strokes.find((stroke) => !beforeThin.strokes.some((old) => old.guid === stroke.guid));
+    requireState(thin?.finalized && thin.visible, "Thin test stroke missing");
+    await page.evaluate(() => window.inspectStrokeBatchHistory("eraser"));
+    const edgeSweep = [];
+    for (const offset of [0, 1, 2, 5, 10, 15, 20, 30, 50]) {
+      const before = await inspectHistory();
+      await eraseClick(640, 520 + offset);
+      const after = await inspectHistory();
+      const hit = !after.strokes.find((stroke) => stroke.guid === thin.guid)?.visible;
+      edgeSweep.push({ offset, hit, historyChanged: after.undoDepth !== before.undoDepth });
+      if (hit) await historyKey("z");
+    }
+    requireState(edgeSweep.some((entry) => entry.hit) && edgeSweep.some((entry) => !entry.hit), "Thin sweep did not cover hits and misses");
+    requireState(edgeSweep.every((entry) => entry.hit === entry.historyChanged), "Thin edge decision and history disagree");
+    await writeFile(path.join(output, enabled ? "batched-thin-edges.json" : "reference-thin-edges.json"), JSON.stringify({ canvasPose, thin, edgeSweep }, null, 2));
     await page.close();
   }
   await writeFile(path.join(output, "results.json"), JSON.stringify({ browser: browser.version(), results }, null, 2));
+  const { readFile } = await import("node:fs/promises");
+  const edgeDecisions = await Promise.all(["reference", "batched"].map(async (mode) => JSON.parse(await readFile(path.join(output, `${mode}-thin-edges.json`), "utf8")).edgeSweep));
+  if (JSON.stringify(edgeDecisions[0]) !== JSON.stringify(edgeDecisions[1])) throw new Error("Thin geometry hit decisions differ between renderers");
   console.log(JSON.stringify(results.map(({ enabled, renderer, metrics }) => ({ enabled, renderer, calls: metrics.strokeBatchRendererCalls, triangles: metrics.strokeBatchRendererTriangles, batches: metrics.strokeBatchCount, eligible: metrics.strokeBatchCompatibleStrokes }))));
   // Gross visibility gate for this blue Flat workload, not a fidelity metric.
   const coverage = [];

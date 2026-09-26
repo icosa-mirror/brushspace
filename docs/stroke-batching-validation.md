@@ -1,5 +1,11 @@
 # Stroke batching validation ledger
 
+## Transformed canvas and thin geometry: 2026-09-26
+
+1. The Flat smoke runner's `--transformed` mode translates the production scene-pose root by [0.3, 0.1, -0.2] m, rotates it 0.4 radians about Y and scales it uniformly by 1.5. The camera receives the same pose for matched framing. This sets the scene-pose entity directly; it does not emulate two-handed world-grab input.
+2. Both modes pass authoring, creation history, extracted erase/picker, receiver lifecycle, widget movement and persistence checks under this pose. Dropper size comparison uses room-space size, matching production's canvas-scale contract. A newly authored 0.002 m Flat brush is erased at nine vertical pixel offsets: 0/1/2/5/10 hit, 15/20/30/50 miss. All decisions and history changes match across modes. This covers a controlled narrow stroke and sampled boundaries, not every brush edge or overlap case.
+3. Matched pre-interaction captures are pixel-identical (137,111 blue pixels each, RMS 0). Calls remain 207 versus 8 with 13,374 triangles each. Evidence: `.iwsdk/batching-transformed-tools-2026-09-26/`, including `reference-thin-edges.json` and `batched-thin-edges.json`. Reproduce with `node scripts/browser-batching-smoke.mjs http://localhost:8081/ .iwsdk/batching-transformed-tools-2026-09-26 --transformed`. Type check and both full browser runs pass in RTX 4090 Chrome 154.0.8037.57, 1280×720, scale 1, after managed-material readiness and settling.
+
 ## Connected browser peers: 2026-09-26
 
 1. Two owned visible browser pages connect through the actual PeerJS broker and WebRTC transport in each renderer mode. A pre-existing supported-brush stroke reaches the guest through the join snapshot. Real host mouse input then draws a 120-control-point Flat stroke, exceeding the 50-point wire chunk limit; real guest drawing exercises the reverse direction. Keyboard guest undo/redo propagates visibility to the host.
@@ -172,7 +178,7 @@ Initial findings, retained for traceability:
 
 ## 4. Remaining evidence
 
-1. Interactive VR save/load UI, transformed canvases, thin-edge tool tolerance and broader resource retention budgets. Extracted and pending-material fallback tools, actual gallery reveal/replacement, three clear/load cycles and IndexedDB save/load across page reload now pass as recorded above. Transition-frame images and the animated new-sketch/welcome clearing paths remain untested.
+1. Interactive VR save/load UI, broader resource retention budgets, transition-frame images and the animated new-sketch/welcome clearing paths. Extracted/fallback tools, a transformed scene pose, a sampled narrow-Flat edge sweep, actual gallery reveal/replacement, three clear/load cycles and IndexedDB save/load across page reload now pass as recorded above. Other brush-edge/overlap cases remain untested.
 2. Reconnect/cross-version peers, adverse network timing and broader asynchronous removal/replacement cases. Connected transport in both directions and chunk assembly now pass. Real delayed Flat material arrival after selection/clear/GUID reuse also passes; that evidence does not cover every brush or network race.
 3. Physical-headset interaction and frame-budget evidence. Emulated stereo rendering is already recorded; no Quest is available for the current desktop follow-up.
 4. Broader views and brush coverage beyond the 12 types in the real-gallery comparison, including frustum edges and animated displacement. There is no alpha-blended brush family or transparency-order gate.

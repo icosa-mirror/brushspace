@@ -1,4 +1,4 @@
-import type { World } from "@iwsdk/core";
+import { Vector3, type World } from "@iwsdk/core";
 import { initialLoad } from "./initial-load.js";
 import { createPhase1FixtureDocument } from "../sketch/fixtures.js";
 import { FLAT_BATCH_BRUSH_GUID } from "../brushes/stroke-batch-feature.js";
@@ -11,7 +11,7 @@ import { SketchLibrarySystem } from "../systems/sketch-library-system.js";
 import { SelectionSystem } from "../systems/selection-system.js";
 import { createSketchDocument } from "../sketch/document.js";
 import { readTiltFile, writeTiltFile } from "../sketch/tilt-file.js";
-import { BatchedBrushStroke, BrushSettings, BrushStroke, CollabState, ExtractedBatchedBrushStroke, OpenBrushAppState, PersistenceState, SelectionState, StrokeHistoryState } from "../components/core.js";
+import { BatchedBrushStroke, BrushSettings, BrushStroke, CollabState, ExtractedBatchedBrushStroke, OpenBrushAppState, OpenBrushScenePose, PersistenceState, SelectionState, StrokeHistoryState } from "../components/core.js";
 import type { StrokeData } from "../types.js";
 import { OPEN_BRUSH_DROPPER_FORWARD_OFFSET } from "../tools/tools.js";
 import { exerciseStrokeBatchRemoteLifecycle } from "./stroke-batch-remote-validation.js";
@@ -24,6 +24,8 @@ declare global {
     exerciseStrokeBatchLifecycle?: typeof exerciseStrokeBatchLifecycle;
     inspectStrokeBatchHistory?: typeof inspectStrokeBatchHistory;
     manipulateStrokeBatchSelection?: typeof manipulateStrokeBatchSelection;
+    transformStrokeBatchCanvas?: () => { scale: number; position: number[]; orientation: number[] };
+    setStrokeBatchBrushSize?: (size: number) => void;
     strokeBatchDelayedMaterial?: {
       clear: () => void;
       spawn: (guid: string, offsetX: number, visible: boolean) => ReturnType<typeof inspectStrokeBatchHistory>;
@@ -90,6 +92,23 @@ export async function setupStrokeBatchValidation(world: World, waitForMaterial =
   window.exerciseStrokeBatchLifecycle = exerciseStrokeBatchLifecycle;
   window.inspectStrokeBatchHistory = inspectStrokeBatchHistory;
   window.manipulateStrokeBatchSelection = manipulateStrokeBatchSelection;
+  window.setStrokeBatchBrushSize = (size) => {
+    for (const settings of authoring.queries.brushSettings.entities) settings.setValue(BrushSettings, "size", size);
+  };
+  window.transformStrokeBatchCanvas = () => {
+    const pose = [...authoring.queries.scenePoses.entities][0];
+    if (!pose?.object3D) throw new Error("[StrokeBatchValidation] Canvas unavailable");
+    const object = pose.object3D;
+    object.position.set(0.3, 0.1, -0.2);
+    object.quaternion.setFromAxisAngle(new Vector3(0, 1, 0), 0.4);
+    object.scale.setScalar(1.5);
+    pose.setValue(OpenBrushScenePose, "scale", 1.5);
+    world.camera.position.multiplyScalar(1.5).applyQuaternion(object.quaternion).add(object.position);
+    world.camera.quaternion.premultiply(object.quaternion);
+    object.updateWorldMatrix(true, true);
+    world.camera.updateWorldMatrix(true, false);
+    return { scale: 1.5, position: object.position.toArray(), orientation: object.quaternion.toArray() };
+  };
   const library = world.getSystem(SketchLibrarySystem)!;
   window.strokeBatchPersistence = {
     save: () => library.saveActiveSketch(),
