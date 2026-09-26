@@ -173,10 +173,10 @@ export class StrokeBatchRenderSystem extends createSystem({
   }
 
   /** Synchronous bulk operation; uploads complete before returning to rendering. */
-  withDeferredUploads(operation: () => void): void {
+  withDeferredUploads<T>(operation: () => T): T {
     this.uploadScopeDepth += 1;
     try {
-      operation();
+      return operation();
     } finally {
       this.uploadScopeDepth -= 1;
       if (this.uploadScopeDepth === 0 && this.deferredFlushRequested) {
@@ -482,14 +482,18 @@ export class StrokeBatchRenderSystem extends createSystem({
 
   /** Bakes all current extractions before save/export or sketch replacement. */
   finishAllExtractions(): void {
-    for (const guid of this.extractionStart.keys()) {
-      const entity = this.findStrokeEntity(guid);
-      if (entity) {
-        this.finishStrokeExtraction(entity);
-      } else {
-        this.extractionStart.delete(guid);
+    if (this.extractionStart.size === 0) return;
+    this.withDeferredUploads(() => {
+      // A broad selection can contain thousands of strokes. Resolve them in
+      // one query traversal instead of rescanning the whole query per GUID.
+      for (const entity of this.queries.strokes.entities) {
+        const guid = String(entity.getValue(BrushStroke, "guid"));
+        if (this.extractionStart.has(guid)) {
+          this.finishStrokeExtraction(entity);
+        }
       }
-    }
+      this.extractionStart.clear();
+    });
   }
 
   /** Clears all batch resources in one operation before a sketch replacement. */

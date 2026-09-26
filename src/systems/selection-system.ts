@@ -22,6 +22,8 @@ export class SelectionSystem extends createSystem({
   private selectionCenter!: Vector3;
   private movementDelta!: Vector3;
   private lastSelectionRevision = -1;
+  private readonly summarizeWithBatches = () =>
+    this.summarizeSelection(this.world.getSystem(StrokeBatchRenderSystem));
 
   init() {
     this.widgetPosition = new Vector3();
@@ -35,9 +37,10 @@ export class SelectionSystem extends createSystem({
       return;
     }
 
-    const summary = this.summarizeSelection(
-      this.world.getSystem(StrokeBatchRenderSystem),
-    );
+    const batches = this.world.getSystem(StrokeBatchRenderSystem);
+    const summary = batches
+      ? batches.withDeferredUploads(this.summarizeWithBatches)
+      : this.summarizeSelection(undefined);
     this.setNumberIfChanged(
       selectionState,
       "selectedStrokeCount",

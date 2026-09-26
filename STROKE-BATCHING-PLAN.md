@@ -103,6 +103,7 @@ Helper tests do not establish that ECS consumers call those helpers correctly. R
 8. Connected browser peers now pass in both modes: initial snapshot, real live authoring in both directions, a 120-point transfer across multiple protocol chunks, exact logical-data comparison and remote undo/redo visibility. Reconnect, cross-version and adverse network timing remain untested.
 9. The translated/rotated/1.5× scene-pose fixture passes the complete Flat smoke runner in both modes with pixel-identical captures. Nine sampled eraser offsets on a narrow Flat stroke produce identical hit/miss and history decisions. This does not validate physical world-grab gestures or every brush boundary.
 10. Next desktop work: repeated rendering and interactive-cost measurements, transition-frame images and broader resource budgets. Interactive VR save/gallery clicks, adverse peer networking and physical-headset performance remain separate coverage; no Quest is available for this follow-up.
+11. Real-gallery interaction measurements exposed per-stroke upload amplification and quadratic lookup in bulk snapshot finishing. Coalescing selection/save uploads and using one query traversal reduce all-selected save requests from about 1.2 GB to 4.5 MB and median synchronous work from about 418 ms to 38 ms. Full checks and standard browser lifecycle regressions pass. Large-selection mesh creation and save-triggered release/recreation remain measured interactive costs to address or explicitly retain as limitations.
 
 ## 10. Completed integration and non-goals
 

@@ -5,12 +5,13 @@ import path from "node:path";
 const baseUrl = process.argv[2];
 const output = process.argv[3];
 const inspectOnly = process.argv.includes("--inspect");
+const interactionsOnly = process.argv.includes("--interactions");
 if (!baseUrl || !output) throw new Error("Usage: node scripts/browser-gallery-batching.mjs <runtime-url> <output-directory>");
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ channel: "chrome", headless: false });
 let chosen;
 try {
-  for (const enabled of inspectOnly ? [true] : process.argv.includes("--reverse") ? [true, false] : [false, true]) {
+  for (const enabled of inspectOnly && !interactionsOnly ? [true] : process.argv.includes("--reverse") ? [true, false] : [false, true]) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
@@ -50,6 +51,14 @@ try {
     const diagnostics = await page.evaluate(() => window.galleryBatchValidation.diagnostics());
     await writeFile(path.join(output, enabled ? "batched-state.json" : "reference-state.json"), JSON.stringify({ state, camera, errors, diagnostics }));
     await page.screenshot({ path: path.join(output, enabled ? "batched.png" : "reference.png") });
+    if (interactionsOnly) {
+      const interactions = await page.evaluate(() => window.galleryBatchValidation.interactions());
+      await writeFile(path.join(output, enabled ? "batched-interactions.json" : "reference-interactions.json"), JSON.stringify({ browser: browser.version(), errors, interactions }, null, 2));
+      if (errors.length) throw new Error("Interaction runtime errors recorded");
+      console.log(JSON.stringify({ enabled, interactionCases: interactions.results.length }));
+      await page.close();
+      continue;
+    }
     if (process.argv.includes("--xr")) {
       await page.locator("#enter-vr-button").click();
       await page.waitForFunction(() => window.galleryBatchValidation.xrStatus().presenting, undefined, { timeout: 15000 });

@@ -7,6 +7,7 @@ import { StrokeAuthoringSystem } from "../systems/stroke-authoring-system.js";
 import { StrokeBatchRenderSystem } from "../systems/stroke-batch-render-system.js";
 import { sampleStrokeBatchPerformance } from "./stroke-batch-performance-validation.js";
 import { exerciseGalleryBatchLifecycle } from "./stroke-batch-gallery-lifecycle.js";
+import { measureStrokeBatchInteractions } from "./stroke-batch-interaction-validation.js";
 
 declare global {
   interface Window { galleryBatchValidation?: ReturnType<typeof createGalleryValidation>; }
@@ -23,6 +24,7 @@ function createGalleryValidation(world: World) {
     entries: () => library.getGalleryPageEntries(),
     open: (id: string) => library.openGallerySketch(id),
     lifecycle: () => exerciseGalleryBatchLifecycle(world),
+    interactions: () => measureStrokeBatchInteractions(world),
     resources: () => {
       let strokes = 0, visible = 0, privateVisible = 0, extracted = 0, batchMeshes = 0, batchTriangles = 0;
       for (const entity of authoring.queries.strokes.entities) {
