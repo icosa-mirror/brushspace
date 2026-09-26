@@ -37,12 +37,12 @@ export async function measureStrokeBatchInteractions(world: World) {
             if (library.collectVisibleStrokeData().length !== strokes.length) throw new Error("[BatchInteractions] Snapshot lost strokes");
           }
           actionCpuMs = performance.now() - start;
-          // Save is observed synchronously; the next stage measures the
-          // production selection reconciliation on following frames.
+          // Save is observed synchronously; following frames must retain
+          // selection without releasing/recreating geometry or uploads.
           if (action !== "save") for (let frame = 0; frame < 6; frame += 1) await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
           const extracted = strokes.filter((stroke) => stroke.hasComponent(ExtractedBatchedBrushStroke)).length;
           const privateVisible = strokes.filter((stroke) => stroke.object3D?.visible).length;
-          const expectedPrivate = renderer.getMetrics().enabled ? (action === "save" || action === "deselect" ? 0 : count) : strokes.length;
+          const expectedPrivate = renderer.getMetrics().enabled ? (action === "deselect" ? 0 : count) : strokes.length;
           if (privateVisible !== expectedPrivate) throw new Error(`[BatchInteractions] ${action}: private ownership ${privateVisible} != ${expectedPrivate}`);
           results.push({ count, repeat, action, actionCpuMs, ecsMs, renderMs, requestedUploadBytes: renderer.getUploadedBytes() - beforeUploads, extracted, privateVisible });
         } finally {

@@ -643,7 +643,7 @@ export class SketchLibrarySystem extends createSystem({
   // -------------------------------------------------------------------------
 
   private collectStrokeData(): StrokeData[] {
-    this.world.getSystem(StrokeBatchRenderSystem)?.finishAllExtractions();
+    const batches = this.world.getSystem(StrokeBatchRenderSystem);
     const strokes: Array<{ data: StrokeData; order: number }> = [];
     for (const entity of this.queries.strokes.entities) {
       if (
@@ -657,11 +657,11 @@ export class SketchLibrarySystem extends createSystem({
         | undefined;
       if (data) {
         const position = entity.object3D?.position;
-        // Batch extractions were baked above. Private meshes still carry their
-        // editing translation separately from the original control points.
+        // Snapshot pending extraction movement without releasing edit geometry.
+        // Private fallback meshes carry their full translation separately.
         const snapshot = position && !entity.hasComponent(BatchedBrushStroke)
           ? createTranslatedStrokeSnapshot(data, [position.x, position.y, position.z])
-          : data;
+          : batches?.getStrokeDataSnapshot(entity) ?? data;
         strokes.push({
           data: snapshot,
           order: Number(entity.getValue(BrushStroke, "commandIndex")),

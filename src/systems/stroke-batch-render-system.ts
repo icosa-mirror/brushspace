@@ -32,7 +32,7 @@ import type { StrokeBatch } from "../brushes/stroke-batch.js";
 import { createBrushRenderMaterial } from "../brushes/brush-render-material.js";
 import { openBrushShaderLibrary } from "../brushes/brush-shader-library.js";
 import type { StrokeData, Vec3 } from "../types.js";
-import { translateStrokeDataControlPoints } from "../strokes/selection.js";
+import { createTranslatedStrokeSnapshot, translateStrokeDataControlPoints } from "../strokes/selection.js";
 
 const LOG_PREFIX = "[StrokeBatchRender]";
 
@@ -480,7 +480,17 @@ export class StrokeBatchRenderSystem extends createSystem({
     return true;
   }
 
-  /** Bakes all current extractions before save/export or sketch replacement. */
+  /** Include pending edit translation without changing rendering ownership. */
+  getStrokeDataSnapshot(entity: Entity): StrokeData | undefined {
+    const data = entity.object3D?.userData.openBrushStrokeData as StrokeData | undefined;
+    if (!data || !entity.object3D) return data;
+    const start = this.extractionStart.get(String(entity.getValue(BrushStroke, "guid")));
+    if (!start) return data;
+    const position = entity.object3D.position;
+    return createTranslatedStrokeSnapshot(data, [position.x - start[0], position.y - start[1], position.z - start[2]]);
+  }
+
+  /** Explicitly recommit current extractions for consumers needing batch ownership. */
   finishAllExtractions(): void {
     if (this.extractionStart.size === 0) return;
     this.withDeferredUploads(() => {

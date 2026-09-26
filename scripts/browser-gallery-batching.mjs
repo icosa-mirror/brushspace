@@ -45,6 +45,12 @@ try {
     if (loaded.status !== "loaded") throw new Error(`Gallery load failed: ${loaded.error}`);
     const shaderCounts = (await shadersReady).text().match(/ready: (\d+)\/(\d+)/);
     if (shaderCounts[1] !== shaderCounts[2]) throw new Error("Incomplete managed shader loading");
+    const gpu = await page.evaluate(() => {
+      const gl = document.querySelector("canvas").getContext("webgl2");
+      const extension = gl.getExtension("WEBGL_debug_renderer_info");
+      return extension ? gl.getParameter(extension.UNMASKED_RENDERER_WEBGL) : null;
+    });
+    if (!gpu || /swiftshader|software|llvmpipe/i.test(gpu)) throw new Error("Hardware GPU required");
     const camera = await page.evaluate(() => window.galleryBatchValidation.frame());
     await page.waitForTimeout(5000);
     const state = await page.evaluate(() => window.galleryBatchValidation.inspect());
@@ -53,7 +59,7 @@ try {
     await page.screenshot({ path: path.join(output, enabled ? "batched.png" : "reference.png") });
     if (interactionsOnly) {
       const interactions = await page.evaluate(() => window.galleryBatchValidation.interactions());
-      await writeFile(path.join(output, enabled ? "batched-interactions.json" : "reference-interactions.json"), JSON.stringify({ browser: browser.version(), errors, interactions }, null, 2));
+      await writeFile(path.join(output, enabled ? "batched-interactions.json" : "reference-interactions.json"), JSON.stringify({ browser: browser.version(), gpu, errors, interactions }, null, 2));
       if (errors.length) throw new Error("Interaction runtime errors recorded");
       console.log(JSON.stringify({ enabled, interactionCases: interactions.results.length }));
       await page.close();
@@ -84,11 +90,6 @@ try {
     }
     await page.waitForTimeout(5000);
     const sample = await page.evaluate(() => window.galleryBatchValidation.sample());
-    const gpu = await page.evaluate(() => {
-      const gl = document.querySelector("canvas").getContext("webgl2");
-      const extension = gl.getExtension("WEBGL_debug_renderer_info");
-      return extension ? gl.getParameter(extension.UNMASKED_RENDERER_WEBGL) : null;
-    });
     await writeFile(path.join(output, enabled ? "batched.json" : "reference.json"), JSON.stringify({ chosen, browser: browser.version(), gpu, loadMs, camera, state, errors, sample }));
     if (errors.length || sample.hidden || !gpu || /swiftshader|software|llvmpipe/i.test(gpu)) throw new Error("Invalid runtime; inspect recorded evidence");
     const total = state.brushes.reduce((sum, brush) => sum + brush.strokes, 0);

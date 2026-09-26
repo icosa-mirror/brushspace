@@ -73,7 +73,8 @@ try {
       requireState(stages.selected.uploadBytes === stages["selected-idle"].uploadBytes, "idle selection uploads repeatedly");
       requireState(!stages["moved-deselected"].extracted && stages["moved-deselected"].privateVertices === 0, "deselection did not reclaim geometry");
       requireState(Math.abs(stages["moved-deselected"].serializedX - stages.initial.serializedX - 0.1) < 1e-6, "movement was not baked once");
-      requireState(!stages["save-flushed"].extracted && stages["selected-after-save"].extracted, "save/re-extraction transition failed");
+      requireState(stages["save-flushed"].extracted && stages["selected-after-save"].extracted, "save lost selected private ownership");
+      requireState(stages["selected-after-save"].uploadBytes === stages["save-flushed"].uploadBytes, "save caused re-extraction uploads");
       requireState(stages["selected-after-save"].uploadBytes === stages["after-save-idle"].uploadBytes, "idle after save uploads repeatedly");
       requireState(Math.abs(stages.final.serializedX - stages.initial.serializedX - 0.15) < 1e-6, "save/deselection duplicated movement");
     }
@@ -132,6 +133,9 @@ try {
     const movedSnapshotAgain = await manipulate("save");
     requireState(Math.abs(movedSnapshot.savedX - target(selectedMove).serializedX - 0.1) < 1e-6, "widget movement lost or duplicated in save");
     requireState(Math.abs(movedSnapshot.roundTripX - movedSnapshot.savedX) < 1e-6 && Math.abs(movedSnapshotAgain.savedX - movedSnapshot.savedX) < 1e-6, "repeated save changed moved points");
+    await manipulate("move", 0.05);
+    const movedAfterSave = await manipulate("save");
+    requireState(Math.abs(movedAfterSave.savedX - movedSnapshot.savedX - 0.05) < 1e-6, "movement after selected save was lost or duplicated");
     await historyKey("z");
     const movedUndo = await inspectHistory();
     requireState(!target(movedUndo).visible && !target(movedUndo).privateVisible, "undo creation left selected moved geometry visible");
@@ -140,11 +144,11 @@ try {
     const movedRedo = await inspectHistory();
     requireState(target(movedRedo).visible, "redo creation lost moved stroke");
     const restoredSnapshot = await manipulate("save");
-    requireState(Math.abs(restoredSnapshot.savedX - movedSnapshot.savedX) < 1e-6, "redo changed saved movement");
+    requireState(Math.abs(restoredSnapshot.savedX - movedAfterSave.savedX) < 1e-6, "redo changed saved movement");
     const deselectedMove = await manipulate("deselect");
     requireState(!target(deselectedMove).extracted && target(deselectedMove).privateVisible === !enabled, "deselection did not restore rendering ownership");
     if (enabled) requireState(deselectedMove.batchTriangles === createdHistory.batchTriangles, "deselection changed restored triangles");
-    await writeFile(path.join(output, enabled ? "batched-widget-history.json" : "reference-widget-history.json"), JSON.stringify({ selectedMove, movedSelection, movedSnapshot, movedSnapshotAgain, movedUndo, movedRedo, restoredSnapshot, deselectedMove }, null, 2));
+    await writeFile(path.join(output, enabled ? "batched-widget-history.json" : "reference-widget-history.json"), JSON.stringify({ selectedMove, movedSelection, movedSnapshot, movedSnapshotAgain, movedAfterSave, movedUndo, movedRedo, restoredSnapshot, deselectedMove }, null, 2));
     await historyKey("z");
     await drawStroke(380);
     const replacedHistory = await inspectHistory();
