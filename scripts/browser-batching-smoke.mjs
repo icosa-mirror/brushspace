@@ -150,6 +150,8 @@ try {
     await writeFile(path.join(output, enabled ? "batched-history.json" : "reference-history.json"), JSON.stringify({ baselineHistory, createdHistory, undoneHistory, redoneHistory, replacedHistory }, null, 2));
     const eraseTarget = replacedHistory.strokes.find((stroke) => !baselineGuids.has(stroke.guid));
     requireState(eraseTarget?.visible, "replacement stroke missing before eraser test");
+    const extractedErase = await page.evaluate((guid) => window.manipulateStrokeBatchSelection(guid, "select"), eraseTarget.guid);
+    requireState(extractedErase.strokes.find((stroke) => stroke.guid === eraseTarget.guid)?.extracted === enabled, "erase target was not extracted");
     await page.evaluate(() => window.inspectStrokeBatchHistory("eraser"));
     const eraseClick = async (x, y) => {
       await page.mouse.move(x, y);
@@ -179,12 +181,14 @@ try {
     const hiddenErase = await inspectHistory();
     requireState(hiddenErase.undoDepth === redoErase.undoDepth, "hidden subset was erased again");
     if (enabled) requireState(hiddenErase.batchTriangles === baselineHistory.batchTriangles, "hidden erase changed batch triangles");
-    await writeFile(path.join(output, enabled ? "batched-erase.json" : "reference-erase.json"), JSON.stringify({ missedErase, erasedHistory, undoErase, redoErase, hiddenErase }, null, 2));
+    await writeFile(path.join(output, enabled ? "batched-erase.json" : "reference-erase.json"), JSON.stringify({ extractedErase, missedErase, erasedHistory, undoErase, redoErase, hiddenErase }, null, 2));
     const pickerBefore = await page.evaluate(() => window.inspectStrokeBatchHistory("dropper"));
     await eraseClick(640, 380);
     const pickerHidden = await inspectHistory();
     requireState(pickerHidden.activeTool === "dropper" && JSON.stringify(pickerHidden.settings) === JSON.stringify(pickerBefore.settings), "dropper picked hidden geometry");
     await historyKey("z");
+    const extractedPicker = await page.evaluate((guid) => window.manipulateStrokeBatchSelection(guid, "select"), eraseTarget.guid);
+    requireState(extractedPicker.strokes.find((stroke) => stroke.guid === eraseTarget.guid)?.extracted === enabled, "picker target was not extracted");
     await eraseClick(900, 550);
     const pickerMiss = await inspectHistory();
     requireState(pickerMiss.activeTool === "dropper" && JSON.stringify(pickerMiss.settings) === JSON.stringify(pickerBefore.settings), "dropper miss changed settings");
@@ -196,11 +200,12 @@ try {
     requireState(Math.abs(pickerHit.settings.size - eraseTarget.size) < 1e-6, "dropper picked wrong size");
     requireState(pickerHit.settings.color.every((value, index) => Math.abs(value - eraseTarget.color[index]) < 1e-6), "dropper picked wrong color");
     requireState(pickerHit.undoDepth === pickerMiss.undoDepth && pickerHit.redoDepth === pickerMiss.redoDepth, "dropper changed stroke history");
+    await page.evaluate((guid) => window.manipulateStrokeBatchSelection(guid, "deselect"), eraseTarget.guid);
     await drawStroke(410);
     const afterPickerDraw = await inspectHistory();
     requireState(afterPickerDraw.undoDepth === pickerHit.undoDepth + 1 && afterPickerDraw.redoDepth === 0, "painting did not resume after releasing dropper press");
     requireState(afterPickerDraw.strokes.length === pickerHit.strokes.length + 1, "post-dropper gesture did not create a stroke");
-    await writeFile(path.join(output, enabled ? "batched-picker.json" : "reference-picker.json"), JSON.stringify({ pickerBefore, pickerHidden, pickerMiss, pickerHit, afterPickerDraw }, null, 2));
+    await writeFile(path.join(output, enabled ? "batched-picker.json" : "reference-picker.json"), JSON.stringify({ pickerBefore, pickerHidden, extractedPicker, pickerMiss, pickerHit, afterPickerDraw }, null, 2));
     await drawStroke(440, true);
     const remote = await page.evaluate(() => window.exerciseStrokeBatchRemoteLifecycle());
     await writeFile(path.join(output, enabled ? "batched-remote.json" : "reference-remote.json"), JSON.stringify(remote, null, 2));

@@ -1,5 +1,11 @@
 # Stroke batching validation ledger
 
+## Extracted eraser and picker targets: 2026-09-26
+
+1. The Flat smoke driver now selects the browser-authored eraser/picker target before input. Batched mode confirms extraction; both modes then receive normal browser mouse presses. Eraser miss/hit, undo/redo, repeat clicks on hidden geometry, hidden picker rejection, visible brush/size/color recovery and drawing after pick all pass. Earlier runs retain the unselected-target evidence.
+2. Raw evidence is `.iwsdk/batching-extracted-tools-2026-09-26/`, including the selected states in erase/picker observations. Pre-interaction calls remain 207 versus 8 with equal triangles. Capture difference (279 RGB channels, RMS 1.574) is not a transition-image gate or calibrated fidelity conclusion; the earlier pixel-identical matched runs remain recorded.
+3. Type checking passes. The complete smoke driver, including selection/save/history and receiver checks, passes in RTX 4090 Chrome 154.0.8037.57 at 1280×720, device scale 1, with complete managed materials and normal settling. This does not cover thin-edge tolerance or transformed canvases.
+
 ## Progressive gallery reveal and clear/load cycles: 2026-09-26
 
 1. A new hardware-browser runner opens the same first-page gallery sketch through `openGallerySketch`, observes animation-frame changes during reveal and replacement, selects a stroke through ECS and clears via the production `prepareForCollabJoin` path. Three load/select/clear cycles in each renderer mode are followed by replacement without an immediate clear. The workload has 4,496 strokes and, in batched mode, 22 batch meshes.
