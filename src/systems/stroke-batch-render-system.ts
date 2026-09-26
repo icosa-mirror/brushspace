@@ -243,6 +243,16 @@ export class StrokeBatchRenderSystem extends createSystem({
         objectPosition.y,
         objectPosition.z,
       ]);
+      // A fallback mesh may have moved before its managed material arrived.
+      // Its points are still local; the first transfer must preserve the same
+      // translation in serialized data that was applied to batch vertices.
+      if (!entity.hasComponent(BatchedBrushStroke)) {
+        translateStrokeDataControlPoints(strokeData, [
+          objectPosition.x,
+          objectPosition.y,
+          objectPosition.z,
+        ]);
+      }
     }
     this.manager.setStrokeVisible(
       guid,

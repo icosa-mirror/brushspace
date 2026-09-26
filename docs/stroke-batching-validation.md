@@ -1,5 +1,13 @@
 # Stroke batching validation ledger
 
+## Delayed material, fallback tools and browser persistence: 2026-09-26
+
+1. The development `batch-validation=delayed` fixture starts with no generated strokes and does not await managed materials. The driver holds two real Flat GLSL requests in its own temporary browser profile. It makes the startup overlay inert and sets ready drawing mode to deliberately exercise normal mouse input before startup finishes. Both modes pass fallback finalization, eraser miss/hit/undo/redo/hidden rejection, and picker hidden rejection plus visible brush/size/color recovery. This does not validate the normal startup UI or unsupported-geometry fallbacks.
+2. While requests remain held, the production collaboration-clear path removes the pending authored stroke. The receiver then creates a hidden replacement with its GUID and different points, plus a selected stroke moved through the widget. Releasing requests uses the real material-loaded callbacks. Both modes retain exactly the two replacement strokes; the hidden one stays hidden, its new points survive GUID reuse, selection keeps private ownership, and deselection restores the expected renderer.
+3. This exposed a batching defect: selected fallback movement of 0.10 m reached shared vertices on first commit, but not the persisted points. The failing batched snapshot changed from approximately -0.10 before arrival to -0.20 afterward; reference snapshots remained approximately -0.10. First commit now translates control points alongside batch geometry when transferring a moved private mesh. Existing batched strokes are excluded from this initial point translation to avoid reapplying their accumulated offset. The corrected arrival/save/deselection checks pass.
+4. Saving while selected uses `saveActiveSketch`, tilt bytes and thumbnail generation in the actual browser store. A full page reload then opens that local gallery entry through `openGallerySketch`; both modes recover one visible stroke with the saved movement, omitting the hidden stroke. IndexedDB databases are present. This tests production system APIs and real persistence across runtime destruction, not clicking the VR save/gallery UI.
+5. Evidence: `.iwsdk/batching-delayed-material-before-fix-2026-09-26/` preserves failing arrival state; `.iwsdk/batching-delayed-persistence-2026-09-26/` contains successful fallback tool, arrival and page-reload observations. Reproduce with `node scripts/browser-batching-delayed-material.mjs http://localhost:8081/ .iwsdk/batching-delayed-persistence-2026-09-26`. Chrome 154.0.8037.57, RTX 4090 ANGLE D3D11, 1280×720, scale 1, HTTP; pins/lockfile are unchanged. No page errors are recorded. Type checking, 555 tests (77 files, 4 TODOs) and production build pass. The preceding extracted-tool commit is `96b3216`; this run includes the first-transfer fix and delayed fixture.
+
 ## Extracted eraser and picker targets: 2026-09-26
 
 1. The Flat smoke driver now selects the browser-authored eraser/picker target before input. Batched mode confirms extraction; both modes then receive normal browser mouse presses. Eraser miss/hit, undo/redo, repeat clicks on hidden geometry, hidden picker rejection, visible brush/size/color recovery and drawing after pick all pass. Earlier runs retain the unselected-target evidence.
@@ -157,8 +165,8 @@ Initial findings, retained for traceability:
 
 ## 4. Remaining evidence
 
-1. Interactive save/load, transformed canvases, extracted/fallback tool targets and broader resource retention budgets. Actual gallery reveal/replacement and three clear/load cycles now pass as recorded above; transition-frame images and the animated new-sketch/welcome clearing paths remain untested.
-2. Connected-peer transfers, delayed managed-material availability and stale asynchronous work after removal/replacement.
+1. Interactive VR save/load UI, transformed canvases, thin-edge tool tolerance and broader resource retention budgets. Extracted and pending-material fallback tools, actual gallery reveal/replacement, three clear/load cycles and IndexedDB save/load across page reload now pass as recorded above. Transition-frame images and the animated new-sketch/welcome clearing paths remain untested.
+2. Connected-peer transfers and broader asynchronous removal/replacement cases. Real delayed Flat material arrival after selection/clear/GUID reuse now passes; that evidence does not cover every brush or network race.
 3. Physical-headset interaction and frame-budget evidence. Emulated stereo rendering is already recorded; no Quest is available for the current desktop follow-up.
 4. Broader views and brush coverage beyond the 12 types in the real-gallery comparison, including frustum edges and animated displacement. There is no alpha-blended brush family or transparency-order gate.
 5. Load/event-latency and retained-capacity budgets. Existing matched images, draw-call counts and repeated desktop timing pairs remain recorded above.

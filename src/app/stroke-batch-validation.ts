@@ -11,7 +11,7 @@ import { SketchLibrarySystem } from "../systems/sketch-library-system.js";
 import { SelectionSystem } from "../systems/selection-system.js";
 import { createSketchDocument } from "../sketch/document.js";
 import { readTiltFile, writeTiltFile } from "../sketch/tilt-file.js";
-import { BatchedBrushStroke, BrushSettings, BrushStroke, ExtractedBatchedBrushStroke, OpenBrushAppState, SelectionState, StrokeHistoryState } from "../components/core.js";
+import { BatchedBrushStroke, BrushSettings, BrushStroke, CollabState, ExtractedBatchedBrushStroke, OpenBrushAppState, PersistenceState, SelectionState, StrokeHistoryState } from "../components/core.js";
 import type { StrokeData } from "../types.js";
 import { OPEN_BRUSH_DROPPER_FORWARD_OFFSET } from "../tools/tools.js";
 import { exerciseStrokeBatchRemoteLifecycle } from "./stroke-batch-remote-validation.js";
@@ -24,16 +24,26 @@ declare global {
     exerciseStrokeBatchLifecycle?: typeof exerciseStrokeBatchLifecycle;
     inspectStrokeBatchHistory?: typeof inspectStrokeBatchHistory;
     manipulateStrokeBatchSelection?: typeof manipulateStrokeBatchSelection;
+    strokeBatchDelayedMaterial?: {
+      clear: () => void;
+      spawn: (guid: string, offsetX: number, visible: boolean) => ReturnType<typeof inspectStrokeBatchHistory>;
+    };
+    strokeBatchPersistence?: {
+      save: () => void;
+      entries: () => ReturnType<SketchLibrarySystem["getGalleryPageEntries"]>;
+      open: (id: string) => boolean;
+      snapshot: () => StrokeData[];
+    };
     exerciseStrokeBatchRemoteLifecycle?: () => ReturnType<typeof exerciseStrokeBatchRemoteLifecycle>;
     sampleStrokeBatchPerformance?: () => ReturnType<typeof sampleStrokeBatchPerformance>;
   }
 }
 
 /** Development-only workload using the production loaded-stroke lifecycle. */
-export async function setupStrokeBatchValidation(world: World): Promise<void> {
-  await initialLoad.whenDone;
+export async function setupStrokeBatchValidation(world: World, waitForMaterial = true): Promise<void> {
+  if (waitForMaterial) await initialLoad.whenDone;
   const entry = openBrushInventory.find((brush) => brush.guid === FLAT_BATCH_BRUSH_GUID);
-  if (!entry || !await openBrushShaderLibrary.load(entry)) {
+  if (!entry || (waitForMaterial && !await openBrushShaderLibrary.load(entry))) {
     throw new Error("[StrokeBatchValidation] Managed Flat material unavailable");
   }
   const authoring = world.getSystem(StrokeAuthoringSystem);
@@ -42,7 +52,7 @@ export async function setupStrokeBatchValidation(world: World): Promise<void> {
   world.camera.position.set(0, 1.3, 1);
   world.camera.rotation.set(0, 0, 0);
   const template = createPhase1FixtureDocument().strokes[0];
-  const count = 200;
+  const count = waitForMaterial ? 200 : 0;
   world.getSystem(StrokeBatchRenderSystem)!.withDeferredUploads(() => {
     for (let index = 0; index < count; index += 1) {
       const stroke = structuredClone(template);
@@ -80,6 +90,27 @@ export async function setupStrokeBatchValidation(world: World): Promise<void> {
   window.exerciseStrokeBatchLifecycle = exerciseStrokeBatchLifecycle;
   window.inspectStrokeBatchHistory = inspectStrokeBatchHistory;
   window.manipulateStrokeBatchSelection = manipulateStrokeBatchSelection;
+  const library = world.getSystem(SketchLibrarySystem)!;
+  window.strokeBatchPersistence = {
+    save: () => library.saveActiveSketch(),
+    entries: () => library.getGalleryPageEntries(),
+    open: (id) => library.openGallerySketch(id),
+    snapshot: () => library.collectVisibleStrokeData(),
+  };
+  if (!waitForMaterial) {
+    window.strokeBatchDelayedMaterial = {
+      clear: () => world.getSystem(SketchLibrarySystem)!.prepareForCollabJoin(),
+      spawn: (guid, offsetX, visible) => {
+        const data = structuredClone(template);
+        data.guid = guid;
+        data.brushGuid = FLAT_BATCH_BRUSH_GUID;
+        for (const point of data.controlPoints) point.position[0] += offsetX;
+        authoring.finalizeRemoteStroke(data);
+        authoring.applyRemoteVisibility([guid], visible);
+        return inspectStrokeBatchHistory();
+      },
+    };
+  }
   window.exerciseStrokeBatchRemoteLifecycle = () => exerciseStrokeBatchRemoteLifecycle(world);
   window.sampleStrokeBatchPerformance = () => sampleStrokeBatchPerformance(world);
   console.log(`[StrokeBatchValidation] Ready: ${count} finalized Flat strokes`);
@@ -131,6 +162,14 @@ function inspectStrokeBatchHistory(prepare: boolean | "eraser" | "dropper" = fal
     } : null,
     undoDepth: history?.getValue(StrokeHistoryState, "undoDepth"),
     redoDepth: history?.getValue(StrokeHistoryState, "redoDepth"),
+    persistence: {
+      busy: validationWorld!.getSystem(SketchLibrarySystem)!.isOpeningSketch(),
+      status: appState?.getValue(PersistenceState, "status"),
+      id: appState?.getValue(PersistenceState, "activeSketchId"),
+      bytes: appState?.getValue(PersistenceState, "lastTiltByteLength"),
+      error: appState?.getValue(PersistenceState, "error"),
+    },
+    collab: { status: appState?.getValue(CollabState, "status"), code: appState?.getValue(CollabState, "code") },
     strokes: [...authoring.queries.strokes.entities]
       .filter((entity) => !String(entity.getValue(BrushStroke, "guid")).startsWith("batch-validation-"))
       .map((entity) => ({

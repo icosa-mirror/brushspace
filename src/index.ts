@@ -238,9 +238,10 @@ World.create(document.getElementById("scene-container") as HTMLDivElement, {
     .registerSystem(PerformanceCounterSystem)
     .registerSystem(RuntimeDebugSystem);
 
-  if (import.meta.env.DEV && new URLSearchParams(window.location.search).get("batch-validation") === "flat") {
+  const batchValidationMode = new URLSearchParams(window.location.search).get("batch-validation");
+  if (import.meta.env.DEV && (batchValidationMode === "flat" || batchValidationMode === "delayed")) {
     void import("./app/stroke-batch-validation.js")
-      .then(({ setupStrokeBatchValidation }) => setupStrokeBatchValidation(world))
+      .then(({ setupStrokeBatchValidation }) => setupStrokeBatchValidation(world, batchValidationMode !== "delayed"))
       .catch((error) => {
         document.documentElement.dataset.strokeBatchValidation = "failed";
         console.error("[StrokeBatchValidation]", error);
