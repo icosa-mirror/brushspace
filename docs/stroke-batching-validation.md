@@ -1,5 +1,12 @@
 # Stroke batching validation ledger
 
+## Connected browser peers: 2026-09-26
+
+1. Two owned visible browser pages connect through the actual PeerJS broker and WebRTC transport in each renderer mode. A pre-existing supported-brush stroke reaches the guest through the join snapshot. Real host mouse input then draws a 120-control-point Flat stroke, exceeding the 50-point wire chunk limit; real guest drawing exercises the reverse direction. Keyboard guest undo/redo propagates visibility to the host.
+2. Both modes retain exactly three logical strokes and compare brush GUID/size, seed, sampler-tail marker, color and all control points across peers. Final private/batch ownership matches the mode. Undo leaves no private owner visible and redo restores matching data. This validates connected transport and final chunk assembly; it does not inspect every intermediate progress frame, reconnect/cross-version behavior or adverse network timing.
+3. Evidence is `.iwsdk/batching-peers-2026-09-26/{reference,batched}.json`, with snapshots and production `debugState()` network summaries. Reproduce with `node scripts/browser-batching-peers.mjs http://localhost:8081/ .iwsdk/batching-peers-2026-09-26`. The existing localhost-only collaboration debug helpers start/join the session and seed one stroke; subsequent strokes and history commands use normal browser input.
+4. Chrome 154.0.8037.57, visible 1280×720 pages, scale 1, HTTP, complete managed materials, unchanged library/lockfile pins. Application includes `883de6f`; only the peer runner is new. Both modes record zero page errors. This is functional collaboration coverage, not latency, GPU-fidelity or headset-performance evidence.
+
 ## Delayed material, fallback tools and browser persistence: 2026-09-26
 
 1. The development `batch-validation=delayed` fixture starts with no generated strokes and does not await managed materials. The driver holds two real Flat GLSL requests in its own temporary browser profile. It makes the startup overlay inert and sets ready drawing mode to deliberately exercise normal mouse input before startup finishes. Both modes pass fallback finalization, eraser miss/hit/undo/redo/hidden rejection, and picker hidden rejection plus visible brush/size/color recovery. This does not validate the normal startup UI or unsupported-geometry fallbacks.
@@ -166,7 +173,7 @@ Initial findings, retained for traceability:
 ## 4. Remaining evidence
 
 1. Interactive VR save/load UI, transformed canvases, thin-edge tool tolerance and broader resource retention budgets. Extracted and pending-material fallback tools, actual gallery reveal/replacement, three clear/load cycles and IndexedDB save/load across page reload now pass as recorded above. Transition-frame images and the animated new-sketch/welcome clearing paths remain untested.
-2. Connected-peer transfers and broader asynchronous removal/replacement cases. Real delayed Flat material arrival after selection/clear/GUID reuse now passes; that evidence does not cover every brush or network race.
+2. Reconnect/cross-version peers, adverse network timing and broader asynchronous removal/replacement cases. Connected transport in both directions and chunk assembly now pass. Real delayed Flat material arrival after selection/clear/GUID reuse also passes; that evidence does not cover every brush or network race.
 3. Physical-headset interaction and frame-budget evidence. Emulated stereo rendering is already recorded; no Quest is available for the current desktop follow-up.
 4. Broader views and brush coverage beyond the 12 types in the real-gallery comparison, including frustum edges and animated displacement. There is no alpha-blended brush family or transparency-order gate.
 5. Load/event-latency and retained-capacity budgets. Existing matched images, draw-call counts and repeated desktop timing pairs remain recorded above.
