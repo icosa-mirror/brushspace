@@ -1,5 +1,12 @@
 # Stroke batching validation ledger
 
+## Ten cleanup cycles and garbage-collected heap observations: 2026-09-26
+
+1. `browser-gallery-transitions.mjs --cycles 10 --heap` extends the existing real-gallery load/select/clear test and samples Chrome `Runtime.getHeapUsage` after explicit garbage collection in the owned test page. Both modes pass all ten cycles, selected-private disposal checks, progressive reveal and final replacement. Raw data is `.iwsdk/batching-resource-cycles-2026-09-26/{reference,batched}.json` plus per-cycle traces.
+2. Warmed loaded geometry counts remain 4,540 reference versus 66 batched; every clear returns to 44 geometries, 25 textures and zero logical strokes/batch meshes/extraction components. Cleared backing storage remains approximately 59.73 MiB reference and 59.85 MiB batched through all ten cycles.
+3. Cleared used JS heap drifts from about 84.90 to 86.09 MiB reference and 84.89 to 85.51 MiB batched. This does not prove a heap plateau or absence of all leaks; it shows no batching-specific growth regression in this ten-cycle comparison. Driver/GPU byte allocations are not measured by these counters. Longer-running heap attribution and capacity-fragmentation budgets remain separate work.
+4. Reproduce with `node scripts/browser-gallery-transitions.mjs http://localhost:8081/ .iwsdk/batching-resource-cycles-2026-09-26 --cycles 10 --heap`. Application `25fdd90`/`48bee30` plus the extended driver (the intervening commit changes only evidence docs), unchanged pins; visible hardware Chrome 154.0.8037.57, 1280×720, scale 1. Heap snapshots are taken after the existing two-second loaded/one-second cleared settling periods. This functional/retention run is separate from timing comparisons; forced GC would invalidate normal responsiveness measurements.
+
 ## Repeated gallery timing after interactive fixes: 2026-09-26
 
 1. Application `25fdd90`; unchanged lockfile/library pins; Chrome 154.0.8037.57 and RTX 4090 ANGLE D3D11. Six fresh visible pages run off/on, on/off, off/on against the same first-page gallery sketch, camera and 1280×720 viewport at device scale 1. Each waits for complete managed materials, five seconds before capture, then another five seconds before a 30-second sample. Other browser tests, builds and application edits remain idle during sampling. The workspace benchmark lock is held for this run and released afterward.

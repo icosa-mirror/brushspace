@@ -3,6 +3,10 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const [baseUrl, output] = process.argv.slice(2);
+const cycleOption = process.argv.indexOf("--cycles");
+const cycleCount = cycleOption < 0 ? 3 : Number(process.argv[cycleOption + 1]);
+if (!Number.isInteger(cycleCount) || cycleCount < 3 || cycleCount > 20) throw new Error("--cycles must be an integer from 3 to 20");
+const measureHeap = process.argv.includes("--heap");
 if (!baseUrl || !output) throw new Error("Usage: node scripts/browser-gallery-transitions.mjs <runtime-url> <output-directory>");
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ channel: "chrome", headless: false });
@@ -11,6 +15,12 @@ let chosen;
 try {
   for (const enabled of [false, true]) {
     const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
+    const heapSession = measureHeap ? await page.context().newCDPSession(page) : undefined;
+    const heap = async () => {
+      if (!heapSession) return undefined;
+      await heapSession.send("HeapProfiler.collectGarbage");
+      return heapSession.send("Runtime.getHeapUsage");
+    };
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("console", (message) => {
@@ -51,13 +61,14 @@ try {
       return { frames, status: api.inspect().status };
     }, chosen.id);
     const resources = () => page.evaluate(() => window.galleryBatchValidation.resources());
-    for (let cycle = 0; cycle < 3; cycle += 1) {
+    for (let cycle = 0; cycle < cycleCount; cycle += 1) {
       const trace = await open();
       await writeFile(path.join(output, `${enabled ? "batched" : "reference"}-reveal-${cycle}.json`), JSON.stringify(trace, null, 2));
       check(trace.status === "loaded", "Gallery load failed");
       await page.evaluate(() => window.galleryBatchValidation.frame());
       await page.waitForTimeout(2000);
       const loaded = await resources();
+      const loadedHeap = await heap();
       check(loaded.strokes > 0 && loaded.visible === loaded.strokes, "Load did not reveal all strokes");
       check(trace.frames.some((state) => state.visible > 0 && state.visible < loaded.strokes), "No progressive reveal observed");
       check(trace.frames.every((state, index) => index === 0 || state.visible >= trace.frames[index - 1].visible), "Reveal visibility went backwards");
@@ -72,6 +83,7 @@ try {
       await page.evaluate(() => window.galleryBatchValidation.clear());
       await page.waitForTimeout(1000);
       const cleared = await resources();
+      const clearedHeap = await heap();
       await writeFile(path.join(output, `${enabled ? "batched" : "reference"}-cycle-${cycle}.json`), JSON.stringify({ loaded, selection, selected, cleared }, null, 2));
       check(cleared.strokes === 0 && cleared.batchMeshes === 0 && cleared.extracted === 0 && cleared.privateVisible === 0, "Clear retained stroke render owners");
       check(cleared.selectedGeometryDisposals === 1, "Clear did not dispose selected private geometry exactly once");
@@ -83,7 +95,7 @@ try {
         check(cleared.geometries <= cycles[0].cleared.geometries, "Cleared geometry count grew across cycles");
         check(cleared.textures <= cycles[0].cleared.textures, "Texture count grew across cycles");
       }
-      cycles.push({ cycle, trace, loaded, selected, cleared });
+      cycles.push({ cycle, trace, loaded, selected, cleared, loadedHeap, clearedHeap });
       await writeFile(path.join(output, enabled ? "batched.json" : "reference.json"), JSON.stringify({ chosen, enabled, browser: browser.version(), gpu, errors, cycles }, null, 2));
     }
     // Reopen without an immediate clear to exercise the outgoing transition too.
