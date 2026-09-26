@@ -96,6 +96,8 @@ Helper tests do not establish that ECS consumers call those helpers correctly. R
 2. CPU submission gains, unchanged geometry counts, matched captures and three repeated timing pairs are recorded in the ledger. GPU timings vary and are not evidence of a GPU speedup.
 3. Gallery lifecycle checks pass for all 12 brush types present, including hide/show, extraction, move/save/recommit, reverse translation and layer visibility. Batches now match the private stroke path's disabled frustum culling until shader-aware conservative bounds are implemented.
 4. Batching work is merged into local main, with default-on activation and an explicit opt-out. Private agent journals are excluded. Retain the explicit no-push/no-PR policy.
+5. Desktop follow-up on 2026-09-26 passes production selection-widget translation, repeated save/tilt snapshots, creation undo/redo after movement and deselection in both modes. The complete Flat smoke runner remains green, with pixel-identical captures and 207-to-8 scene calls. See the ledger for revisions and scope. Movement itself has no history operation in either mode; adding one is a separate feature, not a batching parity fix.
+6. Next desktop work: actual progressive reveal and repeated clear/load resource checks, then extracted/fallback tool targets and delayed/asynchronous material transfers. Connected-peer and interactive save/load coverage remain open. The user confirmed that no Quest is available for this follow-up.
 
 ## 10. Completed integration and non-goals
 

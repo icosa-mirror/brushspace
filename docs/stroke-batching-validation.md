@@ -1,5 +1,14 @@
 # Stroke batching validation ledger
 
+## Selection widget and creation history: 2026-09-26
+
+1. The development fixture now selects a browser-authored stroke and moves the production selection widget by 0.10 m. `SelectionSystem` applies the translation; the driver does not directly move the stroke or inject history entries. Selection is set through ECS, so this does not cover pointer/controller selection or grabbing the widget.
+2. In both modes, selection establishes private rendering ownership, movement reaches the stroke, two save snapshots preserve the translation exactly once, and a binary tilt encode/decode preserves the saved point within float tolerance. Keyboard undo of creation hides the selected moved stroke; redo restores its saved position. Deselection restores private ownership in reference mode and batch ownership in batched mode, with the original triangle count. This is creation undo/redo after movement, not movement undo: production history currently supports only `create` and `erase` operations.
+3. The complete existing Flat smoke runner also passes authoring, erase/picker, receiver lifecycle and provisional-tail replay checks. Pre-interaction captures are pixel-identical (138,878 blue pixels each, RMS 0). Scene calls remain 207 reference versus 8 batched, with 13,374 triangles each. No frame-time or event-latency conclusion follows from this functional run.
+4. Environment: visible Chrome 154.0.8037.57, RTX 4090 through ANGLE D3D11, 1280×720, device scale 1, HTTP runtime, full managed-shader readiness and five-second settling. Application base `79fa076611366d6515fe1656e0e03416e0fd8ffe` plus this validation-driver change; package-lock SHA256 `DA798AE6AAD2632C6BFF94089DE586E6FD3AB66E01283E32716C622C833FA1A7`. Library pins are unchanged from the recorded audit. The user confirmed no headset is available.
+5. Raw evidence is local under `.iwsdk/batching-widget-history-2026-09-26/`, including `reference-widget-history.json`, `batched-widget-history.json`, captures, lifecycle/tool/receiver observations and `results.json`. Reproduce against an existing runtime with `node scripts/browser-batching-smoke.mjs http://localhost:8081/ .iwsdk/batching-widget-history-2026-09-26`. This run owns and closes its temporary Chrome profile.
+6. Type check, `npm run check` (77 files, 555 passing tests, 4 existing TODOs) and production build pass. Gates C and D remain open for the cases listed in section 4. Interactive save/load, two-peer transport, asynchronous material work, sustained resource budgets and hardware XR remain untested.
+
 ## Real-gallery comparison: 2026-09-07
 
 1. Removed the Flat-only opt-in restriction after comparing the renderer with Open Brush's brush/canvas batch pools. All supported generated-geometry brushes use the existing shared material/attribute/pass contract; unavailable geometry or shader support remains an explicit fallback. Batching is now enabled by default; `?strokeBatches=0` or `?strokeBatches=false` restores the private renderer.
@@ -111,7 +120,7 @@ Initial findings, retained for traceability:
 1. Branch: `claude/stroke-batching`.
 2. Runtime switch: batching is enabled by default; `?strokeBatches=0` or `?strokeBatches=false` disables it. Explicit `1` and `true` remain supported.
 3. Runtime eligibility: all supported generated-geometry brushes once their managed shader is loaded; no per-brush allowlist. Earlier Flat-only results retain their original scope.
-4. Reference renderer: the unchanged per-stroke path when the switch is absent.
+4. Reference renderer: the per-stroke path when `strokeBatches=0` or `strokeBatches=false` is set. An absent switch enables batching.
 
 ## 2. Deterministic evidence
 
@@ -131,14 +140,13 @@ Initial findings, retained for traceability:
 3. Successful batch commits dispose private stroke geometry. Selection recreates one private subset mesh on demand and disposes it after recommit.
 4. Eraser and picker geometry tests route through the logical batch subset after private geometry disposal. Layer visibility changes are state-driven and coalesced into at most one batch upload per layer-system update.
 
-## 4. Evidence not yet recorded
+## 4. Remaining evidence
 
-1. A GPU-backed matched image for Flat versus the per-stroke renderer.
-2. Measured draw-call reduction for the same loaded sketch in both modes.
-3. Browser interaction checks for reveal, layers, undo/redo, erase, selection, save/load, and local/remote finalization.
-4. Immersive-XR interaction and frame-budget evidence.
-5. Representative cutout, transparent/additive, particle/animated, and multi-pass brush images.
-6. “The Upside Down” before/after calls, frame time, triangles, batch count, and fallback count.
+1. Actual progressive reveal, interactive save/load, transformed canvases, extracted/fallback tool targets and resource retention across repeated clear/load cycles. Recorded Flat and gallery checks above cover narrower cases.
+2. Connected-peer transfers, delayed managed-material availability and stale asynchronous work after removal/replacement.
+3. Physical-headset interaction and frame-budget evidence. Emulated stereo rendering is already recorded; no Quest is available for the current desktop follow-up.
+4. Broader views and brush coverage beyond the 12 types in the real-gallery comparison, including frustum edges and animated displacement. There is no alpha-blended brush family or transparency-order gate.
+5. Load/event-latency and retained-capacity budgets. Existing matched images, draw-call counts and repeated desktop timing pairs remain recorded above.
 
 ## 5. Gate status
 

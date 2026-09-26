@@ -8,9 +8,10 @@ import { IntroSketchSystem } from "../systems/intro-sketch-system.js";
 import { StrokeAuthoringSystem } from "../systems/stroke-authoring-system.js";
 import { StrokeBatchRenderSystem } from "../systems/stroke-batch-render-system.js";
 import { SketchLibrarySystem } from "../systems/sketch-library-system.js";
+import { SelectionSystem } from "../systems/selection-system.js";
 import { createSketchDocument } from "../sketch/document.js";
 import { readTiltFile, writeTiltFile } from "../sketch/tilt-file.js";
-import { BatchedBrushStroke, BrushSettings, BrushStroke, ExtractedBatchedBrushStroke, OpenBrushAppState, StrokeHistoryState } from "../components/core.js";
+import { BatchedBrushStroke, BrushSettings, BrushStroke, ExtractedBatchedBrushStroke, OpenBrushAppState, SelectionState, StrokeHistoryState } from "../components/core.js";
 import type { StrokeData } from "../types.js";
 import { OPEN_BRUSH_DROPPER_FORWARD_OFFSET } from "../tools/tools.js";
 import { exerciseStrokeBatchRemoteLifecycle } from "./stroke-batch-remote-validation.js";
@@ -22,6 +23,7 @@ declare global {
   interface Window {
     exerciseStrokeBatchLifecycle?: typeof exerciseStrokeBatchLifecycle;
     inspectStrokeBatchHistory?: typeof inspectStrokeBatchHistory;
+    manipulateStrokeBatchSelection?: typeof manipulateStrokeBatchSelection;
     exerciseStrokeBatchRemoteLifecycle?: () => ReturnType<typeof exerciseStrokeBatchRemoteLifecycle>;
     sampleStrokeBatchPerformance?: () => ReturnType<typeof sampleStrokeBatchPerformance>;
   }
@@ -77,6 +79,7 @@ export async function setupStrokeBatchValidation(world: World): Promise<void> {
   validationWorld = world;
   window.exerciseStrokeBatchLifecycle = exerciseStrokeBatchLifecycle;
   window.inspectStrokeBatchHistory = inspectStrokeBatchHistory;
+  window.manipulateStrokeBatchSelection = manipulateStrokeBatchSelection;
   window.exerciseStrokeBatchRemoteLifecycle = () => exerciseStrokeBatchRemoteLifecycle(world);
   window.sampleStrokeBatchPerformance = () => sampleStrokeBatchPerformance(world);
   console.log(`[StrokeBatchValidation] Ready: ${count} finalized Flat strokes`);
@@ -138,9 +141,40 @@ function inspectStrokeBatchHistory(prepare: boolean | "eraser" | "dropper" = fal
         visible: Boolean(entity.getValue(BrushStroke, "renderVisible")),
         finalized: Boolean(entity.getValue(BrushStroke, "finalized")),
         batched: entity.hasComponent(BatchedBrushStroke),
+        selected: Boolean(entity.getValue(BrushStroke, "selected")),
+        extracted: entity.hasComponent(ExtractedBatchedBrushStroke),
+        objectX: entity.object3D?.position.x,
+        serializedX: (entity.object3D?.userData.openBrushStrokeData as StrokeData | undefined)?.controlPoints[0]?.position[0],
         privateVisible: entity.object3D?.visible,
       })),
   };
+}
+
+/** Move the production widget; SelectionSystem applies the stroke translation. */
+async function manipulateStrokeBatchSelection(guid: string, action: "select" | "move" | "deselect" | "save", deltaX = 0) {
+  const world = validationWorld;
+  const selection = world?.getSystem(SelectionSystem);
+  if (!world || !selection) throw new Error("[StrokeBatchValidation] Selection unavailable");
+  const stroke = [...selection.queries.strokes.entities].find((entity) => entity.getValue(BrushStroke, "guid") === guid);
+  if (!stroke) throw new Error("[StrokeBatchValidation] Selection target missing");
+  if (action === "save") {
+    const saved = world.getSystem(SketchLibrarySystem)!.collectVisibleStrokeData().find((data) => data.guid === guid);
+    if (!saved) throw new Error("[StrokeBatchValidation] Selected snapshot missing");
+    const decoded = readTiltFile(writeTiltFile(createSketchDocument({ strokes: [saved] })));
+    return { savedX: saved.controlPoints[0].position[0], roundTripX: decoded.strokes[0].controlPoints[0].position[0] };
+  }
+  if (action === "move") {
+    const widget = [...selection.queries.widgets.entities][0];
+    if (!widget?.object3D || !stroke.getValue(BrushStroke, "selected")) throw new Error("[StrokeBatchValidation] Widget not ready");
+    widget.object3D.position.x += deltaX;
+  } else {
+    for (const entity of selection.queries.strokes.entities) entity.setValue(BrushStroke, "selected", action === "select" && entity === stroke);
+    for (const state of selection.queries.selectionState.entities) {
+      state.setValue(SelectionState, "selectionRevision", Number(state.getValue(SelectionState, "selectionRevision")) + 1);
+    }
+  }
+  for (let frame = 0; frame < 5; frame += 1) await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  return inspectStrokeBatchHistory();
 }
 
 /** Test driver for actual ECS selection reconciliation and renderer transitions. */
